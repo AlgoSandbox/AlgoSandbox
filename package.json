@@ -1,5 +1,5 @@
 {
-  "name": "algosandbox",
+  "name": "algo-sandbox",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,19 +9,26 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "clsx": "^2.0.0",
+    "d3": "^7.8.5",
+    "lodash": "^4.17.21",
+    "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "next": "latest"
+    "react-inspector": "^6.0.2",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
-    "typescript": "latest",
-    "@types/react": "latest",
+    "@types/d3": "^7.4.1",
+    "@types/lodash": "^4.14.199",
     "@types/node": "latest",
+    "@types/react": "latest",
     "@types/react-dom": "latest",
     "autoprefixer": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
     "postcss": "latest",
     "tailwindcss": "latest",
-    "eslint": "latest",
-    "eslint-config-next": "latest"
+    "typescript": "latest"
   }
 }

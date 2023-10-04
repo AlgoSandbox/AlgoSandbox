@@ -26,7 +26,7 @@ export default function Pseudocode({
             <div key={i}>{i + 1}</div>
           ))}
         </div>
-        <pre className="flex flex-col">
+        <pre className="flex flex-col overflow-x-auto">
           {pseudocode.split('\n').map((line, lineIndex) => {
             const lineNumber = lineIndex + 1;
             return (
@@ -36,7 +36,7 @@ export default function Pseudocode({
                     endLine !== undefined &&
                     startLine <= lineNumber &&
                     lineNumber <= endLine &&
-                    'bg-purple-200 whitespace-pre'
+                    'bg-purple-200 w-fit'
                 )}
                 key={lineNumber}
               >

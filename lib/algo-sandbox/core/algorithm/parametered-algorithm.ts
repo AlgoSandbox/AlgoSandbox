@@ -1,21 +1,26 @@
 import { z } from 'zod';
-import { SandboxContext } from '.';
+import {
+  Parametered,
+  Parameters,
+  ParsedParameters,
+  SandboxExecutionContext,
+} from '..';
 import { SandboxAlgorithm } from './algorithm';
-import { ParsedParameters, SandboxParameters } from './parameters';
 
-export type SandboxParameteredAlgorithm<T, U, P extends SandboxParameters> = {
-  parameters: P;
-  createAlgorithm: (parameters?: ParsedParameters<P>) => SandboxAlgorithm<T, U>;
-};
+export type SandboxParameteredAlgorithm<
+  T,
+  U,
+  P extends Parameters
+> = Parametered<SandboxAlgorithm<T, U>, P>;
 
 type SandboxContextWithParameters<
   T,
-  P extends SandboxParameters
-> = SandboxContext<T> & {
+  P extends Parameters
+> = SandboxExecutionContext<T> & {
   parameters: ParsedParameters<P>;
 };
 
-function getDefaultParameters<P extends SandboxParameters>(
+function getDefaultParameters<P extends Parameters>(
   parameters: P
 ): ParsedParameters<P> {
   return Object.fromEntries(
@@ -27,14 +32,16 @@ export function createParameteredAlgorithm<
   StateShape extends z.AnyZodObject,
   U,
   T = z.infer<StateShape>,
-  P extends SandboxParameters = SandboxParameters
+  P extends Parameters = Parameters
 >({
+  name,
   parameters,
   getInitialState,
   getPseudocode,
   runAlgorithm,
 }: {
   accepts: StateShape;
+  name: string;
   parameters: P;
   getInitialState: (problem: T) => U;
   getPseudocode: (parameters: ParsedParameters<P>) => string;
@@ -43,8 +50,10 @@ export function createParameteredAlgorithm<
   ) => ReturnType<SandboxAlgorithm<T, U>['runAlgorithm']>;
 }): SandboxParameteredAlgorithm<T, U, P> {
   return {
+    name,
     parameters,
-    createAlgorithm: (parsedParameters = getDefaultParameters(parameters)) => ({
+    create: (parsedParameters = getDefaultParameters(parameters)) => ({
+      name,
       pseudocode: getPseudocode(parsedParameters),
       getInitialState,
       runAlgorithm(context) {

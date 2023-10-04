@@ -1,27 +1,82 @@
 'use client';
-
 import { Button, MaterialSymbol, Pseudocode } from '@/components';
-import { SearchAlgorithms } from '@/lib/algo-sandbox/algorithms/search';
-import { createScene } from '@/lib/algo-sandbox/core';
-import { UndirectedGraphSearchProblems } from '@/lib/algo-sandbox/problems/graphs';
-import { NodeGraphVisualization } from '@/lib/algo-sandbox/visualizations';
-import { useMemo, useState } from 'react';
+import { VisualizerRenderer } from '@/lib/algo-sandbox/components';
+import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
+import Visualizers from '@/lib/algo-sandbox/visualizers';
+import Select from '@/components/Select';
+import Algorithms from '@/lib/algo-sandbox/algorithms';
+import { createScene } from '@/lib/algo-sandbox/core';
+import Problems from '@/lib/algo-sandbox/problems';
+import { SelectOptions } from '@/components/Select';
 
-const initialScene = createScene({
-  algorithm: SearchAlgorithms.bfs,
-  problem: UndirectedGraphSearchProblems.fiveNodes,
-});
-const pseudocode = initialScene.algorithm.pseudocode;
+export const algorithmOptions = Object.entries(Algorithms).map(
+  ([groupKey, values]) => ({
+    key: groupKey,
+    label: groupKey,
+    options: Object.entries(values).map(([algorithmKey, algorithm]) => ({
+      key: algorithmKey,
+      label: algorithm.name,
+      value: algorithm,
+    })),
+  })
+) satisfies SelectOptions;
+
+export const problemOptions = Object.entries(Problems).map(
+  ([groupKey, values]) => ({
+    key: groupKey,
+    label: groupKey,
+    options: Object.entries(values).map(([problemKey, problem]) => ({
+      key: problemKey,
+      label: problem.name,
+      value: problem,
+    })),
+  })
+) satisfies SelectOptions;
 
 export default function Home() {
-  const [scene, setScene] = useState(initialScene);
-  const isFullyExecuted = useMemo(() => scene.isFullyExecuted, [scene]);
+  const [selectedAlgorithmOption, setSelectedAlgorithmOption] = useState(
+    algorithmOptions[0].options[0]
+  );
+  const [selectedProblemOption, setSelectedProblemOption] = useState(
+    problemOptions[0].options[0]
+  );
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const executionStep = scene.executionTrace.at(currentStepIndex);
-  const { startLine, endLine } =
-    scene.executionTrace.at(currentStepIndex) ?? {};
+
+  const algorithm = useMemo(
+    () => selectedAlgorithmOption.value,
+    [selectedAlgorithmOption.value]
+  );
+  const problem = useMemo(
+    () => selectedProblemOption.value,
+    [selectedProblemOption.value]
+  );
+
+  const initialScene = useMemo(
+    () =>
+      createScene({
+        algorithm,
+        problem,
+      }),
+    [algorithm, problem]
+  );
+  const [scene, setScene] = useState(initialScene);
+  const pseudocode = algorithm.pseudocode;
+
   const [showPseudocode, setShowPseudocode] = useState(true);
+  const isFullyExecuted = useMemo(() => scene.isFullyExecuted, [scene]);
+
+  const executionStep = scene.executionTrace[currentStepIndex];
+  const { startLine, endLine } = executionStep;
+
+  const nodeGraphVisualization = Visualizers.Graphs.searchGraph.visualize(
+    executionStep.state
+  );
+
+  useEffect(() => {
+    setCurrentStepIndex(0);
+    setScene(initialScene);
+  }, [initialScene]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -95,45 +150,54 @@ export default function Home() {
         />
       </header>
       <div className="flex-1 flex">
-        <aside className="border-e max-w-[200px] p-2">
+        <aside className="border-e max-w-[500px] p-2">
           <div className="flex flex-col">
-            <span className="font-medium text-xs border-b mb-2 pb-2">
-              State inspector
-            </span>
-            {executionStep && (
-              <div className="font-mono overflow-x-auto text-xs">
-                <ObjectInspector data={executionStep.state} expandLevel={5} />
-              </div>
-            )}
-          </div>
-        </aside>
-        <main className="relative flex-1 flex-col">
-          {showPseudocode && (
-            <Pseudocode
-              pseudocode={pseudocode}
-              startLine={startLine}
-              endLine={endLine}
-            />
-          )}
-          <div className="flex-1">
-            {executionStep && (
-              <NodeGraphVisualization
-                key={currentStepIndex}
-                graph={executionStep.state.graph}
-                getNodeFill={(nodeId) => {
-                  console.log(nodeId);
-                  if (executionStep.state.currNode === nodeId) {
-                    return '#cdf5b8';
-                  }
-                  if (executionStep.state.visited.has(nodeId)) {
-                    return '#a1a1a1';
-                  }
-                }}
+            <div className="border-b mb-2 pb-2">
+              <Select
+                label="Algorithm"
+                options={algorithmOptions}
+                value={selectedAlgorithmOption}
+                onChange={setSelectedAlgorithmOption}
+              />
+            </div>
+            {showPseudocode && (
+              <Pseudocode
+                pseudocode={pseudocode}
+                startLine={startLine}
+                endLine={endLine}
               />
             )}
           </div>
+        </aside>
+        <main className="relative flex-1 flex flex-col">
+          <div className="border-b p-2">
+            <Select
+              label="Problem"
+              options={problemOptions}
+              value={selectedProblemOption}
+              onChange={setSelectedProblemOption}
+            />
+          </div>
+          <div className="flex-1">
+            <VisualizerRenderer
+              className="w-full h-full"
+              visualization={nodeGraphVisualization}
+            />
+          </div>
         </main>
       </div>
+      <footer className="border-t p-2">
+        <div className="flex flex-col">
+          <span className="font-medium text-xs border-b mb-2 pb-2">
+            State inspector
+          </span>
+          {executionStep && (
+            <div className="font-mono overflow-x-auto text-xs">
+              <ObjectInspector data={executionStep.state} expandLevel={5} />
+            </div>
+          )}
+        </div>
+      </footer>
     </div>
   );
 }

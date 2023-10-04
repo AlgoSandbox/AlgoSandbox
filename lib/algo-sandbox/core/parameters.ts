@@ -1,16 +1,25 @@
-export type SandboxParameter<T = any> = {
+import { unknown } from 'zod';
+
+export type Parameter<T = any> = {
   name: string;
   defaultValue: T;
 };
 
-export type SandboxParameters = Readonly<
-  Record<string, SandboxParameter<unknown>>
->;
+export type Parameters<T = Record<string, unknown>> = Readonly<{
+  [K in keyof T]: Parameter<T[K]>;
+}>;
 
-export type ParsedParameter<P extends SandboxParameter> =
-  P extends SandboxParameter<infer T> ? T : never;
+export type Parametered<T, P extends Parameters> = {
+  name: string;
+  parameters: P;
+  create: (parameters: ParsedParameters<P>) => T;
+};
 
-export type ParsedParameters<P extends SandboxParameters> = Readonly<{
+export type ParsedParameter<P extends Parameter> = P extends Parameter<infer T>
+  ? T
+  : never;
+
+export type ParsedParameters<P extends Parameters> = Readonly<{
   [K in keyof P]: ParsedParameter<P[K]>;
 }>;
 
@@ -18,10 +27,20 @@ export namespace SandboxParam {
   export function integer(
     name: string,
     defaultValue: number
-  ): SandboxParameter<number> {
+  ): Parameter<number> {
     return {
       name,
       defaultValue,
+    };
+  }
+
+  export function callback<T extends Function>(
+    name: string,
+    defaultValue: T
+  ): Parameter<T> {
+    return {
+      name,
+      defaultValue: defaultValue as unknown as T,
     };
   }
 }

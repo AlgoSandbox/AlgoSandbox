@@ -1,6 +1,6 @@
 import { SandboxExecutionStep } from './execution';
 
-export type SandboxContext<T> = {
+export type SandboxExecutionContext<T> = {
   state: T;
   line: SandboxLineFunction<T>;
 };

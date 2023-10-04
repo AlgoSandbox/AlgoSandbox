@@ -33,6 +33,7 @@ export const exampleParameteredProblem = createParameteredProblem({
 });
 
 export const exampleAlgorithm: SandboxAlgorithm<ExampleState, ExampleState> = {
+  name: 'Example algorithm',
   pseudocode: 'set counter to 0\nwhile counter < 10:\n  increment counter\nend',
   getInitialState: (problem) => problem,
   *runAlgorithm({ line, state }) {
@@ -51,6 +52,7 @@ export const exampleAlgorithm: SandboxAlgorithm<ExampleState, ExampleState> = {
 };
 
 export const exampleParameteredAlgorithm = createParameteredAlgorithm({
+  name: 'Example parametered algorithm',
   accepts: z.object({
     counter: z.number(),
   }),

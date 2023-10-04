@@ -10,7 +10,7 @@ import { createScene } from '@/lib/algo-sandbox/core';
 import Problems from '@/lib/algo-sandbox/problems';
 import { SelectOptions } from '@/components/Select';
 
-export const algorithmOptions = Object.entries(Algorithms).map(
+const algorithmOptions = Object.entries(Algorithms).map(
   ([groupKey, values]) => ({
     key: groupKey,
     label: groupKey,
@@ -22,17 +22,15 @@ export const algorithmOptions = Object.entries(Algorithms).map(
   })
 ) satisfies SelectOptions;
 
-export const problemOptions = Object.entries(Problems).map(
-  ([groupKey, values]) => ({
-    key: groupKey,
-    label: groupKey,
-    options: Object.entries(values).map(([problemKey, problem]) => ({
-      key: problemKey,
-      label: problem.name,
-      value: problem,
-    })),
-  })
-) satisfies SelectOptions;
+const problemOptions = Object.entries(Problems).map(([groupKey, values]) => ({
+  key: groupKey,
+  label: groupKey,
+  options: Object.entries(values).map(([problemKey, problem]) => ({
+    key: problemKey,
+    label: problem.name,
+    value: problem,
+  })),
+})) satisfies SelectOptions;
 
 export default function Home() {
   const [selectedAlgorithmOption, setSelectedAlgorithmOption] = useState(

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { isBoolean } from 'lodash';
-import { SandboxAlgorithm } from './algorithm';
-import { SandboxProblem } from './problem';
+import { SandboxAlgorithm } from '../algorithm/algorithm';
+import { SandboxProblem } from '../problem/problem';
 
 export type SandboxExecutionStep<T> = {
   startLine: number;

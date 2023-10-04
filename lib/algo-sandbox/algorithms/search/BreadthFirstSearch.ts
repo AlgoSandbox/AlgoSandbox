@@ -1,44 +1,41 @@
-import { SearchGraph } from '.';
+import { SearchGraph, SearchGraphState } from '.';
 import { SandboxAlgorithm } from '@/lib/algo-sandbox/core';
 
-type BFSState = {
-  graph: SearchGraph;
-  q: Array<string>;
-  visited: Set<string>;
-  currNode: string | null;
-};
-
 const pseudocode = `BFS(G, start):
-  Create an empty queue Q
+  Create an empty queue toVisit
   Create a boolean array visited of size |V| (where V is the set of vertices)
   Initialize all elements of visited to false
 
-  Enqueue start into Q
+  Enqueue start into toVisit
   Set visited[start] to true
 
-  while Q is not empty:
-      Dequeue a vertex v from Q
+  while toVisit is not empty:
+      Dequeue a vertex v from toVisit
       if v is the end node, terminate
 
       for each neighbor u of v:
           if u is not visited:
-              Enqueue u into Q
+              Enqueue u into toVisit
               Set visited[u] to true`;
 
-export const breadthFirstSearch: SandboxAlgorithm<SearchGraph, BFSState> = {
+export const breadthFirstSearch: SandboxAlgorithm<
+  SearchGraph,
+  SearchGraphState
+> = {
+  name: 'Breadth-first search',
   pseudocode,
   getInitialState(problem) {
     return {
       graph: problem,
-      q: [],
+      toVisit: [],
       visited: new Set(),
-      currNode: null,
+      currentNodeId: null,
     };
   },
   *runAlgorithm({ line, state }) {
     yield line(2, 4);
     // Enqueue start into Q
-    state.q.push(state.graph.startId);
+    state.toVisit.push(state.graph.startId);
     yield line(6);
 
     // Set visited[start] to true
@@ -47,24 +44,32 @@ export const breadthFirstSearch: SandboxAlgorithm<SearchGraph, BFSState> = {
 
     while (true) {
       yield line(9);
-      if (state.q.length === 0) {
+      if (state.toVisit.length === 0) {
         break;
       }
-      state.currNode = state.q.splice(0, 1)[0];
+      state.currentNodeId = state.toVisit.splice(0, 1)[0];
       yield line(10, 11);
-      if (state.currNode === state.graph.endId) {
+      if (state.currentNodeId === state.graph.endId) {
         break;
       }
 
       // each neighbor of v
       for (const [start, end] of state.graph.edges) {
-        if (start !== state.currNode && end !== state.currNode) {
+        const startNodeId =
+          typeof start === 'string' ? start : state.graph.nodes[start].id;
+        const endNodeId =
+          typeof end === 'string' ? end : state.graph.nodes[end].id;
+        if (
+          startNodeId !== state.currentNodeId &&
+          endNodeId !== state.currentNodeId
+        ) {
           continue;
         }
 
-        const neighbor = start === state.currNode ? end : start;
+        const neighbor =
+          start === state.currentNodeId ? endNodeId : startNodeId;
         if (!state.visited.has(neighbor)) {
-          state.q.push(neighbor);
+          state.toVisit.push(neighbor);
           state.visited.add(neighbor);
         }
       }

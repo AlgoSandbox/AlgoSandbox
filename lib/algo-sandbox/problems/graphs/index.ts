@@ -1,20 +1,9 @@
-export type GraphEdge<K> = [K, K];
-export type GraphNode<K> = {
-  id: K;
-};
+export * from './graph';
 
-export type NodeGraph<K = any> = {
-  nodes: Array<GraphNode<K>>;
-  edges: Array<GraphEdge<K>>;
-  directed: boolean;
-};
+import undirected from './undirected-graphs';
 
-export type UndirectedGraph<K = any> = NodeGraph<K> & {
-  directed: false;
-};
+namespace Graphs {
+  export import Undirected = undirected;
+}
 
-export type DirectedGraph<K = any> = NodeGraph<K> & {
-  directed: false;
-};
-
-export * from './examples/undirected-graphs';
+export default Graphs;

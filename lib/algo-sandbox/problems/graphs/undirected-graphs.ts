@@ -1,0 +1,55 @@
+import { UndirectedGraph } from '.';
+import { SearchGraph } from '../../algorithms/search';
+import { SandboxProblem } from '../../core';
+
+const fiveNodesGraph = {
+  nodes: [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }],
+  edges: [
+    ['A', 'B'],
+    ['B', 'C'],
+    ['B', 'D'],
+    ['D', 'E'],
+    ['A', 'E'],
+  ],
+  directed: false,
+} satisfies UndirectedGraph;
+
+const tenNodesGraph = {
+  nodes: 'ABCDEFGHIJ'.split('').map((id) => ({ id })),
+  edges: [
+    ['A', 'B'],
+    ['B', 'C'],
+    ['B', 'D'],
+    ['D', 'E'],
+    ['A', 'E'],
+    ['A', 'F'],
+    ['E', 'G'],
+    ['F', 'I'],
+    ['F', 'J'],
+    ['J', 'H'],
+    ['I', 'H'],
+  ],
+  directed: false,
+} satisfies UndirectedGraph;
+
+namespace Undirected {
+  export const fiveNodes = {
+    name: 'Five nodes',
+    initialState: {
+      ...fiveNodesGraph,
+      startId: 'A',
+      endId: 'D',
+    },
+  } satisfies SandboxProblem<SearchGraph>;
+
+  export const tenNodes = {
+    name: 'Ten nodes',
+    initialState: {
+      ...tenNodesGraph,
+      startId: 'A',
+      endId: 'H',
+    },
+  } satisfies SandboxProblem<SearchGraph>;
+}
+
+export default Undirected;

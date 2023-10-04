@@ -1,11 +1,11 @@
-import { ParsedParameters, SandboxParameters, SandboxProblem } from '.';
+import { ParsedParameters, Parameters, SandboxProblem } from '..';
 
-export type SandboxParameteredProblem<T, P extends SandboxParameters> = {
+export type SandboxParameteredProblem<T, P extends Parameters> = {
   parameters: P;
-  createProblem: (parameters: ParsedParameters<P>) => SandboxProblem<T>;
+  create: (parameters: ParsedParameters<P>) => SandboxProblem<T>;
 };
 
-export function createParameteredProblem<T, P extends SandboxParameters>({
+export function createParameteredProblem<T, P extends Parameters>({
   parameters,
   getName,
   getInitialState,
@@ -16,7 +16,7 @@ export function createParameteredProblem<T, P extends SandboxParameters>({
 }): SandboxParameteredProblem<T, P> {
   return {
     parameters,
-    createProblem: (parameters) => ({
+    create: (parameters) => ({
       name: getName(parameters),
       initialState: getInitialState(parameters),
     }),

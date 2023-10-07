@@ -6,7 +6,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Algo Sandbox',
-  description: 'Visualize algorithms in a highly customizable all-in-one sandbox',
+  description:
+    'Visualize algorithms in a highly customizable all-in-one sandbox.',
 };
 
 export default function RootLayout({
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=optional"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap"
           rel="stylesheet"
         />
       </head>

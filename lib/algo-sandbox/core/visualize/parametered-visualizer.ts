@@ -1,37 +1,53 @@
-import { Visualizer } from '.';
-import { Parametered, Parameters, ParsedParameters } from '..';
+import { SandboxVisualizer } from '.';
+import {
+  Parametered,
+  SandboxParameters,
+  ParsedParameters,
+  getDefaultParameters,
+  SandboxState,
+  SandboxStateName,
+} from '..';
 
-export type SandboxParameteredVisualizer<T, P extends Parameters> = Parametered<
-  Visualizer<T>,
-  P
->;
+export type SandboxParameteredVisualizer<
+  N extends SandboxStateName,
+  P extends SandboxParameters
+> = Parametered<SandboxVisualizer<N>, P>;
 
-export type VisualizerContext<T, P extends Parameters> = {
+export type SandboxVisualizerContext<
+  N extends SandboxStateName,
+  P extends SandboxParameters
+> = {
   parameters: ParsedParameters<P>;
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
   width: number;
   height: number;
-  state: T;
+  state: SandboxState<N>;
 };
 
-export function createParameteredVisualizer<T, P extends Parameters>({
+export function createParameteredVisualizer<
+  N extends SandboxStateName,
+  P extends SandboxParameters
+>({
   name,
+  accepts,
   parameters,
   onUpdate,
 }: {
   name: string;
+  accepts: N;
   parameters: P;
-  onUpdate: (context: VisualizerContext<T, P>) => void;
-}): SandboxParameteredVisualizer<T, P> {
+  onUpdate: (context: SandboxVisualizerContext<N, P>) => void;
+}): SandboxParameteredVisualizer<N, P> {
   return {
     name,
     parameters,
-    create: (parameters) => {
+    create: (parsedParameters = getDefaultParameters(parameters)) => {
       return {
+        accepts,
         visualize: (state) => {
           return {
             onUpdate: (context) => {
-              onUpdate({ parameters, state, ...context });
+              onUpdate({ parameters: parsedParameters, state, ...context });
             },
           };
         },

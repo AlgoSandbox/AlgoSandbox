@@ -1,20 +1,29 @@
-import { NodeGraph } from '@/lib/algo-sandbox/problems/graphs';
+import { NodeGraph } from '../../problems/graphs';
 import { breadthFirstSearch } from './BreadthFirstSearch';
 import { depthFirstSearch } from './DepthFirstSearch';
+
+declare module '@/lib/algo-sandbox/core' {
+  interface SandboxStateNameMap {
+    searchGraph: SearchGraph;
+    graphSearchAlgorithmState: SearchGraphState;
+  }
+}
 
 export type SearchGraph = NodeGraph & {
   startId: string;
   endId: string;
 };
 
-export type SearchGraphState = {
+type SearchGraphState = {
   graph: SearchGraph;
   toVisit: Array<string>;
   visited: Set<string>;
   currentNodeId: string | null;
 };
 
-export namespace Search {
+namespace Search {
   export const bfs = breadthFirstSearch;
   export const dfs = depthFirstSearch;
 }
+
+export default Search;

@@ -1,41 +1,25 @@
-import { z } from 'zod';
 import {
-  SandboxProblem,
   SandboxAlgorithm,
   createParameteredAlgorithm,
   SandboxParam,
-  createParameteredProblem,
 } from '../core';
 
 type ExampleState = {
   counter: number;
 };
 
-export const exampleProblem: SandboxProblem<ExampleState> = {
-  name: 'Example problem',
-  initialState: {
-    counter: 0,
-  },
-};
+declare module '@/lib/algo-sandbox/core' {
+  export interface SandboxStateNameMap {
+    counter: ExampleState;
+  }
+}
 
-export const exampleParameteredProblem = createParameteredProblem({
-  parameters: {
-    initialCounterValue: SandboxParam.integer('Initial counter value', 0),
-  },
-  getInitialState: (parameters) => {
-    return {
-      counter: parameters.initialCounterValue,
-    };
-  },
-  getName: ({ initialCounterValue }) => {
-    return `Example problem with initial value = ${initialCounterValue}`;
-  },
-});
-
-export const exampleAlgorithm: SandboxAlgorithm<ExampleState, ExampleState> = {
+export const exampleAlgorithm: SandboxAlgorithm<'counter', 'counter'> = {
   name: 'Example algorithm',
+  accepts: 'counter',
+  outputs: 'counter',
   pseudocode: 'set counter to 0\nwhile counter < 10:\n  increment counter\nend',
-  getInitialState: (problem) => problem,
+  createInitialState: (problem) => ({ ...problem }),
   *runAlgorithm({ line, state }) {
     yield line(1);
     while (true) {
@@ -52,15 +36,14 @@ export const exampleAlgorithm: SandboxAlgorithm<ExampleState, ExampleState> = {
 };
 
 export const exampleParameteredAlgorithm = createParameteredAlgorithm({
-  name: 'Example parametered algorithm',
-  accepts: z.object({
-    counter: z.number(),
-  }),
+  name: 'Increment counter',
+  accepts: 'counter',
+  outputs: 'counter',
   parameters: {
     increment: SandboxParam.integer('Increment value', 1),
     counterLimit: SandboxParam.integer('Counter limit', 10),
   },
-  getInitialState: (problem) => problem,
+  createInitialState: (problem) => ({ ...problem }),
   getPseudocode: ({ increment, counterLimit }) => {
     return `while counter < ${counterLimit}:\n  increment counter by ${increment}\nend`;
   },
@@ -77,3 +60,9 @@ export const exampleParameteredAlgorithm = createParameteredAlgorithm({
     return true;
   },
 });
+
+namespace Examples {
+  export const incrementCounter = exampleParameteredAlgorithm;
+}
+
+export default Examples;

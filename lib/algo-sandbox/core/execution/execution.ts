@@ -2,28 +2,33 @@ import _ from 'lodash';
 import { isBoolean } from 'lodash';
 import { SandboxAlgorithm } from '../algorithm/algorithm';
 import { SandboxProblem } from '../problem/problem';
+import { SandboxState, SandboxStateName } from '../state';
 
-export type SandboxExecutionStep<T> = {
+export type SandboxExecutionStep<N extends SandboxStateName> = {
   startLine: number;
   endLine: number;
-  state: T;
+  state: SandboxState<N>;
 };
 
-export type SandboxState<T> = {
-  clone(): SandboxState<T>;
-  data: T;
+export type SandboxExecutionState<N extends SandboxStateName> = {
+  clone(): SandboxExecutionState<N>;
+  data: SandboxState<N>;
 };
 
-export type SandboxExecutionTrace<T> = Array<SandboxExecutionStep<T>>;
+export type SandboxExecutionTrace<N extends SandboxStateName> = Array<
+  SandboxExecutionStep<N>
+>;
 
 function deepClone<T>(data: T): T {
   return _.cloneDeep(data);
 }
 
-class SandboxStateImpl<T> implements SandboxState<T> {
-  data: T;
+class SandboxStateImpl<N extends SandboxStateName>
+  implements SandboxExecutionState<N>
+{
+  data: SandboxState<N>;
 
-  constructor(data: T) {
+  constructor(data: SandboxState<N>) {
     this.data = data;
   }
 
@@ -32,29 +37,35 @@ class SandboxStateImpl<T> implements SandboxState<T> {
   }
 }
 
-export type SandboxScene<T, U> = {
-  copyWithExecution: (untilCount?: number) => SandboxScene<T, U>;
-  executionTrace: Readonly<SandboxExecutionTrace<U>>;
-  algorithm: Readonly<SandboxAlgorithm<T, U>>;
-  problem: Readonly<SandboxProblem<T>>;
+export type SandboxScene<
+  N extends SandboxStateName,
+  M extends SandboxStateName
+> = {
+  copyWithExecution: (untilCount?: number) => SandboxScene<N, M>;
+  executionTrace: Readonly<SandboxExecutionTrace<M>>;
+  algorithm: Readonly<SandboxAlgorithm<N, M>>;
+  problem: Readonly<SandboxProblem<N>>;
   isFullyExecuted: boolean;
 };
 
-class SandboxAlgorithmExecutor<T, U> {
-  executionTrace: SandboxExecutionTrace<U>;
-  algorithm: SandboxAlgorithm<T, U>;
-  problem: SandboxProblem<T>;
+class SandboxAlgorithmExecutor<
+  N extends SandboxStateName,
+  M extends SandboxStateName
+> {
+  executionTrace: SandboxExecutionTrace<M>;
+  algorithm: SandboxAlgorithm<N, M>;
+  problem: SandboxProblem<N>;
   isFullyExecuted: boolean;
-  executionGenerator: Generator<SandboxExecutionStep<U>, boolean, void>;
+  executionGenerator: Generator<SandboxExecutionStep<M>, boolean, void>;
 
-  constructor(algorithm: SandboxAlgorithm<T, U>, problem: SandboxProblem<T>) {
+  constructor(algorithm: SandboxAlgorithm<N, M>, problem: SandboxProblem<N>) {
     this.algorithm = algorithm;
     this.problem = problem;
     this.executionTrace = [];
     this.isFullyExecuted = false;
 
-    const initialData = algorithm.getInitialState(this.problem.initialState);
-    const state = new SandboxStateImpl<U>(initialData);
+    const initialData = algorithm.createInitialState(this.problem.initialState);
+    const state = new SandboxStateImpl<M>(initialData);
 
     const line = (start: number, end?: number) => {
       // Sets the pseudocode to the current line
@@ -88,7 +99,7 @@ class SandboxAlgorithmExecutor<T, U> {
   makeExecutionStep(
     startLine: number,
     endLine: number,
-    state: SandboxState<U>
+    state: SandboxExecutionState<M>
   ) {
     return {
       startLine,
@@ -98,16 +109,19 @@ class SandboxAlgorithmExecutor<T, U> {
   }
 }
 
-export function createScene<T, U>({
+export function createScene<
+  N extends SandboxStateName,
+  M extends SandboxStateName
+>({
   algorithm,
   problem,
 }: {
-  algorithm: SandboxAlgorithm<T, U>;
-  problem: SandboxProblem<T>;
-}): SandboxScene<T, U> {
+  algorithm: SandboxAlgorithm<N, M>;
+  problem: SandboxProblem<N>;
+}): SandboxScene<N, M> {
   const executor = new SandboxAlgorithmExecutor(algorithm, problem);
 
-  const createSceneInternal = (): SandboxScene<T, U> => {
+  const createSceneInternal = (): SandboxScene<N, M> => {
     return {
       algorithm: algorithm,
       problem: problem,

@@ -1,4 +1,3 @@
-import { SearchGraph, SearchGraphState } from '.';
 import { SandboxAlgorithm } from '@/lib/algo-sandbox/core';
 
 const pseudocode = `BFS(G, start):
@@ -19,13 +18,16 @@ const pseudocode = `BFS(G, start):
               Set visited[u] to true`;
 
 export const breadthFirstSearch: SandboxAlgorithm<
-  SearchGraph,
-  SearchGraphState
+  'searchGraph',
+  'graphSearchAlgorithmState'
 > = {
   name: 'Breadth-first search',
+  accepts: 'searchGraph',
+  outputs: 'graphSearchAlgorithmState',
   pseudocode,
-  getInitialState(problem) {
+  createInitialState(problem) {
     return {
+      _stateName: 'graphSearchAlgorithmState',
       graph: problem,
       toVisit: [],
       visited: new Set(),

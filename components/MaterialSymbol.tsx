@@ -1,15 +1,23 @@
 import clsx from 'clsx';
+import { forwardRef } from 'react';
 
 export type MaterialSymbolProps = {
   icon: string;
   className?: string;
 };
 
-export default function MaterialSymbol({
-  icon,
-  className,
-}: MaterialSymbolProps) {
-  return (
-    <span className={clsx('material-symbols-outlined', className)}>{icon}</span>
-  );
-}
+const MaterialSymbol = forwardRef<HTMLSpanElement, MaterialSymbolProps>(
+  ({ icon, className, ...props }, ref) => {
+    return (
+      <span
+        ref={ref}
+        className={clsx('material-symbols-rounded select-none', className)}
+        {...props}
+      >
+        {icon}
+      </span>
+    );
+  }
+);
+
+export default MaterialSymbol;

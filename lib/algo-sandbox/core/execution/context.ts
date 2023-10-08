@@ -1,11 +1,12 @@
-import { SandboxExecutionStep } from './execution';
+import { SandboxExecutionStep } from '.';
+import { SandboxState, SandboxStateName } from '../state';
 
-export type SandboxExecutionContext<T> = {
-  state: T;
-  line: SandboxLineFunction<T>;
+export type SandboxExecutionContext<N extends SandboxStateName> = {
+  state: SandboxState<N>;
+  line: SandboxLineFunction<N>;
 };
 
-type SandboxLineFunction<T> = (
+type SandboxLineFunction<N extends SandboxStateName> = (
   start: number,
   end?: number
-) => SandboxExecutionStep<T>;
+) => SandboxExecutionStep<N>;

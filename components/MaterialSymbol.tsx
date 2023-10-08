@@ -20,4 +20,6 @@ const MaterialSymbol = forwardRef<HTMLSpanElement, MaterialSymbolProps>(
   }
 );
 
+MaterialSymbol.displayName = 'MaterialSymbol';
+
 export default MaterialSymbol;

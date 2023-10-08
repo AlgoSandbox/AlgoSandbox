@@ -119,7 +119,7 @@ export default function Home() {
       typeof value.outputs,
       {}
     >;
-  }, [selectedAlgorithmOption.value]);
+  }, [selectedAlgorithmOption]);
 
   const [parameters, setParameters] = useState<
     ParsedParameters<SandboxParameters>
@@ -133,7 +133,7 @@ export default function Home() {
     }
 
     return value;
-  }, [selectedProblemOption.value]);
+  }, [selectedProblemOption]);
 
   const visualizer = useMemo(() => {
     const { value } = selectedVisualizerOption;
@@ -143,7 +143,7 @@ export default function Home() {
     }
 
     return value;
-  }, [selectedVisualizerOption.value]);
+  }, [selectedVisualizerOption]);
 
   const [showPseudocode, setShowPseudocode] = useState(true);
 
@@ -160,7 +160,7 @@ export default function Home() {
   useEffect(() => {
     setParameters(defaultParameters);
     methods.reset(defaultParameters);
-  }, [defaultParameters]);
+  }, [defaultParameters, methods]);
 
   const isAlgorithmCustomizable = isParameteredAlgorithm(
     selectedAlgorithmOption.value
@@ -199,7 +199,7 @@ export default function Home() {
     if (executionStep && areAlgorithmVisualizerCompatible) {
       return visualizer.visualize(executionStep.state);
     }
-  }, [visualizer, executionStep?.state, areAlgorithmVisualizerCompatible]);
+  }, [executionStep, areAlgorithmVisualizerCompatible, visualizer]);
 
   useEffect(() => {
     setCurrentStepIndex(0);

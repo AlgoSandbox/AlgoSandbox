@@ -52,6 +52,8 @@ const SelectItem = React.forwardRef<
   );
 });
 
+SelectItem.displayName = 'SelectItem';
+
 export default function Select<T>({
   label,
   hideLabel = false,
@@ -92,11 +94,11 @@ export default function Select<T>({
           <RadixSelect.Viewport className="p-2">
             {options.map((item, index) =>
               isGroup(item) ? (
-                <React.Fragment>
+                <React.Fragment key={item.key}>
                   {index > 0 && (
                     <RadixSelect.Separator className="h-px bg-neutral-300 my-2" />
                   )}
-                  <RadixSelect.Group key={item.key}>
+                  <RadixSelect.Group>
                     <RadixSelect.Label className="ps-8 pe-2 text-neutral-500">
                       {item.label}
                     </RadixSelect.Label>

@@ -22,4 +22,6 @@ const FormLabel = forwardRef<HTMLSpanElement, FormLabelProps>(
   }
 );
 
+FormLabel.displayName = 'FormLabel';
+
 export default FormLabel;

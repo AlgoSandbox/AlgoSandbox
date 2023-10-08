@@ -66,7 +66,11 @@ export default function ParameterControls<P extends SandboxParameters>({
   return (
     <div className="flex flex-col gap-2 items-start">
       {Object.entries(parameters).map(([fieldName, parameter]) => (
-        <ParameterControl fieldName={fieldName} parameter={parameter} />
+        <ParameterControl
+          key={fieldName}
+          fieldName={fieldName}
+          parameter={parameter}
+        />
       ))}
       <Button
         label="Customize"

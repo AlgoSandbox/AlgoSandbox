@@ -48,12 +48,9 @@ export default function Select<T>({
         value={value?.key}
         onChange={(event) => {
           const key = event.target.value;
-          console.log(key);
-          console.log(flattenedOptions);
           const newValue = flattenedOptions.find(
             (option) => option.key === key
           );
-          console.log(newValue);
           if (newValue) {
             onChange?.(newValue);
           }
@@ -61,7 +58,7 @@ export default function Select<T>({
       >
         {options.map((item) =>
           isGroup(item) ? (
-            <optgroup key={item.key}>
+            <optgroup key={item.key} label={item.label}>
               {item.options.map((option) => (
                 <option key={option.key} value={option.key}>
                   {option.label}
@@ -74,7 +71,6 @@ export default function Select<T>({
             </option>
           )
         )}
-        <optgroup></optgroup>
       </select>
     </div>
   );

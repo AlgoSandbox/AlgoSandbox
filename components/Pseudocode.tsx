@@ -15,11 +15,7 @@ export default function Pseudocode({
   className,
 }: PseudocodeProps) {
   return (
-    <div className={clsx(className, 'border rounded px-4 py-2 text-xs')}>
-      <div className="flex gap-2 justify-between pb-2 border-b mb-2">
-        <span className="font-medium">Pseudocode</span>
-        <MaterialSymbol icon="code" />
-      </div>
+    <div className={clsx(className, 'text-xs overflow-x-hidden')}>
       <div className="flex gap-1">
         <div className="flex flex-col text-neutral-400 items-end">
           {Array.from({ length: pseudocode.split('\n').length }, (_, i) => (

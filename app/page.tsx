@@ -68,7 +68,7 @@ const problemOptions: Array<
   })),
 }));
 
-export const visualizerOptions: Array<
+const visualizerOptions: Array<
   SelectGroup<SandboxVisualizer<any> | SandboxParameteredVisualizer<any, any>>
 > = [
   {

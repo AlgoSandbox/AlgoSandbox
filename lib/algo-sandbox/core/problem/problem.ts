@@ -1,4 +1,7 @@
-export type SandboxProblem<T> = {
+import { SandboxState, SandboxStateName } from '../state';
+
+export type SandboxProblem<N extends SandboxStateName> = {
   name: string;
-  initialState: T;
+  shape: N;
+  initialState: SandboxState<N>;
 };

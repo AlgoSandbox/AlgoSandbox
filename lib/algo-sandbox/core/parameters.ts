@@ -1,25 +1,36 @@
-import { unknown } from 'zod';
+type SandboxParameterTypeMap = {
+  integer: number;
+  callback: Function;
+};
 
-export type Parameter<T = any> = {
+export type SandboxParameterType = keyof SandboxParameterTypeMap;
+
+export type SandboxParameter<
+  S extends SandboxParameterType = SandboxParameterType,
+  T extends any = SandboxParameterTypeMap[S]
+> = {
   name: string;
+  type: S;
   defaultValue: T;
 };
 
-export type Parameters<T = Record<string, unknown>> = Readonly<{
-  [K in keyof T]: Parameter<T[K]>;
+export type SandboxParameters<
+  T = Record<string, SandboxParameterTypeMap[SandboxParameterType]>
+> = Readonly<{
+  [K in keyof T]: SandboxParameter<SandboxParameterType, T[K]>;
 }>;
 
-export type Parametered<T, P extends Parameters> = {
+export type Parametered<T, P extends SandboxParameters> = {
   name: string;
   parameters: P;
-  create: (parameters: ParsedParameters<P>) => T;
+  create: (parameters?: ParsedParameters<P>) => T;
 };
 
-export type ParsedParameter<P extends Parameter> = P extends Parameter<infer T>
+export type ParsedParameter<P> = P extends SandboxParameter<any, infer T>
   ? T
   : never;
 
-export type ParsedParameters<P extends Parameters> = Readonly<{
+export type ParsedParameters<P extends SandboxParameters> = Readonly<{
   [K in keyof P]: ParsedParameter<P[K]>;
 }>;
 
@@ -27,9 +38,10 @@ export namespace SandboxParam {
   export function integer(
     name: string,
     defaultValue: number
-  ): Parameter<number> {
+  ): SandboxParameter<'integer'> {
     return {
       name,
+      type: 'integer',
       defaultValue,
     };
   }
@@ -37,10 +49,19 @@ export namespace SandboxParam {
   export function callback<T extends Function>(
     name: string,
     defaultValue: T
-  ): Parameter<T> {
+  ): SandboxParameter<'callback', T> {
     return {
       name,
+      type: 'callback',
       defaultValue: defaultValue as unknown as T,
     };
   }
+}
+
+export function getDefaultParameters<P extends SandboxParameters>(
+  parameters: P
+): ParsedParameters<P> {
+  return Object.fromEntries(
+    Object.entries(parameters).map(([key, value]) => [key, value.defaultValue])
+  ) as ParsedParameters<P>;
 }

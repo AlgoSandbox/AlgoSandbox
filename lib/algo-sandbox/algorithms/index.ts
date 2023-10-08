@@ -1,7 +1,9 @@
-import { Search as S } from './search';
+import search from './search';
+import examples from './examples';
 
 namespace Algorithms {
-  export import Search = S;
+  export import Search = search;
+  export import Examples = examples;
 }
 
 export default Algorithms;

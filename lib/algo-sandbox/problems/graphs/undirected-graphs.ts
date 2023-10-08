@@ -35,21 +35,25 @@ const tenNodesGraph = {
 namespace Undirected {
   export const fiveNodes = {
     name: 'Five nodes',
+    shape: 'searchGraph',
     initialState: {
       ...fiveNodesGraph,
+      _stateName: 'searchGraph',
       startId: 'A',
       endId: 'D',
     },
-  } satisfies SandboxProblem<SearchGraph>;
+  } satisfies SandboxProblem<'searchGraph'>;
 
   export const tenNodes = {
     name: 'Ten nodes',
+    shape: 'searchGraph',
     initialState: {
       ...tenNodesGraph,
+      _stateName: 'searchGraph',
       startId: 'A',
       endId: 'H',
     },
-  } satisfies SandboxProblem<SearchGraph>;
+  } satisfies SandboxProblem<'searchGraph'>;
 }
 
 export default Undirected;

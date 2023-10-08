@@ -1,4 +1,3 @@
-import { SearchGraph, SearchGraphState } from '.';
 import { SandboxAlgorithm } from '@/lib/algo-sandbox/core';
 
 const pseudocode = `DFS(G, v):
@@ -18,67 +17,72 @@ const pseudocode = `DFS(G, v):
       for each neighbor u of v:
         Push u onto toVisit`;
 
-export const depthFirstSearch: SandboxAlgorithm<SearchGraph, SearchGraphState> =
-  {
-    name: 'Depth-first search',
-    pseudocode,
-    getInitialState(problem) {
-      return {
-        graph: problem,
-        toVisit: [],
-        visited: new Set(),
-        currentNodeId: null,
-      };
-    },
-    *runAlgorithm({ line, state }) {
-      yield line(2, 4);
-      // Push the start node onto the stack
-      state.toVisit.push(state.graph.startId);
-      yield line(6);
+export const depthFirstSearch: SandboxAlgorithm<
+  'searchGraph',
+  'graphSearchAlgorithmState'
+> = {
+  name: 'Depth-first search',
+  accepts: 'searchGraph',
+  outputs: 'graphSearchAlgorithmState',
+  pseudocode,
+  createInitialState(problem) {
+    return {
+      _stateName: 'graphSearchAlgorithmState',
+      graph: problem,
+      toVisit: [],
+      visited: new Set(),
+      currentNodeId: null,
+    };
+  },
+  *runAlgorithm({ line, state }) {
+    yield line(2, 4);
+    // Push the start node onto the stack
+    state.toVisit.push(state.graph.startId);
+    yield line(6);
 
-      while (true) {
-        yield line(8);
-        if (state.toVisit.length === 0) {
-          break;
-        }
-        // Pop a vertex from the stack
-        state.currentNodeId = state.toVisit.pop()!;
-        yield line(9, 10);
-        if (state.currentNodeId === state.graph.endId) {
-          break;
-        }
-
-        // Check if the vertex has not been visited yet
-        if (!state.visited.has(state.currentNodeId)) {
-          state.visited.add(state.currentNodeId);
-          yield line(12, 13);
-
-          // Iterate through neighbors of the current node
-          for (const [start, end] of state.graph.edges) {
-            const startNodeId =
-              typeof start === 'string' ? start : state.graph.nodes[start].id;
-            const endNodeId =
-              typeof end === 'string' ? end : state.graph.nodes[end].id;
-
-            if (
-              startNodeId === state.currentNodeId &&
-              !state.visited.has(endNodeId)
-            ) {
-              // Push unvisited neighbors onto the stack
-              state.toVisit.push(endNodeId);
-            } else if (
-              endNodeId === state.currentNodeId &&
-              !state.visited.has(startNodeId)
-            ) {
-              // Push unvisited neighbors onto the stack
-              state.toVisit.push(startNodeId);
-            }
-          }
-        }
-
-        yield line(14, 15);
+    while (true) {
+      yield line(8);
+      if (state.toVisit.length === 0) {
+        break;
+      }
+      // Pop a vertex from the stack
+      state.currentNodeId = state.toVisit.pop()!;
+      yield line(9, 10);
+      if (state.currentNodeId === state.graph.endId) {
+        break;
       }
 
-      return true;
-    },
-  };
+      // Check if the vertex has not been visited yet
+      if (!state.visited.has(state.currentNodeId)) {
+        state.visited.add(state.currentNodeId);
+        yield line(12, 13);
+
+        // Iterate through neighbors of the current node
+        for (const [start, end] of state.graph.edges) {
+          const startNodeId =
+            typeof start === 'string' ? start : state.graph.nodes[start].id;
+          const endNodeId =
+            typeof end === 'string' ? end : state.graph.nodes[end].id;
+
+          if (
+            startNodeId === state.currentNodeId &&
+            !state.visited.has(endNodeId)
+          ) {
+            // Push unvisited neighbors onto the stack
+            state.toVisit.push(endNodeId);
+          } else if (
+            endNodeId === state.currentNodeId &&
+            !state.visited.has(startNodeId)
+          ) {
+            // Push unvisited neighbors onto the stack
+            state.toVisit.push(startNodeId);
+          }
+        }
+      }
+
+      yield line(14, 15);
+    }
+
+    return true;
+  },
+};

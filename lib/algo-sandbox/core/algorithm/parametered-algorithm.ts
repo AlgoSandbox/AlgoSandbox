@@ -1,61 +1,60 @@
 import { z } from 'zod';
 import {
   Parametered,
-  Parameters,
+  SandboxParameters,
   ParsedParameters,
   SandboxExecutionContext,
+  getDefaultParameters,
+  SandboxStateName,
+  SandboxState,
 } from '..';
 import { SandboxAlgorithm } from './algorithm';
 
 export type SandboxParameteredAlgorithm<
-  T,
-  U,
-  P extends Parameters
-> = Parametered<SandboxAlgorithm<T, U>, P>;
+  N extends SandboxStateName,
+  M extends SandboxStateName,
+  P extends SandboxParameters
+> = Parametered<SandboxAlgorithm<N, M>, P>;
 
 type SandboxContextWithParameters<
-  T,
-  P extends Parameters
-> = SandboxExecutionContext<T> & {
+  N extends SandboxStateName,
+  P extends SandboxParameters
+> = SandboxExecutionContext<N> & {
   parameters: ParsedParameters<P>;
 };
 
-function getDefaultParameters<P extends Parameters>(
-  parameters: P
-): ParsedParameters<P> {
-  return Object.fromEntries(
-    Object.entries(parameters).map(([key, value]) => [key, value.defaultValue])
-  ) as ParsedParameters<P>;
-}
-
 export function createParameteredAlgorithm<
-  StateShape extends z.AnyZodObject,
-  U,
-  T = z.infer<StateShape>,
-  P extends Parameters = Parameters
+  N extends SandboxStateName,
+  M extends SandboxStateName,
+  P extends SandboxParameters = SandboxParameters
 >({
   name,
+  accepts,
+  outputs,
   parameters,
-  getInitialState,
+  createInitialState,
   getPseudocode,
   runAlgorithm,
 }: {
-  accepts: StateShape;
   name: string;
+  accepts: N;
+  outputs: M;
   parameters: P;
-  getInitialState: (problem: T) => U;
+  createInitialState: (problem: Readonly<SandboxState<N>>) => SandboxState<M>;
   getPseudocode: (parameters: ParsedParameters<P>) => string;
   runAlgorithm: (
-    context: SandboxContextWithParameters<U, P>
-  ) => ReturnType<SandboxAlgorithm<T, U>['runAlgorithm']>;
-}): SandboxParameteredAlgorithm<T, U, P> {
+    context: SandboxContextWithParameters<M, P>
+  ) => ReturnType<SandboxAlgorithm<N, M>['runAlgorithm']>;
+}): SandboxParameteredAlgorithm<N, M, P> {
   return {
     name,
     parameters,
     create: (parsedParameters = getDefaultParameters(parameters)) => ({
       name,
+      accepts,
+      outputs,
       pseudocode: getPseudocode(parsedParameters),
-      getInitialState,
+      createInitialState,
       runAlgorithm(context) {
         return runAlgorithm({ ...context, parameters: parsedParameters });
       },

@@ -1,11 +1,11 @@
 import * as d3 from 'd3';
-import { NodeGraph } from '@/lib/algo-sandbox/problems/graphs';
-import { GraphNode } from '@/lib/algo-sandbox/problems/graphs';
+import { GraphNode, NodeGraph } from '@/lib/algo-sandbox/problems/graphs';
 import {
   SandboxParameteredVisualizer,
   createParameteredVisualizer,
-} from '../../../core/visualize/parametered-visualizer';
-import { Parameters, SandboxParam } from '../../../core';
+  SandboxParameters,
+  SandboxParam,
+} from '@/lib/algo-sandbox/core';
 import _ from 'lodash';
 
 type RawRenderFunction = (
@@ -24,12 +24,18 @@ type NodeGraphSVGNodeInternal<OmittedKeys extends string = ''> = Omit<
 
 type NodeGraphSVGNode = NodeGraphSVGNodeInternal;
 
-type NodeGraphVisualizationParameters = Parameters<{
+type NodeGraphVisualizationParameters = SandboxParameters<{
   renderNode: (node: NodeGraphSVGNode) => void;
 }>;
 
+declare module '@/lib/algo-sandbox/core' {
+  export interface SandboxStateNameMap {
+    nodeGraph: NodeGraph;
+  }
+}
+
 const nodeGraphVisualizer: SandboxParameteredVisualizer<
-  NodeGraph,
+  'nodeGraph',
   NodeGraphVisualizationParameters
 > = (() => {
   return createParameteredVisualizer(
@@ -72,6 +78,7 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
 
       return {
         name: 'Node graph',
+        accepts: 'nodeGraph',
         parameters: {
           renderNode: SandboxParam.callback('Node render function', (_) => {}),
         },

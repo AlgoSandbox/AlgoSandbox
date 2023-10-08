@@ -1,10 +1,10 @@
 import * as d3 from 'd3';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Visualization } from '../core';
+import { SandboxVisualization } from '../core';
 
 export type VisualizationRendererProps = {
   className?: string;
-  visualization: Visualization;
+  visualization: SandboxVisualization;
 };
 
 export default function VisualizationRenderer({
@@ -52,7 +52,6 @@ export default function VisualizationRenderer({
     if (svg === null) {
       return;
     }
-    console.log('onUpdate', width, height);
     onUpdate({ svg, width, height });
   }, [height, onUpdate, svg, width]);
 

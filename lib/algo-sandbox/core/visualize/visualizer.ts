@@ -1,5 +1,7 @@
-import { Visualization } from '.';
+import { SandboxVisualization } from '.';
+import { SandboxState, SandboxStateName } from '..';
 
-export type Visualizer<T> = {
-  visualize: (state: T) => Visualization;
+export type SandboxVisualizer<N extends SandboxStateName> = {
+  accepts: N;
+  visualize: (state: SandboxState<N>) => SandboxVisualization;
 };

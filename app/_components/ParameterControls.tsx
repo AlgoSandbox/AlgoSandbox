@@ -1,7 +1,7 @@
 import { SandboxParameter, SandboxParameters } from '@/lib/algo-sandbox/core';
 import { useFormContext } from 'react-hook-form';
-import Input from './Input';
-import { Button, MaterialSymbol, Tooltip } from '.';
+import Input from '../../components/Input';
+import { Button, MaterialSymbol } from '../../components';
 
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;
@@ -12,7 +12,9 @@ function ParameterControl<P extends SandboxParameter>({
   fieldName,
   parameter,
 }: ParameterControlProps<P>) {
-  const { register, setValue, watch } = useFormContext();
+  const { register, setValue, watch, formState, getFieldState } =
+    useFormContext();
+
   const watchField = watch(fieldName);
 
   const input = (() => {
@@ -63,14 +65,11 @@ export default function ParameterControls<P extends SandboxParameters>({
   const {
     formState: { isDirty },
   } = useFormContext();
+
   return (
     <div className="flex flex-col gap-2 items-start">
-      {Object.entries(parameters).map(([fieldName, parameter]) => (
-        <ParameterControl
-          key={fieldName}
-          fieldName={fieldName}
-          parameter={parameter}
-        />
+      {Object.entries(parameters).map(([field, parameter]) => (
+        <ParameterControl key={field} fieldName={field} parameter={parameter} />
       ))}
       <Button
         label="Customize"

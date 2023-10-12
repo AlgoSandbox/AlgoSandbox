@@ -12,7 +12,7 @@ export type AlgorithmDetailsProps<
   M extends SandboxStateName,
   P extends SandboxParameters
 > = {
-  algorithm: SandboxAlgorithm<N, M> | SandboxParameteredAlgorithm<N, M, P>;
+  algorithm: SandboxParameteredAlgorithm<N, M, P>;
 };
 
 export default function AlgorithmDetails<
@@ -21,13 +21,11 @@ export default function AlgorithmDetails<
   P extends SandboxParameters
 >({ algorithm }: AlgorithmDetailsProps<N, M, P>) {
   return (
-    <div className='p-4'>
-      {isParameteredAlgorithm(algorithm) && (
-        <div className="font-medium flex flex-col gap-2">
-          <span>Algorithm parameters</span>
-          <ParameterControls parameters={algorithm.parameters} />
-        </div>
-      )}
+    <div className="p-4">
+      <div className="font-medium flex flex-col gap-2">
+        <span>Algorithm parameters</span>
+        <ParameterControls parameters={algorithm.parameters} />
+      </div>
     </div>
   );
 }

@@ -45,12 +45,41 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
       let cachedWidth: number;
       let cachedHeight: number;
 
-      const getVisualizerState = (graph: NodeGraph) => {
-        const { nodes, edges } = _.cloneDeep(graph);
-        const links = edges.map(([source, target]) => ({
+      const getVisualizerState = (
+        graph: NodeGraph,
+        oldNodes: Array<GraphNode>,
+        oldLinks: Array<{
+          source: string | number;
+          target: string | number;
+        }>
+      ) => {
+        const { nodes: newNodes, edges } = _.cloneDeep(graph);
+        const nodes = newNodes.map((node) => {
+          const oldNode = oldNodes.find(({ id: oldId }) => node.id === oldId);
+          return oldNode ? { ...oldNode } : node;
+        });
+
+        const newLinks = edges.map(([source, target]) => ({
           source,
           target,
         }));
+        const links = newLinks.map((link) => {
+          const oldLink = oldLinks.find(({ source, target }) => {
+            if (typeof source === 'string' && typeof target === 'string') {
+              return (
+                (source as any).id === link.source &&
+                (target as any).id === link.target
+              );
+            } else {
+              return (
+                (source as any).index === link.source &&
+                (target as any).index === link.target
+              );
+            }
+          });
+
+          return oldLink ? { ...oldLink } : link;
+        });
 
         // Create a force simulation to spread the nodes
         const simulation = d3
@@ -89,7 +118,11 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
             if (visualizerState?.simulation) {
               visualizerState?.simulation.stop();
             }
-            visualizerState = getVisualizerState(graph);
+            visualizerState = getVisualizerState(
+              graph,
+              visualizerState?.nodes ?? [],
+              visualizerState?.links ?? []
+            );
             cachedGraph = graph;
           }
 

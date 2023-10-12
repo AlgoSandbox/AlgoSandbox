@@ -22,14 +22,12 @@ export default function Pseudocode({
       <div className="flex gap-1">
         {hasHighlight && (
           <span
-            className="whitespace-pre w-full bg-purple-200 absolute top-0 -z-10 transition-all rounded"
+            className="w-full bg-purple-200 absolute top-0 -z-10 transition-all rounded"
             style={{
               transform: `translateY(${startLine - 1}rem)`,
               height: `${endLine - startLine + 1}rem`,
             }}
-          >
-            {' '}
-          </span>
+          />
         )}
         <div className="flex flex-col transition-colors text-neutral-200 group-hover:text-neutral-400 items-end">
           {Array.from({ length: pseudocode.split('\n').length }, (_, i) => (

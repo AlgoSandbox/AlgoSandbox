@@ -1,3 +1,4 @@
+export * from './adapter';
 export * from './algorithm';
 export * from './execution';
 export * from './problem';

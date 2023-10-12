@@ -2,7 +2,6 @@
 
 import { Button, MaterialSymbol } from '@/components';
 import { VisualizerRenderer } from '@/lib/algo-sandbox/components';
-import { createScene } from '@/lib/algo-sandbox/core';
 import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
 import {
@@ -11,6 +10,7 @@ import {
   Pseudocode,
   useBoxContext,
 } from './_components';
+import { createScene } from './_utils/scene';
 
 function BoxPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);

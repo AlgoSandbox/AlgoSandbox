@@ -18,8 +18,11 @@ export type SelectGroup<T> = {
 export type SelectOptions<T = any> = Array<SelectOption<T> | SelectGroup<T>>;
 
 export type SelectProps<T> = {
+  className?: string;
+  containerClassName?: string;
   label: string;
   hideLabel?: boolean;
+  placeholder?: string;
   options: SelectOptions<T>;
   value?: SelectOption<T>;
   onChange?: (value: SelectOption<T>) => void;
@@ -55,8 +58,11 @@ const SelectItem = React.forwardRef<
 SelectItem.displayName = 'SelectItem';
 
 export default function Select<T>({
+  className,
+  containerClassName,
   label,
   hideLabel = false,
+  placeholder,
   options,
   value,
   onChange,
@@ -79,13 +85,16 @@ export default function Select<T>({
       <RadixSelect.Trigger
         aria-label={hideLabel ? label : undefined}
         aria-labelledby={!hideLabel ? id : undefined}
-        className={
-          'flex items-center ps-4 pe-2 py-2 hover:bg-primary-100 bg-neutral-100 rounded transition-colors focus:outline-primary-500 text-neutral-700'
-        }
+        className={clsx(
+          'flex items-center ps-4 pe-2 py-2 hover:bg-primary-100 bg-neutral-100 rounded transition-colors focus:outline-primary-500 text-neutral-700',
+          '[&[data-placeholder]]:text-neutral-400',
+          className,
+          hideLabel && containerClassName
+        )}
       >
-        <RadixSelect.Value />
+        <RadixSelect.Value placeholder={placeholder} />
         <RadixSelect.Icon asChild>
-          <MaterialSymbol icon="arrow_drop_down" />
+          <MaterialSymbol className="text-neutral-700" icon="arrow_drop_down" />
         </RadixSelect.Icon>
       </RadixSelect.Trigger>
       <RadixSelect.Portal>
@@ -126,7 +135,7 @@ export default function Select<T>({
   return hideLabel ? (
     selectElement
   ) : (
-    <div className="flex flex-col">
+    <div className={clsx('flex flex-col', containerClassName)}>
       <FormLabel id={id}>{label}</FormLabel>
       {selectElement}
     </div>

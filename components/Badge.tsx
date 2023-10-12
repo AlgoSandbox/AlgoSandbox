@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ReactElement, cloneElement } from 'react';
+import { ForwardedRef, ReactElement, cloneElement, forwardRef } from 'react';
 
 export type BadgeProps = {
   content: string | number;
@@ -7,12 +7,10 @@ export type BadgeProps = {
   visible?: boolean;
 };
 
-export default function Badge({
-  content,
-  children,
-  visible,
-  ...props
-}: BadgeProps) {
+function Badge(
+  { content, children, visible, ...props }: BadgeProps,
+  ref: ForwardedRef<HTMLElement>
+) {
   return (
     <div className="relative">
       <div
@@ -23,7 +21,9 @@ export default function Badge({
       >
         <span>{content}</span>
       </div>
-      {cloneElement(children, props)}
+      {cloneElement(children, { ...props, ref })}
     </div>
   );
 }
+
+export default forwardRef(Badge);

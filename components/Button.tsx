@@ -1,5 +1,11 @@
 import clsx from 'clsx';
-import { ButtonHTMLAttributes, DetailedHTMLProps, ReactElement } from 'react';
+import {
+  ButtonHTMLAttributes,
+  DetailedHTMLProps,
+  ForwardedRef,
+  ReactElement,
+  forwardRef,
+} from 'react';
 import { Tooltip } from '.';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
@@ -14,18 +20,22 @@ export type ButtonProps = {
   HTMLButtonElement
 >;
 
-export default function Button({
-  label,
-  className,
-  icon,
-  disabled,
-  hideLabel,
-  variant = 'tertiary',
-  ...props
-}: ButtonProps) {
+function Button(
+  {
+    label,
+    className,
+    icon,
+    disabled,
+    hideLabel,
+    variant = 'tertiary',
+    ...props
+  }: ButtonProps,
+  ref: ForwardedRef<HTMLButtonElement>
+) {
   return (
     <Tooltip content={label} disabled={!hideLabel}>
       <button
+        ref={ref}
         aria-label={hideLabel ? label : undefined}
         className={clsx(
           'flex items-center gap-2 rounded py-2 transition-colors',
@@ -54,3 +64,5 @@ export default function Button({
     </Tooltip>
   );
 }
+
+export default forwardRef(Button);

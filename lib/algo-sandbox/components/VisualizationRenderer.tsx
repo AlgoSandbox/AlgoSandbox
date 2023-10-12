@@ -52,6 +52,7 @@ export default function VisualizationRenderer({
     if (svg === null) {
       return;
     }
+
     onUpdate({ svg, width, height });
   }, [height, onUpdate, svg, width]);
 

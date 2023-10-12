@@ -10,7 +10,6 @@ export default function Popover({ children, content }: PopoverProps) {
   return (
     <RadixPopover.Root>
       <RadixPopover.Trigger asChild>{children}</RadixPopover.Trigger>
-      <RadixPopover.Anchor />
       <RadixPopover.Portal>
         <RadixPopover.Content className="shadow rounded">
           {content}

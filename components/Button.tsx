@@ -51,8 +51,7 @@ function Button(
           size === 'md' && [
             'py-2 gap-2',
             icon !== undefined ? 'ps-2' : 'ps-3',
-            hideLabel ? 'pe-1' : 'pe-3',
-          
+            hideLabel ? 'pe-2' : 'pe-3',
           ],
           variant === 'tertiary' && [
             !disabled && 'hover:bg-primary-100 text-neutral-700',

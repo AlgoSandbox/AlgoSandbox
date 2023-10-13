@@ -1,6 +1,12 @@
 import * as RadixSelect from '@radix-ui/react-select';
 import clsx from 'clsx';
-import React, { ComponentPropsWithoutRef, useId, useMemo } from 'react';
+import React, {
+  ComponentPropsWithoutRef,
+  ForwardedRef,
+  forwardRef,
+  useId,
+  useMemo,
+} from 'react';
 import { FormLabel, MaterialSymbol } from '.';
 
 export type SelectOption<T> = {
@@ -28,7 +34,7 @@ export type SelectProps<T> = {
   onChange?: (value: SelectOption<T>) => void;
 };
 
-function isGroup<T>(
+export function isSelectGroup<T>(
   option: SelectOption<T> | SelectGroup<T>
 ): option is SelectGroup<T> {
   return (option as SelectGroup<T>).options !== undefined;
@@ -57,19 +63,24 @@ const SelectItem = React.forwardRef<
 
 SelectItem.displayName = 'SelectItem';
 
-export default function Select<T>({
-  className,
-  containerClassName,
-  label,
-  hideLabel = false,
-  placeholder,
-  options,
-  value,
-  onChange,
-}: SelectProps<T>) {
+function Select<T>(
+  {
+    className,
+    containerClassName,
+    label,
+    hideLabel = false,
+    placeholder,
+    options,
+    value,
+    onChange,
+  }: SelectProps<T>,
+  ref: ForwardedRef<HTMLButtonElement>
+) {
   const id = useId();
   const flattenedOptions = useMemo(() => {
-    return options.flatMap((item) => (isGroup(item) ? item.options : [item]));
+    return options.flatMap((item) =>
+      isSelectGroup(item) ? item.options : [item]
+    );
   }, [options]);
 
   const selectElement = (
@@ -83,6 +94,7 @@ export default function Select<T>({
       }}
     >
       <RadixSelect.Trigger
+        ref={ref}
         aria-label={hideLabel ? label : undefined}
         aria-labelledby={!hideLabel ? id : undefined}
         className={clsx(
@@ -102,7 +114,7 @@ export default function Select<T>({
           <RadixSelect.ScrollUpButton />
           <RadixSelect.Viewport className="p-2">
             {options.map((item, index) =>
-              isGroup(item) ? (
+              isSelectGroup(item) ? (
                 <React.Fragment key={item.key}>
                   {index > 0 && (
                     <RadixSelect.Separator className="h-px bg-neutral-300 my-2" />
@@ -141,3 +153,5 @@ export default function Select<T>({
     </div>
   );
 }
+
+export default forwardRef(Select) as typeof Select;

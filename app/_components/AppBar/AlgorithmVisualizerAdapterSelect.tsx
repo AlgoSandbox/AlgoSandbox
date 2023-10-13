@@ -13,6 +13,8 @@ export default function AlgorithmVisualizerAdapterSelect() {
 
   return (
     <AdapterListPopover
+      fromLabel="Algorithm"
+      toLabel="Visualizer"
       fromType={algorithmInstance.outputs}
       toType={visualizerInstance.accepts}
       value={value}
@@ -23,11 +25,13 @@ export default function AlgorithmVisualizerAdapterSelect() {
         variant="tertiary"
         label="Select adapter"
         hideLabel
+        className="group"
         icon={
           <MaterialSymbol
             icon="keyboard_double_arrow_right"
             className={clsx(
-              compatible && 'text-neutral-500',
+              'group-aria-expanded:rotate-90 transition',
+              compatible && 'text-primary-700',
               !compatible && 'text-red-500'
             )}
           />

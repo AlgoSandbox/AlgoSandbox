@@ -34,18 +34,26 @@ export default function useBoxContextAlgorithmVisualizer({
   visualizer: BoxContextVisualizer;
 }) {
   const adapters = useBoxContextAdapters(adapterOptions);
-  const { composed: composedAlgoVizAdapter } = adapters;
+  const { composed: composedAdapter, value: adapterList } = adapters;
+  const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
 
   const algorithmVisualizer = useMemo(() => {
     return {
       compatible:
-        (composedAlgoVizAdapter === null &&
+        (composedAdapter === null &&
           visualizer.instance.accepts === algorithm.instance.outputs) ||
-        (algorithm.instance.outputs === composedAlgoVizAdapter?.accepts &&
-          composedAlgoVizAdapter?.outputs === visualizer.instance.accepts),
+        (!hasInvalidAdapter &&
+          algorithm.instance.outputs === composedAdapter?.accepts &&
+          composedAdapter?.outputs === visualizer.instance.accepts),
       adapters,
     } satisfies BoxContextAlgorithmVisualizer;
-  }, [adapters, algorithm.instance.outputs, composedAlgoVizAdapter, visualizer.instance.accepts]);
+  }, [
+    adapters,
+    algorithm.instance.outputs,
+    composedAdapter,
+    hasInvalidAdapter,
+    visualizer.instance.accepts,
+  ]);
 
   return algorithmVisualizer;
 }

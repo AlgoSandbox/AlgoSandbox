@@ -9,11 +9,13 @@ import {
 import { Tooltip } from '.';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
+type ButtonSize = 'sm' | 'md';
 
 export type ButtonProps = {
   label: string;
   hideLabel?: boolean;
   icon?: ReactElement;
+  size?: ButtonSize;
   variant?: ButtonVariant;
 } & DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -27,6 +29,7 @@ function Button(
     icon,
     disabled,
     hideLabel,
+    size = 'md',
     variant = 'tertiary',
     ...props
   }: ButtonProps,
@@ -38,8 +41,9 @@ function Button(
         ref={ref}
         aria-label={hideLabel ? label : undefined}
         className={clsx(
-          'flex items-center gap-2 rounded py-2 transition-colors',
-          'px-2',
+          'flex items-center gap-2 rounded transition-colors',
+          size === 'sm' && ['p-1', '[&_.material-symbols-rounded]:text-[20px]'],
+          size === 'md' && ['p-2'],
           variant === 'tertiary' && [
             !disabled && 'hover:bg-primary-100 text-neutral-700',
             disabled && 'text-neutral-300',

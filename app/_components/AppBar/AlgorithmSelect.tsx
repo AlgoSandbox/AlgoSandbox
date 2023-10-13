@@ -11,20 +11,21 @@ export default function AlgorithmSelect() {
     setValue: setSelectedOption,
     options,
   } = useBoxContext('algorithm.select');
-  const { default: defaultParameters, setValue: setParameters } = useBoxContext(
-    'algorithm.parameters'
-  );
+  const {
+    default: defaultParameters,
+    setValue: setParameters,
+    value: algorithmParameters,
+  } = useBoxContext('algorithm.parameters');
   const algorithm = selectedOption.value;
   const isAlgorithmCustomizable = isParameteredAlgorithm(algorithm);
 
   const methods = useForm({ defaultValues: defaultParameters });
 
   const changedParameterCount = useMemo(() => {
-    const algorithmParameters = methods.watch();
     return Object.keys(algorithmParameters).filter(
       (key) => algorithmParameters[key] !== defaultParameters[key]
     ).length;
-  }, [defaultParameters, methods]);
+  }, [algorithmParameters, defaultParameters]);
 
   useEffect(() => {
     methods.reset(defaultParameters);

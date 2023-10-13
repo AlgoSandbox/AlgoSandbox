@@ -96,7 +96,7 @@ export default function AdapterListPopover({
           <h1 className="p-2">Adapters</h1>
           <ol>
             <div className="flex gap-2 items-center font-mono text-xs text-primary-700">
-              <MaterialSymbol icon="flag" />
+              <MaterialSymbol icon="keyboard_double_arrow_down" />
               <div className="flex flex-col flex-1 px-2 py-1 bg-primary-100 rounded">
                 <span className="font-medium font-sans">{fromLabel}</span>
                 <span>{fromType}</span>
@@ -114,6 +114,7 @@ export default function AdapterListPopover({
                 <Button
                   label="Insert adapter"
                   icon={<MaterialSymbol icon="add" />}
+                  size="sm"
                   onClick={() => {
                     insert(0, getFirstOption(options));
                   }}
@@ -160,7 +161,7 @@ export default function AdapterListPopover({
                   <li
                     className={clsx(
                       isFaulty ? 'border-neutral-400' : 'border-primary-500',
-                      'flex gap-2 items-center ms-[11px] border-s-2 ps-3'
+                      'flex gap-2 items-center ms-[11px] border-s-2 ps-[19px]'
                     )}
                   >
                     <Controller
@@ -228,7 +229,7 @@ export default function AdapterListPopover({
               'flex gap-2 items-center font-mono text-xs transition-colors'
             )}
           >
-            <MaterialSymbol icon="flag" />
+            <MaterialSymbol icon="keyboard_double_arrow_down" />
             <div
               className={clsx(
                 isFaulty ? 'bg-neutral-100' : 'bg-primary-100',

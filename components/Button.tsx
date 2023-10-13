@@ -41,9 +41,19 @@ function Button(
         ref={ref}
         aria-label={hideLabel ? label : undefined}
         className={clsx(
-          'flex items-center gap-2 rounded transition-colors',
-          size === 'sm' && ['p-1', '[&_.material-symbols-rounded]:text-[20px]'],
-          size === 'md' && ['p-2'],
+          'flex items-center  rounded transition-colors',
+          size === 'sm' && [
+            'py-1 gap-1',
+            icon !== undefined ? 'ps-1' : 'ps-2',
+            hideLabel ? 'pe-1' : 'pe-2',
+            '[&_.material-symbols-rounded]:text-[20px] text-sm',
+          ],
+          size === 'md' && [
+            'py-2 gap-2',
+            icon !== undefined ? 'ps-2' : 'ps-3',
+            hideLabel ? 'pe-1' : 'pe-3',
+          
+          ],
           variant === 'tertiary' && [
             !disabled && 'hover:bg-primary-100 text-neutral-700',
             disabled && 'text-neutral-300',

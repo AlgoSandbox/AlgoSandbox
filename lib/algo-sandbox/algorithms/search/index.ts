@@ -1,8 +1,8 @@
-import { NodeGraph } from '../../problems/graphs';
+import { NodeGraph } from '@algo-sandbox/problems/graphs';
 import { breadthFirstSearch } from './BreadthFirstSearch';
 import { depthFirstSearch } from './DepthFirstSearch';
 
-declare module '@/lib/algo-sandbox/core' {
+declare module '@algo-sandbox/core' {
   interface SandboxStateNameMap {
     searchGraph: SearchGraph;
     graphSearchAlgorithmState: SearchGraphState;

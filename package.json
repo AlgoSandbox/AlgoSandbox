@@ -1,5 +1,5 @@
 {
-  "name": "algo-sandbox",
+  "name": "algo-sandbox-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,12 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@tanstack/react-query": "^4.36.1",
     "clsx": "^2.0.0",
     "d3": "^7.8.5",
     "lodash": "^4.17.21",
+    "monaco-editor": "^0.44.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
@@ -33,6 +36,6 @@
     "eslint-config-next": "latest",
     "postcss": "latest",
     "tailwindcss": "latest",
-    "typescript": "latest"
+    "typescript": "^5.2.2"
   }
 }

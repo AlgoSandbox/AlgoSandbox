@@ -1,13 +1,6 @@
-import { adapterOptions } from '@/app/_constants/catalog';
+import { adapterOptions } from '@constants/catalog';
 import { useMemo } from 'react';
-import visualizer, { BoxContextVisualizer } from './visualizer';
-import { SelectOption, SelectOptions } from '@/components/Select';
-import {
-  SandboxCompositeAdapter,
-  SandboxStateNameMap,
-  SandboxAdapter,
-  SandboxStateName,
-} from '@/lib/algo-sandbox/core';
+import { BoxContextVisualizer } from './visualizer';
 import {
   BoxContextAdapters,
   defaultBoxContextAdapters,
@@ -41,15 +34,17 @@ export default function useBoxContextAlgorithmVisualizer({
     return {
       compatible:
         (composedAdapter === null &&
+          algorithm.instance !== null &&
           visualizer.instance.accepts === algorithm.instance.outputs) ||
         (!hasInvalidAdapter &&
+          algorithm.instance !== null &&
           algorithm.instance.outputs === composedAdapter?.accepts &&
           composedAdapter?.outputs === visualizer.instance.accepts),
       adapters,
     } satisfies BoxContextAlgorithmVisualizer;
   }, [
     adapters,
-    algorithm.instance.outputs,
+    algorithm.instance,
     composedAdapter,
     hasInvalidAdapter,
     visualizer.instance.accepts,

@@ -2,13 +2,13 @@ import {
   SandboxAlgorithm,
   createParameteredAlgorithm,
   SandboxParam,
-} from '../core';
+} from '@algo-sandbox/core';
 
 type ExampleState = {
   counter: number;
 };
 
-declare module '@/lib/algo-sandbox/core' {
+declare module '@algo-sandbox/core' {
   export interface SandboxStateNameMap {
     counter: ExampleState;
   }

@@ -1,5 +1,4 @@
 import { UndirectedGraph } from '.';
-import { SearchGraph } from '../../algorithms/search';
 import { SandboxProblem } from '../../core';
 
 const fiveNodesGraph = {

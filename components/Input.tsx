@@ -11,12 +11,16 @@ export type InputProps = DetailedHTMLProps<
   InputHTMLAttributes<HTMLInputElement>,
   HTMLInputElement
 > & {
+  containerClassName?: string;
   label: string;
   hideLabel?: boolean;
 };
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, hideLabel = false, className, ...props }, ref) => {
+  (
+    { label, hideLabel = false, className, containerClassName, ...props },
+    ref
+  ) => {
     const id = useId();
 
     const inputElement = (
@@ -27,7 +31,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         autoComplete="off"
         className={clsx(
           'bg-neutral-100 rounded px-4 py-2 focus:outline-primary-500',
-          className
+          className,
+          hideLabel && containerClassName
         )}
         {...props}
       />
@@ -36,7 +41,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return hideLabel ? (
       inputElement
     ) : (
-      <div className="flex flex-col">
+      <div className={clsx('flex flex-col', containerClassName)}>
         {!hideLabel && <FormLabel id={id}>{label}</FormLabel>}
         {inputElement}
       </div>

@@ -1,7 +1,7 @@
-import AppBar from './AppBar';
+import AppBar from './app-bar';
 import AdapterListPopover from './AdapterListPopover';
 import AlgorithmDetails from './AlgorithmDetails';
-import BoxContextProvider, { useBoxContext } from './BoxContextProvider';
+import BoxContextProvider, { useBoxContext } from './box-context';
 import ParameterControls from './ParameterControls';
 import Pseudocode from './Pseudocode';
 

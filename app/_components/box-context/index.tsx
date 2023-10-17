@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useContext, useMemo } from 'react';
+import { ReactNode, createContext, useContext, useMemo, useState } from 'react';
 import _ from 'lodash';
 import {
   BoxContextAlgorithm,
@@ -70,6 +70,8 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
   return _.get(value, path) as BoxContextReturn<P>;
 }
 
+type CustomPanel = 'algorithm' | null;
+
 export type BoxContextProviderProps = {
   children: ReactNode;
 };
@@ -77,8 +79,22 @@ export type BoxContextProviderProps = {
 export default function BoxContextProvider({
   children,
 }: BoxContextProviderProps) {
+  const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
+  const { customAlgorithmPanelVisible, setCustomAlgorithmPanelVisible } =
+    useMemo(() => {
+      return {
+        setCustomAlgorithmPanelVisible: (visible: boolean) => {
+          setCustomPanel(visible ? 'algorithm' : null);
+        },
+        customAlgorithmPanelVisible: customPanel === 'algorithm',
+      };
+    }, [customPanel]);
+
   const problem = useBoxContextProblem();
-  const algorithm = useBoxContextAlgorithm();
+  const algorithm = useBoxContextAlgorithm({
+    customPanelVisible: customAlgorithmPanelVisible,
+    setCustomPanelVisible: setCustomAlgorithmPanelVisible,
+  });
   const visualizer = useBoxContextVisualizer();
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,

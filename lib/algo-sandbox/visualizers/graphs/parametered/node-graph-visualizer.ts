@@ -1,11 +1,11 @@
 import * as d3 from 'd3';
-import { GraphNode, NodeGraph } from '@/lib/algo-sandbox/problems/graphs';
+import { GraphNode, NodeGraph } from '@algo-sandbox/problems/graphs';
 import {
   SandboxParameteredVisualizer,
   createParameteredVisualizer,
   SandboxParameters,
   SandboxParam,
-} from '@/lib/algo-sandbox/core';
+} from '@algo-sandbox/core';
 import _ from 'lodash';
 
 type RawRenderFunction = (
@@ -28,7 +28,7 @@ type NodeGraphVisualizationParameters = SandboxParameters<{
   renderNode: (node: NodeGraphSVGNode) => void;
 }>;
 
-declare module '@/lib/algo-sandbox/core' {
+declare module '@algo-sandbox/core' {
   export interface SandboxStateNameMap {
     nodeGraph: NodeGraph;
   }

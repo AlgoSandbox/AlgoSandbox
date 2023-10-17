@@ -1,11 +1,11 @@
-import { visualizerOptions } from '@/app/_constants/catalog';
-import { SelectOption, SelectOptions } from '@/components/Select';
+import { visualizerOptions } from '@constants/catalog';
+import { SelectOption, SelectOptions } from '@components';
 import {
   SandboxVisualizer,
   SandboxStateName,
   SandboxParameteredVisualizer,
-} from '@/lib/algo-sandbox/core';
-import { isParameteredVisualizer } from '@/utils/isParametered';
+} from '@algo-sandbox/core';
+import { isParameteredVisualizer } from '@utils';
 import { useMemo, useState } from 'react';
 
 const defaultVisualizerOption = visualizerOptions[0].options[0];

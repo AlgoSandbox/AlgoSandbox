@@ -1,7 +1,6 @@
-import { SandboxParameter, SandboxParameters } from '@/lib/algo-sandbox/core';
+import { SandboxParameter, SandboxParameters } from '@algo-sandbox/core';
 import { useFormContext } from 'react-hook-form';
-import Input from '../../components/Input';
-import { Button, MaterialSymbol } from '../../components';
+import { Button, Input, MaterialSymbol } from '@components';
 
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;
@@ -12,8 +11,7 @@ function ParameterControl<P extends SandboxParameter>({
   fieldName,
   parameter,
 }: ParameterControlProps<P>) {
-  const { register, setValue, watch, formState, getFieldState } =
-    useFormContext();
+  const { register, setValue, watch } = useFormContext();
 
   const watchField = watch(fieldName);
 

@@ -23,15 +23,15 @@ export type SelectGroup<T> = {
 
 export type SelectOptions<T = any> = Array<SelectOption<T> | SelectGroup<T>>;
 
-export type SelectProps<T> = {
+export type SelectProps<T, O  extends SelectOption<T> = SelectOption<T>> = {
   className?: string;
   containerClassName?: string;
   label: string;
   hideLabel?: boolean;
   placeholder?: string;
   options: SelectOptions<T>;
-  value?: SelectOption<T>;
-  onChange?: (value: SelectOption<T>) => void;
+  value?: O;
+  onChange?: (value: O) => void;
 };
 
 export function isSelectGroup<T>(

@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { SandboxVisualization } from '../core';
+import React, { useCallback, useEffect, useState } from 'react';
+import { SandboxVisualization } from '@algo-sandbox/core';
 
 export type VisualizationRendererProps = {
   className?: string;

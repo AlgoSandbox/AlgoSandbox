@@ -4,7 +4,7 @@ import {
   SandboxExecutionTrace,
   SandboxProblem,
   SandboxStateName,
-} from '@/lib/algo-sandbox/core';
+} from '@algo-sandbox/core';
 
 export type SandboxScene<
   N extends SandboxStateName,

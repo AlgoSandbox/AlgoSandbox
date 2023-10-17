@@ -23,8 +23,26 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
+      "@components": [
+        "./components"
+      ],
+      "@constants": [
+        "./constants",
+      ],
+      "@constants/*": [
+        "./constants/*",
+      ],
+      "@types": [
+        "./types"
+      ],
+      "@utils": [
+        "./utils"
+      ],
+      "@utils/*": [
+        "./utils/*"
+      ],
+      "@algo-sandbox/*": [
+        "./lib/algo-sandbox/*",
       ]
     }
   },

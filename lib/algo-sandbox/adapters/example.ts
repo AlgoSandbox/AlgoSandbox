@@ -1,4 +1,4 @@
-import { SandboxAdapter } from '../core/adapter';
+import { SandboxAdapter } from '@algo-sandbox/core/adapter';
 
 export const counterToSearchGraphStateAdapter: SandboxAdapter<
   'counter',

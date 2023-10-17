@@ -4,7 +4,12 @@ import FormLabel from './FormLabel';
 import Input from './Input';
 import MaterialSymbol from './MaterialSymbol';
 import Popover from './Popover';
-import Select from './Select';
+import Select, {
+  isSelectGroup,
+  SelectGroup,
+  SelectOption,
+  SelectOptions,
+} from './Select';
 import Tooltip from './Tooltip';
 
 export {
@@ -14,6 +19,9 @@ export {
   Input,
   MaterialSymbol,
   Popover,
+  isSelectGroup,
   Select,
   Tooltip,
 };
+
+export type { SelectGroup, SelectOption, SelectOptions };

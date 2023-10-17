@@ -2,7 +2,7 @@ import {
   SandboxParam,
   SandboxProblem,
   createParameteredProblem,
-} from '@/lib/algo-sandbox/core';
+} from '@algo-sandbox/core';
 
 export const exampleProblem: SandboxProblem<'counter'> = {
   name: 'Example problem',

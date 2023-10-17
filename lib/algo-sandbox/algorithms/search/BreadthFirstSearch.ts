@@ -1,4 +1,4 @@
-import { SandboxAlgorithm } from '@/lib/algo-sandbox/core';
+import { SandboxAlgorithm } from '@algo-sandbox/core';
 
 const pseudocode = `BFS(G, start):
   Create an empty queue toVisit

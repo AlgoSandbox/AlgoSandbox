@@ -20,7 +20,16 @@ export type ButtonProps = {
 } & DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
->;
+> &
+  (
+    | {
+        role: 'checkbox';
+        selected?: boolean;
+      }
+    | {
+        selected?: never;
+      }
+  );
 
 function Button(
   {
@@ -31,6 +40,8 @@ function Button(
     hideLabel,
     size = 'md',
     variant = 'tertiary',
+    selected = false,
+    role,
     ...props
   }: ButtonProps,
   ref: ForwardedRef<HTMLButtonElement>
@@ -40,6 +51,8 @@ function Button(
       <button
         ref={ref}
         aria-label={hideLabel ? label : undefined}
+        role={role}
+        aria-checked={selected}
         className={clsx(
           'flex items-center  rounded transition-colors',
           size === 'sm' && [
@@ -54,7 +67,10 @@ function Button(
             hideLabel ? 'pe-2' : 'pe-3',
           ],
           variant === 'tertiary' && [
-            !disabled && 'hover:bg-primary-100 text-neutral-700',
+            !disabled && [
+              !selected && 'hover:bg-primary-100 text-neutral-700',
+              selected && 'hover:bg-primary-200 bg-primary-100',
+            ],
             disabled && 'text-neutral-300',
           ],
           variant === 'secondary' && [

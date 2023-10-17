@@ -1,11 +1,13 @@
-import { Badge, Button, MaterialSymbol, Popover, Select } from '@/components';
-import { isParameteredAlgorithm } from '@/utils/isParametered';
+import { Badge, Button, MaterialSymbol, Popover, Select } from '@components';
+import { isParameteredAlgorithm } from '@utils';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { AlgorithmDetails } from '..';
-import { useBoxContext } from '../BoxContextProvider';
+import { useBoxContext } from '../box-context';
 
 export default function AlgorithmSelect() {
+  const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
+    useBoxContext('algorithm.customPanel');
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -14,21 +16,24 @@ export default function AlgorithmSelect() {
   const {
     default: defaultParameters,
     setValue: setParameters,
-    value: algorithmParameters,
+    value: algorithmParameters = {},
   } = useBoxContext('algorithm.parameters');
   const algorithm = selectedOption.value;
-  const isAlgorithmCustomizable = isParameteredAlgorithm(algorithm);
 
-  const methods = useForm({ defaultValues: defaultParameters });
+  const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
   const changedParameterCount = useMemo(() => {
-    return Object.keys(algorithmParameters).filter(
+    if (algorithmParameters === null || defaultParameters === null) {
+      return 0;
+    }
+
+    return Object.keys(algorithmParameters ?? {}).filter(
       (key) => algorithmParameters[key] !== defaultParameters[key]
     ).length;
   }, [algorithmParameters, defaultParameters]);
 
   useEffect(() => {
-    methods.reset(defaultParameters);
+    methods.reset(defaultParameters ?? {});
   }, [defaultParameters, methods]);
 
   return (
@@ -37,9 +42,11 @@ export default function AlgorithmSelect() {
         label="Algorithm"
         options={options}
         value={selectedOption}
-        onChange={setSelectedOption}
+        onChange={(value) => {
+          setSelectedOption(value as typeof selectedOption);
+        }}
       />
-      {isAlgorithmCustomizable && (
+      {algorithm !== null && isParameteredAlgorithm(algorithm) && (
         <Popover
           content={
             <FormProvider {...methods}>
@@ -67,6 +74,26 @@ export default function AlgorithmSelect() {
           </Badge>
         </Popover>
       )}
+      {selectedOption.type === 'custom' && (
+        <Button
+          label="Edit algorithm"
+          hideLabel
+          role="checkbox"
+          selected={customPanelVisible}
+          onClick={() => {
+            setCustomPanelVisible(!customPanelVisible);
+          }}
+          icon={<MaterialSymbol icon="edit" />}
+        />
+      )}
+      <Button
+        label="New custom algorithm"
+        hideLabel
+        onClick={() => {
+          setCustomPanelVisible(!customPanelVisible);
+        }}
+        icon={<MaterialSymbol icon="add" />}
+      />
     </div>
   );
 }

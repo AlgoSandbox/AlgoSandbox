@@ -1,11 +1,9 @@
 import {
   SandboxParameters,
-  SandboxAlgorithm,
   SandboxParameteredAlgorithm,
   SandboxStateName,
-} from '@/lib/algo-sandbox/core';
+} from '@algo-sandbox/core';
 import ParameterControls from './ParameterControls';
-import { isParameteredAlgorithm } from '@/utils/isParametered';
 
 export type AlgorithmDetailsProps<
   N extends SandboxStateName,
@@ -21,7 +19,7 @@ export default function AlgorithmDetails<
   P extends SandboxParameters
 >({ algorithm }: AlgorithmDetailsProps<N, M, P>) {
   return (
-    <div className="p-4">
+    <div className="p-4 bg-white">
       <div className="font-medium flex flex-col gap-2">
         <span>Algorithm parameters</span>
         <ParameterControls parameters={algorithm.parameters} />

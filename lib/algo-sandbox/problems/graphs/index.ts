@@ -1,9 +1,4 @@
 export * from './graph';
+import * as undirected from './undirected-graphs';
 
-import undirected from './undirected-graphs';
-
-namespace Graphs {
-  export import Undirected = undirected;
-}
-
-export default Graphs;
+export { undirected };

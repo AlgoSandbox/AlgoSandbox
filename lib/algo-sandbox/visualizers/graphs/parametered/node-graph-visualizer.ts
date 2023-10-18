@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   createParameteredVisualizer,
   SandboxParam,
@@ -109,7 +110,7 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
         name: 'Node graph',
         accepts: 'nodeGraph',
         parameters: {
-          renderNode: SandboxParam.callback('Node render function', (_) => {}),
+          renderNode: SandboxParam.callback('Node render function', () => {}),
         },
         onUpdate: ({ parameters, svg, width, height, state: graph }) => {
           if (!visualizerState || !_.isEqual(graph, cachedGraph)) {

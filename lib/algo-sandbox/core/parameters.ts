@@ -1,6 +1,7 @@
 type SandboxParameterTypeMap = {
   integer: number;
-  callback: Function;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  callback: (...args: Array<any>) => any;
 };
 
 export type SandboxParameterType = keyof SandboxParameterTypeMap;
@@ -26,7 +27,10 @@ export type Parametered<T, P extends SandboxParameters> = {
   create: (parameters?: ParsedParameters<P>) => T;
 };
 
-export type ParsedParameter<P> = P extends SandboxParameter<any, infer T>
+export type ParsedParameter<P> = P extends SandboxParameter<
+  SandboxParameterType,
+  infer T
+>
   ? T
   : never;
 
@@ -34,28 +38,27 @@ export type ParsedParameters<P extends SandboxParameters> = Readonly<{
   [K in keyof P]: ParsedParameter<P[K]>;
 }>;
 
-export namespace SandboxParam {
-  export function integer(
-    name: string,
-    defaultValue: number
-  ): SandboxParameter<'integer'> {
-    return {
-      name,
-      type: 'integer',
-      defaultValue,
-    };
-  }
+export function integer(
+  name: string,
+  defaultValue: number
+): SandboxParameter<'integer'> {
+  return {
+    name,
+    type: 'integer',
+    defaultValue,
+  };
+}
 
-  export function callback<T extends Function>(
-    name: string,
-    defaultValue: T
-  ): SandboxParameter<'callback', T> {
-    return {
-      name,
-      type: 'callback',
-      defaultValue: defaultValue as unknown as T,
-    };
-  }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function callback<T extends (...args: Array<any>) => any>(
+  name: string,
+  defaultValue: T
+): SandboxParameter<'callback', T> {
+  return {
+    name,
+    type: 'callback',
+    defaultValue: defaultValue as unknown as T,
+  };
 }
 
 export function getDefaultParameters<P extends SandboxParameters>(
@@ -65,3 +68,8 @@ export function getDefaultParameters<P extends SandboxParameters>(
     Object.entries(parameters).map(([key, value]) => [key, value.defaultValue])
   ) as ParsedParameters<P>;
 }
+
+export const SandboxParam = {
+  integer,
+  callback,
+};

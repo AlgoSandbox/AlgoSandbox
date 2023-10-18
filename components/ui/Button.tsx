@@ -1,12 +1,13 @@
+import clsx from 'clsx';
 import {
   ButtonHTMLAttributes,
   DetailedHTMLProps,
   ForwardedRef,
-  ReactElement,
   forwardRef,
+  ReactElement,
 } from 'react';
+
 import { Tooltip } from '.';
-import clsx from 'clsx';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
 type ButtonSize = 'sm' | 'md';

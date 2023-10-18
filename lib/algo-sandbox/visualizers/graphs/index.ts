@@ -1,9 +1,4 @@
-import parametered from './parametered';
-import searchGraphVisualizer from './search-graph-visualizer';
+import * as parametered from './parametered';
+import searchGraph from './search-graph-visualizer';
 
-namespace Graphs {
-  export const searchGraph = searchGraphVisualizer;
-  export import Parametered = parametered;
-}
-
-export default Graphs;
+export { parametered, searchGraph };

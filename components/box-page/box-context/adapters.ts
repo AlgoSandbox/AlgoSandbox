@@ -3,6 +3,7 @@ import {
   SandboxCompositeAdapter,
   SandboxStateName,
   SandboxStateNameMap,
+  tryCompose,
 } from '@algo-sandbox/core';
 import { SelectOption, SelectOptions } from '@components/ui';
 import { useMemo, useState } from 'react';
@@ -37,9 +38,7 @@ export function useBoxContextAdapters(options: SelectOptions<Adapter>) {
       return null;
     }
 
-    return SandboxAdapter.tryCompose(
-      ...selectedAdapters.map(({ value }) => value)
-    );
+    return tryCompose(...selectedAdapters.map(({ value }) => value));
   }, [selectedAdapters]);
 
   const adapters = useMemo(() => {

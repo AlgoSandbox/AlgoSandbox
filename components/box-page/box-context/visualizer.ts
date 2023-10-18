@@ -16,12 +16,14 @@ export const defaultBoxContextVisualizer: BoxContextVisualizer = {
     setValue: () => {},
     options: [],
   },
-  instance: defaultVisualizerOption.value as SandboxVisualizer<any>,
+  instance:
+    defaultVisualizerOption.value as SandboxVisualizer<SandboxStateName>,
 };
 
 type Visualizer =
-  | SandboxVisualizer<any>
-  | SandboxParameteredVisualizer<any, any>;
+  | SandboxVisualizer<SandboxStateName>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | SandboxParameteredVisualizer<SandboxStateName, any>;
 
 export type BoxContextVisualizer = {
   select: {

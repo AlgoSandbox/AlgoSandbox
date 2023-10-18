@@ -1,5 +1,5 @@
-import { Select } from '@components/ui';
 import { useBoxContext } from '@components/box-page';
+import { Select } from '@components/ui';
 
 export default function ProblemSelect() {
   const {

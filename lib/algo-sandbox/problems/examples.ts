@@ -13,7 +13,7 @@ export const exampleProblem: SandboxProblem<'counter'> = {
   },
 };
 
-export const exampleParameteredProblem = createParameteredProblem({
+export const incrementCounter = createParameteredProblem({
   name: 'Counter',
   shape: 'counter',
   parameters: {
@@ -29,9 +29,3 @@ export const exampleParameteredProblem = createParameteredProblem({
     return `Example problem with initial value = ${initialCounterValue}`;
   },
 });
-
-namespace Examples {
-  export const incrementCounter = exampleParameteredProblem;
-}
-
-export default Examples;

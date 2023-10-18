@@ -1,9 +1,4 @@
-import examples from './examples';
-import graphs from './graphs';
+import * as examples from './examples';
+import { undirected as undirectedGraphs } from './graphs';
 
-namespace Problems {
-  export import UndirectedGraphs = graphs.Undirected;
-  export import Examples = examples;
-}
-
-export default Problems;
+export { examples, undirectedGraphs };

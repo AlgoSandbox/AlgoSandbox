@@ -27,8 +27,12 @@ import {
 } from './custom';
 
 type Algorithm =
-  | SandboxAlgorithm<SandboxStateName, any>
-  | SandboxParameteredAlgorithm<SandboxStateName, any, any>;
+  | SandboxAlgorithm<SandboxStateName, SandboxStateName>
+  | SandboxParameteredAlgorithm<
+      SandboxStateName,
+      SandboxStateName,
+      SandboxParameters
+    >;
 
 export type BoxContextAlgorithm = {
   customPanel: {
@@ -36,7 +40,7 @@ export type BoxContextAlgorithm = {
     setVisible: (visible: boolean) => void;
   };
   custom: BoxContextCustomObjects;
-  instance: SandboxAlgorithm<SandboxStateName, any> | null;
+  instance: SandboxAlgorithm<SandboxStateName, SandboxStateName> | null;
   value: Algorithm | null;
   parameters: {
     default: ParsedParameters<SandboxParameters> | null;

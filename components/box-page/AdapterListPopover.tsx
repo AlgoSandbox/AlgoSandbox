@@ -1,17 +1,17 @@
+import { SandboxAdapter, SandboxStateName } from '@algo-sandbox/core';
 import {
   Button,
+  isSelectGroup,
   MaterialSymbol,
   Popover,
   Select,
   SelectOption,
   SelectOptions,
-  isSelectGroup,
 } from '@components/ui';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { Fragment, ReactElement } from 'react';
-import { SandboxAdapter, SandboxStateName } from '@algo-sandbox/core';
-import _ from 'lodash';
 import clsx from 'clsx';
+import _ from 'lodash';
+import { Fragment, ReactElement } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
 export type AdapterListPopoverProps = {
   fromLabel: string;
@@ -169,7 +169,8 @@ export default function AdapterListPopover({
                     <Controller
                       control={control}
                       name={`adapters.${index}`}
-                      render={({ field: { onChange, ...field } }) => (
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      render={({ field: {onChange: _, ...field } }) => (
                         <Select
                           placeholder="Select adapter"
                           containerClassName="flex-1"

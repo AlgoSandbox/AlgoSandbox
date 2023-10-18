@@ -1,9 +1,6 @@
 'use client';
 
-import { Button, MaterialSymbol } from '@components/ui';
 import { VisualizerRenderer } from '@algo-sandbox/components';
-import { useEffect, useMemo, useState } from 'react';
-import { ObjectInspector } from 'react-inspector';
 import {
   AppBar,
   BoxContextProvider,
@@ -11,17 +8,20 @@ import {
   SandboxObjectEditorPanel,
   useBoxContext,
 } from '@components/box-page';
-import { createScene } from '@utils';
-import { TypeDeclaration } from './page';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DbSavedAlgorithm, DbSavedSandboxObject } from '@utils/db';
+import { Button, MaterialSymbol } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createScene } from '@utils';
+import { DbSavedAlgorithm } from '@utils/db';
+import { useEffect, useMemo, useState } from 'react';
+import { ObjectInspector } from 'react-inspector';
+
+import { TypeDeclaration } from './page';
 
 const queryClient = new QueryClient();
 
 function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [showPseudocode, setShowPseudocode] = useState(true);
 
   const customPanelVisible = useBoxContext('algorithm.customPanel.visible');
 
@@ -83,17 +83,18 @@ function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
       <AppBar />
       <div className="flex-1 flex overflow-y-hidden">
         {customPanelVisible && (
-          <SandboxObjectEditorPanel typeDeclarations={typeDeclarations} customObjects={customObjects} />
+          <SandboxObjectEditorPanel
+            typeDeclarations={typeDeclarations}
+            customObjects={customObjects}
+          />
         )}
         <main className="relative flex-1 flex flex-col">
           <div className="absolute p-2 max-w-full">
-            {showPseudocode && (
-              <Pseudocode
-                pseudocode={pseudocode}
-                startLine={executionStep?.startLine}
-                endLine={executionStep?.endLine}
-              />
-            )}
+            <Pseudocode
+              pseudocode={pseudocode}
+              startLine={executionStep?.startLine}
+              endLine={executionStep?.endLine}
+            />
           </div>
           {scene && (
             <div className="absolute w-full bottom-8 flex justify-center">
@@ -191,7 +192,9 @@ type BoxPageProps = {
 export default function BoxPage(props: BoxPageProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <BoxContextProvider builtInAlgorithmOptions={props.builtInAlgorithmOptions}>
+      <BoxContextProvider
+        builtInAlgorithmOptions={props.builtInAlgorithmOptions}
+      >
         <BoxPageImpl {...props} />
       </BoxContextProvider>
     </QueryClientProvider>

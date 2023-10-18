@@ -5,8 +5,7 @@ type SandboxObjectType = 'algorithm';
 function createKey(type: SandboxObjectType, object: DbSandboxObject) {
   switch (type) {
     case 'algorithm':
-      const key = `sandbox:algorithms:${object.name}-${new Date().getTime()}`;
-      return key;
+      return `sandbox:algorithms:${object.name}-${new Date().getTime()}`;
   }
 }
 

@@ -17,7 +17,7 @@ const pseudocode = `BFS(G, start):
               Enqueue u into toVisit
               Set visited[u] to true`;
 
-export const breadthFirstSearch: SandboxAlgorithm<
+const breadthFirstSearch: SandboxAlgorithm<
   'searchGraph',
   'graphSearchAlgorithmState'
 > = {
@@ -82,3 +82,5 @@ export const breadthFirstSearch: SandboxAlgorithm<
     return true;
   },
 };
+
+export default breadthFirstSearch;

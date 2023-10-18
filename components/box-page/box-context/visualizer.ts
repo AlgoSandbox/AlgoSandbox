@@ -1,12 +1,13 @@
-import { visualizerOptions } from '@constants/catalog';
-import { SelectOption, SelectOptions } from '@components';
 import {
-  SandboxVisualizer,
-  SandboxStateName,
   SandboxParameteredVisualizer,
+  SandboxStateName,
+  SandboxVisualizer,
 } from '@algo-sandbox/core';
+import { visualizerOptions } from '@constants/catalog';
 import { isParameteredVisualizer } from '@utils';
 import { useMemo, useState } from 'react';
+
+import { SelectOption, SelectOptions } from '../../ui';
 
 const defaultVisualizerOption = visualizerOptions[0].options[0];
 export const defaultBoxContextVisualizer: BoxContextVisualizer = {

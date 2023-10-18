@@ -1,21 +1,22 @@
-import { SelectGroup, SelectOption, SelectOptions } from '@components';
 import {
   counterToSearchGraphStateAdapter,
   searchGraphStateToCounterAdapter,
 } from '@algo-sandbox/adapters';
-import Algorithms from '@algo-sandbox/algorithms';
+import * as Algorithms from '@algo-sandbox/algorithms';
 import {
+  SandboxAdapter,
   SandboxAlgorithm,
-  SandboxStateName,
   SandboxParameteredAlgorithm,
   SandboxParameteredProblem,
-  SandboxProblem,
-  SandboxAdapter,
   SandboxParameteredVisualizer,
+  SandboxProblem,
+  SandboxStateName,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 import Problems from '@algo-sandbox/problems';
 import Visualizers from '@algo-sandbox/visualizers';
+
+import { SelectGroup, SelectOption, SelectOptions } from '../components/ui';
 
 export type CatalogOption<T> = SelectOption<T> & {
   type: 'custom' | 'built-in';

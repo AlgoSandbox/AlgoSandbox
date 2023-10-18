@@ -1,10 +1,10 @@
-import { SelectOption, SelectOptions } from '@components';
 import {
   SandboxAdapter,
-  SandboxStateName,
   SandboxCompositeAdapter,
+  SandboxStateName,
   SandboxStateNameMap,
 } from '@algo-sandbox/core';
+import { SelectOption, SelectOptions } from '@components/ui';
 import { useMemo, useState } from 'react';
 
 type Adapter = SandboxAdapter<SandboxStateName, SandboxStateName>;

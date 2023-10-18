@@ -1,57 +1,52 @@
-import { SandboxAnyAlgorithm } from '@types';
 import { DbSandboxObject, DbSavedSandboxObject } from '../types';
 import { saveSandboxObject } from '.';
 
-export namespace LocalDb {
-  export function getSavedAlgorithmKeys() {
-    const savedAlgorithmKeysRaw = localStorage.getItem(
-      'sandbox:algorithms:custom'
-    );
+export function getSavedAlgorithmKeys() {
+  const savedAlgorithmKeysRaw = localStorage.getItem(
+    'sandbox:algorithms:custom'
+  );
 
-    if (savedAlgorithmKeysRaw === null) {
-      return [];
-    }
-
-    return JSON.parse(savedAlgorithmKeysRaw) as Array<string>;
+  if (savedAlgorithmKeysRaw === null) {
+    return [];
   }
 
-  export function getSavedAlgorithms() {
-    const savedAlgorithmKeys = getSavedAlgorithmKeys();
+  return JSON.parse(savedAlgorithmKeysRaw) as Array<string>;
+}
 
-    return savedAlgorithmKeys
-      .map((key) => localStorage.getItem(key))
-      .filter((item) => item !== null)
-      .map((item) => JSON.parse(item!)) as Array<DbSavedSandboxObject>;
-  }
+export function getSavedAlgorithms() {
+  const savedAlgorithmKeys = getSavedAlgorithmKeys();
 
-  export function addSavedAlgorithm(algorithm: DbSandboxObject) {
-    const savedAlgorithm = saveSandboxObject('algorithm', algorithm);
-    const algorithmKeys = getSavedAlgorithmKeys();
-    const newAlgorithmKeys = [...algorithmKeys, savedAlgorithm.key];
-    localStorage.setItem(
-      'sandbox:algorithms:custom',
-      JSON.stringify(newAlgorithmKeys)
-    );
+  return savedAlgorithmKeys
+    .map((key) => localStorage.getItem(key))
+    .filter((item) => item !== null)
+    .map((item) => JSON.parse(item!)) as Array<DbSavedSandboxObject>;
+}
 
-    return savedAlgorithm;
-  }
+export function addSavedAlgorithm(algorithm: DbSandboxObject) {
+  const savedAlgorithm = saveSandboxObject('algorithm', algorithm);
+  const algorithmKeys = getSavedAlgorithmKeys();
+  const newAlgorithmKeys = [...algorithmKeys, savedAlgorithm.key];
+  localStorage.setItem(
+    'sandbox:algorithms:custom',
+    JSON.stringify(newAlgorithmKeys)
+  );
 
-  export function setSavedAlgorithm(algorithm: DbSavedSandboxObject) {
-    const savedAlgorithm = saveSandboxObject('algorithm', algorithm);
+  return savedAlgorithm;
+}
 
-    return savedAlgorithm;
-  }
+export function setSavedAlgorithm(algorithm: DbSavedSandboxObject) {
+  const savedAlgorithm = saveSandboxObject('algorithm', algorithm);
 
-  export function removeSavedAlgorithm(algorithm: DbSavedSandboxObject) {
-    localStorage.removeItem(algorithm.key);
+  return savedAlgorithm;
+}
 
-    const algorithmKeys = getSavedAlgorithmKeys();
-    const newAlgorithmKeys = algorithmKeys.filter(
-      (key) => key !== algorithm.key
-    );
-    localStorage.setItem(
-      'sandbox:algorithms:custom',
-      JSON.stringify(newAlgorithmKeys)
-    );
-  }
+export function removeSavedAlgorithm(algorithm: DbSavedSandboxObject) {
+  localStorage.removeItem(algorithm.key);
+
+  const algorithmKeys = getSavedAlgorithmKeys();
+  const newAlgorithmKeys = algorithmKeys.filter((key) => key !== algorithm.key);
+  localStorage.setItem(
+    'sandbox:algorithms:custom',
+    JSON.stringify(newAlgorithmKeys)
+  );
 }

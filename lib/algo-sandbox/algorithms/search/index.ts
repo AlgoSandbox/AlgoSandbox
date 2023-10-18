@@ -1,6 +1,7 @@
 import { NodeGraph } from '@algo-sandbox/problems/graphs';
-import { breadthFirstSearch } from './BreadthFirstSearch';
-import { depthFirstSearch } from './DepthFirstSearch';
+
+import breadthFirstSearch from './bfs';
+import depthFirstSearch from './dfs';
 
 declare module '@algo-sandbox/core' {
   interface SandboxStateNameMap {
@@ -21,9 +22,4 @@ type SearchGraphState = {
   currentNodeId: string | null;
 };
 
-namespace Search {
-  export const bfs = breadthFirstSearch;
-  export const dfs = depthFirstSearch;
-}
-
-export default Search;
+export { breadthFirstSearch as bfs, depthFirstSearch as dfs };

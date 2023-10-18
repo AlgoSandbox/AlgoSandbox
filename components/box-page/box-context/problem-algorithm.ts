@@ -1,54 +1,54 @@
 import { adapterOptions } from '@constants/catalog';
 import { useMemo } from 'react';
-import { BoxContextVisualizer } from './visualizer';
+
 import {
   BoxContextAdapters,
   defaultBoxContextAdapters,
   useBoxContextAdapters,
 } from './adapters';
 import { BoxContextAlgorithm } from './algorithm';
+import { BoxContextProblem } from './problem';
 
-export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizer =
-  {
-    compatible: false,
-    adapters: defaultBoxContextAdapters,
-  };
-
-export type BoxContextAlgorithmVisualizer = {
+export type BoxContextProblemAlgorithm = {
   compatible: boolean;
   adapters: BoxContextAdapters;
 };
 
-export default function useBoxContextAlgorithmVisualizer({
-  visualizer,
+export const defaultBoxContextProblemAlgorithm: BoxContextProblemAlgorithm = {
+  compatible: false,
+  adapters: defaultBoxContextAdapters,
+};
+
+export default function useBoxContextProblemAlgorithm({
   algorithm,
+  problem,
 }: {
   algorithm: BoxContextAlgorithm;
-  visualizer: BoxContextVisualizer;
+  problem: BoxContextProblem;
 }) {
   const adapters = useBoxContextAdapters(adapterOptions);
   const { composed: composedAdapter, value: adapterList } = adapters;
   const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
 
-  const algorithmVisualizer = useMemo(() => {
+  const problemAlgorithm = useMemo(() => {
     return {
       compatible:
         (composedAdapter === null &&
           algorithm.instance !== null &&
-          visualizer.instance.accepts === algorithm.instance.outputs) ||
+          problem.instance.shape === algorithm.instance.accepts) ||
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
-          algorithm.instance.outputs === composedAdapter?.accepts &&
-          composedAdapter?.outputs === visualizer.instance.accepts),
+          problem.instance.shape === composedAdapter?.accepts &&
+          composedAdapter?.outputs === algorithm.instance.accepts),
       adapters,
-    } satisfies BoxContextAlgorithmVisualizer;
+    } satisfies BoxContextProblemAlgorithm;
   }, [
     adapters,
     algorithm.instance,
     composedAdapter,
     hasInvalidAdapter,
-    visualizer.instance.accepts,
+    problem.instance.shape,
   ]);
 
-  return algorithmVisualizer;
+  return problemAlgorithm;
 }

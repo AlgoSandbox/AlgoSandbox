@@ -1,8 +1,8 @@
-import { ModuleKind, ScriptTarget, transpile } from 'typescript';
 import * as adapters from '@algo-sandbox/adapters';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
 import * as visualizers from '@algo-sandbox/visualizers';
+import { ModuleKind, ScriptTarget, transpile } from 'typescript';
 
 export function evalWithContext(
   code: string,

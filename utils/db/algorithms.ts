@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { LocalDb } from './local/algorithms';
+
+import * as LocalDb from './local/algorithms';
 import { DbSandboxObject, DbSavedSandboxObject } from './types';
 
 export function useSavedAlgorithmsQuery() {

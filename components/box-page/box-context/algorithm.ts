@@ -1,10 +1,4 @@
 import {
-  CatalogGroup,
-  CatalogOption,
-  CatalogOptions,
-  algorithmOptions as defaultAlgorithmOptions,
-} from '@constants/catalog';
-import {
   getDefaultParameters,
   ParsedParameters,
   SandboxAlgorithm,
@@ -12,16 +6,25 @@ import {
   SandboxParameters,
   SandboxStateName,
 } from '@algo-sandbox/core';
-import { isParameteredAlgorithm } from '@utils';
-import { useEffect, useMemo, useState } from 'react';
-import { DbSandboxObject, DbSavedSandboxObject } from '@utils/db/types';
 import {
+  CatalogGroup,
+  CatalogOption,
+  CatalogOptions,
+} from '@constants/catalog';
+import { isParameteredAlgorithm } from '@utils';
+import {
+  DbSavedAlgorithm,
   useAddSavedAlgorithmMutation,
   useRemoveSavedAlgorithmMutation,
-  useSavedAlgorithmsQuery,
   useSetSavedAlgorithmMutation,
 } from '@utils/db';
 import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
+import { useEffect, useMemo, useState } from 'react';
+
+import {
+  BoxContextCustomObjects,
+  defaultBoxContextCustomObjects,
+} from './custom';
 
 type Algorithm =
   | SandboxAlgorithm<SandboxStateName, any>
@@ -32,48 +35,36 @@ export type BoxContextAlgorithm = {
     visible: boolean;
     setVisible: (visible: boolean) => void;
   };
-  custom: {
-    selected: DbSavedSandboxObject | null;
-    values: Array<DbSavedSandboxObject>;
-    add: (value: DbSandboxObject) => void;
-    set: (value: DbSavedSandboxObject) => void;
-    remove: (value: DbSavedSandboxObject) => void;
-  };
+  custom: BoxContextCustomObjects;
   instance: SandboxAlgorithm<SandboxStateName, any> | null;
+  value: Algorithm | null;
   parameters: {
     default: ParsedParameters<SandboxParameters> | null;
     value: ParsedParameters<SandboxParameters> | null;
     setValue: (value: ParsedParameters<SandboxParameters>) => void;
   };
   select: {
-    value: CatalogOption<Algorithm | null>;
-    setValue: (value: CatalogOption<Algorithm | null>) => void;
-    options: CatalogOptions<Algorithm | null>;
+    value: CatalogOption<DbSavedAlgorithm> | undefined;
+    setValue: (value: CatalogOption<DbSavedAlgorithm> | undefined) => void;
+    options: CatalogOptions<DbSavedAlgorithm>;
   };
 };
 
-const defaultAlgorithmOption = defaultAlgorithmOptions[0].options[0];
-
 export const defaultBoxContextAlgorithm: BoxContextAlgorithm = {
-  custom: {
-    selected: null,
-    values: [],
-    add: () => {},
-    set: () => {},
-    remove: () => {},
-  },
+  custom: defaultBoxContextCustomObjects,
   customPanel: {
     visible: false,
     setVisible: () => {},
   },
-  instance: {} as SandboxAlgorithm<SandboxStateName, any>,
+  instance: null,
+  value: null,
   parameters: {
     default: {},
     value: {},
     setValue: () => {},
   },
   select: {
-    value: defaultAlgorithmOption,
+    value: undefined,
     setValue: () => {},
     options: [],
   },
@@ -82,18 +73,28 @@ export const defaultBoxContextAlgorithm: BoxContextAlgorithm = {
 export function useBoxContextAlgorithm({
   customPanelVisible,
   setCustomPanelVisible,
+  algorithmOptions,
 }: {
   customPanelVisible: boolean;
   setCustomPanelVisible: (visible: boolean) => void;
+  algorithmOptions: Array<CatalogGroup<DbSavedAlgorithm>>;
 }) {
-  const [selectedAlgorithmOption, setSelectedAlgorithmOption] = useState(
-    defaultAlgorithmOption
-  );
-  const [algorithmOptions, setAlgorithmOptions] = useState<
-    Array<CatalogGroup<Algorithm | null>>
-  >(defaultAlgorithmOptions);
+  const [selectedAlgorithmOption, setSelectedAlgorithmOption] = useState<
+    CatalogOption<DbSavedAlgorithm> | undefined
+  >();
 
-  const { data: savedAlgorithms } = useSavedAlgorithmsQuery();
+  useEffect(() => {
+    if (selectedAlgorithmOption !== undefined) {
+      return;
+    }
+    const option = algorithmOptions.at(0)?.options.at(0);
+    if (option === undefined) {
+      return;
+    }
+
+    setSelectedAlgorithmOption(option);
+  }, [algorithmOptions, selectedAlgorithmOption]);
+
   const {
     mutate: addSavedAlgorithm,
     data: latestNewAlgorithm,
@@ -108,27 +109,18 @@ export function useBoxContextAlgorithm({
 
   const selectedCustomAlgorithm = useMemo(() => {
     if (
-      selectedAlgorithmOption.type === 'built-in' ||
-      savedAlgorithms === undefined
+      selectedAlgorithmOption === undefined ||
+      selectedAlgorithmOption.type === 'built-in'
     ) {
       return null;
     }
 
-    return (
-      savedAlgorithms.find(
-        (value) => value.key === selectedAlgorithmOption.key
-      ) ?? null
-    );
-  }, [
-    savedAlgorithms,
-    selectedAlgorithmOption.key,
-    selectedAlgorithmOption.type,
-  ]);
+    return selectedAlgorithmOption.value;
+  }, [selectedAlgorithmOption]);
 
   const custom = useMemo(() => {
     return {
       selected: selectedCustomAlgorithm,
-      values: savedAlgorithms ?? [],
       add: (value) => {
         return addSavedAlgorithm(value);
       },
@@ -136,8 +128,8 @@ export function useBoxContextAlgorithm({
         return await setSavedAlgorithm(value);
       },
       remove: (value) => {
-        if (selectedAlgorithmOption.key === value.key) {
-          setSelectedAlgorithmOption(defaultAlgorithmOption);
+        if (selectedAlgorithmOption?.key === value.key) {
+          setSelectedAlgorithmOption(undefined);
         }
         return removeSavedAlgorithm(value);
       },
@@ -145,48 +137,17 @@ export function useBoxContextAlgorithm({
   }, [
     addSavedAlgorithm,
     removeSavedAlgorithm,
-    savedAlgorithms,
-    selectedAlgorithmOption.key,
+    selectedAlgorithmOption?.key,
     selectedCustomAlgorithm,
     setSavedAlgorithm,
   ]);
 
   useEffect(() => {
-    if (savedAlgorithms === undefined) {
-      return;
-    }
-
-    const newOptions = savedAlgorithms.map((algorithm) => {
-      let evaledAlgorithm: Algorithm | null;
-      try {
-        evaledAlgorithm = evalWithAlgoSandbox(algorithm.typescriptCode);
-      } catch (e) {
-        evaledAlgorithm = null;
-        console.error(e);
-      }
-      const newOption: CatalogOption<Algorithm | null> = {
-        label: algorithm.name,
-        key: algorithm.key,
-        type: 'custom',
-        value: evaledAlgorithm,
-      };
-
-      return newOption;
-    });
-
-    const customGroup: CatalogGroup<Algorithm | null> = {
-      key: 'custom',
-      label: 'Custom',
-      options: newOptions,
-    };
-
-    setAlgorithmOptions((algorithmOptions) => [
-      ...algorithmOptions.filter((group) => group.key !== 'custom'),
-      customGroup,
-    ]);
-
+    const flattenedAlgorithmOptions = algorithmOptions.flatMap(
+      (group) => group.options
+    );
     if (latestNewAlgorithm?.key !== undefined) {
-      const newSelectedOption = newOptions.find(
+      const newSelectedOption = flattenedAlgorithmOptions.find(
         (option) => option.key === latestNewAlgorithm.key
       );
       if (newSelectedOption) {
@@ -194,9 +155,8 @@ export function useBoxContextAlgorithm({
       }
       resetAddAlgorithmMutation();
     }
-
     if (latestSavedAlgorithm?.key !== undefined) {
-      const newSelectedOption = newOptions.find(
+      const newSelectedOption = flattenedAlgorithmOptions.find(
         (option) => option.key === latestSavedAlgorithm.key
       );
       if (newSelectedOption) {
@@ -205,36 +165,49 @@ export function useBoxContextAlgorithm({
       resetSetAlgorithmMutation();
     }
   }, [
+    algorithmOptions,
     latestNewAlgorithm?.key,
     latestSavedAlgorithm?.key,
     resetAddAlgorithmMutation,
     resetSetAlgorithmMutation,
-    savedAlgorithms,
   ]);
 
-  const algorithmInstancer = useMemo(() => {
-    const { value: algorithm } = selectedAlgorithmOption;
+  const algorithmEvaled = useMemo(() => {
+    const { value: algorithmObject = null } = selectedAlgorithmOption ?? {};
 
-    if (algorithm === null) {
+    if (algorithmObject === null) {
       return null;
     }
 
-    if (isParameteredAlgorithm(algorithm)) {
-      return algorithm;
+    try {
+      return evalWithAlgoSandbox(algorithmObject.typescriptCode) as Algorithm;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }, [selectedAlgorithmOption]);
+
+  const algorithmInstancer = useMemo(() => {
+    if (algorithmEvaled === null) {
+      return null;
+    }
+
+    if (isParameteredAlgorithm(algorithmEvaled)) {
+      return algorithmEvaled;
     }
 
     return {
-      name: algorithm.name,
+      name: algorithmEvaled.name,
       parameters: {},
       create: () => {
-        return algorithm;
+        return algorithmEvaled;
       },
     } satisfies SandboxParameteredAlgorithm<
-      typeof algorithm.accepts,
-      typeof algorithm.outputs,
-      {}
+      typeof algorithmEvaled.accepts,
+      typeof algorithmEvaled.outputs,
+      Record<string, never>
     >;
-  }, [selectedAlgorithmOption]);
+  }, [algorithmEvaled]);
 
   const defaultParameters = useMemo(() => {
     if (algorithmInstancer === null) {
@@ -263,6 +236,7 @@ export function useBoxContextAlgorithm({
         setVisible: setCustomPanelVisible,
       },
       instance: algorithmInstance,
+      value: algorithmEvaled,
       parameters: {
         default: defaultParameters,
         value: algorithmParameters,
@@ -275,14 +249,15 @@ export function useBoxContextAlgorithm({
       },
     } satisfies BoxContextAlgorithm;
   }, [
+    algorithmEvaled,
+    algorithmInstance,
+    algorithmParameters,
+    algorithmOptions,
     custom,
     customPanelVisible,
     setCustomPanelVisible,
-    algorithmInstance,
     defaultParameters,
-    algorithmParameters,
     selectedAlgorithmOption,
-    algorithmOptions,
   ]);
 
   useEffect(() => {

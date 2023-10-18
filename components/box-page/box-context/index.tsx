@@ -1,27 +1,30 @@
-import { ReactNode, createContext, useContext, useMemo, useState } from 'react';
+import { CatalogGroup } from '@constants/catalog';
+import { DbSavedAlgorithm, useSavedAlgorithmsQuery } from '@utils/db';
 import _ from 'lodash';
+import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
+
 import {
   BoxContextAlgorithm,
   defaultBoxContextAlgorithm,
   useBoxContextAlgorithm,
 } from './algorithm';
+import useBoxContextAlgorithmVisualizer, {
+  BoxContextAlgorithmVisualizer,
+  defaultBoxContextAlgorithmVisualizer,
+} from './algorithm-visualizer';
 import {
   BoxContextProblem,
   defaultBoxContextProblem,
   useBoxContextProblem,
 } from './problem';
-import useBoxContextVisualizer, {
-  BoxContextVisualizer,
-  defaultBoxContextVisualizer,
-} from './visualizer';
-import useBoxContextAlgorithmVisualizer, {
-  BoxContextAlgorithmVisualizer,
-  defaultBoxContextAlgorithmVisualizer,
-} from './algorithm-visualizer';
 import useBoxContextProblemAlgorithm, {
   BoxContextProblemAlgorithm,
   defaultBoxContextProblemAlgorithm,
 } from './problem-algorithm';
+import useBoxContextVisualizer, {
+  BoxContextVisualizer,
+  defaultBoxContextVisualizer,
+} from './visualizer';
 
 type BoxContextType = {
   problem: BoxContextProblem;
@@ -73,10 +76,12 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
 type CustomPanel = 'algorithm' | null;
 
 export type BoxContextProviderProps = {
+  builtInAlgorithmOptions: Array<CatalogGroup<DbSavedAlgorithm>>;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
+  builtInAlgorithmOptions,
   children,
 }: BoxContextProviderProps) {
   const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
@@ -90,8 +95,26 @@ export default function BoxContextProvider({
       };
     }, [customPanel]);
 
+  const { data: savedAlgorithms } = useSavedAlgorithmsQuery();
+
+  const algorithmOptions = useMemo(() => 
+  [
+    ...builtInAlgorithmOptions,
+    {
+      key: 'custom',
+      label: 'Custom',
+      options: (savedAlgorithms??[]).map((algorithm) => ({
+        key: algorithm.key,
+        label: algorithm.name,
+        value: algorithm,
+        type: 'custom',
+      } as const))
+    }
+  ], [builtInAlgorithmOptions, savedAlgorithms]);
+
   const problem = useBoxContextProblem();
   const algorithm = useBoxContextAlgorithm({
+    algorithmOptions,
     customPanelVisible: customAlgorithmPanelVisible,
     setCustomPanelVisible: setCustomAlgorithmPanelVisible,
   });

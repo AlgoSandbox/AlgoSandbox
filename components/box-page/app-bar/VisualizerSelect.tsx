@@ -1,5 +1,5 @@
-import { Select } from '@components';
-import { useBoxContext } from '../box-context';
+import { Select } from '@components/ui';
+import { useBoxContext } from '@components/box-page';
 
 export default function VisualizerSelect() {
   const { options, setValue, value } = useBoxContext('visualizer.select');

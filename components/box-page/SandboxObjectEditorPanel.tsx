@@ -1,9 +1,11 @@
 import { Editor } from '@monaco-editor/react';
-import { useBoxContext } from '.';
-import { Button, Input, MaterialSymbol } from '@components';
-import { useEffect, useState } from 'react';
-import { TypeDeclaration } from '../page';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+
+import { TypeDeclaration } from '../../app/page';
+import { Button, Input, MaterialSymbol } from '../ui';
+import { useBoxContext } from '.';
+import { BoxContextCustomObjects } from './box-context/custom';
 
 const exampleAlgorithmString = `import { SandboxParam, createParameteredAlgorithm } from "@algo-sandbox/core"
 
@@ -43,12 +45,15 @@ type EditorPanelFormValue = {
 
 export type SandboxObjectEditorPanelProps = {
   typeDeclarations: Array<TypeDeclaration>;
+  customObjects: BoxContextCustomObjects
 };
 
 export default function SandboxObjectEditorPanel({
   typeDeclarations,
+  customObjects,
 }: SandboxObjectEditorPanelProps) {
-  const customAlgorithms = useBoxContext('algorithm.custom');
+  const selectedValue  = useBoxContext('algorithm.select.value');
+  const selectedObject = selectedValue?.value;
 
   const {
     control,
@@ -58,25 +63,25 @@ export default function SandboxObjectEditorPanel({
     formState: { isDirty },
   } = useForm<EditorPanelFormValue>({
     defaultValues: {
-      name: customAlgorithms.selected?.name ?? '',
+      name: selectedObject?.name ?? '',
       typescriptCode:
-        customAlgorithms.selected?.typescriptCode ?? exampleAlgorithmString,
+        selectedObject?.typescriptCode ?? exampleAlgorithmString,
     },
   });
 
   useEffect(() => {
     reset({
-      name: customAlgorithms.selected?.name ?? '',
+      name: selectedObject?.name ?? '',
       typescriptCode:
-        customAlgorithms.selected?.typescriptCode ?? exampleAlgorithmString,
+        selectedObject?.typescriptCode ?? exampleAlgorithmString,
     });
   }, [
     reset,
-    customAlgorithms.selected?.name,
-    customAlgorithms.selected?.typescriptCode,
+    selectedObject?.name,
+    selectedObject?.typescriptCode,
   ]);
 
-  const isNew = customAlgorithms.selected === null;
+  const isNew = customObjects.selected === null;
 
   return (
     <aside className="w-[500px]">
@@ -84,10 +89,10 @@ export default function SandboxObjectEditorPanel({
         className="h-full"
         onSubmit={handleSubmit((values) => {
           if (isNew) {
-            customAlgorithms.add(values);
+            customObjects.add(values);
           } else {
-            customAlgorithms.set({
-              key: customAlgorithms.selected!.key,
+            customObjects.set({
+              key: customObjects.selected!.key,
               ...values,
             });
           }
@@ -101,10 +106,10 @@ export default function SandboxObjectEditorPanel({
             {...register('name', { required: true })}
           />
           <Button
-            label={isNew ? 'Save as new' : 'Save'}
+            label={isNew ? 'Save as custom' : 'Save'}
             variant="primary"
             type="submit"
-            disabled={!isDirty}
+            disabled={!isDirty && !isNew}
           />
           {!isNew && (
             <Button
@@ -112,7 +117,7 @@ export default function SandboxObjectEditorPanel({
               hideLabel
               icon={<MaterialSymbol icon="delete" />}
               onClick={() => {
-                customAlgorithms.remove(customAlgorithms.selected!);
+                customObjects.remove(customObjects.selected!);
               }}
             />
           )}

@@ -1,5 +1,5 @@
-import { UndirectedGraph } from '.';
 import { SandboxProblem } from '../../core';
+import { UndirectedGraph } from '.';
 
 const fiveNodesGraph = {
   nodes: [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }],

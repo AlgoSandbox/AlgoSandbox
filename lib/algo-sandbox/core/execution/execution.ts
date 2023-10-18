@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { isBoolean } from 'lodash';
+
 import { SandboxAlgorithm } from '../algorithm/algorithm';
 import { SandboxProblem } from '../problem/problem';
 import { SandboxState, SandboxStateName } from '../state';

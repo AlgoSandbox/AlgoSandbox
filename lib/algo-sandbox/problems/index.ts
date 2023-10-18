@@ -1,5 +1,5 @@
-import graphs from './graphs';
 import examples from './examples';
+import graphs from './graphs';
 
 namespace Problems {
   export import UndirectedGraphs = graphs.Undirected;

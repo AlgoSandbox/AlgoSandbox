@@ -7,3 +7,5 @@ export type DbSandboxObject = {
 export type DbSavedSandboxObject = DbSandboxObject & {
   key: string;
 };
+
+export type DbSavedAlgorithm = DbSavedSandboxObject;

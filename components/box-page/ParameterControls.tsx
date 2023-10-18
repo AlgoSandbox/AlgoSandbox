@@ -1,6 +1,6 @@
 import { SandboxParameter, SandboxParameters } from '@algo-sandbox/core';
 import { useFormContext } from 'react-hook-form';
-import { Button, Input, MaterialSymbol } from '@components';
+import { Button, Input, MaterialSymbol } from '../ui';
 
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;

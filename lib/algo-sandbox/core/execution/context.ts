@@ -1,5 +1,5 @@
-import { SandboxExecutionStep } from '.';
 import { SandboxState, SandboxStateName } from '../state';
+import { SandboxExecutionStep } from '.';
 
 export type SandboxExecutionContext<N extends SandboxStateName> = {
   state: SandboxState<N>;

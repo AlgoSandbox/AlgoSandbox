@@ -1,12 +1,13 @@
-import { problemOptions } from '@constants/catalog';
-import { SelectOption, SelectOptions } from '@components';
 import {
   SandboxParameteredProblem,
   SandboxProblem,
   SandboxStateName,
 } from '@algo-sandbox/core';
+import { problemOptions } from '@constants/catalog';
 import { isParameteredProblem } from '@utils';
 import { useMemo, useState } from 'react';
+
+import { SelectOption, SelectOptions } from '../../ui';
 
 const defaultProblemOption = problemOptions[0].options[0];
 

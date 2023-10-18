@@ -1,7 +1,8 @@
-import { Badge, Button, MaterialSymbol, Popover, Select } from '@components';
+import { Badge, Button, MaterialSymbol, Popover, Select } from '@components/ui';
 import { isParameteredAlgorithm } from '@utils';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+
 import { AlgorithmDetails } from '..';
 import { useBoxContext } from '../box-context';
 
@@ -13,12 +14,12 @@ export default function AlgorithmSelect() {
     setValue: setSelectedOption,
     options,
   } = useBoxContext('algorithm.select');
+  const algorithm = useBoxContext('algorithm.value');
   const {
     default: defaultParameters,
     setValue: setParameters,
     value: algorithmParameters = {},
   } = useBoxContext('algorithm.parameters');
-  const algorithm = selectedOption.value;
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
@@ -74,7 +75,7 @@ export default function AlgorithmSelect() {
           </Badge>
         </Popover>
       )}
-      {selectedOption.type === 'custom' && (
+      {selectedOption !== undefined && (
         <Button
           label="Edit algorithm"
           hideLabel
@@ -86,14 +87,6 @@ export default function AlgorithmSelect() {
           icon={<MaterialSymbol icon="edit" />}
         />
       )}
-      <Button
-        label="New custom algorithm"
-        hideLabel
-        onClick={() => {
-          setCustomPanelVisible(!customPanelVisible);
-        }}
-        icon={<MaterialSymbol icon="add" />}
-      />
     </div>
   );
 }

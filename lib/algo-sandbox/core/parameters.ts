@@ -7,7 +7,7 @@ export type SandboxParameterType = keyof SandboxParameterTypeMap;
 
 export type SandboxParameter<
   S extends SandboxParameterType = SandboxParameterType,
-  T extends any = SandboxParameterTypeMap[S]
+  T = SandboxParameterTypeMap[S],
 > = {
   name: string;
   type: S;
@@ -15,7 +15,7 @@ export type SandboxParameter<
 };
 
 export type SandboxParameters<
-  T = Record<string, SandboxParameterTypeMap[SandboxParameterType]>
+  T = Record<string, SandboxParameterTypeMap[SandboxParameterType]>,
 > = Readonly<{
   [K in keyof T]: SandboxParameter<SandboxParameterType, T[K]>;
 }>;

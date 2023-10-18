@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, MaterialSymbol } from '@components';
+import { Button, MaterialSymbol } from '@components/ui';
 import { VisualizerRenderer } from '@algo-sandbox/components';
 import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
@@ -8,12 +8,14 @@ import {
   AppBar,
   BoxContextProvider,
   Pseudocode,
+  SandboxObjectEditorPanel,
   useBoxContext,
-} from './_components';
+} from '@components/box-page';
 import { createScene } from '@utils';
 import { TypeDeclaration } from './page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import SandboxObjectEditorPanel from './_components/SandboxObjectEditorPanel';
+import { DbSavedAlgorithm, DbSavedSandboxObject } from '@utils/db';
+import { CatalogGroup } from '@constants/catalog';
 
 const queryClient = new QueryClient();
 
@@ -74,12 +76,14 @@ function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
     setScene(initialScene);
   }, [initialScene]);
 
+  const customObjects = useBoxContext('algorithm.custom');
+
   return (
     <div className="flex flex-col h-screen">
       <AppBar />
       <div className="flex-1 flex overflow-y-hidden">
         {customPanelVisible && (
-          <SandboxObjectEditorPanel typeDeclarations={typeDeclarations} />
+          <SandboxObjectEditorPanel typeDeclarations={typeDeclarations} customObjects={customObjects} />
         )}
         <main className="relative flex-1 flex flex-col">
           <div className="absolute p-2 max-w-full">
@@ -181,12 +185,13 @@ function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
 
 type BoxPageProps = {
   typeDeclarations: Array<TypeDeclaration>;
+  builtInAlgorithmOptions: Array<CatalogGroup<DbSavedAlgorithm>>;
 };
 
 export default function BoxPage(props: BoxPageProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <BoxContextProvider>
+      <BoxContextProvider builtInAlgorithmOptions={props.builtInAlgorithmOptions}>
         <BoxPageImpl {...props} />
       </BoxContextProvider>
     </QueryClientProvider>

@@ -1,7 +1,7 @@
 import {
+  createParameteredProblem,
   SandboxParam,
   SandboxProblem,
-  createParameteredProblem,
 } from '@algo-sandbox/core';
 
 export const exampleProblem: SandboxProblem<'counter'> = {

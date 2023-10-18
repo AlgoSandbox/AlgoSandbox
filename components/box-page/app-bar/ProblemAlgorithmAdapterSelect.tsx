@@ -1,22 +1,21 @@
-import { Button, MaterialSymbol } from '@components';
+import { AdapterListPopover, useBoxContext } from '@components/box-page';
+import { Button, MaterialSymbol } from '@components/ui';
 import clsx from 'clsx';
-import AdapterListPopover from '../AdapterListPopover';
-import { useBoxContext } from '../box-context';
 
-export default function AlgorithmVisualizerAdapterSelect() {
+export default function ProblemAlgorithmAdapterSelect() {
+  const { instance: problemInstance } = useBoxContext('problem');
   const { instance: algorithmInstance } = useBoxContext('algorithm');
   const {
     compatible,
     adapters: { options, value, setValue },
-  } = useBoxContext('algorithmVisualizer');
-  const { instance: visualizerInstance } = useBoxContext('visualizer');
+  } = useBoxContext('problemAlgorithm');
 
   return (
     <AdapterListPopover
-      fromLabel="Algorithm"
-      toLabel="Visualizer"
-      fromType={algorithmInstance?.outputs ?? null}
-      toType={visualizerInstance.accepts}
+      fromLabel="Problem"
+      toLabel="Algorithm"
+      fromType={problemInstance.shape}
+      toType={algorithmInstance?.accepts ?? null}
       value={value}
       onChange={setValue}
       options={options}

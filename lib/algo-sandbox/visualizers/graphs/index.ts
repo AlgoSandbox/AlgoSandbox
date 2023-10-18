@@ -1,5 +1,4 @@
 import parametered from './parametered';
-
 import searchGraphVisualizer from './search-graph-visualizer';
 
 namespace Graphs {

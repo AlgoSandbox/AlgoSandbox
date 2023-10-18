@@ -1,11 +1,11 @@
-import * as d3 from 'd3';
-import { GraphNode, NodeGraph } from '@algo-sandbox/problems/graphs';
 import {
-  SandboxParameteredVisualizer,
   createParameteredVisualizer,
-  SandboxParameters,
   SandboxParam,
+  SandboxParameteredVisualizer,
+  SandboxParameters,
 } from '@algo-sandbox/core';
+import { GraphNode, NodeGraph } from '@algo-sandbox/problems/graphs';
+import * as d3 from 'd3';
 import _ from 'lodash';
 
 type RawRenderFunction = (

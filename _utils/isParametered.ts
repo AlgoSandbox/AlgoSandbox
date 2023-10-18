@@ -1,12 +1,12 @@
 import {
-  SandboxParameters,
   SandboxAlgorithm,
   SandboxParameteredAlgorithm,
-  SandboxParameteredVisualizer,
-  SandboxVisualizer,
-  SandboxStateName,
-  SandboxProblem,
   SandboxParameteredProblem,
+  SandboxParameteredVisualizer,
+  SandboxParameters,
+  SandboxProblem,
+  SandboxStateName,
+  SandboxVisualizer,
 } from '@algo-sandbox/core';
 
 export function isParameteredAlgorithm<

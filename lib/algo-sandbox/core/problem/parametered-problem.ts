@@ -1,11 +1,11 @@
 import {
+  getDefaultParameters,
   Parametered,
   ParsedParameters,
   SandboxParameters,
   SandboxProblem,
   SandboxState,
   SandboxStateName,
-  getDefaultParameters,
 } from '..';
 
 export type SandboxParameteredProblem<

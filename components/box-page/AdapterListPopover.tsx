@@ -1,5 +1,3 @@
-import { SandboxAdapter, SandboxStateName } from '@algo-sandbox/core';
-import { Fragment, ReactElement } from 'react';
 import {
   Button,
   MaterialSymbol,
@@ -8,10 +6,12 @@ import {
   SelectOption,
   SelectOptions,
   isSelectGroup,
-} from '@components';
+} from '@components/ui';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import clsx from 'clsx';
+import { Fragment, ReactElement } from 'react';
+import { SandboxAdapter, SandboxStateName } from '@algo-sandbox/core';
 import _ from 'lodash';
+import clsx from 'clsx';
 
 export type AdapterListPopoverProps = {
   fromLabel: string;

@@ -17,7 +17,7 @@ const pseudocode = `DFS(G, v):
       for each neighbor u of v:
         Push u onto toVisit`;
 
-export const depthFirstSearch: SandboxAlgorithm<
+const depthFirstSearch: SandboxAlgorithm<
   'searchGraph',
   'graphSearchAlgorithmState'
 > = {
@@ -86,3 +86,5 @@ export const depthFirstSearch: SandboxAlgorithm<
     return true;
   },
 };
+
+export default depthFirstSearch;

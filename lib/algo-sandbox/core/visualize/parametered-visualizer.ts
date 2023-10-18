@@ -1,21 +1,21 @@
-import { SandboxVisualizer } from '.';
 import {
-  Parametered,
-  SandboxParameters,
-  ParsedParameters,
   getDefaultParameters,
+  Parametered,
+  ParsedParameters,
+  SandboxParameters,
   SandboxState,
   SandboxStateName,
 } from '..';
+import { SandboxVisualizer } from '.';
 
 export type SandboxParameteredVisualizer<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = Parametered<SandboxVisualizer<N>, P>;
 
 export type SandboxVisualizerContext<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = {
   parameters: ParsedParameters<P>;
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -26,7 +26,7 @@ export type SandboxVisualizerContext<
 
 export function createParameteredVisualizer<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 >({
   name,
   accepts,

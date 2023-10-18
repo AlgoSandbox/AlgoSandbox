@@ -1,6 +1,6 @@
-import { SandboxStateNameMap } from './state-names';
+import { SandboxStateName, SandboxStateNameMap } from './state-names';
 
-export type SandboxState<N extends keyof SandboxStateNameMap = any> =
+export type SandboxState<N extends SandboxStateName = SandboxStateName> =
   SandboxStateNameMap[N] & {
     _stateName: N;
   };

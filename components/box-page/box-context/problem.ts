@@ -1,5 +1,6 @@
 import {
   SandboxParameteredProblem,
+  SandboxParameters,
   SandboxProblem,
   SandboxStateName,
 } from '@algo-sandbox/core';
@@ -13,7 +14,7 @@ const defaultProblemOption = problemOptions[0].options[0];
 
 type Problem =
   | SandboxProblem<SandboxStateName>
-  | SandboxParameteredProblem<SandboxStateName, any>;
+  | SandboxParameteredProblem<SandboxStateName, SandboxParameters>;
 
 export type BoxContextProblem = {
   select: {

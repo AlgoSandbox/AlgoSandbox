@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { DetailedHTMLProps, HTMLAttributes, forwardRef } from 'react';
+import { DetailedHTMLProps, forwardRef,HTMLAttributes } from 'react';
 
 export type FormLabelProps = DetailedHTMLProps<
   HTMLAttributes<HTMLSpanElement>,

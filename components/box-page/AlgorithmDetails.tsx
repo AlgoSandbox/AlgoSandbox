@@ -1,8 +1,9 @@
 import {
-  SandboxParameters,
   SandboxParameteredAlgorithm,
+  SandboxParameters,
   SandboxStateName,
 } from '@algo-sandbox/core';
+
 import ParameterControls from './ParameterControls';
 
 export type AlgorithmDetailsProps<

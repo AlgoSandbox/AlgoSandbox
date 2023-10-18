@@ -1,7 +1,3 @@
-import graphs from './graphs';
+import * as graphs from './graphs';
 
-namespace Visualizers {
-  export import Graphs = graphs;
-}
-
-export default Visualizers;
+export { graphs };

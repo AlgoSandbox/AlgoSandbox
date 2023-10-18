@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ForwardedRef, ReactElement, cloneElement, forwardRef } from 'react';
+import { cloneElement, ForwardedRef, forwardRef,ReactElement } from 'react';
 
 export type BadgeProps = {
   content: string | number;

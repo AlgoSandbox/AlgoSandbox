@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import {
   DetailedHTMLProps,
-  InputHTMLAttributes,
   forwardRef,
+  InputHTMLAttributes,
   useId,
 } from 'react';
+
 import { FormLabel } from '.';
 
 export type InputProps = DetailedHTMLProps<

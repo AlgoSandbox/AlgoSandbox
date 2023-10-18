@@ -49,10 +49,10 @@ type Paths<T> = T extends Record<string, unknown>
   : never;
 
 type Get<
-  T extends Record<string, any>,
+  T extends Record<string, unknown>,
   P
-> = P extends `${infer K}.${infer Rest}`
-  ? Get<T[K], Rest>
+> = P extends `${infer K}.${infer Rest}` ? T[K] extends Record<string, unknown>
+  ? Get<T[K], Rest> : never
   : P extends keyof T
   ? T[P]
   : never;

@@ -5,16 +5,14 @@ import {
 import * as Algorithms from '@algo-sandbox/algorithms';
 import {
   SandboxAdapter,
-  SandboxAlgorithm,
-  SandboxParameteredAlgorithm,
   SandboxParameteredProblem,
-  SandboxParameteredVisualizer,
   SandboxProblem,
   SandboxStateName,
-  SandboxVisualizer,
 } from '@algo-sandbox/core';
-import Problems from '@algo-sandbox/problems';
-import Visualizers from '@algo-sandbox/visualizers';
+import { SandboxParameters } from '@algo-sandbox/core';
+import * as Problems from '@algo-sandbox/problems';
+import * as Visualizers from '@algo-sandbox/visualizers';
+import { SandboxAnyAlgorithm, SandboxAnyVisualizer } from '@types';
 
 import { SelectGroup, SelectOption, SelectOptions } from '../components/ui';
 
@@ -28,27 +26,22 @@ export type CatalogGroup<T> = Omit<SelectGroup<T>, 'options'> & {
 
 export type CatalogOptions<T> = Array<CatalogGroup<T> | CatalogOption<T>>;
 
-export const algorithmOptions: Array<
-  CatalogGroup<
-    | SandboxAlgorithm<SandboxStateName, any>
-    | SandboxParameteredAlgorithm<SandboxStateName, any, any>
-    | null
-  >
-> = Object.entries(Algorithms).map(([groupKey, values]) => ({
-  key: groupKey,
-  label: groupKey,
-  options: Object.entries(values).map(([algorithmKey, algorithm]) => ({
-    key: algorithmKey,
-    label: algorithm.name,
-    type: 'built-in',
-    value: algorithm,
-  })),
-}));
+export const algorithmOptions: Array<CatalogGroup<SandboxAnyAlgorithm | null>> =
+  Object.entries(Algorithms).map(([groupKey, values]) => ({
+    key: groupKey,
+    label: groupKey,
+    options: Object.entries(values).map(([algorithmKey, algorithm]) => ({
+      key: algorithmKey,
+      label: algorithm.name,
+      type: 'built-in',
+      value: algorithm,
+    })),
+  }));
 
 export const problemOptions: Array<
   SelectGroup<
     | SandboxProblem<SandboxStateName>
-    | SandboxParameteredProblem<SandboxStateName, any>
+    | SandboxParameteredProblem<SandboxStateName, SandboxParameters>
   >
 > = Object.entries(Problems).map(([groupKey, values]) => ({
   key: groupKey,
@@ -60,9 +53,7 @@ export const problemOptions: Array<
   })),
 }));
 
-export const visualizerOptions: Array<
-  SelectGroup<SandboxVisualizer<any> | SandboxParameteredVisualizer<any, any>>
-> = [
+export const visualizerOptions: Array<SelectGroup<SandboxAnyVisualizer>> = [
   {
     key: 'graphs',
     label: 'Graphs',
@@ -70,17 +61,18 @@ export const visualizerOptions: Array<
       {
         key: 'searchGraph',
         label: 'Search graph',
-        value: Visualizers.Graphs.searchGraph,
+        value: Visualizers.graphs.searchGraph,
       },
       {
         key: 'nodeGraph',
         label: 'Node graph',
-        value: Visualizers.Graphs.Parametered.nodeGraph,
+        value: Visualizers.graphs.parametered.nodeGraph,
       },
     ],
   },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const adapterOptions: SelectOptions<SandboxAdapter<any, any>> = [
   {
     key: 'counterToSearch',

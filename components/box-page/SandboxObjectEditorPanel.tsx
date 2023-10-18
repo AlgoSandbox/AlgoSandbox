@@ -142,12 +142,11 @@ export default function SandboxObjectEditorPanel({
                 monaco.languages.typescript.typescriptDefaults.setCompilerOptions(
                   {
                     target: monaco.languages.typescript.ScriptTarget.ES2016,
-                    allowNonTsExtensions: true,
+                    strict: true,
                     moduleResolution:
                       monaco.languages.typescript.ModuleResolutionKind.NodeJs,
                     module: monaco.languages.typescript.ModuleKind.CommonJS,
                     noEmit: true,
-                    typeRoots: ['node_modules/@types'],
                     baseUrl: '.',
                     paths: {
                       '@algo-sandbox/*': ['file:///lib/algo-sandbox/*'],

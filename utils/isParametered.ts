@@ -9,6 +9,10 @@ import {
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 
+export function isParametered() {
+  
+}
+
 export function isParameteredAlgorithm<
   N extends SandboxStateName,
   M extends SandboxStateName,

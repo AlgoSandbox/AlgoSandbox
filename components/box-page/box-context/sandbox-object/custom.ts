@@ -1,10 +1,10 @@
-import { DbSandboxObject, DbSavedSandboxObject } from '@utils/db';
+import { DbSandboxObject, DbSandboxObjectSaved } from '@utils/db';
 
 export type BoxContextCustomObjects = {
-  selected: DbSavedSandboxObject | null;
+  selected: DbSandboxObjectSaved | null;
   add: (value: DbSandboxObject) => void;
-  set: (value: DbSavedSandboxObject) => void;
-  remove: (value: DbSavedSandboxObject) => void;
+  set: (value: DbSandboxObjectSaved) => void;
+  remove: (value: DbSandboxObjectSaved) => void;
 };
 
 export const defaultBoxContextCustomObjects: BoxContextCustomObjects = {

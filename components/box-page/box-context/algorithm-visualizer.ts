@@ -6,7 +6,7 @@ import {
   defaultBoxContextAdapters,
   useBoxContextAdapters,
 } from './adapters';
-import { BoxContextAlgorithm } from './algorithm';
+import { BoxContextAlgorithm } from './sandbox-object/algorithm';
 import { BoxContextVisualizer } from './visualizer';
 
 export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizer =

@@ -1,7 +1,7 @@
 import { CatalogGroup } from '@constants/catalog';
-import { DbSavedAlgorithm } from '@utils/db';
+import { DbSandboxObjectSaved } from '@utils/db';
 import fs from 'fs';
-import {  GlobOptionsWithFileTypesUnset, globSync } from 'glob';
+import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';
 import path from 'path';
 
 import BoxPage from './BoxPage';
@@ -35,14 +35,20 @@ function readFilesRecursively(directoryPath: string) {
   return fileContentsMap;
 }
 
-function readFilesMatchingPatterns(patterns: Array<[string] | [string, GlobOptionsWithFileTypesUnset]>): Record<string, string> {
-  return Object.fromEntries(patterns.flatMap(([pattern, options]) => {
-    const fileNames = globSync(pattern, options);
-    return fileNames;
-  }).map((fileName) => {
-    const contents = fs.readFileSync(fileName, 'utf-8');
-    return [fileName, contents];
-  }))
+function readFilesMatchingPatterns(
+  patterns: Array<[string] | [string, GlobOptionsWithFileTypesUnset]>
+): Record<string, string> {
+  return Object.fromEntries(
+    patterns
+      .flatMap(([pattern, options]) => {
+        const fileNames = globSync(pattern, options);
+        return fileNames;
+      })
+      .map((fileName) => {
+        const contents = fs.readFileSync(fileName, 'utf-8');
+        return [fileName, contents];
+      })
+  );
 }
 
 async function getAlgoSandboxDeclarations() {
@@ -57,55 +63,80 @@ async function getAlgoSandboxDeclarations() {
   return typeDeclarations;
 }
 
-const markdownHeadingRegex = /^#\s+(.+)$/;
+const markdownHeadingRegex = /^#\s+(.+)\s*$/;
 
 function getMarkdownTitle(markdown: string) {
   const match = markdown.match(markdownHeadingRegex);
-  if (match === null) 
-  {
+
+  if (match === null) {
     return 'Untitled';
   }
 
   return match[1].trim();
 }
 
+const algorithmGroupToFolderGlob = {
+  Search: 'lib/algo-sandbox/algorithms/search',
+  Example: 'lib/algo-sandbox/algorithms/example',
+};
 
-const groupToFolderGlob = {
-  'Search': "lib/algo-sandbox/algorithms/search",
-  'Example': "lib/algo-sandbox/algorithms/example",
-}
+const problemGroupToFolderGlob = {
+  Graphs: 'lib/algo-sandbox/problems/graphs',
+  Example: 'lib/algo-sandbox/problems/example',
+};
 
-function readAlgorithmGroup(groupLabel: string, folderGlob: string) {
-  const algorithmContents = readFilesMatchingPatterns([[path.join(folderGlob, "*/*.ts")]]);
-  const algorithmWriteups = readFilesMatchingPatterns([["lib/algo-sandbox/algorithms/*/*/*.md"]]);
+function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
+  const contents = readFilesMatchingPatterns([
+    [path.join(folderGlob, '*/*.ts')],
+  ]);
+  const writeups = readFilesMatchingPatterns([
+    [path.join(folderGlob, '*/*.md')],
+  ]);
 
-  const algorithms: Array<DbSavedAlgorithm> = Object.entries(algorithmContents).map(([contentFileName, content]) => {
-    const writeup = algorithmWriteups[contentFileName.substring(0, contentFileName.length - 3) + '.md'];
-    const title = writeup !== undefined? getMarkdownTitle(writeup) : 'Untitled';
-    return ({
-      key: contentFileName,
-      name: title,
-      typescriptCode: content,
-    });
-  })
+  const objects: Array<DbSandboxObjectSaved> = Object.entries(contents).map(
+    ([contentFileName, content]) => {
+      const writeup =
+        writeups[
+          contentFileName.substring(0, contentFileName.length - 3) + '.md'
+        ];
+      const title =
+        writeup !== undefined ? getMarkdownTitle(writeup) : 'Untitled';
+      return {
+        key: contentFileName,
+        name: title,
+        typescriptCode: content,
+      };
+    }
+  );
 
-  const algorithmOptions: CatalogGroup<DbSavedAlgorithm> = {
+  const objectOptions: CatalogGroup<DbSandboxObjectSaved> = {
     key: groupLabel,
     label: groupLabel,
-    options: algorithms.map((algorithm) => ({
-      key: algorithm.key,
-      label: algorithm.name,
-      value: algorithm,
-      type: 'built-in'
-    }))
-  }
-  return algorithmOptions;
+    options: objects.map((object) => ({
+      key: object.key,
+      label: object.name,
+      value: object,
+      type: 'built-in',
+    })),
+  };
+  return objectOptions;
 }
 
 export default async function Page() {
   const typeDeclarations = await getAlgoSandboxDeclarations();
 
-  const builtInAlgorithmOptions = Object.entries(groupToFolderGlob).map(([label, folderGlob]) => readAlgorithmGroup(label, folderGlob));
+  const builtInAlgorithmOptions = Object.entries(
+    algorithmGroupToFolderGlob
+  ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
+  const builtInProblemOptions = Object.entries(problemGroupToFolderGlob).map(
+    ([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob)
+  );
 
-  return <BoxPage typeDeclarations={typeDeclarations} builtInAlgorithmOptions={builtInAlgorithmOptions}/>;
+  return (
+    <BoxPage
+      typeDeclarations={typeDeclarations}
+      builtInAlgorithmOptions={builtInAlgorithmOptions}
+      builtInProblemOptions={builtInProblemOptions}
+    />
+  );
 }

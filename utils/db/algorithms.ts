@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as LocalDb from './local/algorithms';
-import { DbSandboxObject, DbSavedSandboxObject } from './types';
+import { DbAlgorithm, DbAlgorithmSaved } from './types';
 
 export function useSavedAlgorithmsQuery() {
   return useQuery(['algorithms'], async () => {
@@ -12,7 +12,7 @@ export function useSavedAlgorithmsQuery() {
 export function useAddSavedAlgorithmMutation() {
   const queryClient = useQueryClient();
   return useMutation(
-    async (algorithm: DbSandboxObject) => {
+    async (algorithm: DbAlgorithm) => {
       return LocalDb.addSavedAlgorithm(algorithm);
     },
     {
@@ -26,7 +26,7 @@ export function useAddSavedAlgorithmMutation() {
 export function useSetSavedAlgorithmMutation() {
   const queryClient = useQueryClient();
   return useMutation(
-    async (algorithm: DbSavedSandboxObject) => {
+    async (algorithm: DbAlgorithmSaved) => {
       return LocalDb.setSavedAlgorithm(algorithm);
     },
     {
@@ -40,7 +40,7 @@ export function useSetSavedAlgorithmMutation() {
 export function useRemoveSavedAlgorithmMutation() {
   const queryClient = useQueryClient();
   return useMutation(
-    async (algorithm: DbSavedSandboxObject) => {
+    async (algorithm: DbAlgorithmSaved) => {
       LocalDb.removeSavedAlgorithm(algorithm);
     },
     {

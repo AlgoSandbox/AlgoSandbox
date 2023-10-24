@@ -6,8 +6,8 @@ import {
   defaultBoxContextAdapters,
   useBoxContextAdapters,
 } from './adapters';
-import { BoxContextAlgorithm } from './algorithm';
-import { BoxContextProblem } from './problem';
+import { BoxContextAlgorithm } from './sandbox-object/algorithm';
+import { BoxContextProblem } from './sandbox-object/problem';
 
 export type BoxContextProblemAlgorithm = {
   compatible: boolean;
@@ -35,9 +35,11 @@ export default function useBoxContextProblemAlgorithm({
       compatible:
         (composedAdapter === null &&
           algorithm.instance !== null &&
+          problem.instance !== null &&
           problem.instance.shape === algorithm.instance.accepts) ||
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
+          problem.instance !== null &&
           problem.instance.shape === composedAdapter?.accepts &&
           composedAdapter?.outputs === algorithm.instance.accepts),
       adapters,
@@ -47,7 +49,7 @@ export default function useBoxContextProblemAlgorithm({
     algorithm.instance,
     composedAdapter,
     hasInvalidAdapter,
-    problem.instance.shape,
+    problem.instance,
   ]);
 
   return problemAlgorithm;

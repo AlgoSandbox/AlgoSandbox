@@ -1,11 +1,13 @@
 import { DbSandboxObject } from '../types';
 
-type SandboxObjectType = 'algorithm';
+type SandboxObjectType = 'algorithm' | 'problem';
 
 function createKey(type: SandboxObjectType, object: DbSandboxObject) {
   switch (type) {
     case 'algorithm':
       return `sandbox:algorithms:${object.name}-${new Date().getTime()}`;
+    case 'problem':
+      return `sandbox:problems:${object.name}-${new Date().getTime()}`;
   }
 }
 

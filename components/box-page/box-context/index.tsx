@@ -1,26 +1,26 @@
 import { CatalogGroup } from '@constants/catalog';
-import { DbSavedAlgorithm, useSavedAlgorithmsQuery } from '@utils/db';
+import { DbAlgorithmSaved, DbProblemSaved } from '@utils/db';
 import _ from 'lodash';
 import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
 
-import {
-  BoxContextAlgorithm,
-  defaultBoxContextAlgorithm,
-  useBoxContextAlgorithm,
-} from './algorithm';
 import useBoxContextAlgorithmVisualizer, {
   BoxContextAlgorithmVisualizer,
   defaultBoxContextAlgorithmVisualizer,
 } from './algorithm-visualizer';
-import {
-  BoxContextProblem,
-  defaultBoxContextProblem,
-  useBoxContextProblem,
-} from './problem';
 import useBoxContextProblemAlgorithm, {
   BoxContextProblemAlgorithm,
   defaultBoxContextProblemAlgorithm,
 } from './problem-algorithm';
+import {
+  BoxContextAlgorithm,
+  defaultBoxContextAlgorithm,
+  useBoxContextAlgorithm,
+} from './sandbox-object/algorithm';
+import {
+  BoxContextProblem,
+  defaultBoxContextProblem,
+  useBoxContextProblem,
+} from './sandbox-object/problem';
 import useBoxContextVisualizer, {
   BoxContextVisualizer,
   defaultBoxContextVisualizer,
@@ -32,6 +32,7 @@ type BoxContextType = {
   algorithm: BoxContextAlgorithm;
   algorithmVisualizer: BoxContextAlgorithmVisualizer;
   visualizer: BoxContextVisualizer;
+  customPanelType: CustomPanel | null;
 };
 
 const BoxContext = createContext<BoxContextType>({
@@ -40,6 +41,7 @@ const BoxContext = createContext<BoxContextType>({
   problemAlgorithm: defaultBoxContextProblemAlgorithm,
   algorithmVisualizer: defaultBoxContextAlgorithmVisualizer,
   visualizer: defaultBoxContextVisualizer,
+  customPanelType: null,
 });
 
 type Paths<T> = T extends Record<string, unknown>
@@ -50,9 +52,11 @@ type Paths<T> = T extends Record<string, unknown>
 
 type Get<
   T extends Record<string, unknown>,
-  P
-> = P extends `${infer K}.${infer Rest}` ? T[K] extends Record<string, unknown>
-  ? Get<T[K], Rest> : never
+  P,
+> = P extends `${infer K}.${infer Rest}`
+  ? T[K] extends Record<string, unknown>
+    ? Get<T[K], Rest>
+    : never
   : P extends keyof T
   ? T[P]
   : never;
@@ -73,48 +77,45 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
   return _.get(value, path) as BoxContextReturn<P>;
 }
 
-type CustomPanel = 'algorithm' | null;
+type CustomPanel = 'algorithm' | 'problem' | null;
 
 export type BoxContextProviderProps = {
-  builtInAlgorithmOptions: Array<CatalogGroup<DbSavedAlgorithm>>;
+  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
+  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
   builtInAlgorithmOptions,
+  builtInProblemOptions,
   children,
 }: BoxContextProviderProps) {
   const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
-  const { customAlgorithmPanelVisible, setCustomAlgorithmPanelVisible } =
-    useMemo(() => {
-      return {
-        setCustomAlgorithmPanelVisible: (visible: boolean) => {
-          setCustomPanel(visible ? 'algorithm' : null);
-        },
-        customAlgorithmPanelVisible: customPanel === 'algorithm',
-      };
-    }, [customPanel]);
+  const {
+    customAlgorithmPanelVisible,
+    setCustomAlgorithmPanelVisible,
+    setCustomProblemPanelVisible,
+    customProblemPanelVisible,
+  } = useMemo(() => {
+    return {
+      setCustomAlgorithmPanelVisible: (visible: boolean) => {
+        setCustomPanel(visible ? 'algorithm' : null);
+      },
+      customAlgorithmPanelVisible: customPanel === 'algorithm',
+      setCustomProblemPanelVisible: (visible: boolean) => {
+        setCustomPanel(visible ? 'problem' : null);
+      },
+      customProblemPanelVisible: customPanel === 'problem',
+    };
+  }, [customPanel]);
 
-  const { data: savedAlgorithms } = useSavedAlgorithmsQuery();
-
-  const algorithmOptions = useMemo(() => 
-  [
-    ...builtInAlgorithmOptions,
-    {
-      key: 'custom',
-      label: 'Custom',
-      options: (savedAlgorithms??[]).map((algorithm) => ({
-        key: algorithm.key,
-        label: algorithm.name,
-        value: algorithm,
-        type: 'custom',
-      } as const))
-    }
-  ], [builtInAlgorithmOptions, savedAlgorithms]);
-
-  const problem = useBoxContextProblem();
+  const problem = useBoxContextProblem({
+    builtInProblemOptions,
+    customPanelVisible: customProblemPanelVisible,
+    setCustomPanelVisible: setCustomProblemPanelVisible,
+  });
   const algorithm = useBoxContextAlgorithm({
-    algorithmOptions,
+    builtInAlgorithmOptions,
     customPanelVisible: customAlgorithmPanelVisible,
     setCustomPanelVisible: setCustomAlgorithmPanelVisible,
   });
@@ -135,8 +136,16 @@ export default function BoxContextProvider({
       algorithm,
       algorithmVisualizer,
       visualizer,
+      customPanelType: customPanel,
     } satisfies BoxContextType;
-  }, [algorithm, algorithmVisualizer, problem, problemAlgorithm, visualizer]);
+  }, [
+    algorithm,
+    algorithmVisualizer,
+    customPanel,
+    problem,
+    problemAlgorithm,
+    visualizer,
+  ]);
 
   return <BoxContext.Provider value={value}>{children}</BoxContext.Provider>;
 }

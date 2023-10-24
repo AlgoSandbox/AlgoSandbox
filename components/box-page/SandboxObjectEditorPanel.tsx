@@ -5,7 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { TypeDeclaration } from '../../app/page';
 import { Button, Input, MaterialSymbol } from '../ui';
 import { useBoxContext } from '.';
-import { BoxContextCustomObjects } from './box-context/custom';
+import { BoxContextCustomObjects } from './box-context/sandbox-object/custom';
 
 const exampleAlgorithmString = `import { SandboxParam, createParameteredAlgorithm } from "@algo-sandbox/core"
 
@@ -45,14 +45,26 @@ type EditorPanelFormValue = {
 
 export type SandboxObjectEditorPanelProps = {
   typeDeclarations: Array<TypeDeclaration>;
-  customObjects: BoxContextCustomObjects
+  customObjects: BoxContextCustomObjects;
 };
 
 export default function SandboxObjectEditorPanel({
   typeDeclarations,
   customObjects,
 }: SandboxObjectEditorPanelProps) {
-  const selectedValue  = useBoxContext('algorithm.select.value');
+  const selectedAlgorithm = useBoxContext('algorithm.select.value');
+  const selectedProblem = useBoxContext('problem.select.value');
+  const customPanelType = useBoxContext('customPanelType');
+
+  const selectedValue = (() => {
+    switch (customPanelType) {
+      case 'algorithm':
+        return selectedAlgorithm;
+      case 'problem':
+        return selectedProblem;
+    }
+  })();
+
   const selectedObject = selectedValue?.value;
 
   const {
@@ -64,22 +76,16 @@ export default function SandboxObjectEditorPanel({
   } = useForm<EditorPanelFormValue>({
     defaultValues: {
       name: selectedObject?.name ?? '',
-      typescriptCode:
-        selectedObject?.typescriptCode ?? exampleAlgorithmString,
+      typescriptCode: selectedObject?.typescriptCode ?? exampleAlgorithmString,
     },
   });
 
   useEffect(() => {
     reset({
       name: selectedObject?.name ?? '',
-      typescriptCode:
-        selectedObject?.typescriptCode ?? exampleAlgorithmString,
+      typescriptCode: selectedObject?.typescriptCode ?? exampleAlgorithmString,
     });
-  }, [
-    reset,
-    selectedObject?.name,
-    selectedObject?.typescriptCode,
-  ]);
+  }, [reset, selectedObject?.name, selectedObject?.typescriptCode]);
 
   const isNew = customObjects.selected === null;
 

@@ -14,7 +14,7 @@ export default function ProblemAlgorithmAdapterSelect() {
     <AdapterListPopover
       fromLabel="Problem"
       toLabel="Algorithm"
-      fromType={problemInstance.shape}
+      fromType={problemInstance?.shape ?? null}
       toType={algorithmInstance?.accepts ?? null}
       value={value}
       onChange={setValue}

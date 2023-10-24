@@ -4,8 +4,11 @@ export type DbSandboxObject = {
   typescriptCode: string;
 };
 
-export type DbSavedSandboxObject = DbSandboxObject & {
+export type DbSandboxObjectSaved = DbSandboxObject & {
   key: string;
 };
 
-export type DbSavedAlgorithm = DbSavedSandboxObject;
+export type DbAlgorithm = DbSandboxObject;
+export type DbAlgorithmSaved = DbSandboxObjectSaved;
+export type DbProblem = DbSandboxObject;
+export type DbProblemSaved = DbSandboxObjectSaved;

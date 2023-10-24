@@ -42,7 +42,7 @@ export default function AlgorithmSelect() {
       <Select
         label="Algorithm"
         options={options}
-        value={selectedOption}
+        value={selectedOption ?? undefined}
         onChange={(value) => {
           setSelectedOption(value as typeof selectedOption);
         }}

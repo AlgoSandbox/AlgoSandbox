@@ -12,7 +12,7 @@ import { Button, MaterialSymbol } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createScene } from '@utils';
-import { DbSavedAlgorithm } from '@utils/db';
+import { DbAlgorithmSaved, DbProblemSaved } from '@utils/db';
 import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
 
@@ -20,10 +20,33 @@ import { TypeDeclaration } from './page';
 
 const queryClient = new QueryClient();
 
-function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
+type BoxPageImplProps = {
+  typeDeclarations: Array<TypeDeclaration>;
+};
+
+function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  const customPanelVisible = useBoxContext('algorithm.customPanel.visible');
+  const customAlgorithmPanelVisible = useBoxContext(
+    'algorithm.customPanel.visible'
+  );
+  const customProblemPanelVisible = useBoxContext(
+    'problem.customPanel.visible'
+  );
+  const customPanelType = useBoxContext('customPanelType');
+  const customAlgorithmObjects = useBoxContext('algorithm.custom');
+  const customProblemObjects = useBoxContext('problem.custom');
+  const customObjects = (() => {
+    switch (customPanelType) {
+      case 'algorithm':
+        return customAlgorithmObjects;
+      case 'problem':
+        return customProblemObjects;
+    }
+  })();
+
+  const customPanelVisible =
+    customAlgorithmPanelVisible || customProblemPanelVisible;
 
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
@@ -38,7 +61,11 @@ function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
   const problemInstance = useBoxContext('problem.instance');
 
   const initialScene = useMemo(() => {
-    if (areAlgorithmProblemCompatible && algorithmInstance !== null) {
+    if (
+      areAlgorithmProblemCompatible &&
+      algorithmInstance !== null &&
+      problemInstance !== null
+    ) {
       return createScene({
         algorithm: algorithmInstance,
         problem: problemInstance,
@@ -76,13 +103,11 @@ function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
     setScene(initialScene);
   }, [initialScene]);
 
-  const customObjects = useBoxContext('algorithm.custom');
-
   return (
     <div className="flex flex-col h-screen">
       <AppBar />
       <div className="flex-1 flex overflow-y-hidden">
-        {customPanelVisible && (
+        {customPanelVisible && customObjects && (
           <SandboxObjectEditorPanel
             typeDeclarations={typeDeclarations}
             customObjects={customObjects}
@@ -184,16 +209,21 @@ function BoxPageImpl({ typeDeclarations }: BoxPageProps) {
   );
 }
 
-type BoxPageProps = {
-  typeDeclarations: Array<TypeDeclaration>;
-  builtInAlgorithmOptions: Array<CatalogGroup<DbSavedAlgorithm>>;
+type BoxPageProps = BoxPageImplProps & {
+  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
+  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
 };
 
-export default function BoxPage(props: BoxPageProps) {
+export default function BoxPage({
+  builtInAlgorithmOptions,
+  builtInProblemOptions,
+  ...props
+}: BoxPageProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <BoxContextProvider
-        builtInAlgorithmOptions={props.builtInAlgorithmOptions}
+        builtInAlgorithmOptions={builtInAlgorithmOptions}
+        builtInProblemOptions={builtInProblemOptions}
       >
         <BoxPageImpl {...props} />
       </BoxContextProvider>

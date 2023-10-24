@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,36 +19,21 @@
       }
     ],
     "paths": {
-      "@components/*": [
-        "./components/*"
-      ],
-      "@constants": [
-        "./constants",
-      ],
-      "@constants/*": [
-        "./constants/*",
-      ],
-      "@types": [
-        "./types"
-      ],
-      "@utils": [
-        "./utils"
-      ],
-      "@utils/*": [
-        "./utils/*"
-      ],
-      "@algo-sandbox/*": [
-        "./lib/algo-sandbox/*",
-      ]
+      "@components/*": ["./components/*"],
+      "@constants": ["./constants"],
+      "@constants/*": ["./constants/*"],
+      "@types": ["./types"],
+      "@utils": ["./utils"],
+      "@utils/*": ["./utils/*"],
+      "@algo-sandbox/*": ["./lib/algo-sandbox/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "components/box-page/box-context/sandbox-object"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

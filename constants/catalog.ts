@@ -2,17 +2,9 @@ import {
   counterToSearchGraphStateAdapter,
   searchGraphStateToCounterAdapter,
 } from '@algo-sandbox/adapters';
-import * as Algorithms from '@algo-sandbox/algorithms';
-import {
-  SandboxAdapter,
-  SandboxParameteredProblem,
-  SandboxProblem,
-  SandboxStateName,
-} from '@algo-sandbox/core';
-import { SandboxParameters } from '@algo-sandbox/core';
-import * as Problems from '@algo-sandbox/problems';
+import { SandboxAdapter } from '@algo-sandbox/core';
 import * as Visualizers from '@algo-sandbox/visualizers';
-import { SandboxAnyAlgorithm, SandboxAnyVisualizer } from '@types';
+import { SandboxAnyVisualizer } from '@types';
 
 import { SelectGroup, SelectOption, SelectOptions } from '../components/ui';
 
@@ -25,33 +17,6 @@ export type CatalogGroup<T> = Omit<SelectGroup<T>, 'options'> & {
 };
 
 export type CatalogOptions<T> = Array<CatalogGroup<T> | CatalogOption<T>>;
-
-export const algorithmOptions: Array<CatalogGroup<SandboxAnyAlgorithm | null>> =
-  Object.entries(Algorithms).map(([groupKey, values]) => ({
-    key: groupKey,
-    label: groupKey,
-    options: Object.entries(values).map(([algorithmKey, algorithm]) => ({
-      key: algorithmKey,
-      label: algorithm.name,
-      type: 'built-in',
-      value: algorithm,
-    })),
-  }));
-
-export const problemOptions: Array<
-  SelectGroup<
-    | SandboxProblem<SandboxStateName>
-    | SandboxParameteredProblem<SandboxStateName, SandboxParameters>
-  >
-> = Object.entries(Problems).map(([groupKey, values]) => ({
-  key: groupKey,
-  label: groupKey,
-  options: Object.entries(values).map(([problemKey, problem]) => ({
-    key: problemKey,
-    label: problem.name,
-    value: problem,
-  })),
-}));
 
 export const visualizerOptions: Array<SelectGroup<SandboxAnyVisualizer>> = [
   {

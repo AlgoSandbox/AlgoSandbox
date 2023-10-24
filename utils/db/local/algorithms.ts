@@ -1,10 +1,10 @@
-import { DbSandboxObject, DbSavedSandboxObject } from '../types';
+import { DbSandboxObject, DbSandboxObjectSaved } from '../types';
 import { saveSandboxObject } from '.';
 
-export function getSavedAlgorithmKeys() {
-  const savedAlgorithmKeysRaw = localStorage.getItem(
-    'sandbox:algorithms:custom'
-  );
+const savedListKey = 'sandbox:algorithms:custom';
+
+function getSavedAlgorithmKeys() {
+  const savedAlgorithmKeysRaw = localStorage.getItem(savedListKey);
 
   if (savedAlgorithmKeysRaw === null) {
     return [];
@@ -19,34 +19,28 @@ export function getSavedAlgorithms() {
   return savedAlgorithmKeys
     .map((key) => localStorage.getItem(key))
     .filter((item) => item !== null)
-    .map((item) => JSON.parse(item!)) as Array<DbSavedSandboxObject>;
+    .map((item) => JSON.parse(item!)) as Array<DbSandboxObjectSaved>;
 }
 
 export function addSavedAlgorithm(algorithm: DbSandboxObject) {
   const savedAlgorithm = saveSandboxObject('algorithm', algorithm);
   const algorithmKeys = getSavedAlgorithmKeys();
   const newAlgorithmKeys = [...algorithmKeys, savedAlgorithm.key];
-  localStorage.setItem(
-    'sandbox:algorithms:custom',
-    JSON.stringify(newAlgorithmKeys)
-  );
+  localStorage.setItem(savedListKey, JSON.stringify(newAlgorithmKeys));
 
   return savedAlgorithm;
 }
 
-export function setSavedAlgorithm(algorithm: DbSavedSandboxObject) {
+export function setSavedAlgorithm(algorithm: DbSandboxObjectSaved) {
   const savedAlgorithm = saveSandboxObject('algorithm', algorithm);
 
   return savedAlgorithm;
 }
 
-export function removeSavedAlgorithm(algorithm: DbSavedSandboxObject) {
+export function removeSavedAlgorithm(algorithm: DbSandboxObjectSaved) {
   localStorage.removeItem(algorithm.key);
 
   const algorithmKeys = getSavedAlgorithmKeys();
   const newAlgorithmKeys = algorithmKeys.filter((key) => key !== algorithm.key);
-  localStorage.setItem(
-    'sandbox:algorithms:custom',
-    JSON.stringify(newAlgorithmKeys)
-  );
+  localStorage.setItem(savedListKey, JSON.stringify(newAlgorithmKeys));
 }

@@ -55,7 +55,7 @@ function Button(
         role={role}
         aria-checked={selected}
         className={clsx(
-          'flex items-center  rounded transition-colors',
+          'flex items-center rounded transition-colors focus:outline-primary-500',
           size === 'sm' && [
             'py-1 gap-1',
             icon !== undefined ? 'ps-1' : 'ps-2',

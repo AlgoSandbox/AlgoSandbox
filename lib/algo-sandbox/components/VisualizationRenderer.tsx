@@ -53,7 +53,12 @@ export default function VisualizationRenderer({
       return;
     }
 
-    onUpdate({ svg, width, height });
+    try {
+      onUpdate({ svg, width, height });
+    } catch (e) {
+      // TODO: Display error
+      console.error(e);
+    }
   }, [height, onUpdate, svg, width]);
 
   return <svg ref={svgRef} className={className} />;

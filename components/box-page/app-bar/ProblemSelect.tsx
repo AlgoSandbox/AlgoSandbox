@@ -1,8 +1,8 @@
 import { useBoxContext } from '@components/box-page';
 import { Badge, Button, MaterialSymbol, Popover, Select } from '@components/ui';
 import { isParameteredProblem } from '@utils';
-import { useEffect,useMemo } from 'react';
-import { FormProvider,useForm } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import ProblemDetails from '../ProblemDetails';
 
@@ -76,7 +76,7 @@ export default function ProblemSelect() {
       )}
       {selectedOption !== undefined && (
         <Button
-          label="Edit algorithm"
+          label="Edit problem"
           hideLabel
           role="checkbox"
           selected={customPanelVisible}

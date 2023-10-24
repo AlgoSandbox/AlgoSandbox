@@ -24,6 +24,7 @@
     "react-dom": "latest",
     "react-hook-form": "^7.47.0",
     "react-inspector": "^6.0.2",
+    "react-resizable-panels": "^0.0.55",
     "zod": "^3.22.2"
   },
   "devDependencies": {

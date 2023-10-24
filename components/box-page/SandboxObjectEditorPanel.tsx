@@ -90,7 +90,7 @@ export default function SandboxObjectEditorPanel({
   const isNew = customObjects.selected === null;
 
   return (
-    <aside className="w-[500px]">
+    <aside className="h-full">
       <form
         className="h-full"
         onSubmit={handleSubmit((values) => {
@@ -105,7 +105,7 @@ export default function SandboxObjectEditorPanel({
           reset(values);
         })}
       >
-        <div className="flex gap-2 p-4 items-end">
+        <div className="flex gap-2 p-4 items-end flex-wrap">
           <Input
             label="Name"
             containerClassName="flex-1"

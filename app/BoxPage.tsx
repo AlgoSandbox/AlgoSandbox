@@ -14,7 +14,8 @@ import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createScene } from '@utils';
 import { DbAlgorithmSaved, DbProblemSaved } from '@utils/db';
-import { useEffect, useMemo, useState } from 'react';
+import useCancelableInterval from '@utils/useCancelableInterval';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
@@ -105,6 +106,35 @@ function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
     setScene(initialScene);
   }, [initialScene]);
 
+  const onNext = useCallback(() => {
+    if (scene === null) {
+      // Pause
+      return false;
+    }
+
+    if (
+      isFullyExecuted &&
+      currentStepIndex >= scene.executionTrace.length - 1
+    ) {
+      // Pause
+      return false;
+    }
+
+    const newScene = scene.copyWithExecution(currentStepIndex + 2);
+    setScene(newScene);
+    if (currentStepIndex + 1 < newScene.executionTrace.length) {
+      setCurrentStepIndex(currentStepIndex + 1);
+    }
+    // Continue playing
+    return true;
+  }, [currentStepIndex, isFullyExecuted, scene]);
+
+  const {
+    start,
+    stop,
+    isRunning: isPlaying,
+  } = useCancelableInterval(onNext, 500);
+
   return (
     <div className="flex flex-col h-screen">
       <AppBar />
@@ -131,71 +161,85 @@ function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
             </div>
             {scene && (
               <div className="absolute w-full bottom-8 flex justify-center">
-                <div className="flex gap-2 items-center rounded-full border px-4 shadow">
-                  <Button
-                    disabled={currentStepIndex <= 0}
-                    label="Skip to start"
-                    hideLabel
-                    onClick={() => {
-                      setCurrentStepIndex(0);
-                    }}
-                    icon={<MaterialSymbol icon="first_page" />}
-                  />
-                  <Button
-                    disabled={currentStepIndex <= 0}
-                    onClick={() => {
-                      setCurrentStepIndex(currentStepIndex - 1);
-                    }}
-                    hideLabel
-                    label="Previous"
-                    icon={
-                      <MaterialSymbol
-                        icon="step_over"
-                        className="-scale-x-100"
-                      />
-                    }
-                  />
-                  <span className="font-mono px-2">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="font-mono px-2 rounded-full shadow border">
                     {currentStepIndex + 1}/
                     {isFullyExecuted ? scene.executionTrace.length : '?'}
                   </span>
-                  <Button
-                    disabled={
-                      isFullyExecuted &&
-                      currentStepIndex >= scene.executionTrace.length - 1
-                    }
-                    hideLabel
-                    onClick={() => {
-                      const newScene = scene.copyWithExecution(
-                        currentStepIndex + 2
-                      );
-                      setScene(newScene);
-                      if (
-                        currentStepIndex + 1 <
-                        newScene.executionTrace.length
-                      ) {
-                        setCurrentStepIndex(currentStepIndex + 1);
+                  <div className="flex gap-2 items-center rounded-full border px-4 shadow">
+                    <Button
+                      disabled={currentStepIndex <= 0}
+                      label="Skip to start"
+                      hideLabel
+                      onClick={() => {
+                        setCurrentStepIndex(0);
+                      }}
+                      icon={<MaterialSymbol icon="first_page" />}
+                    />
+                    <Button
+                      disabled={currentStepIndex <= 0}
+                      onClick={() => {
+                        setCurrentStepIndex(currentStepIndex - 1);
+                      }}
+                      hideLabel
+                      label="Previous"
+                      icon={
+                        <MaterialSymbol
+                          icon="step_over"
+                          className="-scale-x-100"
+                        />
                       }
-                    }}
-                    label="Next"
-                    icon={<MaterialSymbol icon="step_over" />}
-                  />
-                  <Button
-                    label="Skip to end"
-                    disabled={
-                      isFullyExecuted &&
-                      currentStepIndex >= scene.executionTrace.length - 1
-                    }
-                    hideLabel
-                    onClick={() => {
-                      const fullyExecutedScene = scene.copyWithExecution();
-                      setScene(fullyExecutedScene);
-                      setCurrentStepIndex(
-                        fullyExecutedScene.executionTrace.length - 1
-                      );
-                    }}
-                    icon={<MaterialSymbol icon="last_page" />}
-                  />
+                    />
+                    <Button
+                      variant="primary"
+                      disabled={
+                        isFullyExecuted &&
+                        currentStepIndex >= scene.executionTrace.length - 1
+                      }
+                      hideLabel
+                      onClick={() => {
+                        if (isPlaying) {
+                          stop();
+                        } else {
+                          start();
+                        }
+                      }}
+                      label={isPlaying ? 'Pause' : 'Play'}
+                      icon={
+                        isPlaying ? (
+                          <MaterialSymbol icon="pause" />
+                        ) : (
+                          <MaterialSymbol icon="play_arrow" />
+                        )
+                      }
+                    />
+                    <Button
+                      disabled={
+                        isFullyExecuted &&
+                        currentStepIndex >= scene.executionTrace.length - 1
+                      }
+                      hideLabel
+                      onClick={onNext}
+                      label="Next"
+                      icon={<MaterialSymbol icon="step_over" />}
+                    />
+                    <Button
+                      label="Skip to end"
+                      disabled={
+                        isFullyExecuted &&
+                        currentStepIndex >= scene.executionTrace.length - 1
+                      }
+                      hideLabel
+                      onClick={() => {
+                        const fullyExecutedScene = scene.copyWithExecution();
+                        setScene(fullyExecutedScene);
+                        setCurrentStepIndex(
+                          fullyExecutedScene.executionTrace.length - 1
+                        );
+                      }}
+                      icon={<MaterialSymbol icon="last_page" />}
+                    />
+                  </div>
                 </div>
               </div>
             )}

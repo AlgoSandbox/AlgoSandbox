@@ -6,6 +6,7 @@ import {
   SandboxParameters,
   SandboxProblem,
   SandboxStateName,
+  SandboxVisualizer,
 } from '@algo-sandbox/core';
 import {
   CatalogGroup,
@@ -13,12 +14,18 @@ import {
   CatalogOptions,
 } from '@constants/catalog';
 import { UseMutationResult } from '@tanstack/react-query';
-import { SandboxAnyAlgorithm, SandboxAnyProblem } from '@types';
+import {
+  SandboxAnyAlgorithm,
+  SandboxAnyProblem,
+  SandboxAnyVisualizer,
+} from '@types';
 import {
   DbAlgorithm,
   DbAlgorithmSaved,
   DbProblem,
   DbProblemSaved,
+  DbVisualizer,
+  DbVisualizerSaved,
 } from '@utils/db';
 import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
 import { useEffect, useMemo, useState } from 'react';
@@ -40,6 +47,12 @@ type SandboxObjectTypeMap = {
     value: SandboxAnyProblem;
     dbObject: DbProblem;
     dbObjectSaved: DbProblemSaved;
+  };
+  visualizer: {
+    instance: SandboxVisualizer<SandboxStateName>;
+    value: SandboxAnyVisualizer;
+    dbObject: DbVisualizer;
+    dbObjectSaved: DbVisualizerSaved;
   };
 };
 

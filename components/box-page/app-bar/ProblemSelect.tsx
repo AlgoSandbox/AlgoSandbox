@@ -18,20 +18,20 @@ export default function ProblemSelect() {
   const {
     default: defaultParameters,
     setValue: setParameters,
-    value: problemParameters = {},
+    value: parameters = {},
   } = useBoxContext('problem.parameters');
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
   const changedParameterCount = useMemo(() => {
-    if (problemParameters === null || defaultParameters === null) {
+    if (parameters === null || defaultParameters === null) {
       return 0;
     }
 
-    return Object.keys(problemParameters ?? {}).filter(
-      (key) => problemParameters[key] !== defaultParameters[key]
+    return Object.keys(parameters ?? {}).filter(
+      (key) => parameters[key] !== defaultParameters[key]
     ).length;
-  }, [problemParameters, defaultParameters]);
+  }, [parameters, defaultParameters]);
 
   useEffect(() => {
     methods.reset(defaultParameters ?? {});

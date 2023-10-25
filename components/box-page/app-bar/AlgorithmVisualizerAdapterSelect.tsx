@@ -15,7 +15,7 @@ export default function AlgorithmVisualizerAdapterSelect() {
       fromLabel="Algorithm"
       toLabel="Visualizer"
       fromType={algorithmInstance?.outputs ?? null}
-      toType={visualizerInstance.accepts}
+      toType={visualizerInstance?.accepts ?? null}
       value={value}
       onChange={setValue}
       options={options}

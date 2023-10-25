@@ -18,7 +18,7 @@ export type BoxContextProblem = BoxContextSandboxObject<'problem'>;
 export const defaultBoxContextProblem =
   defaultBoxContextSandboxObject as BoxContextProblem;
 
-export function useBoxContextProblem({
+export default function useBoxContextProblem({
   builtInProblemOptions,
   customPanelVisible,
   setCustomPanelVisible,

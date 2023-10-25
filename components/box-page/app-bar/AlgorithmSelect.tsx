@@ -18,20 +18,20 @@ export default function AlgorithmSelect() {
   const {
     default: defaultParameters,
     setValue: setParameters,
-    value: algorithmParameters = {},
+    value: parameters = {},
   } = useBoxContext('algorithm.parameters');
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
   const changedParameterCount = useMemo(() => {
-    if (algorithmParameters === null || defaultParameters === null) {
+    if (parameters === null || defaultParameters === null) {
       return 0;
     }
 
-    return Object.keys(algorithmParameters ?? {}).filter(
-      (key) => algorithmParameters[key] !== defaultParameters[key]
+    return Object.keys(parameters ?? {}).filter(
+      (key) => parameters[key] !== defaultParameters[key]
     ).length;
-  }, [algorithmParameters, defaultParameters]);
+  }, [parameters, defaultParameters]);
 
   useEffect(() => {
     methods.reset(defaultParameters ?? {});

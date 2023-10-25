@@ -7,7 +7,7 @@ import {
   useBoxContextAdapters,
 } from './adapters';
 import { BoxContextAlgorithm } from './sandbox-object/algorithm';
-import { BoxContextVisualizer } from './visualizer';
+import { BoxContextVisualizer } from './sandbox-object/visualizer';
 
 export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizer =
   {
@@ -36,9 +36,11 @@ export default function useBoxContextAlgorithmVisualizer({
       compatible:
         (composedAdapter === null &&
           algorithm.instance !== null &&
+          visualizer.instance !== null &&
           visualizer.instance.accepts === algorithm.instance.outputs) ||
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
+          visualizer.instance !== null &&
           algorithm.instance.outputs === composedAdapter?.accepts &&
           composedAdapter?.outputs === visualizer.instance.accepts),
       adapters,
@@ -48,7 +50,7 @@ export default function useBoxContextAlgorithmVisualizer({
     algorithm.instance,
     composedAdapter,
     hasInvalidAdapter,
-    visualizer.instance.accepts,
+    visualizer.instance,
   ]);
 
   return algorithmVisualizer;

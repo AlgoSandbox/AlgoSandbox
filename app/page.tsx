@@ -51,7 +51,7 @@ function readFilesMatchingPatterns(
   );
 }
 
-async function getAlgoSandboxDeclarations() {
+async function getAlgoSandboxFiles() {
   const libContents = readFilesRecursively('./lib/algo-sandbox');
 
   const typeDeclarations: TypeDeclaration[] = Object.entries(libContents).map(
@@ -83,6 +83,10 @@ const algorithmGroupToFolderGlob = {
 const problemGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/problems/graphs',
   Example: 'lib/algo-sandbox/problems/example',
+};
+
+const visualizerGroupToFolderGlob = {
+  Graphs: 'lib/algo-sandbox/visualizers/graphs',
 };
 
 function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
@@ -123,7 +127,10 @@ function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
 }
 
 export default async function Page() {
-  const typeDeclarations = await getAlgoSandboxDeclarations();
+  const algoSandboxFiles = await getAlgoSandboxFiles();
+
+  // TODO: Fetch d3 and lodash type declarations
+  const typeDeclarations: Array<TypeDeclaration> = [];
 
   const builtInAlgorithmOptions = Object.entries(
     algorithmGroupToFolderGlob
@@ -131,12 +138,17 @@ export default async function Page() {
   const builtInProblemOptions = Object.entries(problemGroupToFolderGlob).map(
     ([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob)
   );
+  const builtInVisualizerOptions = Object.entries(
+    visualizerGroupToFolderGlob
+  ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
 
   return (
     <BoxPage
+      algoSandboxFiles={algoSandboxFiles}
       typeDeclarations={typeDeclarations}
       builtInAlgorithmOptions={builtInAlgorithmOptions}
       builtInProblemOptions={builtInProblemOptions}
+      builtInVisualizerOptions={builtInVisualizerOptions}
     />
   );
 }

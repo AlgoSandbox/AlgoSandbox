@@ -13,7 +13,7 @@ import { Button, MaterialSymbol } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createScene } from '@utils';
-import { DbAlgorithmSaved, DbProblemSaved } from '@utils/db';
+import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
 import useCancelableInterval from '@utils/useCancelableInterval';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
@@ -24,32 +24,29 @@ import { TypeDeclaration } from './page';
 const queryClient = new QueryClient();
 
 type BoxPageImplProps = {
+  algoSandboxFiles: Array<TypeDeclaration>;
   typeDeclarations: Array<TypeDeclaration>;
 };
 
-function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
+function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  const customAlgorithmPanelVisible = useBoxContext(
-    'algorithm.customPanel.visible'
-  );
-  const customProblemPanelVisible = useBoxContext(
-    'problem.customPanel.visible'
-  );
   const customPanelType = useBoxContext('customPanelType');
   const customAlgorithmObjects = useBoxContext('algorithm.custom');
   const customProblemObjects = useBoxContext('problem.custom');
+  const customVisualizerObjects = useBoxContext('visualizer.custom');
   const customObjects = (() => {
     switch (customPanelType) {
       case 'algorithm':
         return customAlgorithmObjects;
       case 'problem':
         return customProblemObjects;
+      case 'visualizer':
+        return customVisualizerObjects;
     }
   })();
 
-  const customPanelVisible =
-    customAlgorithmPanelVisible || customProblemPanelVisible;
+  const customPanelVisible = customPanelType !== null;
 
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
@@ -59,9 +56,9 @@ function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
   const { composed: composedAlgoVizAdapter } = useBoxContext(
     'algorithmVisualizer.adapters'
   );
-  const { instance: visualizer } = useBoxContext('visualizer');
-  const algorithmInstance = useBoxContext('algorithm.instance');
   const problemInstance = useBoxContext('problem.instance');
+  const algorithmInstance = useBoxContext('algorithm.instance');
+  const visualizerInstance = useBoxContext('visualizer.instance');
 
   const initialScene = useMemo(() => {
     if (
@@ -92,13 +89,13 @@ function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
 
       const adaptedState =
         composedAlgoVizAdapter?.transform(algorithmState) ?? algorithmState;
-      return visualizer.visualize(adaptedState);
+      return visualizerInstance?.visualize(adaptedState);
     }
   }, [
     executionStep,
     areAlgorithmVisualizerCompatible,
     composedAlgoVizAdapter,
-    visualizer,
+    visualizerInstance,
   ]);
 
   useEffect(() => {
@@ -143,8 +140,9 @@ function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
           <>
             <Panel id="left" order={1} defaultSize={30} minSize={30}>
               <SandboxObjectEditorPanel
-                typeDeclarations={typeDeclarations}
+                algoSandboxFiles={algoSandboxFiles}
                 customObjects={customObjects}
+                typeDeclarations={typeDeclarations}
               />
             </Panel>
             <ResizeHandle />
@@ -280,11 +278,13 @@ function BoxPageImpl({ typeDeclarations }: BoxPageImplProps) {
 type BoxPageProps = BoxPageImplProps & {
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
+  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
 };
 
 export default function BoxPage({
   builtInAlgorithmOptions,
   builtInProblemOptions,
+  builtInVisualizerOptions,
   ...props
 }: BoxPageProps) {
   return (
@@ -292,6 +292,7 @@ export default function BoxPage({
       <BoxContextProvider
         builtInAlgorithmOptions={builtInAlgorithmOptions}
         builtInProblemOptions={builtInProblemOptions}
+        builtInVisualizerOptions={builtInVisualizerOptions}
       >
         <BoxPageImpl {...props} />
       </BoxContextProvider>

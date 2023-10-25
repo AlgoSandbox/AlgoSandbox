@@ -2,6 +2,8 @@ import * as adapters from '@algo-sandbox/adapters';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
 import * as visualizers from '@algo-sandbox/visualizers';
+import * as d3 from 'd3';
+import * as lodash from 'lodash';
 import { ModuleKind, ScriptTarget, transpile } from 'typescript';
 
 export function evalWithContext(
@@ -24,6 +26,8 @@ export default function evalWithAlgoSandbox(typescriptCode: string) {
     '@algo-sandbox/core': core,
     '@algo-sandbox/problems': problems,
     '@algo-sandbox/visualizers': visualizers,
+    d3: d3,
+    lodash: lodash,
   };
 
   // Make a fake require
@@ -38,7 +42,10 @@ export default function evalWithAlgoSandbox(typescriptCode: string) {
     module: ModuleKind.CommonJS,
   });
 
+  console.log('evaling', transpiled);
+
   const toEval = `(() => { var exports = {}; ${transpiled} ; return exports.default; } )()`;
+  console.log('evaled finish');
 
   const generatedObject = evalWithContext(toEval, context);
 

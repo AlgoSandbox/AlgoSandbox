@@ -18,7 +18,7 @@ export type BoxContextAlgorithm = BoxContextSandboxObject<'algorithm'>;
 export const defaultBoxContextAlgorithm =
   defaultBoxContextSandboxObject as BoxContextAlgorithm;
 
-export function useBoxContextAlgorithm({
+export default function useBoxContextAlgorithm({
   customPanelVisible,
   setCustomPanelVisible,
   builtInAlgorithmOptions,

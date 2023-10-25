@@ -44,16 +44,19 @@ type EditorPanelFormValue = {
 };
 
 export type SandboxObjectEditorPanelProps = {
+  algoSandboxFiles: Array<TypeDeclaration>;
   typeDeclarations: Array<TypeDeclaration>;
   customObjects: BoxContextCustomObjects;
 };
 
 export default function SandboxObjectEditorPanel({
-  typeDeclarations,
+  algoSandboxFiles,
   customObjects,
+  typeDeclarations,
 }: SandboxObjectEditorPanelProps) {
   const selectedAlgorithm = useBoxContext('algorithm.select.value');
   const selectedProblem = useBoxContext('problem.select.value');
+  const selectedVisualizer = useBoxContext('visualizer.select.value');
   const customPanelType = useBoxContext('customPanelType');
 
   const selectedValue = (() => {
@@ -62,6 +65,8 @@ export default function SandboxObjectEditorPanel({
         return selectedAlgorithm;
       case 'problem':
         return selectedProblem;
+      case 'visualizer':
+        return selectedVisualizer;
     }
   })();
 
@@ -159,11 +164,19 @@ export default function SandboxObjectEditorPanel({
                     },
                   }
                 );
-                for (const { contents, path } of typeDeclarations) {
+                for (const { contents, path } of algoSandboxFiles) {
                   monaco.editor.createModel(
                     contents,
                     'typescript',
                     monaco.Uri.parse(path)
+                  );
+                }
+
+                for (const { contents, path } of typeDeclarations) {
+                  console.log("adding lib", path)
+                  monaco.languages.typescript.typescriptDefaults.addExtraLib(
+                    contents,
+                    path
                   );
                 }
                 monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(

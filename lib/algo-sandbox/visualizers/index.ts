@@ -1,3 +1,1 @@
-import * as graphs from './graphs';
-
-export { graphs };
+export * from './graphs';

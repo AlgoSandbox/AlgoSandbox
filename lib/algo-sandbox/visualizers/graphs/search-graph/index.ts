@@ -1,9 +1,10 @@
-import { SandboxVisualizer } from '../../core/visualize';
-import nodeGraphVisualizer from './parametered/node-graph-visualizer';
+import { SandboxVisualizer } from '@algo-sandbox/core';
+import { nodeGraphVisualizer } from '@algo-sandbox/visualizers';
 
 const searchGraphVisualizer: SandboxVisualizer<'graphSearchAlgorithmState'> =
   (() => {
     return {
+      name: 'Search graph',
       accepts: 'graphSearchAlgorithmState',
       visualize: (searchGraph) => {
         return nodeGraphVisualizer

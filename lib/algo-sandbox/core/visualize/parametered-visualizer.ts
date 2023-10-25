@@ -43,6 +43,7 @@ export function createParameteredVisualizer<
     parameters,
     create: (parsedParameters = getDefaultParameters(parameters)) => {
       return {
+        name,
         accepts,
         visualize: (state) => {
           return {

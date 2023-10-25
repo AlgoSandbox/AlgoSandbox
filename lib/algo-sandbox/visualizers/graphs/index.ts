@@ -1,4 +1,4 @@
-import * as parametered from './parametered';
-import searchGraph from './search-graph-visualizer';
+import nodeGraphVisualizer from "./node-graph";
+import searchGraphVisualizer from "./search-graph";
 
-export { parametered, searchGraph };
+export { nodeGraphVisualizer, searchGraphVisualizer}

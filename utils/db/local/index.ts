@@ -1,6 +1,6 @@
 import { DbSandboxObject } from '../types';
 
-type SandboxObjectType = 'algorithm' | 'problem';
+type SandboxObjectType = 'algorithm' | 'problem' | 'visualizer';
 
 function createKey(type: SandboxObjectType, object: DbSandboxObject) {
   switch (type) {
@@ -8,6 +8,8 @@ function createKey(type: SandboxObjectType, object: DbSandboxObject) {
       return `sandbox:algorithms:${object.name}-${new Date().getTime()}`;
     case 'problem':
       return `sandbox:problems:${object.name}-${new Date().getTime()}`;
+    case 'visualizer':
+      return `sandbox:visualizers:${object.name}-${new Date().getTime()}`;
   }
 }
 

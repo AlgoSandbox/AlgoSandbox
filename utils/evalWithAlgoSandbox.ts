@@ -42,10 +42,7 @@ export default function evalWithAlgoSandbox(typescriptCode: string) {
     module: ModuleKind.CommonJS,
   });
 
-  console.log('evaling', transpiled);
-
   const toEval = `(() => { var exports = {}; ${transpiled} ; return exports.default; } )()`;
-  console.log('evaled finish');
 
   const generatedObject = evalWithContext(toEval, context);
 

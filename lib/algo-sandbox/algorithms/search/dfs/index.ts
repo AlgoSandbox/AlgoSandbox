@@ -80,7 +80,7 @@ const depthFirstSearch: SandboxAlgorithm<
         }
       }
 
-      yield line(14, 15);
+      yield line(15, 16);
     }
 
     return true;

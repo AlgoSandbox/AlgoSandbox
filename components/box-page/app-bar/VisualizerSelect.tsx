@@ -1,10 +1,11 @@
 import { useBoxContext } from '@components/box-page';
-import { Badge, Button, MaterialSymbol, Popover, Select } from '@components/ui';
+import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { isParameteredVisualizer } from '../../../_utils/isParametered';
 import VisualizerDetails from '../VisualizerDetails';
+import CatalogSelect from './CatalogSelect';
 
 export default function VisualizerSelect() {
   const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
@@ -38,7 +39,7 @@ export default function VisualizerSelect() {
   }, [defaultParameters, methods]);
   return (
     <div className="flex items-end gap-2">
-      <Select
+      <CatalogSelect
         label="Visualizer"
         options={options}
         value={selectedOption ?? undefined}

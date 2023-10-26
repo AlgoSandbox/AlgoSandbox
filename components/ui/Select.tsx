@@ -22,9 +22,11 @@ export type SelectGroup<T> = {
   options: Array<SelectOption<T>>;
 };
 
-export type SelectOptions<T = unknown> = Array<SelectOption<T> | SelectGroup<T>>;
+export type SelectOptions<T = unknown> = Array<
+  SelectOption<T> | SelectGroup<T>
+>;
 
-export type SelectProps<T, O  extends SelectOption<T> = SelectOption<T>> = {
+export type SelectProps<T, O extends SelectOption<T> = SelectOption<T>> = {
   className?: string;
   containerClassName?: string;
   label: string;
@@ -48,7 +50,7 @@ const SelectItem = React.forwardRef<
   return (
     <RadixSelect.Item
       className={clsx(
-       className,
+        className,
         'px-8 py-1 [&[data-highlighted]]:bg-primary-500 [&[data-highlighted]]:text-white rounded outline-none select-none relative'
       )}
       {...props}

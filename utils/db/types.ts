@@ -6,6 +6,8 @@ export type DbSandboxObject = {
 
 export type DbSandboxObjectSaved = DbSandboxObject & {
   key: string;
+  writeup?: string;
+  files?: Record<string, string>;
 };
 
 export type DbAlgorithm = DbSandboxObject;

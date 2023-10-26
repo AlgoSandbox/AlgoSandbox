@@ -132,7 +132,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
     isRunning: isPlaying,
   } = useCancelableInterval(onNext, 500);
 
-  const hasPreviousStep = scene !== null && currentStepIndex <= 0;
+  const hasPreviousStep = scene !== null && currentStepIndex > 0;
   const hasNextStep =
     scene !== null &&
     (!isFullyExecuted || currentStepIndex < scene.executionTrace.length - 1);
@@ -171,7 +171,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                   </span>
                   <div className="flex gap-2 items-center rounded-full border px-4 shadow">
                     <Button
-                      disabled={!isPlaying || !hasPreviousStep}
+                      disabled={isPlaying || !hasPreviousStep}
                       label="Skip to start"
                       hideLabel
                       onClick={() => {
@@ -195,21 +195,27 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                     />
                     <Button
                       variant="primary"
-                      disabled={!isPlaying && !hasNextStep}
                       hideLabel
                       onClick={() => {
                         if (isPlaying) {
                           stop();
                         } else {
+                          if (!hasNextStep) {
+                            setCurrentStepIndex(0);
+                          }
                           start();
                         }
                       }}
-                      label={isPlaying ? 'Pause' : 'Play'}
+                      label={
+                        isPlaying ? 'Pause' : hasNextStep ? 'Play' : 'Restart'
+                      }
                       icon={
                         isPlaying ? (
                           <MaterialSymbol icon="pause" />
-                        ) : (
+                        ) : hasNextStep ? (
                           <MaterialSymbol icon="play_arrow" />
+                        ) : (
+                          <MaterialSymbol icon="restart_alt" />
                         )
                       }
                     />

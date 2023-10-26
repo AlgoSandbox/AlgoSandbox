@@ -110,7 +110,10 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
         name: 'Node graph',
         accepts: 'nodeGraph',
         parameters: {
-          renderNode: SandboxParam.callback('Node render function', () => {}),
+          renderNode: SandboxParam.callback<(node: NodeGraphSVGNode) => void>(
+            'Node render function',
+            () => {}
+          ),
         },
         onUpdate: ({ parameters, svg, width, height, state: graph }) => {
           if (!visualizerState || !_.isEqual(graph, cachedGraph)) {

@@ -16,6 +16,7 @@ export type ButtonProps = {
   label: string;
   hideLabel?: boolean;
   icon?: ReactElement;
+  endIcon?: ReactElement;
   size?: ButtonSize;
   variant?: ButtonVariant;
 } & DetailedHTMLProps<
@@ -37,6 +38,7 @@ function Button(
     label,
     className,
     icon,
+    endIcon,
     disabled,
     hideLabel,
     size = 'md',
@@ -59,13 +61,13 @@ function Button(
           size === 'sm' && [
             'py-1 gap-1',
             icon !== undefined ? 'ps-1' : 'ps-2',
-            hideLabel ? 'pe-1' : 'pe-2',
+            hideLabel || endIcon ? 'pe-1' : 'pe-2',
             '[&_.material-symbols-rounded]:text-[20px] text-sm',
           ],
           size === 'md' && [
             'py-2 gap-2',
             icon !== undefined ? 'ps-2' : 'ps-3',
-            hideLabel ? 'pe-2' : 'pe-3',
+            hideLabel ||endIcon ? 'pe-2' : 'pe-3',
           ],
           variant === 'tertiary' && [
             !disabled && [
@@ -90,6 +92,7 @@ function Button(
       >
         {icon}
         {!hideLabel && label}
+        {endIcon}
       </button>
     </Tooltip>
   );

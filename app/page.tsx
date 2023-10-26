@@ -91,24 +91,31 @@ const visualizerGroupToFolderGlob = {
 
 function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
   const contents = readFilesMatchingPatterns([
-    [path.join(folderGlob, '*/*.ts')],
+    [path.join(folderGlob, '*/index.ts')],
   ]);
   const writeups = readFilesMatchingPatterns([
     [path.join(folderGlob, '*/*.md')],
   ]);
+  const allFiles = readFilesMatchingPatterns([
+    [path.join(folderGlob, '*/*.*')],
+  ]);
 
   const objects: Array<DbSandboxObjectSaved> = Object.entries(contents).map(
     ([contentFileName, content]) => {
-      const writeup =
-        writeups[
-          contentFileName.substring(0, contentFileName.length - 3) + '.md'
-        ];
+      const folder = contentFileName.substring(0, contentFileName.length - 8);
+      const writeup = writeups[folder + 'index.md'];
       const title =
         writeup !== undefined ? getMarkdownTitle(writeup) : 'Untitled';
+      const files = Object.fromEntries(
+        Object.entries(allFiles).filter(([key]) => key.includes(folder))
+      );
+
       return {
         key: contentFileName,
         name: title,
+        writeup,
         typescriptCode: content,
+        files,
       };
     }
   );

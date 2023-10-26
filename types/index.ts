@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  SandboxAdapter,
   SandboxAlgorithm,
   SandboxParameteredAlgorithm,
   SandboxParameteredProblem,
   SandboxParameteredVisualizer,
-  SandboxParameters,
   SandboxProblem,
-  SandboxStateName,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 
 export type SandboxAnyAlgorithm =
-  | SandboxAlgorithm<SandboxStateName, SandboxStateName>
-  | SandboxParameteredAlgorithm<SandboxStateName, SandboxStateName, any>;
+  | SandboxAlgorithm<any, any>
+  | SandboxParameteredAlgorithm<any, any, any>;
 
 export type SandboxAnyProblem =
-  | SandboxProblem<SandboxStateName>
-  | SandboxParameteredProblem<SandboxStateName, SandboxParameters>;
+  | SandboxProblem<any>
+  | SandboxParameteredProblem<any, any>;
 
 export type SandboxAnyVisualizer =
   | SandboxVisualizer<any>
   | SandboxParameteredVisualizer<any, any>;
+
+export type SandboxAnyAdapter = SandboxAdapter<any, any>;

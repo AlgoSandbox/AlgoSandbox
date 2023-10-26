@@ -1,10 +1,11 @@
-import { Badge, Button, MaterialSymbol, Popover, Select } from '@components/ui';
+import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameteredAlgorithm } from '@utils';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { AlgorithmDetails } from '..';
 import { useBoxContext } from '../box-context';
+import CatalogSelect from './CatalogSelect';
 
 export default function AlgorithmSelect() {
   const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
@@ -39,13 +40,11 @@ export default function AlgorithmSelect() {
 
   return (
     <div className="flex items-end gap-2">
-      <Select
+      <CatalogSelect
         label="Algorithm"
         options={options}
         value={selectedOption ?? undefined}
-        onChange={(value) => {
-          setSelectedOption(value as typeof selectedOption);
-        }}
+        onChange={setSelectedOption}
       />
       {algorithm !== null && isParameteredAlgorithm(algorithm) && (
         <Popover

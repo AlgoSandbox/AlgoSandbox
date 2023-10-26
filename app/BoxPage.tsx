@@ -244,6 +244,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
             <div className="flex-1">
               {visualization && (
                 <VisualizerRenderer
+                  key={JSON.stringify(problemInstance?.initialState)}
                   className="w-full h-full"
                   visualization={visualization}
                 />

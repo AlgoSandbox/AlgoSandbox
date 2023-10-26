@@ -132,6 +132,11 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
     isRunning: isPlaying,
   } = useCancelableInterval(onNext, 500);
 
+  const hasPreviousStep = scene !== null && currentStepIndex <= 0;
+  const hasNextStep =
+    scene !== null &&
+    (!isFullyExecuted || currentStepIndex < scene.executionTrace.length - 1);
+
   return (
     <div className="flex flex-col h-screen">
       <AppBar />
@@ -166,7 +171,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                   </span>
                   <div className="flex gap-2 items-center rounded-full border px-4 shadow">
                     <Button
-                      disabled={currentStepIndex <= 0}
+                      disabled={!isPlaying || !hasPreviousStep}
                       label="Skip to start"
                       hideLabel
                       onClick={() => {
@@ -175,7 +180,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                       icon={<MaterialSymbol icon="first_page" />}
                     />
                     <Button
-                      disabled={currentStepIndex <= 0}
+                      disabled={isPlaying || !hasPreviousStep}
                       onClick={() => {
                         setCurrentStepIndex(currentStepIndex - 1);
                       }}
@@ -190,10 +195,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                     />
                     <Button
                       variant="primary"
-                      disabled={
-                        isFullyExecuted &&
-                        currentStepIndex >= scene.executionTrace.length - 1
-                      }
+                      disabled={!isPlaying && !hasNextStep}
                       hideLabel
                       onClick={() => {
                         if (isPlaying) {
@@ -212,10 +214,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                       }
                     />
                     <Button
-                      disabled={
-                        isFullyExecuted &&
-                        currentStepIndex >= scene.executionTrace.length - 1
-                      }
+                      disabled={isPlaying || !hasNextStep}
                       hideLabel
                       onClick={onNext}
                       label="Next"
@@ -223,10 +222,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
                     />
                     <Button
                       label="Skip to end"
-                      disabled={
-                        isFullyExecuted &&
-                        currentStepIndex >= scene.executionTrace.length - 1
-                      }
+                      disabled={isPlaying || !hasNextStep}
                       hideLabel
                       onClick={() => {
                         const fullyExecutedScene = scene.copyWithExecution();

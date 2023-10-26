@@ -12,7 +12,12 @@ function ParameterControl<P extends SandboxParameter>({
   fieldName,
   parameter,
 }: ParameterControlProps<P>) {
-  const { register, setValue, watch } = useFormContext();
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useFormContext();
 
   const watchField = watch(fieldName);
 
@@ -22,15 +27,59 @@ function ParameterControl<P extends SandboxParameter>({
         return (
           <Input
             label={parameter.name}
-            {...register(fieldName, { valueAsNumber: true })}
+            error={errors[fieldName]?.message?.toString()}
+            {...register(fieldName, {
+              valueAsNumber: true,
+              validate: (value: number) => {
+                if (value !== Math.floor(value)) {
+                  return 'Value must be an integer';
+                }
+
+                return parameter.validate?.(value) ?? true;
+              },
+            })}
             type="number"
           />
         );
-
       case 'callback':
         return (
-          <Input label={parameter.name} {...register(fieldName)} disabled />
+          <Input
+            label={parameter.name}
+            error={errors[fieldName]?.message?.toString()}
+            {...register(fieldName, { validate: parameter.validate })}
+            disabled
+          />
         );
+      case 'float':
+        return (
+          <Input
+            label={parameter.name}
+            error={errors[fieldName]?.message?.toString()}
+            {...register(fieldName, {
+              valueAsNumber: true,
+              validate: parameter.validate,
+            })}
+            disabled
+          />
+        );
+      case 'string':
+        return (
+          <Input
+            label={parameter.name}
+            error={errors[fieldName]?.message?.toString()}
+            {...register(fieldName, { validate: parameter.validate })}
+          />
+        );
+      case 'color':
+        return (
+          <Input
+            label={parameter.name}
+            error={errors[fieldName]?.message?.toString()}
+            {...register(fieldName, { validate: parameter.validate })}
+          />
+        );
+      default:
+        parameter.type satisfies never;
     }
   })();
 

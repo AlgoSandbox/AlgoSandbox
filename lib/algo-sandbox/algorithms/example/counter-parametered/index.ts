@@ -1,4 +1,4 @@
-import { createParameteredAlgorithm,SandboxParam } from '@algo-sandbox/core';
+import { createParameteredAlgorithm, SandboxParam } from '@algo-sandbox/core';
 
 type ExampleState = {
   counter: number;
@@ -15,7 +15,11 @@ const counterParametered = createParameteredAlgorithm({
   accepts: 'counter',
   outputs: 'counter',
   parameters: {
-    increment: SandboxParam.integer('Increment value', 1),
+    increment: SandboxParam.integer(
+      'Increment value',
+      1,
+      (value) => value !== 0 || 'Value cannot be 0'
+    ),
     counterLimit: SandboxParam.integer('Counter limit', 10),
   },
   createInitialState: (problem) => ({ ...problem }),

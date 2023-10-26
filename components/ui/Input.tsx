@@ -14,12 +14,20 @@ export type InputProps = DetailedHTMLProps<
 > & {
   containerClassName?: string;
   label: string;
+  error?: string;
   hideLabel?: boolean;
 };
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { label, hideLabel = false, className, containerClassName, ...props },
+    {
+      label,
+      hideLabel = false,
+      className,
+      containerClassName,
+      error,
+      ...props
+    },
     ref
   ) => {
     const id = useId();
@@ -39,12 +47,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       />
     );
 
-    return hideLabel ? (
+    return hideLabel && !error ? (
       inputElement
     ) : (
       <div className={clsx('flex flex-col', containerClassName)}>
         {!hideLabel && <FormLabel id={id}>{label}</FormLabel>}
         {inputElement}
+        {error && <span className="text-red-700">{error}</span>}
       </div>
     );
   }

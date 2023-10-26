@@ -173,7 +173,6 @@ export default function SandboxObjectEditorPanel({
                 }
 
                 for (const { contents, path } of typeDeclarations) {
-                  console.log("adding lib", path)
                   monaco.languages.typescript.typescriptDefaults.addExtraLib(
                     contents,
                     path

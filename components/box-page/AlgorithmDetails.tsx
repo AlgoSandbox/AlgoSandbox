@@ -9,7 +9,7 @@ import ParameterControls from './ParameterControls';
 export type AlgorithmDetailsProps<
   N extends SandboxStateName,
   M extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = {
   algorithm: SandboxParameteredAlgorithm<N, M, P>;
 };
@@ -17,7 +17,7 @@ export type AlgorithmDetailsProps<
 export default function AlgorithmDetails<
   N extends SandboxStateName,
   M extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 >({ algorithm }: AlgorithmDetailsProps<N, M, P>) {
   return (
     <div className="p-4 bg-white">

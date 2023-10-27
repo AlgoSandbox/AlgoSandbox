@@ -40,7 +40,7 @@ class SandboxStateImpl<N extends SandboxStateName>
 
 export class SandboxAlgorithmExecutor<
   N extends SandboxStateName,
-  M extends SandboxStateName
+  M extends SandboxStateName,
 > {
   executionTrace: SandboxExecutionTrace<M>;
   algorithm: SandboxAlgorithm<N, M>;
@@ -66,7 +66,6 @@ export class SandboxAlgorithmExecutor<
       state: state.data,
       line,
     });
-    this.execute(1);
   }
 
   execute(untilCount?: number) {

@@ -10,14 +10,14 @@ import {
 
 export type SandboxParameteredProblem<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = Parametered<SandboxProblem<N>, P> & {
   shape: N;
 };
 
 export function createParameteredProblem<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 >({
   name,
   shape,
@@ -35,10 +35,12 @@ export function createParameteredProblem<
     name,
     shape,
     parameters,
-    create: (parsedParameters = getDefaultParameters(parameters)) => ({
-      name: getName(parsedParameters),
-      shape,
-      initialState: getInitialState(parsedParameters),
-    }),
+    create: (parsedParameters = getDefaultParameters(parameters)) => {
+      return {
+        name: getName(parsedParameters),
+        shape,
+        initialState: getInitialState(parsedParameters),
+      };
+    },
   };
 }

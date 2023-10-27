@@ -66,10 +66,17 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
       algorithmInstance !== null &&
       problemInstance !== null
     ) {
-      return createScene({
-        algorithm: algorithmInstance,
-        problem: problemInstance,
-      });
+      try {
+        const scene = createScene({
+          algorithm: algorithmInstance,
+          problem: problemInstance,
+        });
+
+        return scene.copyWithExecution(1);
+      } catch (e) {
+        console.error(e);
+        return null;
+      }
     }
     return null;
   }, [areAlgorithmProblemCompatible, algorithmInstance, problemInstance]);

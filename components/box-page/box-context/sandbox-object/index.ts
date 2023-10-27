@@ -195,8 +195,8 @@ export function useBoxContextSandboxObject<
       add: (value) => {
         return addSavedObject(value);
       },
-      set: async (value) => {
-        return await setSavedObject(value);
+      set: (value) => {
+        return setSavedObject(value);
       },
       remove: (value) => {
         if (selectedOptionObject?.key === value.key) {
@@ -292,8 +292,18 @@ export function useBoxContextSandboxObject<
 
   const [objectParameters, setObjectParameters] = useState(defaultParameters);
 
+  useEffect(() => {
+    setObjectParameters(defaultParameters);
+  }, [defaultParameters]);
+
   const objectInstance = useMemo(() => {
-    if (objectInstancer !== null && objectParameters !== null) {
+    if (
+      objectInstancer !== null &&
+      objectParameters !== null &&
+      Object.keys(objectInstancer.parameters).every(
+        (k) => k in objectParameters
+      )
+    ) {
       return objectInstancer.create(objectParameters);
     }
     return null;
@@ -330,10 +340,6 @@ export function useBoxContextSandboxObject<
     defaultParameters,
     selectedOptionObject,
   ]);
-
-  useEffect(() => {
-    setObjectParameters(defaultParameters);
-  }, [defaultParameters]);
 
   return algorithm;
 }

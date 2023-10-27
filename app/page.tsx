@@ -63,7 +63,7 @@ async function getAlgoSandboxFiles() {
   return typeDeclarations;
 }
 
-const markdownHeadingRegex = /^#\s+(.+)\s*$/;
+const markdownHeadingRegex = /^#\s+(.+)\s*$/m;
 
 function getMarkdownTitle(markdown: string) {
   const match = markdown.match(markdownHeadingRegex);

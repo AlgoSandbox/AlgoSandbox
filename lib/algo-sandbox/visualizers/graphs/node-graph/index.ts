@@ -7,6 +7,7 @@ import {
 } from '@algo-sandbox/core';
 import { GraphNode, NodeGraph } from '@algo-sandbox/problems/graphs';
 import * as d3 from 'd3';
+import { D3DragEvent } from 'd3';
 import _ from 'lodash';
 
 type RawRenderFunction = (
@@ -96,7 +97,9 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
               .id((d) => d.id)
               .distance(40)
               .strength(1)
-          );
+          )
+          .force('x', d3.forceX())
+          .force('y', d3.forceY());
 
         return {
           simulation,
@@ -132,9 +135,6 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
 
           const { nodes, links, simulation } = visualizerState;
 
-          // Add force to center nodes
-          simulation.force('center', d3.forceCenter(width / 2, height / 2));
-
           // Only re-heat the simulation if required
           if (width !== cachedWidth || height !== cachedHeight) {
             cachedWidth = width;
@@ -156,7 +156,7 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
             .attr('stroke-width', 2);
 
           // Create nodes
-          svg
+          const node = svg
             .selectAll('.node')
             .data(nodes)
             .enter()
@@ -164,7 +164,55 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
             .attr('class', 'node')
             .attr('r', 15)
             .attr('stroke', 'black')
-            .attr('stroke-width', 2);
+            .attr('stroke-width', 2)
+            .attr('style', 'cursor: grab');
+
+          node.call(
+            d3
+              .drag()
+              .on('start', dragstarted)
+              .on('drag', dragged)
+              .on('end', dragended) as any
+          );
+
+          // Reheat the simulation when drag starts, and fix the subject position.
+          function dragstarted(
+            event: D3DragEvent<
+              SVGCircleElement,
+              d3.SimulationNodeDatum,
+              d3.SimulationNodeDatum
+            >
+          ) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+          }
+
+          // Update the subject (dragged node) position during drag.
+          function dragged(
+            event: D3DragEvent<
+              SVGCircleElement,
+              d3.SimulationNodeDatum,
+              d3.SimulationNodeDatum
+            >
+          ) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+          }
+
+          // Restore the target alpha so the simulation cools after dragging ends.
+          // Unfix the subject position now that it’s no longer being dragged.
+          function dragended(
+            event: D3DragEvent<
+              SVGCircleElement,
+              d3.SimulationNodeDatum,
+              d3.SimulationNodeDatum
+            >
+          ) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+          }
 
           // Add labels to nodes
           svg
@@ -175,7 +223,9 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
             .attr('class', 'label')
             .attr('text-anchor', 'middle')
             .text((d) => d.id)
-            .attr('dy', 15 / 2);
+            .attr('dy', 15 / 2)
+            .attr('style', 'pointer-events: none')
+            ;
 
           const updateValues = () => {
             // Update the positions of nodes, links, and labels here

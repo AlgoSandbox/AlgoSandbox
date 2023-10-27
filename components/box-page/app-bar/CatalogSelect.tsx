@@ -267,10 +267,11 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
             <div>
               {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-neutral-100 overflow-clip">
-                  <div className="w-[250px] h-[200px] scale-50">
+                  <div className="w-[250px] h-[200px]">
                     <VisualizationRenderer
-                      className="w-[500px] h-[400px] overflow-visible"
+                      className="w-[250px] h-[200px] overflow-visible"
                       visualization={visualization}
+                      zoomLevel={0.5}
                     />
                   </div>
                 </div>

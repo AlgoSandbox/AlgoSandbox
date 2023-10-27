@@ -264,7 +264,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
               })}
           </div>
           {selectedOption !== null && (
-            <div>
+            <div className='w-[250px] overflow-y-auto'>
               {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-neutral-100 overflow-clip">
                   <div className="w-[250px] h-[200px]">

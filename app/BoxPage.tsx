@@ -1,6 +1,7 @@
 'use client';
 
 import { VisualizerRenderer } from '@algo-sandbox/components';
+import { SandboxStateName } from '@algo-sandbox/core';
 import {
   AppBar,
   BoxContextProvider,
@@ -8,14 +9,17 @@ import {
   SandboxObjectEditorPanel,
   useBoxContext,
 } from '@components/box-page';
+import BoxControlsContextProvider, {
+  useBoxControlsContext,
+} from '@components/box-page/BoxControlsContextProvider';
+import BoxExecutionControls from '@components/box-page/BoxExecutionControls';
+import BoxPageShortcuts from '@components/box-page/BoxPageShortcuts';
 import ResizeHandle from '@components/box-page/ResizeHandle';
-import { Button, MaterialSymbol } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createScene } from '@utils';
+import { createScene, SandboxScene } from '@utils';
 import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
-import useCancelableInterval from '@utils/useCancelableInterval';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
@@ -28,37 +32,14 @@ type BoxPageImplProps = {
   typeDeclarations: Array<TypeDeclaration>;
 };
 
-function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-
-  const customPanelType = useBoxContext('customPanelType');
-  const customAlgorithmObjects = useBoxContext('algorithm.custom');
-  const customProblemObjects = useBoxContext('problem.custom');
-  const customVisualizerObjects = useBoxContext('visualizer.custom');
-  const customObjects = (() => {
-    switch (customPanelType) {
-      case 'algorithm':
-        return customAlgorithmObjects;
-      case 'problem':
-        return customProblemObjects;
-      case 'visualizer':
-        return customVisualizerObjects;
-    }
-  })();
-
-  const customPanelVisible = customPanelType !== null;
-
+function BoxPageExecutionWrapper({
+  algoSandboxFiles,
+  typeDeclarations,
+}: BoxPageImplProps) {
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
-  const { compatible: areAlgorithmVisualizerCompatible } = useBoxContext(
-    'algorithmVisualizer'
-  );
-  const { composed: composedAlgoVizAdapter } = useBoxContext(
-    'algorithmVisualizer.adapters'
-  );
   const problemInstance = useBoxContext('problem.instance');
   const algorithmInstance = useBoxContext('algorithm.instance');
-  const visualizerInstance = useBoxContext('visualizer.instance');
 
   const initialScene = useMemo(() => {
     if (
@@ -82,10 +63,66 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
   }, [areAlgorithmProblemCompatible, algorithmInstance, problemInstance]);
   const [scene, setScene] = useState(initialScene);
 
+  useEffect(() => {
+    setScene(initialScene);
+  }, [initialScene]);
+
   const isFullyExecuted = useMemo(
     () => scene?.isFullyExecuted ?? false,
     [scene]
   );
+
+  return (
+    <BoxControlsContextProvider
+      scene={scene}
+      onSceneChange={setScene}
+      maxSteps={isFullyExecuted ? scene!.executionTrace.length : null}
+    >
+      <BoxPageShortcuts>
+        <BoxPageImpl
+          algoSandboxFiles={algoSandboxFiles}
+          typeDeclarations={typeDeclarations}
+          scene={scene}
+        />
+      </BoxPageShortcuts>
+    </BoxControlsContextProvider>
+  );
+}
+
+function BoxPageImpl({
+  scene,
+  algoSandboxFiles,
+  typeDeclarations,
+}: BoxPageImplProps & {
+  scene: SandboxScene<SandboxStateName, SandboxStateName> | null;
+}) {
+  const customPanelType = useBoxContext('customPanelType');
+  const customAlgorithmObjects = useBoxContext('algorithm.custom');
+  const customProblemObjects = useBoxContext('problem.custom');
+  const customVisualizerObjects = useBoxContext('visualizer.custom');
+  const customObjects = (() => {
+    switch (customPanelType) {
+      case 'algorithm':
+        return customAlgorithmObjects;
+      case 'problem':
+        return customProblemObjects;
+      case 'visualizer':
+        return customVisualizerObjects;
+    }
+  })();
+
+  const { currentStepIndex } = useBoxControlsContext();
+
+  const customPanelVisible = customPanelType !== null;
+
+  const { compatible: areAlgorithmVisualizerCompatible } = useBoxContext(
+    'algorithmVisualizer'
+  );
+  const { composed: composedAlgoVizAdapter } = useBoxContext(
+    'algorithmVisualizer.adapters'
+  );
+  const algorithmInstance = useBoxContext('algorithm.instance');
+  const visualizerInstance = useBoxContext('visualizer.instance');
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
   const pseudocode = algorithmInstance?.pseudocode ?? '';
@@ -104,45 +141,6 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
     composedAlgoVizAdapter,
     visualizerInstance,
   ]);
-
-  useEffect(() => {
-    setCurrentStepIndex(0);
-    setScene(initialScene);
-  }, [initialScene]);
-
-  const onNext = useCallback(() => {
-    if (scene === null) {
-      // Pause
-      return false;
-    }
-
-    if (
-      isFullyExecuted &&
-      currentStepIndex >= scene.executionTrace.length - 1
-    ) {
-      // Pause
-      return false;
-    }
-
-    const newScene = scene.copyWithExecution(currentStepIndex + 2);
-    setScene(newScene);
-    if (currentStepIndex + 1 < newScene.executionTrace.length) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    }
-    // Continue playing
-    return true;
-  }, [currentStepIndex, isFullyExecuted, scene]);
-
-  const {
-    start,
-    stop,
-    isRunning: isPlaying,
-  } = useCancelableInterval(onNext, 500);
-
-  const hasPreviousStep = scene !== null && currentStepIndex > 0;
-  const hasNextStep =
-    scene !== null &&
-    (!isFullyExecuted || currentStepIndex < scene.executionTrace.length - 1);
 
   return (
     <div className="flex flex-col h-screen">
@@ -171,83 +169,7 @@ function BoxPageImpl({ algoSandboxFiles, typeDeclarations }: BoxPageImplProps) {
             </div>
             {scene && (
               <div className="absolute w-full bottom-8 flex justify-center">
-                <div className="flex flex-col items-center gap-2">
-                  <span className="font-mono px-2 rounded-full shadow border">
-                    {currentStepIndex + 1}/
-                    {isFullyExecuted ? scene.executionTrace.length : '?'}
-                  </span>
-                  <div className="flex gap-2 items-center rounded-full border px-4 shadow">
-                    <Button
-                      disabled={isPlaying || !hasPreviousStep}
-                      label="Skip to start"
-                      hideLabel
-                      onClick={() => {
-                        setCurrentStepIndex(0);
-                      }}
-                      icon={<MaterialSymbol icon="first_page" />}
-                    />
-                    <Button
-                      disabled={isPlaying || !hasPreviousStep}
-                      onClick={() => {
-                        setCurrentStepIndex(currentStepIndex - 1);
-                      }}
-                      hideLabel
-                      label="Previous"
-                      icon={
-                        <MaterialSymbol
-                          icon="step_over"
-                          className="-scale-x-100"
-                        />
-                      }
-                    />
-                    <Button
-                      variant="primary"
-                      hideLabel
-                      onClick={() => {
-                        if (isPlaying) {
-                          stop();
-                        } else {
-                          if (!hasNextStep) {
-                            setCurrentStepIndex(0);
-                          }
-                          start();
-                        }
-                      }}
-                      label={
-                        isPlaying ? 'Pause' : hasNextStep ? 'Play' : 'Restart'
-                      }
-                      icon={
-                        isPlaying ? (
-                          <MaterialSymbol icon="pause" />
-                        ) : hasNextStep ? (
-                          <MaterialSymbol icon="play_arrow" />
-                        ) : (
-                          <MaterialSymbol icon="restart_alt" />
-                        )
-                      }
-                    />
-                    <Button
-                      disabled={isPlaying || !hasNextStep}
-                      hideLabel
-                      onClick={onNext}
-                      label="Next"
-                      icon={<MaterialSymbol icon="step_over" />}
-                    />
-                    <Button
-                      label="Skip to end"
-                      disabled={isPlaying || !hasNextStep}
-                      hideLabel
-                      onClick={() => {
-                        const fullyExecutedScene = scene.copyWithExecution();
-                        setScene(fullyExecutedScene);
-                        setCurrentStepIndex(
-                          fullyExecutedScene.executionTrace.length - 1
-                        );
-                      }}
-                      icon={<MaterialSymbol icon="last_page" />}
-                    />
-                  </div>
-                </div>
+                <BoxExecutionControls />
               </div>
             )}
             <div className="flex-1">
@@ -303,7 +225,7 @@ export default function BoxPage({
         builtInProblemOptions={builtInProblemOptions}
         builtInVisualizerOptions={builtInVisualizerOptions}
       >
-        <BoxPageImpl {...props} />
+        <BoxPageExecutionWrapper {...props} />
       </BoxContextProvider>
     </QueryClientProvider>
   );

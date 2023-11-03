@@ -1,7 +1,15 @@
 import { CatalogGroup } from '@constants/catalog';
 import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
+import getCustomDbObjectName from '@utils/getCustomDbObjectName';
 import _ from 'lodash';
-import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 
 import useBoxContextAlgorithmVisualizer, {
   BoxContextAlgorithmVisualizer,
@@ -24,13 +32,23 @@ import useBoxContextVisualizer, {
   defaultBoxContextVisualizer,
 } from './sandbox-object/visualizer';
 
+type BoxContextMode = 'editor' | 'view';
+
 type BoxContextType = {
   problem: BoxContextProblem;
   problemAlgorithm: BoxContextProblemAlgorithm;
   algorithm: BoxContextAlgorithm;
   algorithmVisualizer: BoxContextAlgorithmVisualizer;
   visualizer: BoxContextVisualizer;
+  mode: {
+    value: BoxContextMode;
+    setValue: (value: BoxContextMode) => void;
+  };
   customPanelType: CustomPanel | null;
+  boxEnvironment: {
+    value: Record<string, string>;
+    setValue: (value: Record<string, string>) => void;
+  };
 };
 
 const BoxContext = createContext<BoxContextType>({
@@ -40,6 +58,14 @@ const BoxContext = createContext<BoxContextType>({
   algorithmVisualizer: defaultBoxContextAlgorithmVisualizer,
   visualizer: defaultBoxContextVisualizer,
   customPanelType: null,
+  mode: {
+    value: 'view',
+    setValue: () => {},
+  },
+  boxEnvironment: {
+    value: {},
+    setValue: () => {},
+  },
 });
 
 type Paths<T> = T extends Record<string, unknown>
@@ -90,6 +116,7 @@ export default function BoxContextProvider({
   builtInVisualizerOptions,
   children,
 }: BoxContextProviderProps) {
+  const [mode, setMode] = useState<BoxContextMode>('view');
   const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
   const {
     customAlgorithmPanelVisible,
@@ -139,6 +166,105 @@ export default function BoxContextProvider({
     visualizer,
   });
 
+  const boxEnvironment = useMemo(() => {
+    const algorithmCode = algorithm.select.value?.value.typescriptCode;
+    const problemCode = problem.select.value?.value.typescriptCode;
+    const visualizerCode = visualizer.select.value?.value?.typescriptCode;
+
+    const boxEnvironment = {
+      ...(algorithmCode !== undefined ? { 'algorithm.ts': algorithmCode } : {}),
+      ...(problemCode !== undefined ? { 'problem.ts': problemCode } : {}),
+      ...(visualizerCode !== undefined
+        ? { 'visualizer.ts': visualizerCode }
+        : {}),
+    };
+
+    return boxEnvironment;
+  }, [
+    algorithm.select.value?.value.typescriptCode,
+    problem.select.value?.value.typescriptCode,
+    visualizer.select.value?.value?.typescriptCode,
+  ]);
+
+  const setBoxEnvironment = useCallback(
+    (boxEnvironment: Record<string, string>) => {
+      const algorithmCode = boxEnvironment['algorithm.ts'];
+      const problemCode = boxEnvironment['problem.ts'];
+      const visualizerCode = boxEnvironment['visualizer.ts'];
+      const algorithmOption = algorithm.select.value;
+      const problemOption = problem.select.value;
+      const visualizerOption = visualizer.select.value;
+
+      if (algorithmOption === null) {
+        throw new Error('Selected algorithm is null');
+      }
+
+      if (problemOption === null) {
+        throw new Error('Selected problem is null');
+      }
+
+      if (visualizerOption === null) {
+        throw new Error('Selected visualizer is null');
+      }
+
+      if (algorithmCode !== algorithmOption.value.typescriptCode) {
+        const isNew = algorithmOption.type === 'built-in';
+        if (isNew) {
+          algorithm.custom.add({
+            name: getCustomDbObjectName(algorithmOption.value),
+            typescriptCode: algorithmCode,
+          });
+        } else {
+          algorithm.custom.set({
+            ...algorithmOption.value,
+            key: algorithm.custom.selected!.key,
+            typescriptCode: algorithmCode,
+          });
+        }
+      }
+
+      if (problemCode !== problemOption.value.typescriptCode) {
+        const isNew = problemOption.type === 'built-in';
+        if (isNew) {
+          problem.custom.add({
+            name: getCustomDbObjectName(problemOption.value),
+            typescriptCode: problemCode,
+          });
+        } else {
+          problem.custom.set({
+            ...problemOption.value,
+            key: problem.custom.selected!.key,
+            typescriptCode: problemCode,
+          });
+        }
+      }
+
+      if (visualizerCode !== visualizerOption.value.typescriptCode) {
+        const isNew = visualizerOption.type === 'built-in';
+        if (isNew) {
+          visualizer.custom.add({
+            name: getCustomDbObjectName(visualizerOption.value),
+            typescriptCode: visualizerCode,
+          });
+        } else {
+          visualizer.custom.set({
+            ...visualizerOption.value,
+            key: visualizer.custom.selected!.key,
+            typescriptCode: visualizerCode,
+          });
+        }
+      }
+    },
+    [
+      algorithm.custom,
+      algorithm.select.value,
+      problem.custom,
+      problem.select.value,
+      visualizer.custom,
+      visualizer.select.value,
+    ]
+  );
+
   const value = useMemo(() => {
     return {
       problem,
@@ -147,13 +273,24 @@ export default function BoxContextProvider({
       algorithmVisualizer,
       visualizer,
       customPanelType: customPanel,
+      mode: {
+        value: mode,
+        setValue: setMode,
+      },
+      boxEnvironment: {
+        value: boxEnvironment,
+        setValue: setBoxEnvironment,
+      },
     } satisfies BoxContextType;
   }, [
     algorithm,
     algorithmVisualizer,
+    boxEnvironment,
     customPanel,
+    mode,
     problem,
     problemAlgorithm,
+    setBoxEnvironment,
     visualizer,
   ]);
 

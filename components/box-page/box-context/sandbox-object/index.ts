@@ -18,7 +18,7 @@ import {
   SandboxAnyAlgorithm,
   SandboxAnyProblem,
   SandboxAnyVisualizer,
-} from '@types';
+} from '@typings/algo-sandbox';
 import {
   DbAlgorithm,
   DbAlgorithmSaved,

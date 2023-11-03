@@ -5,16 +5,16 @@ import { SandboxStateName } from '@algo-sandbox/core';
 import {
   AppBar,
   BoxContextProvider,
+  BoxControlsContextProvider,
+  BoxExecutionControls,
+  BoxPageShortcuts,
   Pseudocode,
   SandboxObjectEditorPanel,
   useBoxContext,
-} from '@components/box-page';
-import BoxControlsContextProvider, {
   useBoxControlsContext,
-} from '@components/box-page/BoxControlsContextProvider';
-import BoxExecutionControls from '@components/box-page/BoxExecutionControls';
-import BoxPageShortcuts from '@components/box-page/BoxPageShortcuts';
-import ResizeHandle from '@components/box-page/ResizeHandle';
+} from '@components/box-page';
+import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
+import { ResizeHandle } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createScene, SandboxScene } from '@utils';
@@ -23,19 +23,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
+import BoxEnvironmentEditorPage from './BoxEnvironmentEditorPage';
 import { TypeDeclaration } from './page';
 
 const queryClient = new QueryClient();
 
-type BoxPageImplProps = {
-  algoSandboxFiles: Array<TypeDeclaration>;
-  typeDeclarations: Array<TypeDeclaration>;
-};
-
-function BoxPageExecutionWrapper({
-  algoSandboxFiles,
-  typeDeclarations,
-}: BoxPageImplProps) {
+function BoxPageExecutionWrapper() {
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
   const problemInstance = useBoxContext('problem.instance');
@@ -79,11 +72,7 @@ function BoxPageExecutionWrapper({
       maxSteps={isFullyExecuted ? scene!.executionTrace.length : null}
     >
       <BoxPageShortcuts>
-        <BoxPageImpl
-          algoSandboxFiles={algoSandboxFiles}
-          typeDeclarations={typeDeclarations}
-          scene={scene}
-        />
+        <BoxPageImpl scene={scene} />
       </BoxPageShortcuts>
     </BoxControlsContextProvider>
   );
@@ -91,11 +80,10 @@ function BoxPageExecutionWrapper({
 
 function BoxPageImpl({
   scene,
-  algoSandboxFiles,
-  typeDeclarations,
-}: BoxPageImplProps & {
+}: {
   scene: SandboxScene<SandboxStateName, SandboxStateName> | null;
 }) {
+  const mode = useBoxContext('mode.value');
   const customPanelType = useBoxContext('customPanelType');
   const customAlgorithmObjects = useBoxContext('algorithm.custom');
   const customProblemObjects = useBoxContext('problem.custom');
@@ -142,6 +130,10 @@ function BoxPageImpl({
     visualizerInstance,
   ]);
 
+  if (mode === 'editor') {
+    return <BoxEnvironmentEditorPage />;
+  }
+
   return (
     <div className="flex flex-col h-screen">
       <AppBar />
@@ -149,11 +141,7 @@ function BoxPageImpl({
         {customPanelVisible && customObjects && (
           <>
             <Panel id="left" order={1} defaultSize={30} minSize={30}>
-              <SandboxObjectEditorPanel
-                algoSandboxFiles={algoSandboxFiles}
-                customObjects={customObjects}
-                typeDeclarations={typeDeclarations}
-              />
+              <SandboxObjectEditorPanel customObjects={customObjects} />
             </Panel>
             <ResizeHandle />
           </>
@@ -206,27 +194,35 @@ function BoxPageImpl({
   );
 }
 
-type BoxPageProps = BoxPageImplProps & {
+type BoxPageProps = {
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
+  algoSandboxFiles: Array<TypeDeclaration>;
+  typeDeclarations: Array<TypeDeclaration>;
 };
 
 export default function BoxPage({
   builtInAlgorithmOptions,
   builtInProblemOptions,
   builtInVisualizerOptions,
-  ...props
+  algoSandboxFiles,
+  typeDeclarations,
 }: BoxPageProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <BoxContextProvider
-        builtInAlgorithmOptions={builtInAlgorithmOptions}
-        builtInProblemOptions={builtInProblemOptions}
-        builtInVisualizerOptions={builtInVisualizerOptions}
+      <AlgoSandboxEditorFilesContextProvider
+        algoSandboxFiles={algoSandboxFiles}
+        typeDeclarations={typeDeclarations}
       >
-        <BoxPageExecutionWrapper {...props} />
-      </BoxContextProvider>
+        <BoxContextProvider
+          builtInAlgorithmOptions={builtInAlgorithmOptions}
+          builtInProblemOptions={builtInProblemOptions}
+          builtInVisualizerOptions={builtInVisualizerOptions}
+        >
+          <BoxPageExecutionWrapper />
+        </BoxContextProvider>
+      </AlgoSandboxEditorFilesContextProvider>
     </QueryClientProvider>
   );
 }

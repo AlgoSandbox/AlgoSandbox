@@ -4,6 +4,7 @@ import FormLabel from './FormLabel';
 import Input from './Input';
 import MaterialSymbol from './MaterialSymbol';
 import Popover from './Popover';
+import ResizeHandle from './ResizeHandle';
 import Select, {
   isSelectGroup,
   SelectGroup,
@@ -20,6 +21,7 @@ export {
   isSelectGroup,
   MaterialSymbol,
   Popover,
+  ResizeHandle,
   Select,
   Tooltip,
 };

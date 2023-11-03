@@ -1,3 +1,6 @@
+import { Button } from '@components/ui';
+
+import { useBoxContext } from '..';
 import AlgorithmSelect from './AlgorithmSelect';
 import AlgorithmVisualizerAdapterSelect from './AlgorithmVisualizerAdapterSelect';
 import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
@@ -5,6 +8,8 @@ import ProblemSelect from './ProblemSelect';
 import VisualizerSelect from './VisualizerSelect';
 
 export default function AppBar() {
+  const { setValue: setMode } = useBoxContext('mode');
+
   return (
     <header className="flex justify-start items-center px-4 border-b py-2 border-slate-300 gap-8">
       <span className="font-mono">
@@ -19,6 +24,13 @@ export default function AppBar() {
         <AlgorithmSelect />
         <AlgorithmVisualizerAdapterSelect />
         <VisualizerSelect />
+        <Button
+          label="Customize in editor mode"
+          variant="primary"
+          onClick={() => {
+            setMode('editor');
+          }}
+        />
       </div>
     </header>
   );

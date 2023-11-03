@@ -1,8 +1,7 @@
-import { Editor } from '@monaco-editor/react';
+import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { TypeDeclaration } from '../../app/page';
 import { Button, Input, MaterialSymbol } from '../ui';
 import { useBoxContext } from '.';
 import { BoxContextCustomObjects } from './box-context/sandbox-object/custom';
@@ -44,15 +43,11 @@ type EditorPanelFormValue = {
 };
 
 export type SandboxObjectEditorPanelProps = {
-  algoSandboxFiles: Array<TypeDeclaration>;
-  typeDeclarations: Array<TypeDeclaration>;
   customObjects: BoxContextCustomObjects;
 };
 
 export default function SandboxObjectEditorPanel({
-  algoSandboxFiles,
   customObjects,
-  typeDeclarations,
 }: SandboxObjectEditorPanelProps) {
   const selectedAlgorithm = useBoxContext('algorithm.select.value');
   const selectedProblem = useBoxContext('problem.select.value');
@@ -138,56 +133,13 @@ export default function SandboxObjectEditorPanel({
           name="typescriptCode"
           rules={{ required: true }}
           render={({ field: { onChange, value } }) => (
-            <Editor
-              language="typescript"
+            <AlgoSandboxEditor
               path="file:///main.ts"
               value={value}
               onChange={(value) => {
                 onChange({
                   target: { value: value ?? '' },
                 });
-              }}
-              keepCurrentModel={false}
-              beforeMount={(monaco) => {
-                monaco.editor.getModels().forEach((model) => model.dispose());
-                monaco.languages.typescript.typescriptDefaults.setCompilerOptions(
-                  {
-                    target: monaco.languages.typescript.ScriptTarget.ES2016,
-                    strict: true,
-                    moduleResolution:
-                      monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-                    module: monaco.languages.typescript.ModuleKind.CommonJS,
-                    noEmit: true,
-                    baseUrl: '.',
-                    paths: {
-                      '@algo-sandbox/*': ['file:///lib/algo-sandbox/*'],
-                    },
-                  }
-                );
-                for (const { contents, path } of algoSandboxFiles) {
-                  monaco.editor.createModel(
-                    contents,
-                    'typescript',
-                    monaco.Uri.parse(path)
-                  );
-                }
-
-                for (const { contents, path } of typeDeclarations) {
-                  monaco.languages.typescript.typescriptDefaults.addExtraLib(
-                    contents,
-                    path
-                  );
-                }
-                monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
-                  {
-                    noSemanticValidation: false,
-                    noSyntaxValidation: false,
-                    noSuggestionDiagnostics: false,
-                  }
-                );
-                monaco.languages.typescript.javascriptDefaults.setEagerModelSync(
-                  true
-                );
               }}
             />
           )}

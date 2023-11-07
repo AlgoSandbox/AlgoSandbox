@@ -1,5 +1,5 @@
 import {
-  SandboxParameteredAlgorithm,
+  SandboxParameterizedAlgorithm,
   SandboxParameters,
   SandboxStateName,
 } from '@algo-sandbox/core';
@@ -11,7 +11,7 @@ export type AlgorithmDetailsProps<
   M extends SandboxStateName,
   P extends SandboxParameters,
 > = {
-  algorithm: SandboxParameteredAlgorithm<N, M, P>;
+  algorithm: SandboxParameterizedAlgorithm<N, M, P>;
 };
 
 export default function AlgorithmDetails<

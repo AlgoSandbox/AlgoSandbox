@@ -1,6 +1,6 @@
 import { useBoxContext } from '@components/box-page';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
-import { isParameteredProblem } from '@utils';
+import { isParameterizedProblem } from '@utils';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -48,7 +48,7 @@ export default function ProblemSelect() {
           setSelectedOption(value as typeof selectedOption);
         }}
       />
-      {problem !== null && isParameteredProblem(problem) && (
+      {problem !== null && isParameterizedProblem(problem) && (
         <Popover
           content={
             <FormProvider {...methods}>

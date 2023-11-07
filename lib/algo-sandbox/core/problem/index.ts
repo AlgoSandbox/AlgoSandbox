@@ -1,2 +1,2 @@
-export * from './parametered-problem';
+export * from './parameterized-problem';
 export * from './problem';

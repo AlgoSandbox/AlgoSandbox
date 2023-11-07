@@ -1,5 +1,5 @@
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
-import { isParameteredAlgorithm } from '@utils';
+import { isParameterizedAlgorithm } from '@utils';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -46,7 +46,7 @@ export default function AlgorithmSelect() {
         value={selectedOption ?? undefined}
         onChange={setSelectedOption}
       />
-      {algorithm !== null && isParameteredAlgorithm(algorithm) && (
+      {algorithm !== null && isParameterizedAlgorithm(algorithm) && (
         <Popover
           content={
             <FormProvider {...methods}>

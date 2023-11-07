@@ -1,2 +1,2 @@
 export * from './algorithm';
-export * from './parametered-algorithm';
+export * from './parameterized-algorithm';

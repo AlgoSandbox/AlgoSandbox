@@ -1,3 +1,3 @@
-export * from './parametered-visualizer';
+export * from './parameterized-visualizer';
 export * from './visualization';
 export * from './visualizer';

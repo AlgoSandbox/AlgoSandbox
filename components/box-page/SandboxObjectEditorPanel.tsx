@@ -6,9 +6,9 @@ import { Button, Input, MaterialSymbol } from '../ui';
 import { useBoxContext } from '.';
 import { BoxContextCustomObjects } from './box-context/sandbox-object/custom';
 
-const exampleAlgorithmString = `import { SandboxParam, createParameteredAlgorithm } from "@algo-sandbox/core"
+const exampleAlgorithmString = `import { SandboxParam, createParameterizedAlgorithm } from "@algo-sandbox/core"
 
-const exampleParameteredAlgorithm = createParameteredAlgorithm({
+const exampleParameterizedAlgorithm = createParameterizedAlgorithm({
   name: 'Decrement counter',
   accepts: 'counter',
   outputs: 'counter',
@@ -34,7 +34,7 @@ const exampleParameteredAlgorithm = createParameteredAlgorithm({
   },
 });
 
-export default exampleParameteredAlgorithm;
+export default exampleParameterizedAlgorithm;
 `;
 
 type EditorPanelFormValue = {

@@ -29,7 +29,7 @@ export type SandboxParameters<
   [K in keyof T]: SandboxParameter<SandboxParameterType, T[K]>;
 }>;
 
-export type Parametered<T, P extends SandboxParameters> = {
+export type Parameterized<T, P extends SandboxParameters> = {
   name: string;
   parameters: P;
   create: (parameters?: ParsedParameters<P>) => T;

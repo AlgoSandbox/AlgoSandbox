@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  createParameteredVisualizer,
+  createParameterizedVisualizer,
   SandboxParam,
-  SandboxParameteredVisualizer,
+  SandboxParameterizedVisualizer,
   SandboxParameters,
 } from '@algo-sandbox/core';
 import { GraphNode, NodeGraph } from '@algo-sandbox/problems/graphs';
@@ -36,11 +36,11 @@ declare module '@algo-sandbox/core' {
   }
 }
 
-const nodeGraphVisualizer: SandboxParameteredVisualizer<
+const nodeGraphVisualizer: SandboxParameterizedVisualizer<
   'nodeGraph',
   NodeGraphVisualizationParameters
 > = (() => {
-  return createParameteredVisualizer(
+  return createParameterizedVisualizer(
     (() => {
       let visualizerState: ReturnType<typeof getVisualizerState>;
       let cachedGraph: NodeGraph;
@@ -224,8 +224,7 @@ const nodeGraphVisualizer: SandboxParameteredVisualizer<
             .attr('text-anchor', 'middle')
             .text((d) => d.id)
             .attr('dy', 15 / 2)
-            .attr('style', 'pointer-events: none')
-            ;
+            .attr('style', 'pointer-events: none');
 
           const updateValues = () => {
             // Update the positions of nodes, links, and labels here

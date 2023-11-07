@@ -1,9 +1,9 @@
 import { useBoxContext } from '@components/box-page';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
+import { isParameterizedVisualizer } from '@utils';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { isParameteredVisualizer } from '../../../_utils/isParametered';
 import VisualizerDetails from '../VisualizerDetails';
 import CatalogSelect from './CatalogSelect';
 
@@ -47,7 +47,7 @@ export default function VisualizerSelect() {
           setSelectedOption(value as typeof selectedOption);
         }}
       />
-      {visualizer !== null && isParameteredVisualizer(visualizer) && (
+      {visualizer !== null && isParameterizedVisualizer(visualizer) && (
         <Popover
           content={
             <FormProvider {...methods}>

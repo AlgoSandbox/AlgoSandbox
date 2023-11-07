@@ -1,4 +1,4 @@
-import { createParameteredAlgorithm, SandboxParam } from '@algo-sandbox/core';
+import { createParameterizedAlgorithm, SandboxParam } from '@algo-sandbox/core';
 
 type ExampleState = {
   counter: number;
@@ -10,7 +10,7 @@ declare module '@algo-sandbox/core' {
   }
 }
 
-const counterParametered = createParameteredAlgorithm({
+const counterParameterized = createParameterizedAlgorithm({
   name: 'Increment counter',
   accepts: 'counter',
   outputs: 'counter',
@@ -40,4 +40,4 @@ const counterParametered = createParameteredAlgorithm({
   },
 });
 
-export default counterParametered;
+export default counterParameterized;

@@ -1,4 +1,4 @@
 import counterProblem from './counter';
-import counterParametered from './counter-parametered';
+import counterParameterized from './counter-parameterized';
 
-export { counterParametered, counterProblem };
+export { counterParameterized, counterProblem };

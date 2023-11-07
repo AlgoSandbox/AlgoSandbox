@@ -1,8 +1,8 @@
-import { createParameteredProblem, SandboxParam } from '@algo-sandbox/core';
+import { createParameterizedProblem, SandboxParam } from '@algo-sandbox/core';
 import { GraphEdge, UndirectedGraph } from '@algo-sandbox/problems';
 
-const graphParametered = createParameteredProblem({
-  name: 'Search graph (parametered)',
+const graphParameterized = createParameterizedProblem({
+  name: 'Search graph (parameterized)',
   shape: 'searchGraph',
   parameters: {
     edges: SandboxParam.string(
@@ -47,4 +47,4 @@ const graphParametered = createParameteredProblem({
   },
 });
 
-export default graphParametered;
+export default graphParameterized;

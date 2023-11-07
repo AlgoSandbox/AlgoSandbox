@@ -1,6 +1,6 @@
 import {
   getDefaultParameters,
-  Parametered,
+  Parameterized,
   ParsedParameters,
   SandboxExecutionContext,
   SandboxParameters,
@@ -9,23 +9,23 @@ import {
 } from '..';
 import { SandboxAlgorithm } from './algorithm';
 
-export type SandboxParameteredAlgorithm<
+export type SandboxParameterizedAlgorithm<
   N extends SandboxStateName,
   M extends SandboxStateName,
-  P extends SandboxParameters
-> = Parametered<SandboxAlgorithm<N, M>, P>;
+  P extends SandboxParameters,
+> = Parameterized<SandboxAlgorithm<N, M>, P>;
 
 type SandboxContextWithParameters<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = SandboxExecutionContext<N> & {
   parameters: ParsedParameters<P>;
 };
 
-export function createParameteredAlgorithm<
+export function createParameterizedAlgorithm<
   N extends SandboxStateName,
   M extends SandboxStateName,
-  P extends SandboxParameters = SandboxParameters
+  P extends SandboxParameters = SandboxParameters,
 >({
   name,
   accepts,
@@ -44,7 +44,7 @@ export function createParameteredAlgorithm<
   runAlgorithm: (
     context: SandboxContextWithParameters<M, P>
   ) => ReturnType<SandboxAlgorithm<N, M>['runAlgorithm']>;
-}): SandboxParameteredAlgorithm<N, M, P> {
+}): SandboxParameterizedAlgorithm<N, M, P> {
   return {
     name,
     parameters,

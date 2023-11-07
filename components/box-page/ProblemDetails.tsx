@@ -1,5 +1,5 @@
 import {
-  SandboxParameteredProblem,
+  SandboxParameterizedProblem,
   SandboxParameters,
   SandboxStateName,
 } from '@algo-sandbox/core';
@@ -8,14 +8,14 @@ import ParameterControls from './ParameterControls';
 
 export type ProblemDetailsProps<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = {
-  problem: SandboxParameteredProblem<N, P>;
+  problem: SandboxParameterizedProblem<N, P>;
 };
 
 export default function ProblemDetails<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 >({ problem }: ProblemDetailsProps<N, P>) {
   return (
     <div className="p-4 bg-white">

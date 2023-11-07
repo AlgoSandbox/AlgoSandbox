@@ -2,24 +2,24 @@
 import {
   SandboxAdapter,
   SandboxAlgorithm,
-  SandboxParameteredAlgorithm,
-  SandboxParameteredProblem,
-  SandboxParameteredVisualizer,
+  SandboxParameterizedAlgorithm,
+  SandboxParameterizedProblem,
+  SandboxParameterizedVisualizer,
   SandboxProblem,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 
 type SandboxAnyAlgorithm =
   | SandboxAlgorithm<any, any>
-  | SandboxParameteredAlgorithm<any, any, any>;
+  | SandboxParameterizedAlgorithm<any, any, any>;
 
 type SandboxAnyProblem =
   | SandboxProblem<any>
-  | SandboxParameteredProblem<any, any>;
+  | SandboxParameterizedProblem<any, any>;
 
 type SandboxAnyVisualizer =
   | SandboxVisualizer<any>
-  | SandboxParameteredVisualizer<any, any>;
+  | SandboxParameterizedVisualizer<any, any>;
 
 type SandboxAnyAdapter = SandboxAdapter<any, any>;
 

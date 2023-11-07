@@ -1,5 +1,5 @@
 import {
-  SandboxParameteredVisualizer,
+  SandboxParameterizedVisualizer,
   SandboxParameters,
   SandboxStateName,
 } from '@algo-sandbox/core';
@@ -8,14 +8,14 @@ import ParameterControls from './ParameterControls';
 
 export type VisualizerDetailsProps<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 > = {
-  visualizer: SandboxParameteredVisualizer<N, P>;
+  visualizer: SandboxParameterizedVisualizer<N, P>;
 };
 
 export default function VisualizerDetails<
   N extends SandboxStateName,
-  P extends SandboxParameters
+  P extends SandboxParameters,
 >({ visualizer }: VisualizerDetailsProps<N, P>) {
   return (
     <div className="p-4 bg-white">

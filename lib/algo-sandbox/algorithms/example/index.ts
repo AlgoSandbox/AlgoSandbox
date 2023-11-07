@@ -1,4 +1,4 @@
-import counter from './counter-parametered';
-import counterParametered from './counter-parametered';
+import counter from './counter-parameterized';
+import counterParameterized from './counter-parameterized';
 
-export { counter, counterParametered };
+export { counter, counterParameterized };

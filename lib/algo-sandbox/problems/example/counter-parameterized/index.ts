@@ -1,6 +1,6 @@
-import { createParameteredProblem, SandboxParam } from '@algo-sandbox/core';
+import { createParameterizedProblem, SandboxParam } from '@algo-sandbox/core';
 
-const counterParametered = createParameteredProblem({
+const counterParameterized = createParameterizedProblem({
   name: 'Counter',
   shape: 'counter',
   parameters: {
@@ -17,4 +17,4 @@ const counterParametered = createParameteredProblem({
   },
 });
 
-export default counterParametered;
+export default counterParameterized;

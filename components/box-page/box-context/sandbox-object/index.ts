@@ -1,6 +1,6 @@
 import {
   getDefaultParameters,
-  Parametered,
+  Parameterized,
   ParsedParameters,
   SandboxAlgorithm,
   SandboxParameters,
@@ -261,14 +261,14 @@ export function useBoxContextSandboxObject<
       return null;
     }
 
-    function isParametered(
-      object: Parametered<Instance<T>, SandboxParameters> | Instance<T>
-    ): object is Parametered<Instance<T>, SandboxParameters> {
+    function isParameterized(
+      object: Parameterized<Instance<T>, SandboxParameters> | Instance<T>
+    ): object is Parameterized<Instance<T>, SandboxParameters> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (object as any).parameters !== undefined;
     }
 
-    if (isParametered(objectEvaled)) {
+    if (isParameterized(objectEvaled)) {
       return objectEvaled;
     }
 
@@ -278,7 +278,7 @@ export function useBoxContextSandboxObject<
       create: () => {
         return objectEvaled as Instance<T>;
       },
-    } satisfies Parametered<Instance<T>, Record<string, never>>;
+    } satisfies Parameterized<Instance<T>, Record<string, never>>;
   }, [objectEvaled]);
 
   const defaultParameters = useMemo(() => {

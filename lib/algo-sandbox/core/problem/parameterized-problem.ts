@@ -1,6 +1,6 @@
 import {
   getDefaultParameters,
-  Parametered,
+  Parameterized,
   ParsedParameters,
   SandboxParameters,
   SandboxProblem,
@@ -8,14 +8,14 @@ import {
   SandboxStateName,
 } from '..';
 
-export type SandboxParameteredProblem<
+export type SandboxParameterizedProblem<
   N extends SandboxStateName,
   P extends SandboxParameters,
-> = Parametered<SandboxProblem<N>, P> & {
+> = Parameterized<SandboxProblem<N>, P> & {
   shape: N;
 };
 
-export function createParameteredProblem<
+export function createParameterizedProblem<
   N extends SandboxStateName,
   P extends SandboxParameters,
 >({
@@ -30,7 +30,7 @@ export function createParameteredProblem<
   parameters: P;
   getName: (parameters: ParsedParameters<P>) => string;
   getInitialState: (parameters: ParsedParameters<P>) => SandboxState<N>;
-}): SandboxParameteredProblem<N, P> {
+}): SandboxParameterizedProblem<N, P> {
   return {
     name,
     shape,

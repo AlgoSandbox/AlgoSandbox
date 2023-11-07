@@ -11,9 +11,9 @@ import {
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import {
   createScene,
-  isParameteredAlgorithm,
-  isParameteredProblem,
-  isParameteredVisualizer,
+  isParameterizedAlgorithm,
+  isParameterizedProblem,
+  isParameterizedVisualizer,
 } from '@utils';
 import { DbSandboxObjectSaved } from '@utils/db';
 import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
@@ -112,7 +112,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
       const { algorithm, problem, visualizer } = defaultBox;
 
       const problemInstance = (() => {
-        if (isParameteredProblem(problem)) {
+        if (isParameterizedProblem(problem)) {
           return problem.create();
         }
 
@@ -120,7 +120,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
       })();
 
       const algorithmInstance = (() => {
-        if (isParameteredAlgorithm(algorithm)) {
+        if (isParameterizedAlgorithm(algorithm)) {
           return algorithm.create();
         }
 
@@ -128,7 +128,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
       })();
 
       const visualizerInstance = (() => {
-        if (isParameteredVisualizer(visualizer)) {
+        if (isParameterizedVisualizer(visualizer)) {
           return visualizer.create();
         }
 
@@ -200,11 +200,14 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 if (isSelectGroup(item)) {
                   return {
                     ...item,
-                    options: item.options.filter(item => query === '' ||
-                    item.label
-                      .toLocaleLowerCase()
-                      .includes(query.toLocaleLowerCase()) )
-                  }
+                    options: item.options.filter(
+                      (item) =>
+                        query === '' ||
+                        item.label
+                          .toLocaleLowerCase()
+                          .includes(query.toLocaleLowerCase())
+                    ),
+                  };
                 }
                 return item;
               })
@@ -213,12 +216,10 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                   query === '' ||
                   item.label
                     .toLocaleLowerCase()
-                    .includes(query.toLocaleLowerCase()) || isSelectGroup(item)
+                    .includes(query.toLocaleLowerCase()) ||
+                  isSelectGroup(item)
               )
-              .filter(
-                (item) =>
-                  !isSelectGroup(item) || item.options.length > 0
-              )
+              .filter((item) => !isSelectGroup(item) || item.options.length > 0)
               .map((item) => {
                 if (isSelectGroup(item)) {
                   return (
@@ -264,7 +265,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
               })}
           </div>
           {selectedOption !== null && (
-            <div className='w-[250px] overflow-y-auto'>
+            <div className="w-[250px] overflow-y-auto">
               {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-neutral-100 overflow-clip">
                   <div className="w-[250px] h-[200px]">

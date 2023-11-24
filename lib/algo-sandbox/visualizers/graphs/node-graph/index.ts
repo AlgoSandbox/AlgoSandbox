@@ -11,7 +11,7 @@ import { D3DragEvent } from 'd3';
 import _ from 'lodash';
 import { z } from 'zod';
 
-type NodeGraph = z.infer<typeof nodeGraph>;
+type NodeGraph = z.infer<typeof nodeGraph.shape>;
 type GraphNode = z.infer<typeof graphNode>;
 
 type RawRenderFunction = (

@@ -54,7 +54,7 @@ export function compose<A extends Array<SandboxAdapter<any, any>>>(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return adapters.reduce<SandboxState<any>>(
         (val, adapter) => adapter.transform(val),
-        value
+        value,
       );
     },
   };
@@ -67,7 +67,7 @@ export function tryCompose<A extends Array<SandboxAdapter<any, any>>>(
   for (let i = 0; i < adapters.length - 1; i++) {
     const first = adapters[i];
     const second = adapters[i + 1];
-    if (first.outputs !== second.accepts) {
+    if (first.outputs.name !== second.accepts.name) {
       return null;
     }
   }

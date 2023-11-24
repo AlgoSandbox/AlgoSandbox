@@ -24,7 +24,7 @@ export type AdapterListPopoverProps = {
   onChange: (
     value: Array<
       SelectOption<SandboxAdapter<SandboxStateType, SandboxStateType>>
-    >
+    >,
   ) => void;
   options: SelectOptions<SandboxAdapter<SandboxStateType, SandboxStateType>>;
   children: ReactElement;
@@ -101,7 +101,7 @@ export default function AdapterListPopover({
               <MaterialSymbol icon="keyboard_double_arrow_down" />
               <div className="flex flex-col flex-1 px-2 py-1 bg-primary-100 rounded">
                 <span className="font-medium font-sans">{fromLabel}</span>
-                <span>{fromType}</span>
+                <span>{fromType?.name}</span>
               </div>
             </div>
             {adapters.length === 0 && (
@@ -110,7 +110,7 @@ export default function AdapterListPopover({
                   fromType === toType
                     ? 'border-primary-500'
                     : 'border-neutral-400',
-                  'ms-[11px] border-s-2 ps-[19px] py-2 transition-colors'
+                  'ms-[11px] border-s-2 ps-[19px] py-2 transition-colors',
                 )}
               >
                 <Button
@@ -135,18 +135,18 @@ export default function AdapterListPopover({
                           isFaulty
                             ? 'border-neutral-400'
                             : 'border-primary-500',
-                          'ms-[11px] border-s-2 ps-3 h-5 transition-colors'
+                          'ms-[11px] border-s-2 ps-3 h-5 transition-colors',
                         )}
                       />
                       <div
                         className={clsx(
                           isFaulty ? 'text-neutral-400' : 'text-primary-700',
-                          'flex gap-2 items-center font-mono text-xs transition-colors'
+                          'flex gap-2 items-center font-mono text-xs transition-colors',
                         )}
                       >
                         <MaterialSymbol icon="keyboard_double_arrow_down" />
                         <span className="flex-1 overflow-ellipsis overflow-hidden">
-                          {adapters[index].value.accepts}
+                          {adapters[index].value.accepts.name}
                         </span>
                         <Button
                           label="Insert adapter"
@@ -163,7 +163,7 @@ export default function AdapterListPopover({
                   <li
                     className={clsx(
                       isFaulty ? 'border-neutral-400' : 'border-primary-500',
-                      'flex gap-2 items-center ms-[11px] border-s-2 ps-[19px]'
+                      'flex gap-2 items-center ms-[11px] border-s-2 ps-[19px]',
                     )}
                   >
                     <Controller
@@ -197,12 +197,12 @@ export default function AdapterListPopover({
                   <div
                     className={clsx(
                       isFaulty ? 'text-neutral-400' : 'text-primary-700',
-                      'flex gap-2 items-center font-mono text-xs transition-colors'
+                      'flex gap-2 items-center font-mono text-xs transition-colors',
                     )}
                   >
                     <MaterialSymbol icon="keyboard_double_arrow_down" />
                     <span className="flex-1 overflow-ellipsis overflow-hidden">
-                      {adapters[index].value.outputs}
+                      {adapters[index].value.outputs.name}
                     </span>
                     <Button
                       label="Insert adapter"
@@ -222,25 +222,25 @@ export default function AdapterListPopover({
             <div
               className={clsx(
                 isFaulty ? 'border-neutral-400' : 'border-primary-500',
-                'ms-[11px] border-s-2 ps-3 h-5 transition-colors'
+                'ms-[11px] border-s-2 ps-3 h-5 transition-colors',
               )}
             />
           )}
           <div
             className={clsx(
               isFaulty ? 'text-neutral-400' : 'text-primary-700',
-              'flex gap-2 items-center font-mono text-xs transition-colors'
+              'flex gap-2 items-center font-mono text-xs transition-colors',
             )}
           >
             <MaterialSymbol icon="keyboard_double_arrow_down" />
             <div
               className={clsx(
                 isFaulty ? 'bg-neutral-100' : 'bg-primary-100',
-                'flex flex-col flex-1 px-2 py-1 rounded'
+                'flex flex-col flex-1 px-2 py-1 rounded',
               )}
             >
               <span className="font-medium font-sans">{toLabel}</span>
-              <span>{toType}</span>
+              <span>{toType?.name}</span>
             </div>
           </div>
         </div>

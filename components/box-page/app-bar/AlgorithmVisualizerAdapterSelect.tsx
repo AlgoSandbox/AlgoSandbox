@@ -31,7 +31,7 @@ export default function AlgorithmVisualizerAdapterSelect() {
             className={clsx(
               'group-aria-expanded:rotate-90 transition',
               compatible && 'text-primary-700',
-              !compatible && 'text-red-500'
+              !compatible && 'text-red-500',
             )}
           />
         }

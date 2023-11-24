@@ -37,12 +37,13 @@ export default function useBoxContextAlgorithmVisualizer({
         (composedAdapter === null &&
           algorithm.instance !== null &&
           visualizer.instance !== null &&
-          visualizer.instance.accepts === algorithm.instance.outputs) ||
+          visualizer.instance.accepts.name ===
+            algorithm.instance.outputs.name) ||
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
           visualizer.instance !== null &&
-          algorithm.instance.outputs === composedAdapter?.accepts &&
-          composedAdapter?.outputs === visualizer.instance.accepts),
+          algorithm.instance.outputs.name === composedAdapter?.accepts.name &&
+          composedAdapter?.outputs.name === visualizer.instance.accepts.name),
       adapters,
     } satisfies BoxContextAlgorithmVisualizer;
   }, [

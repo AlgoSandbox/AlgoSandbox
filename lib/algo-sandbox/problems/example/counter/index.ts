@@ -3,7 +3,7 @@ import { counterState } from '@algo-sandbox/states';
 
 const counterProblem: SandboxProblem<typeof counterState> = {
   name: 'Example problem',
-  shape: counterState,
+  type: counterState,
   initialState: {
     counter: 0,
   },

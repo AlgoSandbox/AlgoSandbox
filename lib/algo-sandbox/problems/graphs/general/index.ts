@@ -3,7 +3,7 @@ import { graphEdge, searchGraph, undirectedGraph } from '@algo-sandbox/states';
 import { z } from 'zod';
 
 type GraphEdge = z.infer<typeof graphEdge>;
-type UndirectedGraph = z.infer<typeof undirectedGraph>;
+type UndirectedGraph = z.infer<typeof undirectedGraph.shape>;
 
 const graphParameterized = createParameterizedProblem({
   name: 'Search graph (parameterized)',

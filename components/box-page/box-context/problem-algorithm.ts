@@ -36,11 +36,11 @@ export default function useBoxContextProblemAlgorithm({
         (composedAdapter === null &&
           algorithm.instance !== null &&
           problem.instance !== null &&
-          problem.instance.shape === algorithm.instance.accepts) ||
+          problem.instance.type.name === algorithm.instance.accepts.name) ||
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
           problem.instance !== null &&
-          problem.instance.shape === composedAdapter?.accepts &&
+          problem.instance.type.name === composedAdapter?.accepts.name &&
           composedAdapter?.outputs === algorithm.instance.accepts),
       adapters,
     } satisfies BoxContextProblemAlgorithm;

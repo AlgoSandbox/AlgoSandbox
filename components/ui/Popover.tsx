@@ -22,7 +22,7 @@ export default function Popover({
 }: PopoverProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [closeTimeoutId, setCloseTimeoutId] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
 
   const open = externalOpen ?? internalOpen;
@@ -86,7 +86,7 @@ export default function Popover({
             triggerMode === 'hover' ? handleContentMouseLeave : undefined
           }
           align={align}
-          className="shadow rounded pointer-events-auto"
+          className="border overflow-clip rounded-md pointer-events-auto"
         >
           {content}
           <RadixPopover.Close asChild>

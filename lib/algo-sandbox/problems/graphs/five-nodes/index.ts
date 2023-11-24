@@ -2,7 +2,7 @@ import { SandboxProblem } from '@algo-sandbox/core';
 import { searchGraph, undirectedGraph } from '@algo-sandbox/states';
 import { z } from 'zod';
 
-type UndirectedGraph = z.infer<typeof undirectedGraph>;
+type UndirectedGraph = z.infer<typeof undirectedGraph.shape>;
 
 const fiveNodesGraph = {
   nodes: [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }],
@@ -18,7 +18,7 @@ const fiveNodesGraph = {
 
 const fiveNodes = {
   name: 'Five nodes',
-  shape: searchGraph,
+  type: searchGraph,
   initialState: {
     ...fiveNodesGraph,
     startId: 'A',

@@ -38,7 +38,7 @@ export function createParameterizedProblem<
     create: (parsedParameters = getDefaultParameters(parameters)) => {
       return {
         name: getName(parsedParameters),
-        shape,
+        type: shape,
         initialState: getInitialState(parsedParameters),
       };
     },

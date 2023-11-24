@@ -14,7 +14,7 @@ export default function ProblemAlgorithmAdapterSelect() {
     <AdapterListPopover
       fromLabel="Problem"
       toLabel="Algorithm"
-      fromType={problemInstance?.shape ?? null}
+      fromType={problemInstance?.type ?? null}
       toType={algorithmInstance?.accepts ?? null}
       value={value}
       onChange={setValue}
@@ -31,7 +31,7 @@ export default function ProblemAlgorithmAdapterSelect() {
             className={clsx(
               'group-aria-expanded:rotate-90 transition',
               compatible && 'text-primary-700',
-              !compatible && 'text-red-500'
+              !compatible && 'text-red-500',
             )}
           />
         }

@@ -109,12 +109,18 @@ function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
       const files = Object.fromEntries(
         Object.entries(allFiles).filter(([key]) => key.includes(folder)),
       );
+      const renamedFiles = Object.fromEntries(
+        Object.entries(files).map(([fileName, value]) => [
+          fileName.substring(folder.length),
+          value,
+        ]),
+      );
 
       return {
         key: contentFileName,
         name: title,
         writeup,
-        files,
+        files: renamedFiles,
       };
     },
   );

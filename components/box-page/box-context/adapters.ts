@@ -12,7 +12,7 @@ type Adapter = SandboxAdapter<SandboxStateType, SandboxStateType>;
 export type BoxContextAdapters = {
   composed: SandboxCompositeAdapter<
     SandboxStateType,
-    never,
+    SandboxStateType,
     SandboxAdapter<SandboxStateType, SandboxStateType>[]
   > | null;
   value: Array<SelectOption<Adapter>>;
@@ -41,12 +41,14 @@ export function useBoxContextAdapters(options: SelectOptions<Adapter>) {
   }, [selectedAdapters]);
 
   const adapters = useMemo(() => {
-    return {
+    const value: BoxContextAdapters = {
       composed: composedAdapter,
       setValue: setSelectedAdapters,
       value: selectedAdapters,
       options,
-    } satisfies BoxContextAdapters;
+    };
+
+    return value;
   }, [composedAdapter, options, selectedAdapters]);
 
   return adapters;

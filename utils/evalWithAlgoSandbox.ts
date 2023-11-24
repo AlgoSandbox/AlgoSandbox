@@ -83,10 +83,13 @@ export default function evalWithAlgoSandbox(
           );
 
           const tsFilePathChoices = [
-            resolvedPath + '.ts',
-            resolvedPath + '/index.ts',
-            resolvedPath + '/index.js',
+            path.resolve(resolvedPath, 'index.ts'),
+            path.resolve(resolvedPath, 'index.js'),
           ];
+
+          if (!resolvedPath.endsWith('.')) {
+            tsFilePathChoices.push(resolvedPath + '.ts');
+          }
 
           for (const tsFilePath of tsFilePathChoices) {
             if (tsFilePath in fileContext.files) {

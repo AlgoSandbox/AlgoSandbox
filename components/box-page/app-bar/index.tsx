@@ -3,6 +3,7 @@ import { Button } from '@components/ui';
 import { useBoxContext } from '..';
 import AlgorithmSelect from './AlgorithmSelect';
 import AlgorithmVisualizerAdapterSelect from './AlgorithmVisualizerAdapterSelect';
+import AlgorithmVisualizerFlowChartPopover from './AlgorithmVisualizerFlowChartPopover';
 import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
 import ProblemSelect from './ProblemSelect';
 import VisualizerSelect from './VisualizerSelect';
@@ -31,6 +32,7 @@ export default function AppBar() {
             setMode('editor');
           }}
         />
+        <AlgorithmVisualizerFlowChartPopover />
       </div>
     </header>
   );

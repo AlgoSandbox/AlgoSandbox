@@ -5,26 +5,26 @@ import {
   SandboxExecutionContext,
   SandboxParameters,
   SandboxState,
-  SandboxStateName,
+  SandboxStateType,
 } from '..';
 import { SandboxAlgorithm } from './algorithm';
 
 export type SandboxParameterizedAlgorithm<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
   P extends SandboxParameters,
 > = Parameterized<SandboxAlgorithm<N, M>, P>;
 
 type SandboxContextWithParameters<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 > = SandboxExecutionContext<N> & {
   parameters: ParsedParameters<P>;
 };
 
 export function createParameterizedAlgorithm<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
   P extends SandboxParameters = SandboxParameters,
 >({
   name,

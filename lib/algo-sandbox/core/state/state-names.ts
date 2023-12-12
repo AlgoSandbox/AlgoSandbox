@@ -1,3 +1,5 @@
+import { ZodType } from 'zod';
+
 export interface SandboxStateNameMap {}
 
-export type SandboxStateName = keyof SandboxStateNameMap;
+export type SandboxStateType = ZodType;

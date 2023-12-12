@@ -1,4 +1,5 @@
 import { SandboxAlgorithm } from '@algo-sandbox/core';
+import { graphSearchAlgorithmState, searchGraph } from '@algo-sandbox/states';
 
 const pseudocode = `DFS(G, v):
   Create a stack toVisit
@@ -18,16 +19,15 @@ const pseudocode = `DFS(G, v):
         Push u onto toVisit`;
 
 const depthFirstSearch: SandboxAlgorithm<
-  'searchGraph',
-  'graphSearchAlgorithmState'
+  typeof searchGraph,
+  typeof graphSearchAlgorithmState
 > = {
   name: 'Depth-first search',
-  accepts: 'searchGraph',
-  outputs: 'graphSearchAlgorithmState',
+  accepts: searchGraph,
+  outputs: graphSearchAlgorithmState,
   pseudocode,
   createInitialState(problem) {
     return {
-      _stateName: 'graphSearchAlgorithmState',
       graph: problem,
       toVisit: [],
       visited: new Set(),

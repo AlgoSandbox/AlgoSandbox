@@ -5,13 +5,13 @@ import {
   SandboxParameterizedVisualizer,
   SandboxParameters,
   SandboxProblem,
-  SandboxStateName,
+  SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 
 export function isParameterizedAlgorithm<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
   P extends SandboxParameters,
 >(
   algorithm: SandboxAlgorithm<N, M> | SandboxParameterizedAlgorithm<N, M, P>
@@ -23,7 +23,7 @@ export function isParameterizedAlgorithm<
 }
 
 export function isParameterizedVisualizer<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 >(
   visualizer: SandboxVisualizer<N> | SandboxParameterizedVisualizer<N, P>
@@ -35,7 +35,7 @@ export function isParameterizedVisualizer<
 }
 
 export function isParameterizedProblem<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 >(
   problem: SandboxProblem<N> | SandboxParameterizedProblem<N, P>

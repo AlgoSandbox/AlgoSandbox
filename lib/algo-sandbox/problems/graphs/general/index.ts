@@ -1,16 +1,20 @@
 import { createParameterizedProblem, SandboxParam } from '@algo-sandbox/core';
-import { GraphEdge, UndirectedGraph } from '@algo-sandbox/problems';
+import { graphEdge, searchGraph, undirectedGraph } from '@algo-sandbox/states';
+import { z } from 'zod';
+
+type GraphEdge = z.infer<typeof graphEdge>;
+type UndirectedGraph = z.infer<typeof undirectedGraph>;
 
 const graphParameterized = createParameterizedProblem({
   name: 'Search graph (parameterized)',
-  shape: 'searchGraph',
+  shape: searchGraph,
   parameters: {
     edges: SandboxParam.string(
       'Edges',
       'A-B,B-C,A-C',
       (value) =>
         value.split(',').every((edge) => edge.split('-').length === 2) ||
-        'Invalid format'
+        'Invalid format',
     ),
     start_node: SandboxParam.string('Start Node', 'A'),
     goal_node: SandboxParam.string('Goal Node', 'C'),
@@ -21,8 +25,8 @@ const graphParameterized = createParameterizedProblem({
     });
     const nodes = Array.from(
       new Set(
-        edges.reduce((accumulator, value) => accumulator.concat(value), [])
-      )
+        edges.reduce((accumulator, value) => accumulator.concat(value), []),
+      ),
     ).map(function (node) {
       return { id: node };
     });
@@ -35,7 +39,6 @@ const graphParameterized = createParameterizedProblem({
 
     const initialState = {
       ...graph,
-      _stateName: 'searchGraph' as const,
       startId: parameters.start_node,
       endId: parameters.goal_node,
     };

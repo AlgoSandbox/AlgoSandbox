@@ -1,22 +1,22 @@
 import {
   SandboxParameterizedAlgorithm,
   SandboxParameters,
-  SandboxStateName,
+  SandboxStateType,
 } from '@algo-sandbox/core';
 
 import ParameterControls from './ParameterControls';
 
 export type AlgorithmDetailsProps<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
   P extends SandboxParameters,
 > = {
   algorithm: SandboxParameterizedAlgorithm<N, M, P>;
 };
 
 export default function AlgorithmDetails<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
   P extends SandboxParameters,
 >({ algorithm }: AlgorithmDetailsProps<N, M, P>) {
   return (

@@ -1,4 +1,4 @@
-import { SandboxAdapter, SandboxStateName } from '@algo-sandbox/core';
+import { SandboxAdapter, SandboxStateType } from '@algo-sandbox/core';
 import {
   Button,
   isSelectGroup,
@@ -16,17 +16,17 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 export type AdapterListPopoverProps = {
   fromLabel: string;
   toLabel: string;
-  fromType: SandboxStateName | null;
-  toType: SandboxStateName | null;
+  fromType: SandboxStateType | null;
+  toType: SandboxStateType | null;
   value: Array<
-    SelectOption<SandboxAdapter<SandboxStateName, SandboxStateName>>
+    SelectOption<SandboxAdapter<SandboxStateType, SandboxStateType>>
   >;
   onChange: (
     value: Array<
-      SelectOption<SandboxAdapter<SandboxStateName, SandboxStateName>>
+      SelectOption<SandboxAdapter<SandboxStateType, SandboxStateType>>
     >
   ) => void;
-  options: SelectOptions<SandboxAdapter<SandboxStateName, SandboxStateName>>;
+  options: SelectOptions<SandboxAdapter<SandboxStateType, SandboxStateType>>;
   children: ReactElement;
 };
 
@@ -170,7 +170,7 @@ export default function AdapterListPopover({
                       control={control}
                       name={`adapters.${index}`}
                       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      render={({ field: {onChange: _, ...field } }) => (
+                      render={({ field: { onChange: _, ...field } }) => (
                         <Select
                           placeholder="Select adapter"
                           containerClassName="flex-1"

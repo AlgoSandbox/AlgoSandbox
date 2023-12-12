@@ -1,6 +1,6 @@
-import { SandboxStateName, SandboxStateNameMap } from './state-names';
+import { z } from 'zod';
 
-export type SandboxState<N extends SandboxStateName = SandboxStateName> =
-  SandboxStateNameMap[N] & {
-    _stateName: N;
-  };
+import { SandboxStateType } from './state-names';
+
+export type SandboxState<N extends SandboxStateType = SandboxStateType> =
+  z.infer<N>;

@@ -5,18 +5,18 @@ import {
   SandboxParameters,
   SandboxProblem,
   SandboxState,
-  SandboxStateName,
+  SandboxStateType,
 } from '..';
 
 export type SandboxParameterizedProblem<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 > = Parameterized<SandboxProblem<N>, P> & {
   shape: N;
 };
 
 export function createParameterizedProblem<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 >({
   name,

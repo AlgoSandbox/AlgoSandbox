@@ -3,20 +3,20 @@ import { isBoolean } from 'lodash';
 
 import { SandboxAlgorithm } from '../algorithm/algorithm';
 import { SandboxProblem } from '../problem/problem';
-import { SandboxState, SandboxStateName } from '../state';
+import { SandboxState, SandboxStateType } from '../state';
 
-export type SandboxExecutionStep<N extends SandboxStateName> = {
+export type SandboxExecutionStep<N extends SandboxStateType> = {
   startLine: number;
   endLine: number;
   state: SandboxState<N>;
 };
 
-export type SandboxExecutionState<N extends SandboxStateName> = {
+export type SandboxExecutionState<N extends SandboxStateType> = {
   clone(): SandboxExecutionState<N>;
   data: SandboxState<N>;
 };
 
-export type SandboxExecutionTrace<N extends SandboxStateName> = Array<
+export type SandboxExecutionTrace<N extends SandboxStateType> = Array<
   SandboxExecutionStep<N>
 >;
 
@@ -24,7 +24,7 @@ function deepClone<T>(data: T): T {
   return _.cloneDeep(data);
 }
 
-class SandboxStateImpl<N extends SandboxStateName>
+class SandboxStateImpl<N extends SandboxStateType>
   implements SandboxExecutionState<N>
 {
   data: SandboxState<N>;
@@ -39,8 +39,8 @@ class SandboxStateImpl<N extends SandboxStateName>
 }
 
 export class SandboxAlgorithmExecutor<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
 > {
   executionTrace: SandboxExecutionTrace<M>;
   algorithm: SandboxAlgorithm<N, M>;

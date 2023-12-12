@@ -1,10 +1,10 @@
 import { SandboxExecutionContext } from '../execution/context';
 import { SandboxExecutionStep } from '../execution/execution';
-import { SandboxState, SandboxStateName } from '../state';
+import { SandboxState, SandboxStateType } from '../state';
 
 export type SandboxAlgorithm<
-  N extends SandboxStateName,
-  M extends SandboxStateName
+  N extends SandboxStateType,
+  M extends SandboxStateType,
 > = {
   name: string;
   accepts: N;

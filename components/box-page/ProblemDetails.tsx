@@ -1,20 +1,20 @@
 import {
   SandboxParameterizedProblem,
   SandboxParameters,
-  SandboxStateName,
+  SandboxStateType,
 } from '@algo-sandbox/core';
 
 import ParameterControls from './ParameterControls';
 
 export type ProblemDetailsProps<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 > = {
   problem: SandboxParameterizedProblem<N, P>;
 };
 
 export default function ProblemDetails<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 >({ problem }: ProblemDetailsProps<N, P>) {
   return (

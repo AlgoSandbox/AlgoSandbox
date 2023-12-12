@@ -1,20 +1,20 @@
 import {
   SandboxParameterizedVisualizer,
   SandboxParameters,
-  SandboxStateName,
+  SandboxStateType,
 } from '@algo-sandbox/core';
 
 import ParameterControls from './ParameterControls';
 
 export type VisualizerDetailsProps<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 > = {
   visualizer: SandboxParameterizedVisualizer<N, P>;
 };
 
 export default function VisualizerDetails<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 >({ visualizer }: VisualizerDetailsProps<N, P>) {
   return (

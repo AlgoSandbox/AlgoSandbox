@@ -1,15 +1,15 @@
 import { SandboxAdapter } from '@algo-sandbox/core/adapter';
+import { counterState, graphSearchAlgorithmState } from '@algo-sandbox/states';
 
 export const counterToSearchGraphStateAdapter: SandboxAdapter<
-  'counter',
-  'graphSearchAlgorithmState'
+  typeof counterState,
+  typeof graphSearchAlgorithmState
 > = {
-  accepts: 'counter',
-  outputs: 'graphSearchAlgorithmState',
+  accepts: counterState,
+  outputs: graphSearchAlgorithmState,
   transform: ({ counter }) => {
     const nodeCount = Math.max(1, counter);
     return {
-      _stateName: 'graphSearchAlgorithmState',
       graph: {
         nodes: Array.from({ length: nodeCount }, (_, i) => ({
           id: i.toString(),
@@ -23,7 +23,7 @@ export const counterToSearchGraphStateAdapter: SandboxAdapter<
         directed: false,
       },
       visited: new Set(
-        Array.from({ length: nodeCount - 1 }, (_, i) => i.toString())
+        Array.from({ length: nodeCount - 1 }, (_, i) => i.toString()),
       ),
       toVisit: [],
       currentNodeId: (nodeCount - 1).toString(),
@@ -32,14 +32,13 @@ export const counterToSearchGraphStateAdapter: SandboxAdapter<
 };
 
 export const searchGraphStateToCounterAdapter: SandboxAdapter<
-  'graphSearchAlgorithmState',
-  'counter'
+  typeof graphSearchAlgorithmState,
+  typeof counterState
 > = {
-  accepts: 'graphSearchAlgorithmState',
-  outputs: 'counter',
+  accepts: graphSearchAlgorithmState,
+  outputs: counterState,
   transform: (value) => {
     return {
-      _stateName: 'counter',
       counter: value.visited.size,
     };
   },

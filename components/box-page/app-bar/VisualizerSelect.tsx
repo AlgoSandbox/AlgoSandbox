@@ -30,7 +30,7 @@ export default function VisualizerSelect() {
     }
 
     return Object.keys(parameters ?? {}).filter(
-      (key) => parameters[key] !== defaultParameters[key]
+      (key) => parameters[key] !== defaultParameters[key],
     ).length;
   }, [parameters, defaultParameters]);
 

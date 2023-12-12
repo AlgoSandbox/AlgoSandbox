@@ -1,19 +1,13 @@
 import { SandboxAlgorithm } from '@algo-sandbox/core';
+import { counterState } from '@algo-sandbox/states';
 
-type ExampleState = {
-  counter: number;
-};
-
-declare module '@algo-sandbox/core' {
-  export interface SandboxStateNameMap {
-    counter: ExampleState;
-  }
-}
-
-const exampleAlgorithm: SandboxAlgorithm<'counter', 'counter'> = {
+const exampleAlgorithm: SandboxAlgorithm<
+  typeof counterState,
+  typeof counterState
+> = {
   name: 'Example algorithm',
-  accepts: 'counter',
-  outputs: 'counter',
+  accepts: counterState,
+  outputs: counterState,
   pseudocode: 'set counter to 0\nwhile counter < 10:\n  increment counter\nend',
   createInitialState: (problem) => ({ ...problem }),
   *runAlgorithm({ line, state }) {

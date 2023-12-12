@@ -25,7 +25,7 @@ export default function AppBar() {
         <AlgorithmVisualizerAdapterSelect />
         <VisualizerSelect />
         <Button
-          label="Customize in editor mode"
+          label="Customize in editor modes"
           variant="primary"
           onClick={() => {
             setMode('editor');

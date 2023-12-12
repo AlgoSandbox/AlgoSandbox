@@ -1,7 +1,7 @@
 'use client';
 
 import { VisualizerRenderer } from '@algo-sandbox/components';
-import { SandboxStateName } from '@algo-sandbox/core';
+import { SandboxStateType } from '@algo-sandbox/core';
 import {
   AppBar,
   BoxContextProvider,
@@ -81,7 +81,7 @@ function BoxPageExecutionWrapper() {
 function BoxPageImpl({
   scene,
 }: {
-  scene: SandboxScene<SandboxStateName, SandboxStateName> | null;
+  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
 }) {
   const mode = useBoxContext('mode.value');
   const customPanelType = useBoxContext('customPanelType');

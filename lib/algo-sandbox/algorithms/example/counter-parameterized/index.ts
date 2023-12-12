@@ -1,19 +1,10 @@
 import { createParameterizedAlgorithm, SandboxParam } from '@algo-sandbox/core';
-
-type ExampleState = {
-  counter: number;
-};
-
-declare module '@algo-sandbox/core' {
-  export interface SandboxStateNameMap {
-    counter: ExampleState;
-  }
-}
+import { counterState } from '@algo-sandbox/states';
 
 const counterParameterized = createParameterizedAlgorithm({
   name: 'Increment counter',
-  accepts: 'counter',
-  outputs: 'counter',
+  accepts: counterState,
+  outputs: counterState,
   parameters: {
     increment: SandboxParam.integer(
       'Increment value',

@@ -1,4 +1,4 @@
-import { SandboxStateName } from '@algo-sandbox/core';
+import { SandboxStateType } from '@algo-sandbox/core';
 import { SandboxScene } from '@utils';
 import useCancelableInterval from '@utils/useCancelableInterval';
 import {
@@ -54,9 +54,9 @@ export default function BoxControlsContextProvider({
   maxSteps,
 }: {
   children: React.ReactNode;
-  scene: SandboxScene<SandboxStateName, SandboxStateName> | null;
+  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
   onSceneChange: (
-    scene: SandboxScene<SandboxStateName, SandboxStateName>
+    scene: SandboxScene<SandboxStateType, SandboxStateType>
   ) => void;
   maxSteps: number | null;
 }) {

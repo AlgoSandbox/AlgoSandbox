@@ -1,10 +1,10 @@
 import { SandboxProblem } from '@algo-sandbox/core';
+import { counterState } from '@algo-sandbox/states';
 
-const counterProblem: SandboxProblem<'counter'> = {
+const counterProblem: SandboxProblem<typeof counterState> = {
   name: 'Example problem',
-  shape: 'counter',
+  shape: counterState,
   initialState: {
-    _stateName: 'counter',
     counter: 0,
   },
 };

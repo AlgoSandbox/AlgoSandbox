@@ -1,14 +1,14 @@
 import { createParameterizedProblem, SandboxParam } from '@algo-sandbox/core';
+import { counterState } from '@algo-sandbox/states';
 
 const counterParameterized = createParameterizedProblem({
   name: 'Counter',
-  shape: 'counter',
+  shape: counterState,
   parameters: {
     initialCounterValue: SandboxParam.integer('Initial counter value', 0),
   },
   getInitialState: (parameters) => {
     return {
-      _stateName: 'counter',
       counter: parameters.initialCounterValue,
     };
   },

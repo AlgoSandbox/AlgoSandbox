@@ -1,8 +1,8 @@
-import { SandboxState, SandboxStateName } from '../state';
+import { SandboxState, SandboxStateType } from '../state';
 
 export type SandboxAdapter<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
 > = {
   accepts: N;
   outputs: M;
@@ -10,8 +10,8 @@ export type SandboxAdapter<
 };
 
 export type SandboxCompositeAdapter<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   A extends Array<SandboxAdapter<any, any>> = SandboxCompositeAdapters<N, M>,
 > = SandboxAdapter<N, M> & {
@@ -19,14 +19,14 @@ export type SandboxCompositeAdapter<
 };
 
 type SandboxCompositeAdapters<
-  N extends SandboxStateName,
-  M extends SandboxStateName,
+  N extends SandboxStateType,
+  M extends SandboxStateType,
 > =
   | [SandboxAdapter<N, M>]
   | [
-      SandboxAdapter<N, SandboxStateName>,
-      ...Array<SandboxAdapter<SandboxStateName, SandboxStateName>>,
-      SandboxAdapter<SandboxStateName, M>,
+      SandboxAdapter<N, SandboxStateType>,
+      ...Array<SandboxAdapter<SandboxStateType, SandboxStateType>>,
+      SandboxAdapter<SandboxStateType, M>,
     ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

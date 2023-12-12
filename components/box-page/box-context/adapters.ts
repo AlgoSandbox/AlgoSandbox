@@ -1,14 +1,14 @@
 import {
   SandboxAdapter,
   SandboxCompositeAdapter,
-  SandboxStateName,
   SandboxStateNameMap,
+  SandboxStateType,
   tryCompose,
 } from '@algo-sandbox/core';
 import { SelectOption, SelectOptions } from '@components/ui';
 import { useMemo, useState } from 'react';
 
-type Adapter = SandboxAdapter<SandboxStateName, SandboxStateName>;
+type Adapter = SandboxAdapter<SandboxStateType, SandboxStateType>;
 
 export type BoxContextAdapters = {
   composed: SandboxCompositeAdapter<

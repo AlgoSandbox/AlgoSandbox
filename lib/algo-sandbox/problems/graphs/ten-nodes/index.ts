@@ -1,5 +1,8 @@
 import { SandboxProblem } from '@algo-sandbox/core';
-import { UndirectedGraph } from '@algo-sandbox/problems';
+import { searchGraph, undirectedGraph } from '@algo-sandbox/states';
+import { z } from 'zod';
+
+type UndirectedGraph = z.infer<typeof undirectedGraph>;
 
 const tenNodesGraph = {
   nodes: 'ABCDEFGHIJ'.split('').map((id) => ({ id })),
@@ -21,13 +24,12 @@ const tenNodesGraph = {
 
 const tenNodes = {
   name: 'Ten nodes',
-  shape: 'searchGraph',
+  shape: searchGraph,
   initialState: {
     ...tenNodesGraph,
-    _stateName: 'searchGraph',
     startId: 'A',
     endId: 'H',
   },
-} satisfies SandboxProblem<'searchGraph'>;
+} satisfies SandboxProblem<typeof searchGraph>;
 
 export default tenNodes;

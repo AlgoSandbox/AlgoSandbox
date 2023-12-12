@@ -4,17 +4,17 @@ import {
   ParsedParameters,
   SandboxParameters,
   SandboxState,
-  SandboxStateName,
+  SandboxStateType,
 } from '..';
 import { SandboxVisualizer } from '.';
 
 export type SandboxParameterizedVisualizer<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 > = Parameterized<SandboxVisualizer<N>, P>;
 
 export type SandboxVisualizerContext<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 > = {
   parameters: ParsedParameters<P>;
@@ -25,7 +25,7 @@ export type SandboxVisualizerContext<
 };
 
 export function createParameterizedVisualizer<
-  N extends SandboxStateName,
+  N extends SandboxStateType,
   P extends SandboxParameters,
 >({
   name,

@@ -1,4 +1,5 @@
 import { SandboxAlgorithm } from '@algo-sandbox/core';
+import { graphSearchAlgorithmState, searchGraph } from '@algo-sandbox/states';
 
 const pseudocode = `BFS(G, start):
   Create an empty queue toVisit
@@ -18,16 +19,15 @@ const pseudocode = `BFS(G, start):
               Set visited[u] to true`;
 
 const breadthFirstSearch: SandboxAlgorithm<
-  'searchGraph',
-  'graphSearchAlgorithmState'
+  typeof searchGraph,
+  typeof graphSearchAlgorithmState
 > = {
   name: 'Breadth-first search',
-  accepts: 'searchGraph',
-  outputs: 'graphSearchAlgorithmState',
+  accepts: searchGraph,
+  outputs: graphSearchAlgorithmState,
   pseudocode,
   createInitialState(problem) {
     return {
-      _stateName: 'graphSearchAlgorithmState',
       graph: problem,
       toVisit: [],
       visited: new Set(),

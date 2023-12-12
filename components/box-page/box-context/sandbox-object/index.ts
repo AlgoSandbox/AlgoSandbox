@@ -5,7 +5,7 @@ import {
   SandboxAlgorithm,
   SandboxParameters,
   SandboxProblem,
-  SandboxStateName,
+  SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 import {
@@ -37,19 +37,19 @@ import {
 
 type SandboxObjectTypeMap = {
   algorithm: {
-    instance: SandboxAlgorithm<SandboxStateName, SandboxStateName>;
+    instance: SandboxAlgorithm<SandboxStateType, SandboxStateType>;
     value: SandboxAnyAlgorithm;
     dbObject: DbAlgorithm;
     dbObjectSaved: DbAlgorithmSaved;
   };
   problem: {
-    instance: SandboxProblem<SandboxStateName>;
+    instance: SandboxProblem<SandboxStateType>;
     value: SandboxAnyProblem;
     dbObject: DbProblem;
     dbObjectSaved: DbProblemSaved;
   };
   visualizer: {
-    instance: SandboxVisualizer<SandboxStateName>;
+    instance: SandboxVisualizer<SandboxStateType>;
     value: SandboxAnyVisualizer;
     dbObject: DbVisualizer;
     dbObjectSaved: DbVisualizerSaved;

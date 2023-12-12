@@ -3,12 +3,12 @@ import {
   SandboxAlgorithmExecutor,
   SandboxExecutionTrace,
   SandboxProblem,
-  SandboxStateName,
+  SandboxStateType,
 } from '@algo-sandbox/core';
 
 export type SandboxScene<
-  N extends SandboxStateName,
-  M extends SandboxStateName
+  N extends SandboxStateType,
+  M extends SandboxStateType,
 > = {
   copyWithExecution: (untilCount?: number) => SandboxScene<N, M>;
   executionTrace: Readonly<SandboxExecutionTrace<M>>;
@@ -18,8 +18,8 @@ export type SandboxScene<
 };
 
 export function createScene<
-  N extends SandboxStateName,
-  M extends SandboxStateName
+  N extends SandboxStateType,
+  M extends SandboxStateType,
 >({
   algorithm,
   problem,

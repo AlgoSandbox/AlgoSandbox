@@ -17,7 +17,6 @@ import ReactFlow, {
   NodeTypes,
   Position,
 } from 'reactflow';
-import { ZodType } from 'zod';
 
 import { useBoxContext } from '..';
 
@@ -32,12 +31,11 @@ type VisualizerNodeProps = {
       label: string;
     }>;
     label: string;
-    type: ZodType;
   };
 };
 
 function FlowNode({
-  data: { inputs = [], outputs = [], label, type },
+  data: { inputs = [], outputs = [], label },
 }: VisualizerNodeProps) {
   return (
     <div className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded">
@@ -84,7 +82,7 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
   g.setGraph({ rankdir: 'LR' });
 
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
-  nodes.forEach((node) => g.setNode(node.id, node));
+  nodes.forEach((node) => g.setNode(node.id, node as Dagre.Label));
 
   Dagre.layout(g);
 
@@ -152,13 +150,10 @@ export default function AlgorithmVisualizerFlowChartPopover() {
           height: 100,
           data: {
             label: algorithmName,
-            outputs: Object.entries(algorithmOutputs).map(
-              ([param, paramType]) => ({
-                id: param,
-                label: param,
-                type: paramType,
-              }),
-            ),
+            outputs: Object.keys(algorithmOutputs).map((param) => ({
+              id: param,
+              label: param,
+            })),
           },
         },
         ...adapterNodes,
@@ -169,13 +164,10 @@ export default function AlgorithmVisualizerFlowChartPopover() {
           height: 100,
           data: {
             label: visualizerName,
-            inputs: Object.entries(visualizerInputs).map(
-              ([param, paramType]) => ({
-                id: param,
-                label: param,
-                type: paramType,
-              }),
-            ),
+            inputs: Object.keys(visualizerInputs).map((param) => ({
+              id: param,
+              label: param,
+            })),
           },
         },
       ] as Array<Node>,

@@ -69,7 +69,7 @@ export default function AdapterListPopover({
     let input = fromType;
     for (let i = 0; i < adapters.length; i++) {
       const adapter = adapters[i];
-      if (adapter.value.accepts !== input) {
+      if (adapter.value.accepts.name !== input?.name) {
         return i;
       }
       input = adapter.value.outputs;
@@ -80,12 +80,12 @@ export default function AdapterListPopover({
 
   const isLastAdapterFaulty =
     adapters.length > 0 &&
-    adapters[adapters.length - 1].value.outputs !== toType;
+    adapters[adapters.length - 1].value.outputs.name !== toType?.name;
 
   const isFaulty =
     faultyAdapterIndex !== null ||
     isLastAdapterFaulty ||
-    (adapters.length === 0 && fromType !== toType);
+    (adapters.length === 0 && fromType?.name !== toType?.name);
 
   if (!_.isEqual(value, adapters)) {
     onChange(adapters);

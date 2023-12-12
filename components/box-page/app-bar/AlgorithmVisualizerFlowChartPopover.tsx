@@ -1,8 +1,23 @@
 import 'reactflow/dist/style.css';
 
 import { Button, Popover } from '@components/ui';
-import React, { useMemo } from 'react';
-import ReactFlow, { Handle, Position } from 'reactflow';
+import Dagre from '@dagrejs/dagre';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import ReactFlow, {
+  addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
+  Connection,
+  DefaultEdgeOptions,
+  Edge,
+  EdgeChange,
+  Handle,
+  Node,
+  NodeChange,
+  NodeTypes,
+  Position,
+} from 'reactflow';
+import { ZodType } from 'zod';
 
 import { useBoxContext } from '..';
 
@@ -17,11 +32,12 @@ type VisualizerNodeProps = {
       label: string;
     }>;
     label: string;
+    type: ZodType;
   };
 };
 
 function FlowNode({
-  data: { inputs = [], outputs = [], label },
+  data: { inputs = [], outputs = [], label, type },
 }: VisualizerNodeProps) {
   return (
     <div className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded">
@@ -54,68 +70,185 @@ function FlowNode({
   );
 }
 
+const nodeTypes: NodeTypes = {
+  customFlow: FlowNode,
+};
+
+const defaultEdgeOptions: DefaultEdgeOptions = {
+  animated: true,
+};
+
+const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+
+const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
+  g.setGraph({ rankdir: 'LR' });
+
+  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
+  nodes.forEach((node) => g.setNode(node.id, node));
+
+  Dagre.layout(g);
+
+  return {
+    nodes: nodes.map((node) => {
+      const { x, y } = g.node(node.id);
+
+      return { ...node, position: { x, y } };
+    }),
+    edges,
+  };
+};
+
 export default function AlgorithmVisualizerFlowChartPopover() {
   const algorithm = useBoxContext('algorithm.instance');
   const visualizer = useBoxContext('visualizer.instance');
 
+  const adapters = useBoxContext('algorithmVisualizer.adapters.value');
+
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
   const visualizerName = visualizer?.name ?? 'Untitled visualizer';
 
-  const nodeTypes = useMemo(
-    () => ({
-      customFlow: FlowNode,
-    }),
-    [],
+  const algorithmOutputs = useMemo(
+    () => algorithm?.outputs.shape.shape ?? {},
+    [algorithm],
+  );
+  const visualizerInputs = useMemo(
+    () => visualizer?.accepts.shape.shape ?? {},
+    [visualizer],
   );
 
-  const algorithmOutputs = Object.keys(algorithm?.outputs.shape.shape ?? {});
-  const visualizerInputs = Object.keys(visualizer?.accepts.shape.shape ?? {});
+  const adapterNodes = useMemo(
+    () =>
+      adapters.map((adapter) => ({
+        id: `adapter-${adapter.key}`,
+        type: 'customFlow',
+        width: 500,
+        height: 100,
+        data: {
+          label: adapter.label,
+          inputs: Object.keys(adapter.value.accepts.shape.shape).map(
+            (param) => ({
+              id: param,
+              label: param,
+            }),
+          ),
+          outputs: Object.keys(adapter.value.outputs.shape.shape).map(
+            (param) => ({
+              id: param,
+              label: param,
+            }),
+          ),
+        },
+      })) as Array<Node>,
+    [adapters],
+  );
 
-  const nodes = useMemo(
-    () => [
-      {
-        id: 'algorithm',
-        type: 'customFlow',
-        position: { x: 0, y: 0 },
-        data: {
-          label: algorithmName,
-          outputs: algorithmOutputs.map((param) => ({
-            id: param,
-            label: param,
-          })),
+  const initialNodes = useMemo(
+    () =>
+      [
+        {
+          id: 'algorithm',
+          type: 'customFlow',
+          width: 500,
+          height: 100,
+          data: {
+            label: algorithmName,
+            outputs: Object.entries(algorithmOutputs).map(
+              ([param, paramType]) => ({
+                id: param,
+                label: param,
+                type: paramType,
+              }),
+            ),
+          },
         },
-      },
-      {
-        id: 'visualizer',
-        type: 'customFlow',
-        position: { x: 700, y: 100 },
-        data: {
-          label: visualizerName,
-          inputs: visualizerInputs.map((param) => ({
-            id: param,
-            label: param,
-          })),
+        ...adapterNodes,
+        {
+          id: 'visualizer',
+          type: 'customFlow',
+          width: 500,
+          height: 100,
+          data: {
+            label: visualizerName,
+            inputs: Object.entries(visualizerInputs).map(
+              ([param, paramType]) => ({
+                id: param,
+                label: param,
+                type: paramType,
+              }),
+            ),
+          },
         },
-      },
+      ] as Array<Node>,
+    [
+      algorithmName,
+      algorithmOutputs,
+      adapterNodes,
+      visualizerName,
+      visualizerInputs,
     ],
-    [algorithmName, algorithmOutputs, visualizerName, visualizerInputs],
   );
 
-  const edges = useMemo(() => {
-    return visualizerInputs.map((parameterName) => ({
+  const initialEdges = useMemo(() => {
+    // To update with actual edges later
+    return Object.keys(visualizerInputs).map((parameterName) => ({
       id: 'parameterName',
       source: 'algorithm',
       sourceHandle: parameterName,
       target: 'visualizer',
       targetHandle: parameterName,
-    }));
+      animated: true,
+    })) as Array<Edge>;
   }, [visualizerInputs]);
+
+  const [nodes, setNodes] = useState(initialNodes);
+  const [edges, setEdges] = useState(initialEdges);
+
+  useEffect(() => {
+    const { nodes, edges } = getLayoutedElements(initialNodes, initialEdges);
+
+    setNodes(nodes);
+    setEdges(edges);
+  }, [initialEdges, initialNodes]);
+
+  const onNodesChange = useCallback(
+    (changes: Array<NodeChange>) =>
+      setNodes((nds) => applyNodeChanges(changes, nds)),
+    [],
+  );
+  const onEdgesChange = useCallback(
+    (changes: Array<EdgeChange>) =>
+      setEdges((eds) => applyEdgeChanges(changes, eds)),
+    [],
+  );
+
+  const onEdgesDelete = useCallback(
+    (edgesToDelete: Array<Edge>) =>
+      setEdges((eds) =>
+        eds.filter((ed) => !edgesToDelete.some((e) => e.id === ed.id)),
+      ),
+    [],
+  );
+
+  const onConnect = useCallback(
+    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges],
+  );
 
   return (
     <Popover
       content={
         <div className="w-[500px] h-[400px] bg-white">
-          <ReactFlow nodeTypes={nodeTypes} nodes={nodes} edges={edges} />
+          <ReactFlow
+            nodeTypes={nodeTypes}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onEdgesDelete={onEdgesDelete}
+            onConnect={onConnect}
+            defaultEdgeOptions={defaultEdgeOptions}
+            fitView={true}
+          />
         </div>
       }
     >

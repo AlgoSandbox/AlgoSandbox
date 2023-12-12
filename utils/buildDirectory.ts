@@ -14,11 +14,14 @@ export function buildDirectory(
   const directoryStructure: Directory = {};
 
   for (const [filePath, contents] of Object.entries(files)) {
-    const segments = filePath.split(path.delimiter);
+    const segments = filePath.split(path.sep);
     const directorySegments = segments.slice(0, -1);
     const fileName = segments[segments.length - 1];
     let directory = directoryStructure;
     for (const segment of directorySegments) {
+      if (!(segment in directory)) {
+        directory[segment] = {};
+      }
       directory = directory[segment] as Directory;
     }
     directory[fileName] = contents;

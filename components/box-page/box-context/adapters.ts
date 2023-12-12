@@ -1,7 +1,6 @@
 import {
   SandboxAdapter,
   SandboxCompositeAdapter,
-  SandboxStateNameMap,
   SandboxStateType,
   tryCompose,
 } from '@algo-sandbox/core';
@@ -12,9 +11,9 @@ type Adapter = SandboxAdapter<SandboxStateType, SandboxStateType>;
 
 export type BoxContextAdapters = {
   composed: SandboxCompositeAdapter<
-    keyof SandboxStateNameMap,
+    SandboxStateType,
     never,
-    SandboxAdapter<keyof SandboxStateNameMap, keyof SandboxStateNameMap>[]
+    SandboxAdapter<SandboxStateType, SandboxStateType>[]
   > | null;
   value: Array<SelectOption<Adapter>>;
   setValue: (value: Array<SelectOption<Adapter>>) => void;

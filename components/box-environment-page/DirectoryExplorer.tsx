@@ -22,6 +22,7 @@ function isDirectory(item: BoxExplorerItem): item is BoxExplorerDirectory {
 
 type DirectoryExplorerItemProps = {
   label: string;
+  level: number;
   icon: React.ReactNode;
   onClick?: () => void;
   selected?: boolean;
@@ -29,6 +30,7 @@ type DirectoryExplorerItemProps = {
 
 function DirectoryExplorerItem({
   label,
+  level,
   icon,
   onClick,
   selected,
@@ -36,9 +38,12 @@ function DirectoryExplorerItem({
   return (
     <button
       className={clsx(
-        'flex gap-2 px-2 py-2 hover:bg-primary-200',
-        selected && 'text-primary-700 bg-primary-100'
+        'flex gap-2 pe-2 py-2 hover:bg-primary-200',
+        selected && 'text-primary-700 bg-primary-100',
       )}
+      style={{
+        paddingInlineStart: `${(level + 1) * 8}px`,
+      }}
       onClick={onClick}
     >
       {icon}
@@ -47,11 +52,18 @@ function DirectoryExplorerItem({
   );
 }
 
-function DirectoryExplorerFile({ file }: { file: BoxExplorerFile }) {
+function DirectoryExplorerFile({
+  file,
+  level,
+}: {
+  file: BoxExplorerFile;
+  level: number;
+}) {
   const { onFileClick, activeFile } = useDirectoryExplorerContext();
   return (
     <DirectoryExplorerItem
       label={file.name}
+      level={level}
       icon={<MaterialSymbol icon="draft" />}
       onClick={() => {
         onFileClick(file);
@@ -63,8 +75,10 @@ function DirectoryExplorerFile({ file }: { file: BoxExplorerFile }) {
 
 function DirectoryExplorerDirectory({
   directory,
+  level,
 }: {
   directory: BoxExplorerDirectory;
+  level: number;
 }) {
   const { isDirectoryExpanded, expandDirectory, collapseDirectory } =
     useDirectoryExplorerContext();
@@ -74,6 +88,7 @@ function DirectoryExplorerDirectory({
     <>
       {directory.path !== '.' && (
         <DirectoryExplorerItem
+          level={level}
           key={directory.path}
           label={directory.name}
           icon={<MaterialSymbol icon="folder" />}
@@ -89,10 +104,18 @@ function DirectoryExplorerDirectory({
       {isExpanded &&
         directory.items.map((item) =>
           isDirectory(item) ? (
-            <DirectoryExplorerDirectory key={item.path} directory={item} />
+            <DirectoryExplorerDirectory
+              key={item.path}
+              directory={item}
+              level={level + 1}
+            />
           ) : (
-            <DirectoryExplorerFile key={item.path} file={item} />
-          )
+            <DirectoryExplorerFile
+              key={item.path}
+              file={item}
+              level={level + 1}
+            />
+          ),
         )}
     </>
   );
@@ -140,7 +163,7 @@ export default function DirectoryExplorer({
         },
         collapseDirectory: (directoryPath) => {
           setExpandedDirectoryPaths(
-            expandedDirectoryPaths.filter((path) => path !== directoryPath)
+            expandedDirectoryPaths.filter((path) => path !== directoryPath),
           );
         },
       }}
@@ -149,7 +172,7 @@ export default function DirectoryExplorer({
         <span className="font-mono text-neutral-500 px-4 py-2 border-b">
           File explorer
         </span>
-        <DirectoryExplorerDirectory directory={directory} />
+        <DirectoryExplorerDirectory directory={directory} level={-1} />
       </div>
     </DirectoryExplorerContext.Provider>
   );

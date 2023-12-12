@@ -13,7 +13,9 @@ import {
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
-import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
+import AlgoSandboxEditorFilesContextProvider, {
+  useAlgoSandboxEditorFilesContext,
+} from '@components/editor/AlgoSandboxEditorFilesContextProvider';
 import { ResizeHandle } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -62,7 +64,7 @@ function BoxPageExecutionWrapper() {
 
   const isFullyExecuted = useMemo(
     () => scene?.isFullyExecuted ?? false,
-    [scene]
+    [scene],
   );
 
   return (
@@ -104,10 +106,10 @@ function BoxPageImpl({
   const customPanelVisible = customPanelType !== null;
 
   const { compatible: areAlgorithmVisualizerCompatible } = useBoxContext(
-    'algorithmVisualizer'
+    'algorithmVisualizer',
   );
   const { composed: composedAlgoVizAdapter } = useBoxContext(
-    'algorithmVisualizer.adapters'
+    'algorithmVisualizer.adapters',
   );
   const algorithmInstance = useBoxContext('algorithm.instance');
   const visualizerInstance = useBoxContext('visualizer.instance');
@@ -130,8 +132,16 @@ function BoxPageImpl({
     visualizerInstance,
   ]);
 
+  const { algoSandboxFiles, typeDeclarations } =
+    useAlgoSandboxEditorFilesContext();
+
   if (mode === 'editor') {
-    return <BoxEnvironmentEditorPage />;
+    return (
+      <BoxEnvironmentEditorPage
+        algoSandboxFiles={algoSandboxFiles}
+        typeDeclarations={typeDeclarations}
+      />
+    );
   }
 
   return (
@@ -212,6 +222,7 @@ export default function BoxPage({
   return (
     <QueryClientProvider client={queryClient}>
       <AlgoSandboxEditorFilesContextProvider
+        files={{}}
         algoSandboxFiles={algoSandboxFiles}
         typeDeclarations={typeDeclarations}
       >

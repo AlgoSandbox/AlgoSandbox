@@ -148,7 +148,7 @@ export function useBoxContextSandboxObject<
           })),
         },
       ] as Array<CatalogGroup<DbObjectSaved<T>>>,
-    [builtInOptions, savedObjects]
+    [builtInOptions, savedObjects],
   );
 
   const [selectedOptionObject, setSelectedObjectOption] =
@@ -217,7 +217,7 @@ export function useBoxContextSandboxObject<
     const flattenedOptions = objectOptions.flatMap((group) => group.options);
     if (latestNewObject?.key !== undefined) {
       const newSelectedOption = flattenedOptions.find(
-        (option) => option.key === latestNewObject.key
+        (option) => option.key === latestNewObject.key,
       );
       if (newSelectedOption) {
         setSelectedObjectOption(newSelectedOption);
@@ -226,7 +226,7 @@ export function useBoxContextSandboxObject<
     }
     if (latestSavedObject?.key !== undefined) {
       const newSelectedOption = flattenedOptions.find(
-        (option) => option.key === latestSavedObject.key
+        (option) => option.key === latestSavedObject.key,
       );
       if (newSelectedOption) {
         setSelectedObjectOption(newSelectedOption);
@@ -249,7 +249,7 @@ export function useBoxContextSandboxObject<
     }
 
     try {
-      return evalWithAlgoSandbox(object.typescriptCode) as Value<T>;
+      return evalWithAlgoSandbox(object.files['index.ts']) as Value<T>;
     } catch (e) {
       console.error(e);
       return null;
@@ -262,7 +262,7 @@ export function useBoxContextSandboxObject<
     }
 
     function isParameterized(
-      object: Parameterized<Instance<T>, SandboxParameters> | Instance<T>
+      object: Parameterized<Instance<T>, SandboxParameters> | Instance<T>,
     ): object is Parameterized<Instance<T>, SandboxParameters> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (object as any).parameters !== undefined;
@@ -286,7 +286,7 @@ export function useBoxContextSandboxObject<
       return null;
     }
     return getDefaultParameters(
-      objectInstancer.parameters
+      objectInstancer.parameters,
     ) as ParsedParameters<SandboxParameters>;
   }, [objectInstancer]);
 
@@ -301,7 +301,7 @@ export function useBoxContextSandboxObject<
       objectInstancer !== null &&
       objectParameters !== null &&
       Object.keys(objectInstancer.parameters).every(
-        (k) => k in objectParameters
+        (k) => k in objectParameters,
       )
     ) {
       return objectInstancer.create(objectParameters);

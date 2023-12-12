@@ -27,3 +27,10 @@ export const searchGraph = nodeGraph.extend({
   startId: z.string(),
   endId: z.string(),
 });
+
+export const graphSearchAlgorithmState = z.object({
+  graph: searchGraph,
+  toVisit: z.array(z.string()),
+  visited: z.set(z.string()),
+  currentNodeId: z.string().nullable(),
+});

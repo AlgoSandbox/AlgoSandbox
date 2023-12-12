@@ -76,16 +76,18 @@ export default function SandboxObjectEditorPanel({
   } = useForm<EditorPanelFormValue>({
     defaultValues: {
       name: selectedObject?.name ?? '',
-      typescriptCode: selectedObject?.typescriptCode ?? exampleAlgorithmString,
+      typescriptCode:
+        selectedObject?.files?.['index.ts'] ?? exampleAlgorithmString,
     },
   });
 
   useEffect(() => {
     reset({
       name: selectedObject?.name ?? '',
-      typescriptCode: selectedObject?.typescriptCode ?? exampleAlgorithmString,
+      typescriptCode:
+        selectedObject?.files?.['index.ts'] ?? exampleAlgorithmString,
     });
-  }, [reset, selectedObject?.name, selectedObject?.typescriptCode]);
+  }, [reset, selectedObject?.files, selectedObject?.name]);
 
   const isNew = customObjects.selected === null;
 
@@ -95,11 +97,19 @@ export default function SandboxObjectEditorPanel({
         className="h-full"
         onSubmit={handleSubmit((values) => {
           if (isNew) {
-            customObjects.add(values);
+            customObjects.add({
+              name: values.name,
+              files: {
+                'index.ts': values.typescriptCode,
+              },
+            });
           } else {
             customObjects.set({
               key: customObjects.selected!.key,
-              ...values,
+              name: values.name,
+              files: {
+                'index.ts': values.typescriptCode,
+              },
             });
           }
           reset(values);

@@ -5,19 +5,28 @@ import {
   SandboxParameterizedVisualizer,
   SandboxParameters,
 } from '@algo-sandbox/core';
-import { GraphNode, NodeGraph } from '@algo-sandbox/problems/graphs';
+import { graphNode, nodeGraph } from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
 import _ from 'lodash';
+import { z } from 'zod';
+
+type NodeGraph = z.infer<typeof nodeGraph>;
+type GraphNode = z.infer<typeof graphNode>;
 
 type RawRenderFunction = (
-  selection: d3.Selection<d3.BaseType, GraphNode, SVGSVGElement | null, unknown>
+  selection: d3.Selection<
+    d3.BaseType,
+    GraphNode,
+    SVGSVGElement | null,
+    unknown
+  >,
 ) => void;
 
 type NodeGraphSVGNodeInternal<OmittedKeys extends string = ''> = Omit<
   {
     fill: (
-      getFill: (node: GraphNode) => string | undefined
+      getFill: (node: GraphNode) => string | undefined,
     ) => NodeGraphSVGNodeInternal<OmittedKeys | 'fill'>;
     raw: (render: RawRenderFunction) => void;
   },
@@ -30,14 +39,8 @@ type NodeGraphVisualizationParameters = SandboxParameters<{
   renderNode: (node: NodeGraphSVGNode) => void;
 }>;
 
-declare module '@algo-sandbox/core' {
-  export interface SandboxStateNameMap {
-    nodeGraph: NodeGraph;
-  }
-}
-
 const nodeGraphVisualizer: SandboxParameterizedVisualizer<
-  'nodeGraph',
+  typeof nodeGraph,
   NodeGraphVisualizationParameters
 > = (() => {
   return createParameterizedVisualizer(
@@ -53,7 +56,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
         oldLinks: Array<{
           source: string | number;
           target: string | number;
-        }>
+        }>,
       ) => {
         const { nodes: newNodes, edges } = _.cloneDeep(graph);
         const nodes = newNodes.map((node) => {
@@ -96,7 +99,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               >(links)
               .id((d) => d.id)
               .distance(40)
-              .strength(1)
+              .strength(1),
           )
           .force('x', d3.forceX())
           .force('y', d3.forceY());
@@ -111,11 +114,11 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
       return {
         name: 'Node graph',
-        accepts: 'nodeGraph',
+        accepts: nodeGraph,
         parameters: {
           renderNode: SandboxParam.callback<(node: NodeGraphSVGNode) => void>(
             'Node render function',
-            () => {}
+            () => {},
           ),
         },
         onUpdate: ({ parameters, svg, width, height, state: graph }) => {
@@ -128,7 +131,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             visualizerState = getVisualizerState(
               graph,
               visualizerState?.nodes ?? [],
-              visualizerState?.links ?? []
+              visualizerState?.links ?? [],
             );
             cachedGraph = graph;
           }
@@ -172,7 +175,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               .drag()
               .on('start', dragstarted)
               .on('drag', dragged)
-              .on('end', dragended) as any
+              .on('end', dragended) as any,
           );
 
           // Reheat the simulation when drag starts, and fix the subject position.
@@ -181,7 +184,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               SVGCircleElement,
               d3.SimulationNodeDatum,
               d3.SimulationNodeDatum
-            >
+            >,
           ) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
@@ -194,7 +197,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               SVGCircleElement,
               d3.SimulationNodeDatum,
               d3.SimulationNodeDatum
-            >
+            >,
           ) {
             event.subject.fx = event.x;
             event.subject.fy = event.y;
@@ -207,7 +210,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               SVGCircleElement,
               d3.SimulationNodeDatum,
               d3.SimulationNodeDatum
-            >
+            >,
           ) {
             if (!event.active) simulation.alphaTarget(0);
             event.subject.fx = null;
@@ -271,7 +274,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           updateValues();
         },
       };
-    })()
+    })(),
   );
 })();
 

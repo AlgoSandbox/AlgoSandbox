@@ -47,7 +47,6 @@ export default function evalWithAlgoSandbox(
   // Make a fake require
   const context = {
     require: (library: string) => {
-      console.log('Trying to import', library);
       if (library in libraryToValue) {
         return libraryToValue[library as keyof typeof libraryToValue];
       } else {

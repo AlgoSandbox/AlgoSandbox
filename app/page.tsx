@@ -36,7 +36,7 @@ function readFilesRecursively(directoryPath: string) {
 }
 
 function readFilesMatchingPatterns(
-  patterns: Array<[string] | [string, GlobOptionsWithFileTypesUnset]>
+  patterns: Array<[string] | [string, GlobOptionsWithFileTypesUnset]>,
 ): Record<string, string> {
   return Object.fromEntries(
     patterns
@@ -47,7 +47,7 @@ function readFilesMatchingPatterns(
       .map((fileName) => {
         const contents = fs.readFileSync(fileName, 'utf-8');
         return [fileName, contents];
-      })
+      }),
   );
 }
 
@@ -57,7 +57,7 @@ async function getAlgoSandboxFiles() {
   const typeDeclarations: TypeDeclaration[] = Object.entries(libContents).map(
     ([filePath, contents]) => {
       return { path: `file:///${filePath}`, contents };
-    }
+    },
   );
 
   return typeDeclarations;
@@ -101,23 +101,22 @@ function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
   ]);
 
   const objects: Array<DbSandboxObjectSaved> = Object.entries(contents).map(
-    ([contentFileName, content]) => {
+    ([contentFileName]) => {
       const folder = contentFileName.substring(0, contentFileName.length - 8);
       const writeup = writeups[folder + 'index.md'];
       const title =
         writeup !== undefined ? getMarkdownTitle(writeup) : 'Untitled';
       const files = Object.fromEntries(
-        Object.entries(allFiles).filter(([key]) => key.includes(folder))
+        Object.entries(allFiles).filter(([key]) => key.includes(folder)),
       );
 
       return {
         key: contentFileName,
         name: title,
         writeup,
-        typescriptCode: content,
         files,
       };
-    }
+    },
   );
 
   const objectOptions: CatalogGroup<DbSandboxObjectSaved> = {
@@ -140,13 +139,13 @@ export default async function Page() {
   const typeDeclarations: Array<TypeDeclaration> = [];
 
   const builtInAlgorithmOptions = Object.entries(
-    algorithmGroupToFolderGlob
+    algorithmGroupToFolderGlob,
   ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
   const builtInProblemOptions = Object.entries(problemGroupToFolderGlob).map(
-    ([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob)
+    ([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob),
   );
   const builtInVisualizerOptions = Object.entries(
-    visualizerGroupToFolderGlob
+    visualizerGroupToFolderGlob,
   ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
 
   return (

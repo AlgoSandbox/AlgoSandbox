@@ -13,7 +13,7 @@ export default function AlgoSandboxEditor({
   onChange,
   path,
 }: AlgoSandboxEditorProps) {
-  const { algoSandboxFiles } = useAlgoSandboxEditorFilesContext();
+  const { algoSandboxFiles, files } = useAlgoSandboxEditorFilesContext();
 
   return (
     <Editor
@@ -39,8 +39,15 @@ export default function AlgoSandboxEditor({
         for (const { contents, path } of algoSandboxFiles) {
           monaco.editor.createModel(
             contents,
-            'typescript',
-            monaco.Uri.parse(path)
+            undefined,
+            monaco.Uri.parse(path),
+          );
+        }
+        for (const [path, contents] of Object.entries(files)) {
+          monaco.editor.createModel(
+            contents,
+            undefined,
+            monaco.Uri.parse(path),
           );
         }
 

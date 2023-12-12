@@ -1,13 +1,12 @@
 export type DbSandboxObject = {
   key?: string;
   name: string;
-  typescriptCode: string;
+  files: Record<string, string>;
 };
 
 export type DbSandboxObjectSaved = DbSandboxObject & {
   key: string;
   writeup?: string;
-  files?: Record<string, string>;
 };
 
 export type DbAlgorithm = DbSandboxObject;

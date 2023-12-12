@@ -92,7 +92,7 @@ type BoxContextReturn<P> = P extends undefined
   : Get<BoxContextType, P>;
 
 export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
-  path?: P
+  path?: P,
 ): BoxContextReturn<P> {
   const value = useContext(BoxContext);
   if (path === undefined) {
@@ -167,30 +167,47 @@ export default function BoxContextProvider({
   });
 
   const boxEnvironment = useMemo(() => {
-    const algorithmCode = algorithm.select.value?.value.typescriptCode;
-    const problemCode = problem.select.value?.value.typescriptCode;
-    const visualizerCode = visualizer.select.value?.value?.typescriptCode;
+    const algorithmFiles = algorithm.select.value?.value.files;
+    const problemFiles = problem.select.value?.value.files;
+    const visualizerFiles = visualizer.select.value?.value?.files;
+
+    const renameFiles = (
+      files: Record<string, string> | undefined,
+      newFolderName: string,
+    ) => {
+      if (files === undefined) {
+        return {};
+      }
+      return Object.fromEntries(
+        Object.entries(files ?? {}).map(([filePath, value]) => [
+          `${newFolderName}/${filePath.split('/').slice(-1)[0]}`,
+          value,
+        ]),
+      );
+    };
+
+    const algorithmFilesRenamed = renameFiles(algorithmFiles, 'algorithm');
+    const problemFilesRenamed = renameFiles(problemFiles, 'problem');
+    const visualizerFilesRenamed = renameFiles(visualizerFiles, 'visualizer');
 
     const boxEnvironment = {
-      ...(algorithmCode !== undefined ? { 'algorithm.ts': algorithmCode } : {}),
-      ...(problemCode !== undefined ? { 'problem.ts': problemCode } : {}),
-      ...(visualizerCode !== undefined
-        ? { 'visualizer.ts': visualizerCode }
-        : {}),
+      ...algorithmFilesRenamed,
+      ...problemFilesRenamed,
+      ...visualizerFilesRenamed,
     };
 
     return boxEnvironment;
   }, [
-    algorithm.select.value?.value.typescriptCode,
-    problem.select.value?.value.typescriptCode,
-    visualizer.select.value?.value?.typescriptCode,
+    algorithm.select.value?.value.files,
+    problem.select.value?.value.files,
+    visualizer.select.value?.value?.files,
   ]);
 
   const setBoxEnvironment = useCallback(
     (boxEnvironment: Record<string, string>) => {
-      const algorithmCode = boxEnvironment['algorithm.ts'];
-      const problemCode = boxEnvironment['problem.ts'];
-      const visualizerCode = boxEnvironment['visualizer.ts'];
+      const algorithmCode = boxEnvironment['algorithm/index.ts'];
+      const problemCode = boxEnvironment['problem/index.ts'];
+      const visualizerCode = boxEnvironment['visualizer/index.ts'];
       const algorithmOption = algorithm.select.value;
       const problemOption = problem.select.value;
       const visualizerOption = visualizer.select.value;
@@ -207,50 +224,62 @@ export default function BoxContextProvider({
         throw new Error('Selected visualizer is null');
       }
 
-      if (algorithmCode !== algorithmOption.value.typescriptCode) {
+      if (algorithmCode !== algorithmOption.value.files['index.ts']) {
         const isNew = algorithmOption.type === 'built-in';
         if (isNew) {
           algorithm.custom.add({
             name: getCustomDbObjectName(algorithmOption.value),
-            typescriptCode: algorithmCode,
+            files: {
+              'index.ts': algorithmCode,
+            },
           });
         } else {
           algorithm.custom.set({
             ...algorithmOption.value,
             key: algorithm.custom.selected!.key,
-            typescriptCode: algorithmCode,
+            files: {
+              'index.ts': algorithmCode,
+            },
           });
         }
       }
 
-      if (problemCode !== problemOption.value.typescriptCode) {
+      if (problemCode !== problemOption.value.files['index.ts']) {
         const isNew = problemOption.type === 'built-in';
         if (isNew) {
           problem.custom.add({
             name: getCustomDbObjectName(problemOption.value),
-            typescriptCode: problemCode,
+            files: {
+              'index.ts': problemCode,
+            },
           });
         } else {
           problem.custom.set({
             ...problemOption.value,
             key: problem.custom.selected!.key,
-            typescriptCode: problemCode,
+            files: {
+              'index.ts': problemCode,
+            },
           });
         }
       }
 
-      if (visualizerCode !== visualizerOption.value.typescriptCode) {
+      if (visualizerCode !== visualizerOption.value.files['index.ts']) {
         const isNew = visualizerOption.type === 'built-in';
         if (isNew) {
           visualizer.custom.add({
             name: getCustomDbObjectName(visualizerOption.value),
-            typescriptCode: visualizerCode,
+            files: {
+              'index.ts': visualizerCode,
+            },
           });
         } else {
           visualizer.custom.set({
             ...visualizerOption.value,
             key: visualizer.custom.selected!.key,
-            typescriptCode: visualizerCode,
+            files: {
+              'index.ts': visualizerCode,
+            },
           });
         }
       }
@@ -262,7 +291,7 @@ export default function BoxContextProvider({
       problem.select.value,
       visualizer.custom,
       visualizer.select.value,
-    ]
+    ],
   );
 
   const value = useMemo(() => {

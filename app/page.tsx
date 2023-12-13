@@ -4,7 +4,7 @@ import fs from 'fs';
 import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';
 import path from 'path';
 
-import BoxPage from './BoxPage';
+import Playground from './Playground';
 
 export type TypeDeclaration = {
   path: string;
@@ -155,7 +155,7 @@ export default async function Page() {
   ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
 
   return (
-    <BoxPage
+    <Playground
       algoSandboxFiles={algoSandboxFiles}
       typeDeclarations={typeDeclarations}
       builtInAlgorithmOptions={builtInAlgorithmOptions}

@@ -1,3 +1,4 @@
+import AppLogo from '@components/AppLogo';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { Button } from '@components/ui';
 import Toggle from '@components/ui/Toggle';
@@ -18,12 +19,7 @@ export default function AppBar() {
   return (
     <header className="flex justify-between items-center px-4 border-b py-2 border-slate-300 gap-8">
       <div className="flex gap-8 items-center">
-        <span className="font-mono">
-          algo
-          <span className="text-white bg-primary-700 border px-1 rounded">
-            sandbox
-          </span>
-        </span>
+        {!isAdvancedModeEnabled && <AppLogo />}
         <div className="flex flex-row items-end gap-2">
           <ProblemSelect />
           <ProblemAlgorithmAdapterSelect />

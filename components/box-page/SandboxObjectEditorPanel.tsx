@@ -6,37 +6,6 @@ import { Button, Input, MaterialSymbol } from '../ui';
 import { useBoxContext } from '.';
 import { BoxContextCustomObjects } from './box-context/sandbox-object/custom';
 
-const exampleAlgorithmString = `import { SandboxParam, createParameterizedAlgorithm } from "@algo-sandbox/core"
-
-const exampleParameterizedAlgorithm = createParameterizedAlgorithm({
-  name: 'Decrement counter',
-  accepts: 'counter',
-  outputs: 'counter',
-  parameters: {
-    decrement: SandboxParam.integer('Decrement value', 1),
-    counterLimit: SandboxParam.integer('Counter limit', -10),
-  },
-  createInitialState: (problem) => ({ ...problem }),
-  getPseudocode: ({ decrement, counterLimit }) => {
-    return \`while counter < \${counterLimit}:\n  decrement counter by \${decrement}\nend\`;
-  },
-  *runAlgorithm({ line, state, parameters: { decrement, counterLimit } }) {
-    while (true) {
-      yield line(1);
-      if (state.counter <= counterLimit) {
-        break;
-      }
-      state.counter -= decrement;
-      yield line(2);
-    }
-    yield line(3);
-    return true;
-  },
-});
-
-export default exampleParameterizedAlgorithm;
-`;
-
 type EditorPanelFormValue = {
   name: string;
   typescriptCode: string;
@@ -76,16 +45,14 @@ export default function SandboxObjectEditorPanel({
   } = useForm<EditorPanelFormValue>({
     defaultValues: {
       name: selectedObject?.name ?? '',
-      typescriptCode:
-        selectedObject?.files?.['index.ts'] ?? exampleAlgorithmString,
+      typescriptCode: selectedObject?.files?.['index.ts'] ?? '',
     },
   });
 
   useEffect(() => {
     reset({
       name: selectedObject?.name ?? '',
-      typescriptCode:
-        selectedObject?.files?.['index.ts'] ?? exampleAlgorithmString,
+      typescriptCode: selectedObject?.files?.['index.ts'] ?? '',
     });
   }, [reset, selectedObject?.files, selectedObject?.name]);
 
@@ -94,7 +61,7 @@ export default function SandboxObjectEditorPanel({
   return (
     <aside className="h-full">
       <form
-        className="h-full"
+        className="flex flex-col h-full"
         onSubmit={handleSubmit((values) => {
           if (isNew) {
             customObjects.add({
@@ -104,8 +71,6 @@ export default function SandboxObjectEditorPanel({
               },
             });
           } else {
-            console.log('saving', customObjects.selected?.key);
-            console.log(customObjects);
             customObjects.set({
               key: customObjects.selected!.key,
               name: values.name,
@@ -117,7 +82,7 @@ export default function SandboxObjectEditorPanel({
           reset(values);
         })}
       >
-        <div className="flex gap-2 p-4 items-end flex-wrap">
+        <div className="flex flex-shrink-0 gap-2 p-4 items-end flex-wrap">
           <Input
             label="Name"
             containerClassName="flex-1"
@@ -140,22 +105,25 @@ export default function SandboxObjectEditorPanel({
             />
           )}
         </div>
-        <Controller
-          control={control}
-          name="typescriptCode"
-          rules={{ required: true }}
-          render={({ field: { onChange, value } }) => (
-            <AlgoSandboxEditor
-              path="file:///main.ts"
-              value={value}
-              onChange={(value) => {
-                onChange({
-                  target: { value: value ?? '' },
-                });
-              }}
-            />
-          )}
-        />
+        <div className="flex-1">
+          <Controller
+            control={control}
+            name="typescriptCode"
+            rules={{ required: true }}
+            render={({ field: { onChange, value } }) => (
+              <AlgoSandboxEditor
+                path="file:///index.ts"
+                files={selectedObject?.files ?? {}}
+                value={value}
+                onChange={(value) => {
+                  onChange({
+                    target: { value: value ?? '' },
+                  });
+                }}
+              />
+            )}
+          />
+        </div>
       </form>
     </aside>
   );

@@ -1,7 +1,7 @@
 import { MaterialSymbol } from '@components/ui';
 import { buildDirectory } from '@utils/buildDirectory';
 import clsx from 'clsx';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
   BoxExplorerDirectory,
@@ -147,9 +147,27 @@ export default function DirectoryExplorer({
   onFileClick,
   activeFile,
 }: DirectoryExplorerProps) {
-  const directory = buildDirectory(files);
+  const directory = useMemo(() => buildDirectory(files), [files]);
 
-  const [expandedDirectoryPaths, setExpandedDirectoryPaths] = useState(['.']);
+  const [expandedDirectoryPaths, setExpandedDirectoryPaths] = useState<
+    Array<string>
+  >([]);
+
+  useEffect(() => {
+    const getDirectoryPaths = (
+      directory: BoxExplorerDirectory,
+    ): Array<string> => {
+      return [
+        directory.path,
+        ...directory.items.flatMap((item) =>
+          isDirectory(item) ? getDirectoryPaths(item) : [],
+        ),
+      ];
+    };
+
+    const directoryPaths = getDirectoryPaths(directory);
+    setExpandedDirectoryPaths(directoryPaths);
+  }, [directory]);
 
   return (
     <DirectoryExplorerContext.Provider

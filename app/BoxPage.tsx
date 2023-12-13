@@ -13,23 +13,13 @@ import {
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
-import AlgoSandboxEditorFilesContextProvider, {
-  useAlgoSandboxEditorFilesContext,
-} from '@components/editor/AlgoSandboxEditorFilesContextProvider';
-import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
 import { ResizeHandle } from '@components/ui';
-import { CatalogGroup } from '@constants/catalog';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createScene, SandboxScene } from '@utils';
-import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
 import { useEffect, useMemo, useState } from 'react';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
 import BoxEnvironmentEditorPage from './BoxEnvironmentEditorPage';
-import { TypeDeclaration } from './page';
-
-const queryClient = new QueryClient();
 
 function BoxPageExecutionWrapper() {
   const { compatible: areAlgorithmProblemCompatible } =
@@ -133,20 +123,12 @@ function BoxPageImpl({
     visualizerInstance,
   ]);
 
-  const { algoSandboxFiles, typeDeclarations } =
-    useAlgoSandboxEditorFilesContext();
-
   if (mode === 'editor') {
-    return (
-      <BoxEnvironmentEditorPage
-        algoSandboxFiles={algoSandboxFiles}
-        typeDeclarations={typeDeclarations}
-      />
-    );
+    return <BoxEnvironmentEditorPage />;
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
       <AppBar />
       <PanelGroup className="overflow-y-hidden" direction="horizontal">
         {customPanelVisible && customObjects && (
@@ -205,38 +187,10 @@ function BoxPageImpl({
   );
 }
 
-type BoxPageProps = {
-  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
-  algoSandboxFiles: Array<TypeDeclaration>;
-  typeDeclarations: Array<TypeDeclaration>;
-};
-
-export default function BoxPage({
-  builtInAlgorithmOptions,
-  builtInProblemOptions,
-  builtInVisualizerOptions,
-  algoSandboxFiles,
-  typeDeclarations,
-}: BoxPageProps) {
+export default function BoxPage() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <UserPreferencesProvider>
-        <AlgoSandboxEditorFilesContextProvider
-          files={{}}
-          algoSandboxFiles={algoSandboxFiles}
-          typeDeclarations={typeDeclarations}
-        >
-          <BoxContextProvider
-            builtInAlgorithmOptions={builtInAlgorithmOptions}
-            builtInProblemOptions={builtInProblemOptions}
-            builtInVisualizerOptions={builtInVisualizerOptions}
-          >
-            <BoxPageExecutionWrapper />
-          </BoxContextProvider>
-        </AlgoSandboxEditorFilesContextProvider>
-      </UserPreferencesProvider>
-    </QueryClientProvider>
+    <BoxContextProvider>
+      <BoxPageExecutionWrapper />
+    </BoxContextProvider>
   );
 }

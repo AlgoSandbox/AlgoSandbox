@@ -5,15 +5,17 @@ import { useAlgoSandboxEditorFilesContext } from './AlgoSandboxEditorFilesContex
 type AlgoSandboxEditorProps = {
   value?: string;
   onChange?: (value: string | undefined) => void;
+  files: Record<string, string>;
   path: string;
 };
 
 export default function AlgoSandboxEditor({
   value,
   onChange,
+  files,
   path,
 }: AlgoSandboxEditorProps) {
-  const { algoSandboxFiles, files } = useAlgoSandboxEditorFilesContext();
+  const { algoSandboxFiles } = useAlgoSandboxEditorFilesContext();
 
   return (
     <Editor

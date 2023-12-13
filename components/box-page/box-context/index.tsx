@@ -1,5 +1,4 @@
-import { CatalogGroup } from '@constants/catalog';
-import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
+import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
 import _ from 'lodash';
 import {
@@ -104,18 +103,17 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
 type CustomPanel = 'algorithm' | 'problem' | 'visualizer' | null;
 
 export type BoxContextProviderProps = {
-  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
-  builtInAlgorithmOptions,
-  builtInProblemOptions,
-  builtInVisualizerOptions,
   children,
 }: BoxContextProviderProps) {
+  const {
+    builtInAlgorithmOptions,
+    builtInProblemOptions,
+    builtInVisualizerOptions,
+  } = useBuiltInComponents();
   const [mode, setMode] = useState<BoxContextMode>('view');
   const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
   const {

@@ -4,14 +4,12 @@ import { TypeDeclaration } from '../../app/page';
 
 type AlgoSandboxEditorFilesContextType = {
   algoSandboxFiles: Array<TypeDeclaration>;
-  files: Record<string, string>;
   typeDeclarations: Array<TypeDeclaration>;
 };
 
 const AlgoSandboxEditorFilesContext =
   createContext<AlgoSandboxEditorFilesContextType>({
     algoSandboxFiles: [],
-    files: {},
     typeDeclarations: [],
   });
 
@@ -22,27 +20,24 @@ export function useAlgoSandboxEditorFilesContext() {
 type AlgoSandboxEditorFilesContextProviderProps = {
   children: React.ReactNode;
   algoSandboxFiles: Array<TypeDeclaration>;
-  files: Record<string, string>;
   typeDeclarations: Array<TypeDeclaration>;
 };
 
 export default function AlgoSandboxEditorFilesContextProvider({
   children,
   algoSandboxFiles,
-  files,
   typeDeclarations,
 }: AlgoSandboxEditorFilesContextProviderProps) {
-
-  const value = useMemo(() => ({
-    algoSandboxFiles,
-    files,
-    typeDeclarations,
-  }), [algoSandboxFiles, files, typeDeclarations]);
+  const value = useMemo(
+    () => ({
+      algoSandboxFiles,
+      typeDeclarations,
+    }),
+    [algoSandboxFiles, typeDeclarations],
+  );
 
   return (
-    <AlgoSandboxEditorFilesContext.Provider
-      value={value}
-    >
+    <AlgoSandboxEditorFilesContext.Provider value={value}>
       {children}
     </AlgoSandboxEditorFilesContext.Provider>
   );

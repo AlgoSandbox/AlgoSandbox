@@ -7,6 +7,7 @@ import {
   isSelectGroup,
   MaterialSymbol,
   Popover,
+  Tooltip,
 } from '@components/ui';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import {
@@ -33,6 +34,7 @@ export type CatalogSelectProps<
   value?: O;
   onChange?: (value: O) => void;
   label: string;
+  errorMessage?: string | null;
 };
 
 function ListItem<T>({
@@ -65,9 +67,10 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   label,
   value,
   onChange,
+  errorMessage,
 }: CatalogSelectProps<T>) {
   const [selectedOption, setSelectedOption] = useState<CatalogOption<T> | null>(
-    value ?? null
+    value ?? null,
   );
   const [query, setQuery] = useState('');
   const [stepIndex, setStepIndex] = useState(0);
@@ -91,7 +94,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
       }
 
       const defaultBoxFilePath = Object.keys(files).find((path) =>
-        path.includes('default-box.ts')
+        path.includes('default-box.ts'),
       );
 
       if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
@@ -149,7 +152,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
 
   const stepCount = Math.min(
     MAX_EXECUTION_STEP_COUNT,
-    executionTrace?.length ?? MAX_EXECUTION_STEP_COUNT
+    executionTrace?.length ?? MAX_EXECUTION_STEP_COUNT,
   );
 
   const interval = useCancelableInterval(() => {
@@ -205,7 +208,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                         query === '' ||
                         item.label
                           .toLocaleLowerCase()
-                          .includes(query.toLocaleLowerCase())
+                          .includes(query.toLocaleLowerCase()),
                     ),
                   };
                 }
@@ -217,7 +220,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                   item.label
                     .toLocaleLowerCase()
                     .includes(query.toLocaleLowerCase()) ||
-                  isSelectGroup(item)
+                  isSelectGroup(item),
               )
               .filter((item) => !isSelectGroup(item) || item.options.length > 0)
               .map((item) => {
@@ -306,9 +309,24 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
         </div>
       }
     >
-      <div className="flex flex-col">
-        <FormLabel>{label}</FormLabel>
+      <div className="flex flex-col min-w-[200px]">
+        <div className="flex items-center gap-1">
+          <FormLabel>{label}</FormLabel>
+          {errorMessage && (
+            <Tooltip
+              content={
+                <div className="whitespace-pre font-mono">{errorMessage}</div>
+              }
+            >
+              <MaterialSymbol
+                className="!text-[16px] text-red-700"
+                icon="error"
+              />
+            </Tooltip>
+          )}
+        </div>
         <Button
+          className={errorMessage ? 'border-2 border-red-700' : ''}
           label={value?.label ?? ''}
           variant="secondary"
           endIcon={<MaterialSymbol icon="arrow_drop_down" />}

@@ -12,7 +12,7 @@ export type SandboxParameterizedProblem<
   N extends SandboxStateType,
   P extends SandboxParameters,
 > = Parameterized<SandboxProblem<N>, P> & {
-  shape: N;
+  type: N;
 };
 
 export function createParameterizedProblem<
@@ -20,25 +20,25 @@ export function createParameterizedProblem<
   P extends SandboxParameters,
 >({
   name,
-  shape,
+  type,
   parameters,
   getName,
   getInitialState,
 }: {
   name: string;
-  shape: N;
+  type: N;
   parameters: P;
   getName: (parameters: ParsedParameters<P>) => string;
   getInitialState: (parameters: ParsedParameters<P>) => SandboxState<N>;
 }): SandboxParameterizedProblem<N, P> {
   return {
     name,
-    shape,
+    type,
     parameters,
     create: (parsedParameters = getDefaultParameters(parameters)) => {
       return {
         name: getName(parsedParameters),
-        type: shape,
+        type: type,
         initialState: getInitialState(parsedParameters),
       };
     },

@@ -1,4 +1,6 @@
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { Button } from '@components/ui';
+import Toggle from '@components/ui/Toggle';
 
 import { useBoxContext } from '..';
 import AlgorithmSelect from './AlgorithmSelect';
@@ -10,30 +12,41 @@ import VisualizerSelect from './VisualizerSelect';
 
 export default function AppBar() {
   const { setValue: setMode } = useBoxContext('mode');
+  const { isAdvancedModeEnabled, setAdvancedModeEnabled } =
+    useUserPreferences();
 
   return (
-    <header className="flex justify-start items-center px-4 border-b py-2 border-slate-300 gap-8">
-      <span className="font-mono">
-        algo
-        <span className="text-white bg-primary-700 border px-1 rounded">
-          sandbox
+    <header className="flex justify-between items-center px-4 border-b py-2 border-slate-300 gap-8">
+      <div className="flex gap-8 items-center">
+        <span className="font-mono">
+          algo
+          <span className="text-white bg-primary-700 border px-1 rounded">
+            sandbox
+          </span>
         </span>
-      </span>
-      <div className="flex flex-row items-end gap-2">
-        <ProblemSelect />
-        <ProblemAlgorithmAdapterSelect />
-        <AlgorithmSelect />
-        <AlgorithmVisualizerAdapterSelect />
-        <VisualizerSelect />
-        <Button
-          label="Customize in editor mode"
-          variant="primary"
-          onClick={() => {
-            setMode('editor');
-          }}
-        />
-        <AlgorithmVisualizerFlowChartPopover />
+        <div className="flex flex-row items-end gap-2">
+          <ProblemSelect />
+          <ProblemAlgorithmAdapterSelect />
+          <AlgorithmSelect />
+          <AlgorithmVisualizerAdapterSelect />
+          <VisualizerSelect />
+          <AlgorithmVisualizerFlowChartPopover />
+          {isAdvancedModeEnabled && (
+            <Button
+              label="Customize in editor mode"
+              variant="primary"
+              onClick={() => {
+                setMode('editor');
+              }}
+            />
+          )}
+        </div>
       </div>
+      <Toggle
+        label="Advanced mode"
+        value={isAdvancedModeEnabled}
+        onChange={setAdvancedModeEnabled}
+      />
     </header>
   );
 }

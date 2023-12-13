@@ -1,4 +1,5 @@
 import { useBoxContext } from '@components/box-page';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedVisualizer } from '@utils';
 import { useEffect, useMemo } from 'react';
@@ -8,6 +9,7 @@ import VisualizerDetails from '../VisualizerDetails';
 import CatalogSelect from './CatalogSelect';
 
 export default function VisualizerSelect() {
+  const { isAdvancedModeEnabled } = useUserPreferences();
   const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
     useBoxContext('visualizer.customPanel');
   const {
@@ -75,7 +77,7 @@ export default function VisualizerSelect() {
           </Badge>
         </Popover>
       )}
-      {selectedOption !== undefined && (
+      {isAdvancedModeEnabled && selectedOption !== undefined && (
         <Button
           label="Edit visualizer"
           hideLabel

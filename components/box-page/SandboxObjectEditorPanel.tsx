@@ -104,6 +104,8 @@ export default function SandboxObjectEditorPanel({
               },
             });
           } else {
+            console.log('saving', customObjects.selected?.key);
+            console.log(customObjects);
             customObjects.set({
               key: customObjects.selected!.key,
               name: values.name,

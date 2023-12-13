@@ -47,7 +47,7 @@ function Button(
     role,
     ...props
   }: ButtonProps,
-  ref: ForwardedRef<HTMLButtonElement>
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
     <Tooltip content={label} disabled={!hideLabel}>
@@ -57,7 +57,7 @@ function Button(
         role={role}
         aria-checked={selected}
         className={clsx(
-          'flex items-center rounded transition-colors focus:outline-primary-500',
+          'flex items-center justify-between rounded transition-colors focus:outline-primary-500 font-medium',
           size === 'sm' && [
             'py-1 gap-1',
             icon !== undefined ? 'ps-1' : 'ps-2',
@@ -67,7 +67,7 @@ function Button(
           size === 'md' && [
             'py-2 gap-2',
             icon !== undefined ? 'ps-2' : 'ps-3',
-            hideLabel ||endIcon ? 'pe-2' : 'pe-3',
+            hideLabel || endIcon ? 'pe-2' : 'pe-3',
           ],
           variant === 'tertiary' && [
             !disabled && [
@@ -85,7 +85,7 @@ function Button(
             !disabled && 'bg-primary-500 hover:bg-primary-700',
             disabled && 'bg-neutral-300',
           ],
-          className
+          className,
         )}
         disabled={disabled}
         {...props}

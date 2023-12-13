@@ -28,6 +28,19 @@ import {
   DbVisualizerSaved,
 } from '@utils/db';
 import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
+import tryEvaluate from '@utils/tryEvaluate';
+import {
+  sandboxAlgorithm,
+  sandboxParameterizedAlgorithm,
+} from '@utils/verifiers/algorithm';
+import {
+  sandboxParameterizedProblem,
+  sandboxProblem,
+} from '@utils/verifiers/problem';
+import {
+  sandboxParameterizedVisualizer,
+  sandboxVisualizer,
+} from '@utils/verifiers/visualizer';
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -56,6 +69,21 @@ type SandboxObjectTypeMap = {
   };
 };
 
+const verifiers = {
+  algorithm: {
+    instance: sandboxAlgorithm,
+    parameterized: sandboxParameterizedAlgorithm,
+  },
+  problem: {
+    instance: sandboxProblem,
+    parameterized: sandboxParameterizedProblem,
+  },
+  visualizer: {
+    instance: sandboxVisualizer,
+    parameterized: sandboxParameterizedVisualizer,
+  },
+};
+
 type Instance<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['instance'];
 type Value<T extends keyof SandboxObjectTypeMap> =
@@ -71,6 +99,7 @@ export const defaultBoxContextSandboxObject: BoxContextSandboxObject<never> = {
     visible: false,
     setVisible: () => {},
   },
+  errorMessage: null,
   instance: null,
   value: null,
   parameters: {
@@ -91,6 +120,7 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
     setVisible: (visible: boolean) => void;
   };
   custom: BoxContextCustomObjects;
+  errorMessage: string | null;
   instance: Instance<T> | null;
   value: Value<T> | null;
   parameters: {
@@ -115,6 +145,7 @@ export function useBoxContextSandboxObject<
   setSavedObjectMutation,
   removeSavedObjectMutation,
   savedObjects,
+  type,
 }: {
   type: T;
   customPanelVisible: boolean;
@@ -151,11 +182,24 @@ export function useBoxContextSandboxObject<
     [builtInOptions, savedObjects],
   );
 
-  const [selectedOptionObject, setSelectedObjectOption] =
-    useState<CatalogOption<DbObjectSaved<T>> | null>(null);
+  const [selectedOptionKey, setSelectedOptionKey] = useState<string | null>(
+    null,
+  );
+
+  const selectedOptionObject = useMemo(() => {
+    if (selectedOptionKey === null) {
+      return null;
+    }
+
+    const flattenedOptions = objectOptions.flatMap((group) => group.options);
+    return (
+      flattenedOptions.find((option) => option.key === selectedOptionKey) ??
+      null
+    );
+  }, [objectOptions, selectedOptionKey]);
 
   useEffect(() => {
-    if (selectedOptionObject !== null) {
+    if (selectedOptionKey !== null) {
       return;
     }
     const option = objectOptions.at(0)?.options.at(0);
@@ -163,22 +207,18 @@ export function useBoxContextSandboxObject<
       return;
     }
 
-    setSelectedObjectOption(option);
-  }, [objectOptions, selectedOptionObject]);
+    setSelectedOptionKey(option.key);
+  }, [objectOptions, selectedOptionKey]);
 
   const {
     mutate: addSavedObject,
     data: latestNewObject,
     reset: resetAddObjectMutation,
   } = addSavedObjectMutation;
-  const {
-    mutate: setSavedObject,
-    data: latestSavedObject,
-    reset: resetSetObjectMutation,
-  } = setSavedObjectMutation;
+  const { mutate: setSavedObject } = setSavedObjectMutation;
   const { mutate: removeSavedObject } = removeSavedObjectMutation;
 
-  const selectedCustomAlgorithm = useMemo(() => {
+  const selectedCustomObject = useMemo(() => {
     if (
       selectedOptionObject === null ||
       selectedOptionObject.type === 'built-in'
@@ -191,7 +231,7 @@ export function useBoxContextSandboxObject<
 
   const custom = useMemo(() => {
     return {
-      selected: selectedCustomAlgorithm,
+      selected: selectedCustomObject,
       add: (value) => {
         return addSavedObject(value);
       },
@@ -199,18 +239,18 @@ export function useBoxContextSandboxObject<
         return setSavedObject(value);
       },
       remove: (value) => {
-        if (selectedOptionObject?.key === value.key) {
-          setSelectedObjectOption(null);
+        if (selectedOptionKey === value.key) {
+          setSelectedOptionKey(null);
         }
         return removeSavedObject(value);
       },
     } satisfies BoxContextSandboxObject<T>['custom'];
   }, [
+    selectedCustomObject,
     addSavedObject,
-    removeSavedObject,
-    selectedOptionObject?.key,
-    selectedCustomAlgorithm,
     setSavedObject,
+    selectedOptionKey,
+    removeSavedObject,
   ]);
 
   useEffect(() => {
@@ -220,66 +260,66 @@ export function useBoxContextSandboxObject<
         (option) => option.key === latestNewObject.key,
       );
       if (newSelectedOption) {
-        setSelectedObjectOption(newSelectedOption);
+        setSelectedOptionKey(newSelectedOption.key);
       }
       resetAddObjectMutation();
     }
-    if (latestSavedObject?.key !== undefined) {
-      const newSelectedOption = flattenedOptions.find(
-        (option) => option.key === latestSavedObject.key,
-      );
-      if (newSelectedOption) {
-        setSelectedObjectOption(newSelectedOption);
-      }
-      resetSetObjectMutation();
-    }
-  }, [
-    objectOptions,
-    latestNewObject?.key,
-    latestSavedObject?.key,
-    resetAddObjectMutation,
-    resetSetObjectMutation,
-  ]);
+  }, [latestNewObject?.key, objectOptions, resetAddObjectMutation]);
 
-  const objectEvaled = useMemo(() => {
+  const { objectEvaled, errorMessage: errorMessageEval } = useMemo(() => {
     const { value: object = null } = selectedOptionObject ?? {};
 
     if (object === null) {
-      return null;
+      return { objectEvaled: null, errorMessage: null };
     }
 
     try {
-      return evalWithAlgoSandbox(object.files['index.ts']) as Value<T>;
+      return {
+        objectEvaled: evalWithAlgoSandbox(object.files['index.ts']) as Value<T>,
+        errorMessage: null,
+      };
     } catch (e) {
       console.error(e);
-      return null;
+      return {
+        objectEvaled: null,
+        errorMessage: `Error during component code evaluation.\nYou may have a syntax error.\n\n${e}`,
+      };
     }
   }, [selectedOptionObject]);
 
-  const objectInstancer = useMemo(() => {
-    if (objectEvaled === null) {
-      return null;
-    }
+  const { data: objectInstancer, errorMessage: errorMessageInstancer } =
+    useMemo(() => {
+      return tryEvaluate(
+        () => {
+          if (objectEvaled === null) {
+            return null;
+          }
 
-    function isParameterized(
-      object: Parameterized<Instance<T>, SandboxParameters> | Instance<T>,
-    ): object is Parameterized<Instance<T>, SandboxParameters> {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (object as any).parameters !== undefined;
-    }
+          function isParameterized(
+            object: Parameterized<Instance<T>, SandboxParameters> | Instance<T>,
+          ): object is Parameterized<Instance<T>, SandboxParameters> {
+            return 'parameters' in object;
+          }
 
-    if (isParameterized(objectEvaled)) {
-      return objectEvaled;
-    }
+          if (isParameterized(objectEvaled)) {
+            return verifiers[type].parameterized.parse(objectEvaled);
+          }
 
-    return {
-      name: objectEvaled.name,
-      parameters: {},
-      create: () => {
-        return objectEvaled as Instance<T>;
-      },
-    } satisfies Parameterized<Instance<T>, Record<string, never>>;
-  }, [objectEvaled]);
+          // Verify objectEvaled has necessary fields
+          verifiers[type].instance.parse(objectEvaled);
+
+          return {
+            name: objectEvaled.name,
+            parameters: {},
+            create: () => {
+              return objectEvaled as Instance<T>;
+            },
+          } satisfies Parameterized<Instance<T>, Record<string, never>>;
+        },
+        (e) =>
+          `Error in component definition.\nEnsure that your returned component has the correct fields.\n\n${e}`,
+      );
+    }, [objectEvaled, type]);
 
   const defaultParameters = useMemo(() => {
     if (objectInstancer === null) {
@@ -309,13 +349,18 @@ export function useBoxContextSandboxObject<
     return null;
   }, [objectInstancer, objectParameters]);
 
-  const algorithm = useMemo(() => {
+  const errorMessage = useMemo(() => {
+    return errorMessageEval ?? errorMessageInstancer;
+  }, [errorMessageEval, errorMessageInstancer]);
+
+  const object = useMemo(() => {
     return {
       custom,
       customPanel: {
         visible: customPanelVisible,
         setVisible: setCustomPanelVisible,
       },
+      errorMessage,
       instance: objectInstance,
       value: objectEvaled,
       parameters: {
@@ -325,11 +370,14 @@ export function useBoxContextSandboxObject<
       },
       select: {
         value: selectedOptionObject,
-        setValue: setSelectedObjectOption,
+        setValue: (option) => {
+          setSelectedOptionKey(option?.key ?? null);
+        },
         options: objectOptions,
       },
     } satisfies BoxContextSandboxObject<T>;
   }, [
+    errorMessage,
     objectEvaled,
     objectInstance,
     objectParameters,
@@ -341,5 +389,5 @@ export function useBoxContextSandboxObject<
     selectedOptionObject,
   ]);
 
-  return algorithm;
+  return object;
 }

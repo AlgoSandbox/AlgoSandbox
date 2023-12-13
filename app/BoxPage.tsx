@@ -16,6 +16,7 @@ import {
 import AlgoSandboxEditorFilesContextProvider, {
   useAlgoSandboxEditorFilesContext,
 } from '@components/editor/AlgoSandboxEditorFilesContextProvider';
+import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
 import { ResizeHandle } from '@components/ui';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -221,19 +222,21 @@ export default function BoxPage({
 }: BoxPageProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AlgoSandboxEditorFilesContextProvider
-        files={{}}
-        algoSandboxFiles={algoSandboxFiles}
-        typeDeclarations={typeDeclarations}
-      >
-        <BoxContextProvider
-          builtInAlgorithmOptions={builtInAlgorithmOptions}
-          builtInProblemOptions={builtInProblemOptions}
-          builtInVisualizerOptions={builtInVisualizerOptions}
+      <UserPreferencesProvider>
+        <AlgoSandboxEditorFilesContextProvider
+          files={{}}
+          algoSandboxFiles={algoSandboxFiles}
+          typeDeclarations={typeDeclarations}
         >
-          <BoxPageExecutionWrapper />
-        </BoxContextProvider>
-      </AlgoSandboxEditorFilesContextProvider>
+          <BoxContextProvider
+            builtInAlgorithmOptions={builtInAlgorithmOptions}
+            builtInProblemOptions={builtInProblemOptions}
+            builtInVisualizerOptions={builtInVisualizerOptions}
+          >
+            <BoxPageExecutionWrapper />
+          </BoxContextProvider>
+        </AlgoSandboxEditorFilesContextProvider>
+      </UserPreferencesProvider>
     </QueryClientProvider>
   );
 }

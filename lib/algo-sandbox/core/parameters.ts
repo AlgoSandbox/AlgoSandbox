@@ -1,4 +1,4 @@
-type SandboxParameterTypeMap = {
+export type SandboxParameterTypeMap = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callback: (...args: Array<any>) => any;
   color: string;
@@ -50,7 +50,7 @@ export type ParsedParameters<P extends SandboxParameters> = Readonly<{
 export function callback<T extends (...args: Array<any>) => any>(
   name: string,
   defaultValue: T,
-  validate?: (value: SandboxParameterTypeMap['callback']) => boolean | string
+  validate?: (value: SandboxParameterTypeMap['callback']) => boolean | string,
 ): SandboxParameter<'callback', T> {
   return {
     name,
@@ -63,7 +63,7 @@ export function callback<T extends (...args: Array<any>) => any>(
 export function color(
   name: string,
   defaultValue: string,
-  validate?: (value: SandboxParameterTypeMap['color']) => boolean | string
+  validate?: (value: SandboxParameterTypeMap['color']) => boolean | string,
 ): SandboxParameter<'color'> {
   return {
     name,
@@ -76,7 +76,7 @@ export function color(
 export function float(
   name: string,
   defaultValue: number,
-  validate?: (value: SandboxParameterTypeMap['float']) => boolean | string
+  validate?: (value: SandboxParameterTypeMap['float']) => boolean | string,
 ): SandboxParameter<'float'> {
   return {
     name,
@@ -89,7 +89,7 @@ export function float(
 export function integer(
   name: string,
   defaultValue: number,
-  validate?: (value: SandboxParameterTypeMap['integer']) => boolean | string
+  validate?: (value: SandboxParameterTypeMap['integer']) => boolean | string,
 ): SandboxParameter<'integer'> {
   return {
     name,
@@ -102,7 +102,7 @@ export function integer(
 export function string(
   name: string,
   defaultValue: string,
-  validate?: (value: string) => string | boolean
+  validate?: (value: string) => string | boolean,
 ): SandboxParameter<'string'> {
   return {
     name,
@@ -113,10 +113,10 @@ export function string(
 }
 
 export function getDefaultParameters<P extends SandboxParameters>(
-  parameters: P
+  parameters: P,
 ): ParsedParameters<P> {
   return Object.fromEntries(
-    Object.entries(parameters).map(([key, value]) => [key, value.defaultValue])
+    Object.entries(parameters).map(([key, value]) => [key, value.defaultValue]),
   ) as ParsedParameters<P>;
 }
 

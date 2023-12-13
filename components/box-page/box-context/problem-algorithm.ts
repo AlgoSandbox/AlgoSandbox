@@ -40,8 +40,9 @@ export default function useBoxContextProblemAlgorithm({
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
           problem.instance !== null &&
-          problem.instance.type.name === composedAdapter?.accepts.name &&
-          composedAdapter?.outputs === algorithm.instance.accepts),
+          composedAdapter !== null &&
+          problem.instance.type.name === composedAdapter.accepts.name &&
+          composedAdapter.outputs === algorithm.instance.accepts),
       adapters,
     } satisfies BoxContextProblemAlgorithm;
   }, [

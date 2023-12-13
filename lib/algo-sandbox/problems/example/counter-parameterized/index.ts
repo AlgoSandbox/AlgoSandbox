@@ -3,7 +3,7 @@ import { counterState } from '@algo-sandbox/states';
 
 const counterParameterized = createParameterizedProblem({
   name: 'Counter',
-  shape: counterState,
+  type: counterState,
   parameters: {
     initialCounterValue: SandboxParam.integer('Initial counter value', 0),
   },

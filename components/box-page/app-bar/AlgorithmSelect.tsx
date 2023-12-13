@@ -1,3 +1,4 @@
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedAlgorithm } from '@utils';
 import { useEffect, useMemo } from 'react';
@@ -8,6 +9,7 @@ import { useBoxContext } from '../box-context';
 import CatalogSelect from './CatalogSelect';
 
 export default function AlgorithmSelect() {
+  const { isAdvancedModeEnabled } = useUserPreferences();
   const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
     useBoxContext('algorithm.customPanel');
   const {
@@ -30,7 +32,7 @@ export default function AlgorithmSelect() {
     }
 
     return Object.keys(parameters ?? {}).filter(
-      (key) => parameters[key] !== defaultParameters[key]
+      (key) => parameters[key] !== defaultParameters[key],
     ).length;
   }, [parameters, defaultParameters]);
 
@@ -74,7 +76,7 @@ export default function AlgorithmSelect() {
           </Badge>
         </Popover>
       )}
-      {selectedOption !== undefined && (
+      {isAdvancedModeEnabled && selectedOption !== undefined && (
         <Button
           label="Edit algorithm"
           hideLabel

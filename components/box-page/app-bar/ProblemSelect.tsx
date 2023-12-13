@@ -1,4 +1,5 @@
 import { useBoxContext } from '@components/box-page';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedProblem } from '@utils';
 import { useEffect, useMemo } from 'react';
@@ -8,6 +9,7 @@ import ProblemDetails from '../ProblemDetails';
 import CatalogSelect from './CatalogSelect';
 
 export default function ProblemSelect() {
+  const { isAdvancedModeEnabled } = useUserPreferences();
   const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
     useBoxContext('problem.customPanel');
   const {
@@ -21,6 +23,7 @@ export default function ProblemSelect() {
     setValue: setParameters,
     value: parameters = {},
   } = useBoxContext('problem.parameters');
+  const errorMessage = useBoxContext('problem.errorMessage');
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
@@ -30,7 +33,7 @@ export default function ProblemSelect() {
     }
 
     return Object.keys(parameters ?? {}).filter(
-      (key) => parameters[key] !== defaultParameters[key]
+      (key) => parameters[key] !== defaultParameters[key],
     ).length;
   }, [parameters, defaultParameters]);
 
@@ -43,6 +46,7 @@ export default function ProblemSelect() {
       <CatalogSelect
         label="Problem"
         options={options}
+        errorMessage={errorMessage}
         value={selectedOption ?? undefined}
         onChange={(value) => {
           setSelectedOption(value as typeof selectedOption);
@@ -76,7 +80,7 @@ export default function ProblemSelect() {
           </Badge>
         </Popover>
       )}
-      {selectedOption !== undefined && (
+      {isAdvancedModeEnabled && selectedOption !== undefined && (
         <Button
           label="Edit problem"
           hideLabel

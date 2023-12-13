@@ -1,7 +1,7 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 
 export type TooltipProps = {
-  content: string;
+  content: React.ReactNode;
   children: React.ReactNode;
   disabled?: boolean;
 };

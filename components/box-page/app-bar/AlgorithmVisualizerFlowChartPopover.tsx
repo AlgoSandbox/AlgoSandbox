@@ -183,7 +183,7 @@ export default function AlgorithmVisualizerFlowChartPopover() {
   const initialEdges = useMemo(() => {
     // To update with actual edges later
     return Object.keys(visualizerInputs).map((parameterName) => ({
-      id: 'parameterName',
+      id: parameterName,
       source: 'algorithm',
       sourceHandle: parameterName,
       target: 'visualizer',

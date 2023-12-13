@@ -302,7 +302,8 @@ export function useBoxContextSandboxObject<
           }
 
           if (isParameterized(objectEvaled)) {
-            return verifiers[type].parameterized.parse(objectEvaled);
+            verifiers[type].parameterized.parse(objectEvaled);
+            return objectEvaled;
           }
 
           // Verify objectEvaled has necessary fields

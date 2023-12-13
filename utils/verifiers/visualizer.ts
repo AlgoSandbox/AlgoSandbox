@@ -11,7 +11,6 @@ export const sandboxVisualizer = z.object({
 
 export const sandboxParameterizedVisualizer = z.object({
   name: z.string(),
-  type: z.string(),
   parameters: sandboxParameters,
   create: z.function(z.tuple([z.object({})]), z.any()),
 });

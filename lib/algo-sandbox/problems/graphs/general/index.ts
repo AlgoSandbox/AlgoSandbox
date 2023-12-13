@@ -6,7 +6,7 @@ type GraphEdge = z.infer<typeof graphEdge>;
 type UndirectedGraph = z.infer<typeof undirectedGraph.shape>;
 
 const graphParameterized = createParameterizedProblem({
-  name: 'Search graph (parameterized)',
+  name: 'Search graph generator',
   type: searchGraph,
   parameters: {
     edges: SandboxParam.string(

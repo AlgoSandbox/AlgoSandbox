@@ -11,9 +11,7 @@ import {
 export type SandboxParameterizedProblem<
   N extends SandboxStateType,
   P extends SandboxParameters,
-> = Parameterized<SandboxProblem<N>, P> & {
-  type: N;
-};
+> = Parameterized<SandboxProblem<N>, P>;
 
 export function createParameterizedProblem<
   N extends SandboxStateType,
@@ -33,7 +31,6 @@ export function createParameterizedProblem<
 }): SandboxParameterizedProblem<N, P> {
   return {
     name,
-    type,
     parameters,
     create: (parsedParameters = getDefaultParameters(parameters)) => {
       return {

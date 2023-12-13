@@ -14,7 +14,6 @@ export const sandboxAlgorithm = z.object({
 
 export const sandboxParameterizedAlgorithm = z.object({
   name: z.string(),
-  type: z.string(),
   parameters: sandboxParameters,
   create: z.function(z.tuple([z.object({})]), z.any()),
 });

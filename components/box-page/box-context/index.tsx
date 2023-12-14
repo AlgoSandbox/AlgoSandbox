@@ -230,6 +230,8 @@ export default function BoxContextProvider({
             files: {
               'index.ts': algorithmCode,
             },
+            editable: true,
+            type: 'algorithm',
           });
         } else {
           algorithm.custom.set({
@@ -250,6 +252,8 @@ export default function BoxContextProvider({
             files: {
               'index.ts': problemCode,
             },
+            editable: true,
+            type: 'problem',
           });
         } else {
           problem.custom.set({
@@ -270,6 +274,8 @@ export default function BoxContextProvider({
             files: {
               'index.ts': visualizerCode,
             },
+            editable: true,
+            type: 'visualizer',
           });
         } else {
           visualizer.custom.set({

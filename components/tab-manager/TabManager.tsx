@@ -82,7 +82,7 @@ export default function TabManagerProvider({
     [getNewTabId],
   );
 
-  function renderTab(tab: SandboxTabWithId): React.ReactNode {
+  const renderTab = useCallback((tab: SandboxTabWithId): React.ReactNode => {
     switch (tab.type) {
       case 'box':
         return <BoxPage />;
@@ -124,7 +124,7 @@ export default function TabManagerProvider({
           />
         );
     }
-  }
+  }, [addTab, saveObject, selectedTabId]);
 
   const value = useMemo(
     () =>
@@ -147,7 +147,7 @@ export default function TabManagerProvider({
           return renderTab(tab);
         },
       }) satisfies TabManager,
-    [getNewTabId, selectedTabId, tabs],
+    [addTab, renderTab, selectedTabId, tabs],
   );
 
   return (

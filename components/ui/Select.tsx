@@ -38,7 +38,7 @@ export type SelectProps<T, O extends SelectOption<T> = SelectOption<T>> = {
 };
 
 export function isSelectGroup<T>(
-  option: SelectOption<T> | SelectGroup<T>
+  option: SelectOption<T> | SelectGroup<T>,
 ): option is SelectGroup<T> {
   return (option as SelectGroup<T>).options !== undefined;
 }
@@ -51,7 +51,7 @@ const SelectItem = React.forwardRef<
     <RadixSelect.Item
       className={clsx(
         className,
-        'px-8 py-1 [&[data-highlighted]]:bg-primary-500 [&[data-highlighted]]:text-white rounded outline-none select-none relative'
+        'px-8 py-1 [&[data-highlighted]]:bg-surface-higher [&[data-highlighted]]:text-on-surface/80 font-medium rounded outline-none select-none relative',
       )}
       {...props}
       ref={forwardedRef}
@@ -77,12 +77,12 @@ function Select<T>(
     value,
     onChange,
   }: SelectProps<T>,
-  ref: ForwardedRef<HTMLButtonElement>
+  ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const id = useId();
   const flattenedOptions = useMemo(() => {
     return options.flatMap((item) =>
-      isSelectGroup(item) ? item.options : [item]
+      isSelectGroup(item) ? item.options : [item],
     );
   }, [options]);
 
@@ -101,29 +101,29 @@ function Select<T>(
         aria-label={hideLabel ? label : undefined}
         aria-labelledby={!hideLabel ? id : undefined}
         className={clsx(
-          'flex items-center ps-4 pe-2 py-2 hover:bg-primary-100 bg-neutral-100 rounded transition-colors focus:outline-primary-500 text-neutral-700',
-          '[&[data-placeholder]]:text-neutral-400',
+          'flex items-center ps-4 pe-2 py-2 hover:bg-surface-higher bg-surface-high rounded transition-colors text-on-surface/80 font-medium',
+          '[&[data-placeholder]]:text-hint',
           className,
-          hideLabel && containerClassName
+          hideLabel && containerClassName,
         )}
       >
         <RadixSelect.Value placeholder={placeholder} />
         <RadixSelect.Icon asChild>
-          <MaterialSymbol className="text-neutral-700" icon="arrow_drop_down" />
+          <MaterialSymbol className="text-label" icon="arrow_drop_down" />
         </RadixSelect.Icon>
       </RadixSelect.Trigger>
       <RadixSelect.Portal>
-        <RadixSelect.Content className="bg-primary-50 shadow rounded">
+        <RadixSelect.Content className="bg-surface-high shadow rounded">
           <RadixSelect.ScrollUpButton />
           <RadixSelect.Viewport className="p-2">
             {options.map((item, index) =>
               isSelectGroup(item) ? (
                 <React.Fragment key={item.key}>
                   {index > 0 && (
-                    <RadixSelect.Separator className="h-px bg-neutral-300 my-2" />
+                    <RadixSelect.Separator className="h-px bg-border my-2" />
                   )}
                   <RadixSelect.Group>
-                    <RadixSelect.Label className="ps-8 pe-2 text-neutral-500">
+                    <RadixSelect.Label className="ps-8 pe-2 text-label">
                       {item.label}
                     </RadixSelect.Label>
                     {item.options.map((option) => (
@@ -137,7 +137,7 @@ function Select<T>(
                 <SelectItem key={item.key} value={item.key}>
                   {item.label}
                 </SelectItem>
-              )
+              ),
             )}
           </RadixSelect.Viewport>
           <RadixSelect.ScrollDownButton />

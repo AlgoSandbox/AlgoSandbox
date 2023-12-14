@@ -96,6 +96,8 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
   };
 };
 
+const proOptions = { hideAttribution: true };
+
 export default function AlgorithmVisualizerFlowChartPopover() {
   const algorithm = useBoxContext('algorithm.instance');
   const visualizer = useBoxContext('visualizer.instance');
@@ -229,8 +231,9 @@ export default function AlgorithmVisualizerFlowChartPopover() {
   return (
     <Popover
       content={
-        <div className="w-[500px] h-[400px] bg-white">
+        <div className="w-[500px] h-[400px] bg-surface">
           <ReactFlow
+            color="red"
             nodeTypes={nodeTypes}
             nodes={nodes}
             edges={edges}
@@ -239,6 +242,7 @@ export default function AlgorithmVisualizerFlowChartPopover() {
             onEdgesDelete={onEdgesDelete}
             onConnect={onConnect}
             defaultEdgeOptions={defaultEdgeOptions}
+            proOptions={proOptions}
             fitView={true}
           />
         </div>

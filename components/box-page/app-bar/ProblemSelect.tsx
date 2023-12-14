@@ -74,7 +74,7 @@ export default function ProblemSelect() {
             <Button
               label="Customize"
               hideLabel
-              variant="secondary"
+              variant="filled"
               icon={<MaterialSymbol icon="tune" />}
             />
           </Badge>

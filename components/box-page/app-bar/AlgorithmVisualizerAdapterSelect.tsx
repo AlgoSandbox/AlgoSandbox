@@ -21,7 +21,7 @@ export default function AlgorithmVisualizerAdapterSelect() {
       options={options}
     >
       <Button
-        variant="tertiary"
+        variant="flat"
         label="Select adapter"
         hideLabel
         className="group"
@@ -30,8 +30,8 @@ export default function AlgorithmVisualizerAdapterSelect() {
             icon="keyboard_double_arrow_right"
             className={clsx(
               'group-aria-expanded:rotate-90 transition',
-              compatible && 'text-primary-700',
-              !compatible && 'text-red-500',
+              compatible && 'text-primary',
+              !compatible && 'text-danger',
             )}
           />
         }

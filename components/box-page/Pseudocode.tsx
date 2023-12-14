@@ -22,14 +22,14 @@ export default function Pseudocode({
       <div className="flex gap-1">
         {hasHighlight && (
           <span
-            className="w-full bg-purple-200 absolute top-0 -z-10 transition-all rounded"
+            className="w-full bg-primary/30 absolute top-0 -z-10 transition-all rounded"
             style={{
               transform: `translateY(${startLine - 1}rem)`,
               height: `${endLine - startLine + 1}rem`,
             }}
           />
         )}
-        <div className="flex flex-col transition-colors text-neutral-200 group-hover:text-neutral-400 items-end">
+        <div className="flex flex-col transition-colors text-on-surface/30 group-hover:text-on-surface/80 items-end">
           {Array.from({ length: pseudocode.split('\n').length }, (_, i) => (
             <div key={i}>{i + 1}</div>
           ))}
@@ -48,7 +48,7 @@ export default function Pseudocode({
               <code
                 className={clsx(
                   'transition-colors',
-                  blurred && 'text-neutral-300 group-hover:text-neutral-700'
+                  blurred && 'text-on-surface/70 group-hover:text-on-surface',
                 )}
                 key={lineNumber}
               >

@@ -4,6 +4,7 @@ import {
   forwardRef,
   InputHTMLAttributes,
   useId,
+  useMemo,
 } from 'react';
 
 import { FormLabel } from '.';
@@ -28,23 +29,26 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       error,
       ...props
     },
-    ref
+    ref,
   ) => {
     const id = useId();
 
-    const inputElement = (
-      <input
-        aria-label={hideLabel ? label : undefined}
-        aria-labelledby={!hideLabel ? id : undefined}
-        ref={ref}
-        autoComplete="off"
-        className={clsx(
-          'bg-neutral-100 rounded px-4 py-2 focus:outline-primary-500',
-          className,
-          hideLabel && containerClassName
-        )}
-        {...props}
-      />
+    const inputElement = useMemo(
+      () => (
+        <input
+          aria-label={hideLabel ? label : undefined}
+          aria-labelledby={!hideLabel ? id : undefined}
+          ref={ref}
+          autoComplete="off"
+          className={clsx(
+            'bg-surface-high rounded px-4 py-2',
+            className,
+            hideLabel && containerClassName,
+          )}
+          {...props}
+        />
+      ),
+      [className, containerClassName, hideLabel, id, label, props, ref],
     );
 
     return hideLabel && !error ? (
@@ -53,10 +57,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className={clsx('flex flex-col', containerClassName)}>
         {!hideLabel && <FormLabel id={id}>{label}</FormLabel>}
         {inputElement}
-        {error && <span className="text-red-700">{error}</span>}
+        {error && <span className="text-danger">{error}</span>}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';

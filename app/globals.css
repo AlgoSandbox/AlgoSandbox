@@ -2,26 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255; */
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    /* --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0; */
+    /* purple-700 */
+    --color-primary: 109 40 217;
+    /* purple-600 */
+    --color-primary-high: 147 51 234;
+    --color-on-primary: 255 255 255;
+    /* neutral-300 */
+    --color-border: 212 212 212;
+    --color-canvas: 255 255 255;
+    --color-surface: 255 255 255;
+    /* neutral-100 */
+    --color-surface-high: 245 245 245;
+    /* neutral-200 */
+    --color-surface-higher: 212 212 212;
+    --color-on-surface: 0 0 0;
+    /* neutral-400 */
+    --color-hint: 163 163 163;
+    /* neutral-600 */
+    --color-label: 82 82 82;
+    /* red-700 */
+    --color-danger: 185 28 28;
+    --color-muted: 212 212 212;
   }
-}
 
-body {
-  /* color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb)); */
+  :root[class~="dark"] {
+    /* purple-300 */
+    --color-primary: 192 132 252;
+    /* purple-400 */
+    --color-primary-high: 207 173 253;
+    --color-on-primary: 0 0 0;
+    /* neutral-700 */
+    --color-border: 64 64 64;
+    /* neutral-950 */
+    --color-canvas: 10 10 10;
+    /* neutral-900 */
+    --color-surface: 23 23 23;
+    /* neutral-800 */
+    --color-surface-high: 38 38 38;
+    /* neutral-700 */
+    --color-surface-higher: 64 64 64;
+    /* neutral-50 */
+    --color-on-surface: 250 250 250;
+    /* neutral-600 */
+    --color-hint: 82 82 82;
+    /* neutral-400 */
+    --color-label: 163 163 163;
+    /* red-300 */
+    --color-danger: 252 165 165;
+    --color-muted: 64 64 64;
+  }
+  
+  *,
+  ::before,
+  ::after {
+    @apply dark:border-border;
+  }
 }

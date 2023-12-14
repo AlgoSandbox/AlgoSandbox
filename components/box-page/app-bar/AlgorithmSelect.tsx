@@ -70,7 +70,7 @@ export default function AlgorithmSelect() {
             <Button
               label="Customize"
               hideLabel
-              variant="secondary"
+              variant="filled"
               icon={<MaterialSymbol icon="tune" />}
             />
           </Badge>

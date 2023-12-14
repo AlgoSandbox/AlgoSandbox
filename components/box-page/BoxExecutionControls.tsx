@@ -20,10 +20,10 @@ export default function BoxExecutionControls() {
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <span className="font-mono px-2 rounded-full shadow border">
+      <span className="font-mono px-2 rounded-full bg-surface border">
         {currentStepIndex + 1}/{maxSteps ?? '?'}
       </span>
-      <div className="flex gap-2 items-center rounded-full border px-4 shadow">
+      <div className="flex gap-2 items-center rounded-full border bg-surface px-4">
         <Button
           disabled={isPlaying || !hasPrevious}
           label="Skip to start (Shift + left)"

@@ -94,12 +94,12 @@ export default function AdapterListPopover({
   return (
     <Popover
       content={
-        <div className="min-w-[200px] p-2 flex flex-col gap-2 bg-white">
-          <h1 className="p-2">Adapters</h1>
+        <div className="min-w-[200px] p-2 flex flex-col gap-2 bg-surface">
+          <h1 className="p-2 font-medium">Adapters</h1>
           <ol>
-            <div className="flex gap-2 items-center font-mono text-xs text-primary-700">
+            <div className="flex gap-2 items-center font-mono text-xs text-primary">
               <MaterialSymbol icon="keyboard_double_arrow_down" />
-              <div className="flex flex-col flex-1 px-2 py-1 bg-primary-100 rounded">
+              <div className="flex flex-col flex-1 px-2 py-1 bg-primary/10 rounded">
                 <span className="font-medium font-sans">{fromLabel}</span>
                 <span>{fromType?.name}</span>
               </div>
@@ -107,9 +107,7 @@ export default function AdapterListPopover({
             {adapters.length === 0 && (
               <div
                 className={clsx(
-                  fromType === toType
-                    ? 'border-primary-500'
-                    : 'border-neutral-400',
+                  fromType === toType ? 'border-primary' : 'border-border',
                   'ms-[11px] border-s-2 ps-[19px] py-2 transition-colors',
                 )}
               >
@@ -132,15 +130,13 @@ export default function AdapterListPopover({
                     <>
                       <div
                         className={clsx(
-                          isFaulty
-                            ? 'border-neutral-400'
-                            : 'border-primary-500',
+                          isFaulty ? 'border-muted' : 'border-primary',
                           'ms-[11px] border-s-2 ps-3 h-5 transition-colors',
                         )}
                       />
                       <div
                         className={clsx(
-                          isFaulty ? 'text-neutral-400' : 'text-primary-700',
+                          isFaulty ? 'text-muted' : 'text-primary',
                           'flex gap-2 items-center font-mono text-xs transition-colors',
                         )}
                       >
@@ -162,7 +158,7 @@ export default function AdapterListPopover({
                   )}
                   <li
                     className={clsx(
-                      isFaulty ? 'border-neutral-400' : 'border-primary-500',
+                      isFaulty ? 'border-muted' : 'border-primary',
                       'flex gap-2 items-center ms-[11px] border-s-2 ps-[19px]',
                     )}
                   >
@@ -196,7 +192,7 @@ export default function AdapterListPopover({
                   </li>
                   <div
                     className={clsx(
-                      isFaulty ? 'text-neutral-400' : 'text-primary-700',
+                      isFaulty ? 'text-muted' : 'text-primary',
                       'flex gap-2 items-center font-mono text-xs transition-colors',
                     )}
                   >
@@ -221,21 +217,21 @@ export default function AdapterListPopover({
           {adapters.length > 0 && (
             <div
               className={clsx(
-                isFaulty ? 'border-neutral-400' : 'border-primary-500',
+                isFaulty ? 'border-muted' : 'border-primary',
                 'ms-[11px] border-s-2 ps-3 h-5 transition-colors',
               )}
             />
           )}
           <div
             className={clsx(
-              isFaulty ? 'text-neutral-400' : 'text-primary-700',
+              isFaulty ? 'text-muted' : 'text-primary',
               'flex gap-2 items-center font-mono text-xs transition-colors',
             )}
           >
             <MaterialSymbol icon="keyboard_double_arrow_down" />
             <div
               className={clsx(
-                isFaulty ? 'bg-neutral-100' : 'bg-primary-100',
+                isFaulty ? 'bg-muted' : 'bg-primary/10',
                 'flex flex-col flex-1 px-2 py-1 rounded',
               )}
             >

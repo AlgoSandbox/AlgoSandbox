@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { cloneElement, ForwardedRef, forwardRef,ReactElement } from 'react';
+import { cloneElement, ForwardedRef, forwardRef, ReactElement } from 'react';
 
 export type BadgeProps = {
   content: string | number;
@@ -9,14 +9,14 @@ export type BadgeProps = {
 
 function Badge(
   { content, children, visible, ...props }: BadgeProps,
-  ref: ForwardedRef<HTMLElement>
+  ref: ForwardedRef<HTMLElement>,
 ) {
   return (
     <div className="relative">
       <div
         className={clsx(
           !visible && 'hidden',
-          'absolute -top-2 -end-2 py-0.5 px-2 bg-primary-500 text-white text-xs rounded-full'
+          'absolute -top-2 -end-2 py-0.5 px-2 bg-primary text-on-primary text-xs rounded-full',
         )}
       >
         <span>{content}</span>

@@ -19,10 +19,16 @@ import {
 import { DbSandboxObjectSaved } from '@utils/db';
 import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
 import useCancelableInterval from '@utils/useCancelableInterval';
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import Markdown from 'react-markdown';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import Markdown, { Components } from 'react-markdown';
 
 const MAX_EXECUTION_STEP_COUNT = 20;
+
+const markdownComponents: Components = {
+  h1: ({ node, ...props }) => (
+    <h1 className="text-lg font-semibold" {...props} />
+  ),
+};
 
 export type CatalogSelectProps<
   T,
@@ -180,12 +186,19 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
 
   const [open, setOpen] = useState(false);
 
+  const handleQueryChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setQuery(e.target.value);
+    },
+    [],
+  );
+
   return (
     <Popover
       open={open}
       onOpenChange={setOpen}
       content={
-        <div className="flex bg-white h-[400px]">
+        <div className="flex bg-surface h-[400px]">
           <div className="flex flex-col border-r p-4 overflow-y-auto">
             <Input
               className="mb-4 sticky top-0"
@@ -194,9 +207,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
               hideLabel
               placeholder="Search..."
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-              }}
+              onChange={handleQueryChange}
             />
             {options
               .map((item) => {
@@ -227,7 +238,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 if (isSelectGroup(item)) {
                   return (
                     <Fragment key={item.key}>
-                      <span className="text-neutral-400 border-t pt-2 font-mono px-3">
+                      <span className="text-label border-t pt-2 font-mono px-3">
                         {item.label}
                       </span>
                       {item.options.map((option) => (
@@ -270,7 +281,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
           {selectedOption !== null && (
             <div className="w-[250px] overflow-y-auto">
               {visualization && (
-                <div className="w-[250px] h-[200px] rounded-tr-md bg-neutral-100 overflow-clip">
+                <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
                   <div className="w-[250px] h-[200px]">
                     <VisualizationRenderer
                       className="w-[250px] h-[200px] overflow-visible"
@@ -281,18 +292,12 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 </div>
               )}
               {!visualization && (
-                <div className="w-[250px] h-[200px] rounded-tr-md bg-neutral-100 flex justify-center items-center">
-                  <span className="text-neutral-400">No preview available</span>
+                <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
+                  <span className="text-label">No preview available</span>
                 </div>
               )}
               <div className="p-4 flex-col flex gap-2 items-start">
-                <Markdown
-                  components={{
-                    h1: (props) => (
-                      <h1 className="text-lg font-semibold" {...props} />
-                    ),
-                  }}
-                >
+                <Markdown components={markdownComponents}>
                   {selectedOption.value.writeup ?? `# ${selectedOption.label}`}
                 </Markdown>
                 <Button
@@ -319,16 +324,16 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
               }
             >
               <MaterialSymbol
-                className="!text-[16px] text-red-700"
+                className="!text-[16px] text-danger"
                 icon="error"
               />
             </Tooltip>
           )}
         </div>
         <Button
-          className={errorMessage ? 'border-2 border-red-700' : ''}
+          className={errorMessage ? 'border-2 border-danger' : ''}
           label={value?.label ?? ''}
-          variant="secondary"
+          variant="filled"
           endIcon={<MaterialSymbol icon="arrow_drop_down" />}
         />
       </div>

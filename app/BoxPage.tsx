@@ -15,7 +15,9 @@ import {
 } from '@components/box-page';
 import { ResizeHandle } from '@components/ui';
 import { createScene, SandboxScene } from '@utils';
+import { useTheme } from 'next-themes';
 import { useEffect, useMemo, useState } from 'react';
+import { chromeDark, chromeLight } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
@@ -76,6 +78,7 @@ function BoxPageImpl({
 }: {
   scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
 }) {
+  const { resolvedTheme } = useTheme();
   const mode = useBoxContext('mode.value');
   const customPanelType = useBoxContext('customPanelType');
   const customAlgorithmObjects = useBoxContext('algorithm.custom');
@@ -177,7 +180,18 @@ function BoxPageImpl({
             </span>
             {executionStep && (
               <div className="font-mono text-xs px-2 pt-2 overflow-y-auto">
-                <ObjectInspector data={executionStep.state} expandLevel={5} />
+                <ObjectInspector
+                  theme={
+                    (resolvedTheme === 'dark'
+                      ? {
+                          ...chromeDark,
+                          BASE_BACKGROUND_COLOR: 'rgb(10, 10, 10)',
+                        }
+                      : chromeLight) as any
+                  }
+                  data={executionStep.state}
+                  expandLevel={5}
+                />
               </div>
             )}
           </aside>

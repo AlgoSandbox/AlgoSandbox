@@ -9,7 +9,7 @@ import {
 
 import { Tooltip } from '.';
 
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
+type ButtonVariant = 'primary' | 'filled' | 'flat';
 type ButtonSize = 'sm' | 'md';
 
 export type ButtonProps = {
@@ -42,7 +42,7 @@ function Button(
     disabled,
     hideLabel,
     size = 'md',
-    variant = 'tertiary',
+    variant = 'flat',
     selected = false,
     role,
     ...props
@@ -57,7 +57,7 @@ function Button(
         role={role}
         aria-checked={selected}
         className={clsx(
-          'flex items-center justify-between rounded transition-colors focus:outline-primary-500 font-medium',
+          'flex items-center justify-between rounded transition-colors focus:outline-primary font-medium',
           size === 'sm' && [
             'py-1 gap-1',
             icon !== undefined ? 'ps-1' : 'ps-2',
@@ -69,21 +69,22 @@ function Button(
             icon !== undefined ? 'ps-2' : 'ps-3',
             hideLabel || endIcon ? 'pe-2' : 'pe-3',
           ],
-          variant === 'tertiary' && [
+          variant === 'flat' && [
             !disabled && [
-              !selected && 'hover:bg-primary-100 text-neutral-700',
-              selected && 'hover:bg-primary-200 bg-primary-100',
+              !selected && 'hover:bg-surface-high text-on-surface/80',
+              selected && 'hover:bg-primary/20 bg-primary/10',
             ],
-            disabled && 'text-neutral-300',
+            disabled && 'text-muted',
           ],
-          variant === 'secondary' && [
-            !disabled && 'bg-neutral-100 hover:bg-primary-100 text-neutral-700',
-            disabled && 'text-neutral-300 bg-neutral-100',
+          variant === 'filled' && [
+            !disabled &&
+              'bg-surface-high hover:bg-surface-higher text-on-surface/80',
+            disabled && 'text-muted bg-surface/50',
           ],
           variant === 'primary' && [
-            'text-white',
-            !disabled && 'bg-primary-500 hover:bg-primary-700',
-            disabled && 'bg-neutral-300',
+            'text-on-primary',
+            !disabled && 'bg-primary hover:bg-primary-high',
+            disabled && 'bg-muted',
           ],
           className,
         )}

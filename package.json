@@ -22,6 +22,7 @@
     "lodash": "^4.17.21",
     "monaco-editor": "^0.44.0",
     "next": "latest",
+    "next-themes": "^0.2.1",
     "react": "latest",
     "react-dom": "latest",
     "react-hook-form": "^7.47.0",

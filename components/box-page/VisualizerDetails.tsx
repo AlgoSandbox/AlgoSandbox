@@ -18,7 +18,7 @@ export default function VisualizerDetails<
   P extends SandboxParameters,
 >({ visualizer }: VisualizerDetailsProps<N, P>) {
   return (
-    <div className="p-4 bg-white">
+    <div className="p-4 bg-surface">
       <div className="font-medium flex flex-col gap-2">
         <span>Visualizer parameters</span>
         <ParameterControls parameters={visualizer.parameters} />

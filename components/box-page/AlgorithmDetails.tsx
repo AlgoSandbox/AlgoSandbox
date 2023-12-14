@@ -20,7 +20,7 @@ export default function AlgorithmDetails<
   P extends SandboxParameters,
 >({ algorithm }: AlgorithmDetailsProps<N, M, P>) {
   return (
-    <div className="p-4 bg-white">
+    <div className="p-4 bg-surface">
       <div className="font-medium flex flex-col gap-2">
         <span>Algorithm parameters</span>
         <ParameterControls parameters={algorithm.parameters} />

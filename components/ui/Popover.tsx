@@ -97,7 +97,7 @@ export default function Popover({
               icon={<MaterialSymbol icon="close" />}
             />
           </RadixPopover.Close>
-          <RadixPopover.Arrow className="fill-white" />
+          <RadixPopover.Arrow className="fill-surface-higher" />
         </RadixPopover.Content>
       </RadixPopover.Portal>
     </RadixPopover.Root>

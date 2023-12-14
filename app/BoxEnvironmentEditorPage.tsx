@@ -30,7 +30,7 @@ export default function BoxEnvironmentEditorPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex justify-start items-center px-4 border-b py-2 border-slate-300 gap-8">
+      <header className="flex justify-start items-center px-4 border-b py-2 gap-8">
         <div className="flex flex-row items-end gap-2">
           <Button
             icon={<MaterialSymbol icon="arrow_back" />}

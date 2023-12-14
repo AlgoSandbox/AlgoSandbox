@@ -71,7 +71,7 @@ export default function VisualizerSelect() {
             <Button
               label="Customize"
               hideLabel
-              variant="secondary"
+              variant="filled"
               icon={<MaterialSymbol icon="tune" />}
             />
           </Badge>

@@ -38,8 +38,8 @@ function DirectoryExplorerItem({
   return (
     <button
       className={clsx(
-        'flex gap-2 pe-2 py-2 hover:bg-primary-200',
-        selected && 'text-primary-700 bg-primary-100',
+        'flex gap-2 pe-2 py-2 hover:bg-primary/20',
+        selected && 'text-primary bg-primary/10',
       )}
       style={{
         paddingInlineStart: `${(level + 1) * 8}px`,
@@ -187,7 +187,7 @@ export default function DirectoryExplorer({
       }}
     >
       <div className={clsx(className, 'flex flex-col')}>
-        <span className="font-mono text-neutral-500 px-4 py-2 border-b">
+        <span className="font-mono text-label px-4 py-2 border-b">
           File explorer
         </span>
         <DirectoryExplorerDirectory directory={directory} level={-1} />

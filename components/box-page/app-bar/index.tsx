@@ -29,7 +29,7 @@ export default function AppBar() {
     useUserPreferences();
 
   return (
-    <header className="flex justify-between items-center px-4 border-b py-2 gap-8">
+    <header className="flex justify-between items-center px-4 border-b py-2 gap-8 bg-surface">
       <div className="flex gap-8 items-center">
         {!isAdvancedModeEnabled && <AppLogo />}
         <div className="flex flex-row items-end gap-2">

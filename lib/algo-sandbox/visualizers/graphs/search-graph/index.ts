@@ -14,12 +14,30 @@ const searchGraphVisualizer: SandboxVisualizer<
           renderNode: (node) => {
             node.fill(({ id: nodeId }) => {
               if (searchGraph.currentNodeId === nodeId) {
-                return '#cdf5b8';
+                return 'rgb(var(--color-primary))';
               }
               if (searchGraph.visited.has(nodeId)) {
-                return '#ffe9d5';
+                return 'rgb(var(--color-success))';
               }
-              return 'white';
+              return 'rgb(var(--color-surface))';
+            });
+            node.textColor(({ id: nodeId }) => {
+              if (searchGraph.currentNodeId === nodeId) {
+                return 'rgb(var(--color-on-primary))';
+              }
+              if (searchGraph.visited.has(nodeId)) {
+                return 'rgb(var(--color-on-success))';
+              }
+              return 'rgb(var(--color-on-surface))';
+            });
+            node.strokeColor(({ id: nodeId }) => {
+              if (searchGraph.currentNodeId === nodeId) {
+                return 'rgb(var(--color-primary))';
+              }
+              if (searchGraph.visited.has(nodeId)) {
+                return 'rgb(var(--color-success))';
+              }
+              return 'rgb(var(--color-border))';
             });
           },
         })

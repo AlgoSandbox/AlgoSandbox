@@ -28,6 +28,12 @@ type NodeGraphSVGNodeInternal<OmittedKeys extends string = ''> = Omit<
     fill: (
       getFill: (node: GraphNode) => string | undefined,
     ) => NodeGraphSVGNodeInternal<OmittedKeys | 'fill'>;
+    textColor: (
+      getTextColor: (node: GraphNode) => string | undefined,
+    ) => NodeGraphSVGNodeInternal<OmittedKeys | 'textColor'>;
+    strokeColor: (
+      getStrokeColor: (node: GraphNode) => string | undefined,
+    ) => NodeGraphSVGNodeInternal<OmittedKeys | 'strokeColor'>;
     raw: (render: RawRenderFunction) => void;
   },
   OmittedKeys
@@ -155,7 +161,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .enter()
             .append('line')
             .attr('class', 'link')
-            .attr('stroke', 'black')
+            .attr('stroke', 'rgb(var(--color-border))')
             .attr('stroke-width', 2);
 
           // Create nodes
@@ -166,7 +172,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .append('circle')
             .attr('class', 'node')
             .attr('r', 15)
-            .attr('stroke', 'black')
+            .attr('stroke', 'rgb(var(--color-border))')
             .attr('stroke-width', 2)
             .attr('style', 'cursor: grab');
 
@@ -224,6 +230,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .enter()
             .append('text')
             .attr('class', 'label')
+            .attr('fill', 'rgb(var(--color-on-surface))')
             .attr('text-anchor', 'middle')
             .text((d) => d.id)
             .attr('dy', 15 / 2)
@@ -250,6 +257,17 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             const node: NodeGraphSVGNode = {
               fill: (getFill) => {
                 svgNodes.attr('fill', (node) => getFill(node) ?? null);
+                return node;
+              },
+              textColor: (getTextColor) => {
+                svg
+                  .selectAll('.label')
+                  .data(nodes)
+                  .attr('fill', (node) => getTextColor(node) ?? null);
+                return node;
+              },
+              strokeColor: (getStrokeColor) => {
+                svgNodes.attr('stroke', (node) => getStrokeColor(node) ?? null);
                 return node;
               },
               raw: (render) => {

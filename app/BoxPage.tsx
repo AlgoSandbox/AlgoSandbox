@@ -17,11 +17,16 @@ import { ResizeHandle } from '@components/ui';
 import { createScene, SandboxScene } from '@utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useMemo, useState } from 'react';
-import { chromeDark, chromeLight } from 'react-inspector';
+import { chromeDark } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
 import BoxEnvironmentEditorPage from './BoxEnvironmentEditorPage';
+
+const customChromeDark = {
+  ...chromeDark,
+  BASE_BACKGROUND_COLOR: 'rgb(10, 10, 10)',
+};
 
 function BoxPageExecutionWrapper() {
   const { compatible: areAlgorithmProblemCompatible } =
@@ -144,6 +149,14 @@ function BoxPageImpl({
         )}
         <Panel id="center" order={2} defaultSize={80}>
           <main className="relative h-full flex flex-col">
+            <div className="flex-1">
+              {visualization && (
+                <VisualizerRenderer
+                  className="w-full h-full"
+                  visualization={visualization}
+                />
+              )}
+            </div>
             <div className="absolute p-2 max-w-full">
               <Pseudocode
                 pseudocode={pseudocode}
@@ -156,14 +169,6 @@ function BoxPageImpl({
                 <BoxExecutionControls />
               </div>
             )}
-            <div className="flex-1">
-              {visualization && (
-                <VisualizerRenderer
-                  className="w-full h-full"
-                  visualization={visualization}
-                />
-              )}
-            </div>
           </main>
         </Panel>
         <ResizeHandle />
@@ -172,9 +177,9 @@ function BoxPageImpl({
           id="right"
           order={3}
           defaultSize={20}
-          minSize={20}
+          minSize={10}
         >
-          <aside className="h-full lg:flex flex-col max-w-[300px] hidden">
+          <aside className="h-full lg:flex flex-col hidden">
             <span className="font-medium text-xs border-b py-2 px-2">
               State inspector
             </span>
@@ -183,11 +188,8 @@ function BoxPageImpl({
                 <ObjectInspector
                   theme={
                     (resolvedTheme === 'dark'
-                      ? {
-                          ...chromeDark,
-                          BASE_BACKGROUND_COLOR: 'rgb(10, 10, 10)',
-                        }
-                      : chromeLight) as any
+                      ? customChromeDark
+                      : 'chromeLight') as string
                   }
                   data={executionStep.state}
                   expandLevel={5}

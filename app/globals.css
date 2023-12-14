@@ -24,6 +24,9 @@
     --color-label: 82 82 82;
     /* red-700 */
     --color-danger: 185 28 28;
+    /* emerald-700 */
+    --color-success: 4 120 87;
+    --color-on-success: 255 255 255;
     --color-muted: 212 212 212;
   }
 
@@ -51,6 +54,9 @@
     --color-label: 163 163 163;
     /* red-300 */
     --color-danger: 252 165 165;
+    /* emerald-300 */
+    --color-success: 110 231 183;
+    --color-on-success: 0 0 0;
     --color-muted: 64 64 64;
   }
   
@@ -59,4 +65,5 @@
   ::after {
     @apply dark:border-border;
   }
+  
 }

@@ -19,6 +19,8 @@ const config: Config = {
         'on-surface': 'rgb(var(--color-on-surface) / <alpha-value>)',
         'on-primary': 'rgb(var(--color-on-primary) / <alpha-value>)',
         danger: 'rgb(var(--color-danger) / <alpha-value>)',
+        success: 'rgb(var(--color-success) / <alpha-value>)',
+        'on-success': 'rgb(var(--color-on-success) / <alpha-value>)',
         muted: 'rgb(var(--color-muted) / <alpha-value>)',
         label: 'rgb(var(--color-label) / <alpha-value>)',
       },

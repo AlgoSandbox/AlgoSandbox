@@ -9,7 +9,6 @@ import BoxExecutionControls from './BoxExecutionControls';
 import BoxPageShortcuts from './BoxPageShortcuts';
 import ParameterControls from './ParameterControls';
 import Pseudocode from './Pseudocode';
-import SandboxObjectEditorPanel from './SandboxObjectEditorPanel';
 
 export {
   AdapterListPopover,
@@ -21,7 +20,6 @@ export {
   BoxPageShortcuts,
   ParameterControls,
   Pseudocode,
-  SandboxObjectEditorPanel,
   useBoxContext,
   useBoxControlsContext,
 };

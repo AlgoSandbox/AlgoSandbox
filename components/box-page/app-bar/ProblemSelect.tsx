@@ -1,5 +1,6 @@
 import { useBoxContext } from '@components/box-page';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
+import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedProblem } from '@utils';
 import { useEffect, useMemo } from 'react';
@@ -9,9 +10,8 @@ import ProblemDetails from '../ProblemDetails';
 import CatalogSelect from './CatalogSelect';
 
 export default function ProblemSelect() {
+  const { addTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
-    useBoxContext('problem.customPanel');
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -80,14 +80,17 @@ export default function ProblemSelect() {
           </Badge>
         </Popover>
       )}
-      {isAdvancedModeEnabled && selectedOption !== undefined && (
+      {isAdvancedModeEnabled && selectedOption && (
         <Button
-          label="Edit problem"
+          label="Edit problem in new tab"
           hideLabel
           role="checkbox"
-          selected={customPanelVisible}
           onClick={() => {
-            setCustomPanelVisible(!customPanelVisible);
+            addTab({
+              type: 'editor',
+              label: selectedOption.label,
+              object: selectedOption.value,
+            });
           }}
           icon={<MaterialSymbol icon="edit" />}
         />

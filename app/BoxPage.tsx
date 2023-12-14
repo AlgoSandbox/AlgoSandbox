@@ -9,7 +9,6 @@ import {
   BoxExecutionControls,
   BoxPageShortcuts,
   Pseudocode,
-  SandboxObjectEditorPanel,
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
@@ -85,24 +84,8 @@ function BoxPageImpl({
 }) {
   const { resolvedTheme } = useTheme();
   const mode = useBoxContext('mode.value');
-  const customPanelType = useBoxContext('customPanelType');
-  const customAlgorithmObjects = useBoxContext('algorithm.custom');
-  const customProblemObjects = useBoxContext('problem.custom');
-  const customVisualizerObjects = useBoxContext('visualizer.custom');
-  const customObjects = (() => {
-    switch (customPanelType) {
-      case 'algorithm':
-        return customAlgorithmObjects;
-      case 'problem':
-        return customProblemObjects;
-      case 'visualizer':
-        return customVisualizerObjects;
-    }
-  })();
 
   const { currentStepIndex } = useBoxControlsContext();
-
-  const customPanelVisible = customPanelType !== null;
 
   const { compatible: areAlgorithmVisualizerCompatible } = useBoxContext(
     'algorithmVisualizer',
@@ -139,14 +122,6 @@ function BoxPageImpl({
     <div className="flex flex-col h-full">
       <AppBar />
       <PanelGroup className="overflow-y-hidden" direction="horizontal">
-        {customPanelVisible && customObjects && (
-          <>
-            <Panel id="left" order={1} defaultSize={30} minSize={30}>
-              <SandboxObjectEditorPanel customObjects={customObjects} />
-            </Panel>
-            <ResizeHandle />
-          </>
-        )}
         <Panel id="center" order={2} defaultSize={80}>
           <main className="relative h-full flex flex-col">
             <div className="flex-1">

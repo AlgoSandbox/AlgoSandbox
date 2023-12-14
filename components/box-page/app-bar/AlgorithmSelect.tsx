@@ -1,4 +1,5 @@
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
+import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedAlgorithm } from '@utils';
 import { useEffect, useMemo } from 'react';
@@ -9,9 +10,11 @@ import { useBoxContext } from '../box-context';
 import CatalogSelect from './CatalogSelect';
 
 export default function AlgorithmSelect() {
+  const { addTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
-    useBoxContext('algorithm.customPanel');
+  const { visible: customPanelVisible } = useBoxContext(
+    'algorithm.customPanel',
+  );
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -76,14 +79,18 @@ export default function AlgorithmSelect() {
           </Badge>
         </Popover>
       )}
-      {isAdvancedModeEnabled && selectedOption !== undefined && (
+      {isAdvancedModeEnabled && selectedOption && (
         <Button
-          label="Edit algorithm"
+          label="Edit algorithm in new tab"
           hideLabel
           role="checkbox"
           selected={customPanelVisible}
           onClick={() => {
-            setCustomPanelVisible(!customPanelVisible);
+            addTab({
+              type: 'editor',
+              label: selectedOption.label,
+              object: selectedOption.value,
+            });
           }}
           icon={<MaterialSymbol icon="edit" />}
         />

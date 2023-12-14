@@ -4,7 +4,7 @@ import * as LocalDb from './local/visualizers';
 import { DbVisualizer, DbVisualizerSaved } from './types';
 
 export function useSavedVisualizersQuery() {
-  return useQuery(['visualizers'], async () => {
+  return useQuery(['objects', 'visualizer'], async () => {
     return LocalDb.getSavedVisualizers();
   });
 }
@@ -16,10 +16,10 @@ export function useAddSavedVisualizerMutation() {
       return LocalDb.addSavedVisualizer(visualizer);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['visualizers']);
+      onSuccess: ({ type }) => {
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }
 
@@ -30,10 +30,11 @@ export function useSetSavedVisualizerMutation() {
       return LocalDb.setSavedVisualizer(visualizer);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['visualizers']);
+      onSuccess: ({ key, type }) => {
+        queryClient.invalidateQueries(['objects', key]);
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }
 
@@ -44,9 +45,10 @@ export function useRemoveSavedVisualizerMutation() {
       LocalDb.removeSavedVisualizer(visualizer);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['visualizers']);
+      onSuccess: (_, { key, type }) => {
+        queryClient.invalidateQueries(['objects', key]);
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }

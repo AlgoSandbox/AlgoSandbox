@@ -13,7 +13,7 @@ export type DirectoryExplorerProps = {
   className?: string;
   files: Record<string, string>;
   onFileClick: (file: BoxExplorerFile) => void;
-  activeFile: BoxExplorerFile | null;
+  activePath: string | null;
 };
 
 function isDirectory(item: BoxExplorerItem): item is BoxExplorerDirectory {
@@ -59,7 +59,7 @@ function DirectoryExplorerFile({
   file: BoxExplorerFile;
   level: number;
 }) {
-  const { onFileClick, activeFile } = useDirectoryExplorerContext();
+  const { onFileClick, activePath } = useDirectoryExplorerContext();
   return (
     <DirectoryExplorerItem
       label={file.name}
@@ -68,7 +68,7 @@ function DirectoryExplorerFile({
       onClick={() => {
         onFileClick(file);
       }}
-      selected={activeFile?.path === file.path}
+      selected={activePath === file.path}
     />
   );
 }
@@ -126,7 +126,7 @@ type DirectoryExplorerContextType = {
   expandDirectory: (directoryPath: string) => void;
   collapseDirectory: (directoryPath: string) => void;
   onFileClick: (file: BoxExplorerFile) => void;
-  activeFile: BoxExplorerFile | null;
+  activePath: string | null;
 };
 
 const DirectoryExplorerContext = createContext<DirectoryExplorerContextType>({
@@ -134,7 +134,7 @@ const DirectoryExplorerContext = createContext<DirectoryExplorerContextType>({
   expandDirectory: () => {},
   collapseDirectory: () => {},
   onFileClick: () => {},
-  activeFile: null,
+  activePath: null,
 });
 
 function useDirectoryExplorerContext() {
@@ -145,7 +145,7 @@ export default function DirectoryExplorer({
   className,
   files,
   onFileClick,
-  activeFile,
+  activePath,
 }: DirectoryExplorerProps) {
   const directory = useMemo(() => buildDirectory(files), [files]);
 
@@ -172,7 +172,7 @@ export default function DirectoryExplorer({
   return (
     <DirectoryExplorerContext.Provider
       value={{
-        activeFile,
+        activePath,
         onFileClick,
         isDirectoryExpanded: (directoryPath) =>
           expandedDirectoryPaths.includes(directoryPath),

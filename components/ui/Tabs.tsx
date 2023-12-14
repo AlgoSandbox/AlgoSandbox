@@ -5,6 +5,7 @@ import { MaterialSymbol } from '.';
 type TabProps = {
   label: string;
   isSelected: boolean;
+  onClick: () => void;
   onClose: () => void;
   closeable?: boolean;
   className?: string;
@@ -15,6 +16,7 @@ export function Tab({
   label,
   isSelected,
   onClose,
+  onClick,
   closeable = true,
 }: TabProps) {
   return (
@@ -26,7 +28,9 @@ export function Tab({
         className,
       )}
     >
-      <button className="p-2 font-medium">{label}</button>
+      <button className="p-2 font-medium" onClick={onClick}>
+        {label}
+      </button>
       {closeable && (
         <button
           onClick={onClose}
@@ -49,22 +53,26 @@ export type TabsItem = Readonly<{
 
 type TabsProps = {
   tabs: Array<TabsItem>;
-  onTabsChange: (tabs: Array<TabsItem>) => void;
+  onTabClose: (tab: TabsItem) => void;
+  onTabSelect: (tab: TabsItem) => void;
 };
 
-export function Tabs({ tabs, onTabsChange }: TabsProps) {
+export function Tabs({ tabs, onTabClose, onTabSelect }: TabsProps) {
   return (
     <div className="flex relative w-full">
       <div className="absolute bottom-0 w-full border-b -z-10"></div>
-      {tabs.map(({ key, label, isSelected, closeable }, index) => (
+      {tabs.map((tab, index) => (
         <Tab
           className={clsx(index > 0 && 'ms-1')}
-          key={key}
-          isSelected={isSelected}
-          label={label}
-          closeable={closeable}
+          key={tab.key}
+          isSelected={tab.isSelected}
+          label={tab.label}
+          closeable={tab.closeable}
+          onClick={() => {
+            onTabSelect(tab);
+          }}
           onClose={() => {
-            onTabsChange(tabs.filter((tab) => tab.key !== key));
+            onTabClose(tab);
           }}
         />
       ))}

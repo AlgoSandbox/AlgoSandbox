@@ -4,7 +4,7 @@ import * as LocalDb from './local/algorithms';
 import { DbAlgorithm, DbAlgorithmSaved } from './types';
 
 export function useSavedAlgorithmsQuery() {
-  return useQuery(['algorithms'], async () => {
+  return useQuery(['objects', 'algorithm'], async () => {
     return LocalDb.getSavedAlgorithms();
   });
 }
@@ -13,13 +13,14 @@ export function useAddSavedAlgorithmMutation() {
   const queryClient = useQueryClient();
   return useMutation(
     async (algorithm: DbAlgorithm) => {
+      1;
       return LocalDb.addSavedAlgorithm(algorithm);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['algorithms']);
+      onSuccess: ({ type }) => {
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }
 
@@ -30,10 +31,11 @@ export function useSetSavedAlgorithmMutation() {
       return LocalDb.setSavedAlgorithm(algorithm);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['algorithms']);
+      onSuccess: ({ key, type }) => {
+        queryClient.invalidateQueries(['objects', key]);
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }
 
@@ -44,9 +46,10 @@ export function useRemoveSavedAlgorithmMutation() {
       LocalDb.removeSavedAlgorithm(algorithm);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['algorithms']);
+      onSuccess: (_, { key, type }) => {
+        queryClient.invalidateQueries(['objects', key]);
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }

@@ -23,7 +23,7 @@ export function getSavedVisualizers() {
 }
 
 export function addSavedVisualizer(visualizer: DbVisualizer) {
-  const savedVisualizer = saveSandboxObject('visualizer', visualizer);
+  const savedVisualizer = saveSandboxObject(visualizer);
   const visualizerKeys = getSavedVisualizerKeys();
   const newVisualizerKeys = [...visualizerKeys, savedVisualizer.key];
   localStorage.setItem(savedListKey, JSON.stringify(newVisualizerKeys));
@@ -32,7 +32,7 @@ export function addSavedVisualizer(visualizer: DbVisualizer) {
 }
 
 export function setSavedVisualizer(visualizer: DbVisualizerSaved) {
-  const savedVisualizer = saveSandboxObject('visualizer', visualizer);
+  const savedVisualizer = saveSandboxObject(visualizer);
 
   return savedVisualizer;
 }
@@ -41,6 +41,8 @@ export function removeSavedVisualizer(visualizer: DbVisualizerSaved) {
   localStorage.removeItem(visualizer.key);
 
   const visualizerKeys = getSavedVisualizerKeys();
-  const newVisualizerKeys = visualizerKeys.filter((key) => key !== visualizer.key);
+  const newVisualizerKeys = visualizerKeys.filter(
+    (key) => key !== visualizer.key,
+  );
   localStorage.setItem(savedListKey, JSON.stringify(newVisualizerKeys));
 }

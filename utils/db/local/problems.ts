@@ -23,7 +23,7 @@ export function getSavedProblems() {
 }
 
 export function addSavedProblem(problem: DbProblem) {
-  const savedProblem = saveSandboxObject('problem', problem);
+  const savedProblem = saveSandboxObject(problem);
   const problemKeys = getSavedProblemKeys();
   const newProblemKeys = [...problemKeys, savedProblem.key];
   localStorage.setItem(savedListKey, JSON.stringify(newProblemKeys));
@@ -32,7 +32,7 @@ export function addSavedProblem(problem: DbProblem) {
 }
 
 export function setSavedProblem(problem: DbProblemSaved) {
-  const savedProblem = saveSandboxObject('problem', problem);
+  const savedProblem = saveSandboxObject(problem);
 
   return savedProblem;
 }

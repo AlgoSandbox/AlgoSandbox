@@ -4,7 +4,7 @@ import * as LocalDb from './local/problems';
 import { DbProblem, DbProblemSaved } from './types';
 
 export function useSavedProblemsQuery() {
-  return useQuery(['problems'], async () => {
+  return useQuery(['objects', 'problem'], async () => {
     return LocalDb.getSavedProblems();
   });
 }
@@ -16,10 +16,10 @@ export function useAddSavedProblemMutation() {
       return LocalDb.addSavedProblem(problem);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['problems']);
+      onSuccess: ({ type }) => {
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }
 
@@ -30,10 +30,11 @@ export function useSetSavedProblemMutation() {
       return LocalDb.setSavedProblem(problem);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['problems']);
+      onSuccess: ({ key, type }) => {
+        queryClient.invalidateQueries(['objects', key]);
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }
 
@@ -44,9 +45,10 @@ export function useRemoveSavedProblemMutation() {
       LocalDb.removeSavedProblem(problem);
     },
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['problems']);
+      onSuccess: (_, { key, type }) => {
+        queryClient.invalidateQueries(['objects', key]);
+        queryClient.invalidateQueries(['objects', type]);
       },
-    }
+    },
   );
 }

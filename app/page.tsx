@@ -1,5 +1,5 @@
 import { CatalogGroup } from '@constants/catalog';
-import { DbSandboxObjectSaved } from '@utils/db';
+import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
 import fs from 'fs';
 import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';
 import path from 'path';
@@ -89,7 +89,11 @@ const visualizerGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/visualizers/graphs',
 };
 
-function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
+function readSandboxObjectGroup<T extends DbSandboxObjectType>(
+  type: T,
+  groupLabel: string,
+  folderGlob: string,
+) {
   const contents = readFilesMatchingPatterns([
     [path.join(folderGlob, '*/index.ts')],
   ]);
@@ -100,7 +104,7 @@ function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
     [path.join(folderGlob, '*/*.*')],
   ]);
 
-  const objects: Array<DbSandboxObjectSaved> = Object.entries(contents).map(
+  const objects: Array<DbSandboxObjectSaved<T>> = Object.entries(contents).map(
     ([contentFileName]) => {
       const folder = contentFileName.substring(0, contentFileName.length - 8);
       const writeup = writeups[folder + 'index.md'];
@@ -121,11 +125,13 @@ function readSandboxObjectGroup(groupLabel: string, folderGlob: string) {
         name: title,
         writeup,
         files: renamedFiles,
+        editable: false,
+        type,
       };
     },
   );
 
-  const objectOptions: CatalogGroup<DbSandboxObjectSaved> = {
+  const objectOptions: CatalogGroup<DbSandboxObjectSaved<T>> = {
     key: groupLabel,
     label: groupLabel,
     options: objects.map((object) => ({
@@ -146,13 +152,18 @@ export default async function Page() {
 
   const builtInAlgorithmOptions = Object.entries(
     algorithmGroupToFolderGlob,
-  ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
+  ).map(([label, folderGlob]) =>
+    readSandboxObjectGroup('algorithm', label, folderGlob),
+  );
   const builtInProblemOptions = Object.entries(problemGroupToFolderGlob).map(
-    ([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob),
+    ([label, folderGlob]) =>
+      readSandboxObjectGroup('problem', label, folderGlob),
   );
   const builtInVisualizerOptions = Object.entries(
     visualizerGroupToFolderGlob,
-  ).map(([label, folderGlob]) => readSandboxObjectGroup(label, folderGlob));
+  ).map(([label, folderGlob]) =>
+    readSandboxObjectGroup('visualizer', label, folderGlob),
+  );
 
   return (
     <Playground

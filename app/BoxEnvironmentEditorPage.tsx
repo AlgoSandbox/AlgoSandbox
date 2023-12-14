@@ -2,7 +2,6 @@ import { DirectoryExplorer } from '@components/box-environment-page';
 import { useBoxContext } from '@components/box-page';
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
 import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
-import { BoxExplorerFile } from '@typings/directory';
 import _ from 'lodash';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -13,9 +12,7 @@ export default function BoxEnvironmentEditorPage() {
   const { value: boxEnvironment, setValue: setBoxEnvironment } =
     useBoxContext('boxEnvironment');
 
-  const [selectedFile, setSelectedFile] = useState<BoxExplorerFile | null>(
-    null,
-  );
+  const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
 
   const {
     control,
@@ -44,9 +41,11 @@ export default function BoxEnvironmentEditorPage() {
       <PanelGroup className="flex-1" direction="horizontal">
         <Panel key="explorer" defaultSize={20}>
           <DirectoryExplorer
-            activeFile={selectedFile}
+            activePath={selectedFilePath}
             files={boxEnvironment}
-            onFileClick={setSelectedFile}
+            onFileClick={(file) => {
+              setSelectedFilePath(file.path);
+            }}
           />
         </Panel>
         <ResizeHandle />
@@ -68,17 +67,17 @@ export default function BoxEnvironmentEditorPage() {
                 disabled={!isDirty}
               />
             </div>
-            {selectedFile && (
+            {selectedFilePath && (
               <div className="flex-1">
                 <Controller
-                  key={selectedFile.path}
+                  key={selectedFilePath}
                   control={control}
-                  name={selectedFile.path.replaceAll('.', '$')}
+                  name={selectedFilePath.replaceAll('.', '$')}
                   rules={{ required: true }}
                   render={({ field: { onChange, value } }) => (
                     <AlgoSandboxEditor
                       files={boxEnvironment}
-                      path={`file:///${selectedFile.path}`}
+                      path={`file:///${selectedFilePath}`}
                       value={value}
                       onChange={(value) => {
                         onChange({

@@ -1,5 +1,6 @@
 import { useBoxContext } from '@components/box-page';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
+import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedVisualizer } from '@utils';
 import { useEffect, useMemo } from 'react';
@@ -9,9 +10,11 @@ import VisualizerDetails from '../VisualizerDetails';
 import CatalogSelect from './CatalogSelect';
 
 export default function VisualizerSelect() {
+  const { addTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { setVisible: setCustomPanelVisible, visible: customPanelVisible } =
-    useBoxContext('visualizer.customPanel');
+  const { visible: customPanelVisible } = useBoxContext(
+    'visualizer.customPanel',
+  );
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -77,14 +80,18 @@ export default function VisualizerSelect() {
           </Badge>
         </Popover>
       )}
-      {isAdvancedModeEnabled && selectedOption !== undefined && (
+      {isAdvancedModeEnabled && selectedOption && (
         <Button
-          label="Edit visualizer"
+          label="Edit visualizer in new tab"
           hideLabel
           role="checkbox"
           selected={customPanelVisible}
           onClick={() => {
-            setCustomPanelVisible(!customPanelVisible);
+            addTab({
+              type: 'editor',
+              label: selectedOption.label,
+              object: selectedOption.value,
+            });
           }}
           icon={<MaterialSymbol icon="edit" />}
         />

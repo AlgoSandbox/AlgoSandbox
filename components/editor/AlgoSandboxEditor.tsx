@@ -1,4 +1,5 @@
 import { Editor } from '@monaco-editor/react';
+import { useTheme } from 'next-themes';
 
 import { useAlgoSandboxEditorFilesContext } from './AlgoSandboxEditorFilesContextProvider';
 
@@ -15,11 +16,13 @@ export default function AlgoSandboxEditor({
   files,
   path,
 }: AlgoSandboxEditorProps) {
+  const { resolvedTheme } = useTheme();
   const { algoSandboxFiles } = useAlgoSandboxEditorFilesContext();
 
   return (
     <Editor
       language="typescript"
+      theme={resolvedTheme === 'dark' ? 'vs-dark' : 'light'}
       path={path}
       value={value}
       onChange={onChange}

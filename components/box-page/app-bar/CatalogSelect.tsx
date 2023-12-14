@@ -25,6 +25,7 @@ import Markdown, { Components } from 'react-markdown';
 const MAX_EXECUTION_STEP_COUNT = 20;
 
 const markdownComponents: Components = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   h1: ({ node, ...props }) => (
     <h1 className="text-lg font-semibold" {...props} />
   ),

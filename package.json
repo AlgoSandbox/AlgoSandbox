@@ -24,6 +24,8 @@
     "next": "latest",
     "next-themes": "^0.2.1",
     "react": "latest",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "latest",
     "react-hook-form": "^7.47.0",
     "react-hotkeys-hook": "^4.4.1",

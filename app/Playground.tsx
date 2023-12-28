@@ -15,6 +15,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
 import clsx from 'clsx';
 import { useMemo } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { TypeDeclaration } from './page';
 
@@ -30,8 +32,14 @@ type PlaygroundProps = {
 
 export function PlaygroundPage() {
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { selectedTabId, tabs, renderTabContent, closeTab, selectTab } =
-    useTabManager();
+  const {
+    selectedTabId,
+    tabs,
+    renderTabContent,
+    onTabsReorder,
+    closeTab,
+    selectTab,
+  } = useTabManager();
 
   const tabItems = useMemo(() => {
     return tabs.map(
@@ -54,6 +62,7 @@ export function PlaygroundPage() {
           </div>
           <Tabs
             tabs={tabItems}
+            onTabsReorder={onTabsReorder}
             onTabSelect={(tab) => {
               selectTab(tab.key);
             }}
@@ -89,15 +98,17 @@ export default function Playground({
           algoSandboxFiles={algoSandboxFiles}
           typeDeclarations={typeDeclarations}
         >
-          <BuiltInComponentsProvider
-            builtInAlgorithmOptions={builtInAlgorithmOptions}
-            builtInProblemOptions={builtInProblemOptions}
-            builtInVisualizerOptions={builtInVisualizerOptions}
-          >
-            <TabManagerProvider>
-              <PlaygroundPage />
-            </TabManagerProvider>
-          </BuiltInComponentsProvider>
+          <DndProvider backend={HTML5Backend}>
+            <BuiltInComponentsProvider
+              builtInAlgorithmOptions={builtInAlgorithmOptions}
+              builtInProblemOptions={builtInProblemOptions}
+              builtInVisualizerOptions={builtInVisualizerOptions}
+            >
+              <TabManagerProvider>
+                <PlaygroundPage />
+              </TabManagerProvider>
+            </BuiltInComponentsProvider>
+          </DndProvider>
         </AlgoSandboxEditorFilesContextProvider>
       </UserPreferencesProvider>
     </QueryClientProvider>

@@ -1,4 +1,5 @@
-import { adapterOptions } from '@constants/catalog';
+import { CatalogGroup } from '@constants/catalog';
+import { DbAdapterSaved } from '@utils/db';
 import { useMemo } from 'react';
 
 import {
@@ -10,23 +11,25 @@ import { BoxContextAlgorithm } from './sandbox-object/algorithm';
 import { BoxContextProblem } from './sandbox-object/problem';
 
 export type BoxContextProblemAlgorithm = {
-  compatible: boolean;
   adapters: BoxContextAdapters;
+  compatible: boolean;
 };
 
 export const defaultBoxContextProblemAlgorithm: BoxContextProblemAlgorithm = {
-  compatible: false,
   adapters: defaultBoxContextAdapters,
+  compatible: false,
 };
 
 export default function useBoxContextProblemAlgorithm({
   algorithm,
+  builtInAdapterOptions,
   problem,
 }: {
   algorithm: BoxContextAlgorithm;
+  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   problem: BoxContextProblem;
 }) {
-  const adapters = useBoxContextAdapters(adapterOptions);
+  const adapters = useBoxContextAdapters(builtInAdapterOptions);
   const { composed: composedAdapter, value: adapterList } = adapters;
   const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
 

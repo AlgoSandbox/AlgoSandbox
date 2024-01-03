@@ -110,6 +110,7 @@ export default function BoxContextProvider({
   children,
 }: BoxContextProviderProps) {
   const {
+    builtInAdapterOptions,
     builtInAlgorithmOptions,
     builtInProblemOptions,
     builtInVisualizerOptions,
@@ -157,10 +158,12 @@ export default function BoxContextProvider({
   });
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,
+    builtInAdapterOptions,
     problem,
   });
   const algorithmVisualizer = useBoxContextAlgorithmVisualizer({
     algorithm,
+    builtInAdapterOptions,
     visualizer,
   });
 

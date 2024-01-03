@@ -1,4 +1,8 @@
-export type DbSandboxObjectType = 'algorithm' | 'problem' | 'visualizer';
+export type DbSandboxObjectType =
+  | 'algorithm'
+  | 'problem'
+  | 'visualizer'
+  | 'adapter';
 
 export type DbSandboxObject<
   T extends DbSandboxObjectType = DbSandboxObjectType,
@@ -17,6 +21,8 @@ export type DbSandboxObjectSaved<
   writeup?: string;
 };
 
+export type DbAdapter = DbSandboxObject<'adapter'>;
+export type DbAdapterSaved = DbSandboxObjectSaved<'adapter'>;
 export type DbAlgorithm = DbSandboxObject<'algorithm'>;
 export type DbAlgorithmSaved = DbSandboxObjectSaved<'algorithm'>;
 export type DbProblem = DbSandboxObject<'problem'>;

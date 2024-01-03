@@ -9,8 +9,10 @@ function getSavedObjectKeys(listKey: string) {
     .parse(JSON.parse(localStorage.getItem(listKey) ?? '[]'));
 }
 
-function createKey(object: DbSandboxObject) {
+function createKey(object: DbSandboxObject): string {
   switch (object.type) {
+    case 'adapter':
+      return `sandbox:adapters:${object.name}-${new Date().getTime()}`;
     case 'algorithm':
       return `sandbox:algorithms:${object.name}-${new Date().getTime()}`;
     case 'problem':
@@ -20,8 +22,10 @@ function createKey(object: DbSandboxObject) {
   }
 }
 
-function getListKey(object: DbSandboxObject) {
+function getListKey(object: DbSandboxObject): string {
   switch (object.type) {
+    case 'adapter':
+      return 'sandbox:adapters:custom';
     case 'algorithm':
       return 'sandbox:algorithms:custom';
     case 'problem':

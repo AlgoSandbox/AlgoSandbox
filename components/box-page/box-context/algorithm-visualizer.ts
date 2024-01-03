@@ -1,4 +1,5 @@
-import { adapterOptions } from '@constants/catalog';
+import { CatalogGroup } from '@constants/catalog';
+import { DbAdapterSaved } from '@utils/db';
 import { useMemo } from 'react';
 
 import {
@@ -21,13 +22,15 @@ export type BoxContextAlgorithmVisualizer = {
 };
 
 export default function useBoxContextAlgorithmVisualizer({
-  visualizer,
   algorithm,
+  builtInAdapterOptions,
+  visualizer,
 }: {
   algorithm: BoxContextAlgorithm;
+  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   visualizer: BoxContextVisualizer;
 }) {
-  const adapters = useBoxContextAdapters(adapterOptions);
+  const adapters = useBoxContextAdapters(builtInAdapterOptions);
   const { composed: composedAdapter, value: adapterList } = adapters;
   const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
 

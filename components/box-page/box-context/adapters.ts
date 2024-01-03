@@ -4,10 +4,10 @@ import {
   SandboxStateType,
   tryCompose,
 } from '@algo-sandbox/core';
-import { SelectOption, SelectOptions } from '@components/ui';
+import { CatalogGroup, CatalogOption } from '@constants/catalog';
+import { DbAdapterSaved } from '@utils/db';
+import { DbObjectEvaluation, evalSavedObject } from '@utils/evalSavedObject';
 import { useMemo, useState } from 'react';
-
-type Adapter = SandboxAdapter<SandboxStateType, SandboxStateType>;
 
 export type BoxContextAdapters = {
   composed: SandboxCompositeAdapter<
@@ -15,9 +15,14 @@ export type BoxContextAdapters = {
     SandboxStateType,
     SandboxAdapter<SandboxStateType, SandboxStateType>[]
   > | null;
-  value: Array<SelectOption<Adapter>>;
-  setValue: (value: Array<SelectOption<Adapter>>) => void;
-  options: SelectOptions<Adapter>;
+  value: Array<CatalogOption<DbAdapterSaved>>;
+  evaluated: Array<{
+    evaluation: DbObjectEvaluation<'adapter'>;
+    key: string;
+    label: string;
+  }>;
+  setValue: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
+  options: Array<CatalogGroup<DbAdapterSaved>>;
 };
 
 export const defaultBoxContextAdapters: BoxContextAdapters = {
@@ -25,20 +30,37 @@ export const defaultBoxContextAdapters: BoxContextAdapters = {
   setValue: () => {},
   value: [],
   options: [],
+  evaluated: [],
 };
 
-export function useBoxContextAdapters(options: SelectOptions<Adapter>) {
+export function useBoxContextAdapters(
+  options: Array<CatalogGroup<DbAdapterSaved>>,
+) {
   const [selectedAdapters, setSelectedAdapters] = useState<
-    SelectOption<Adapter>[]
+    CatalogOption<DbAdapterSaved>[]
   >([]);
 
+  const evaluated = useMemo(() => {
+    return selectedAdapters.map(({ label, key, value: object }) => ({
+      evaluation: evalSavedObject<'adapter'>(object),
+      label,
+      key,
+    }));
+  }, [selectedAdapters]);
+
   const composedAdapter = useMemo(() => {
-    if (selectedAdapters.length === 0) {
+    if (evaluated.length === 0) {
       return null;
     }
 
-    return tryCompose(...selectedAdapters.map(({ value }) => value));
-  }, [selectedAdapters]);
+    if (evaluated.some((adapter) => adapter.evaluation.objectEvaled === null)) {
+      return null;
+    }
+
+    return tryCompose(
+      ...evaluated.map(({ evaluation: { objectEvaled } }) => objectEvaled!),
+    );
+  }, [evaluated]);
 
   const adapters = useMemo(() => {
     const value: BoxContextAdapters = {
@@ -46,10 +68,11 @@ export function useBoxContextAdapters(options: SelectOptions<Adapter>) {
       setValue: setSelectedAdapters,
       value: selectedAdapters,
       options,
+      evaluated,
     };
 
     return value;
-  }, [composedAdapter, options, selectedAdapters]);
+  }, [composedAdapter, evaluated, options, selectedAdapters]);
 
   return adapters;
 }

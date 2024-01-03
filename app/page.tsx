@@ -89,6 +89,10 @@ const visualizerGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/visualizers/graphs',
 };
 
+const adapterGroupToFolderGlob = {
+  Example: 'lib/algo-sandbox/adapters/example',
+};
+
 function readSandboxObjectGroup<T extends DbSandboxObjectType>(
   type: T,
   groupLabel: string,
@@ -164,11 +168,16 @@ export default async function Page() {
   ).map(([label, folderGlob]) =>
     readSandboxObjectGroup('visualizer', label, folderGlob),
   );
+  const builtInAdapterOptions = Object.entries(adapterGroupToFolderGlob).map(
+    ([label, folderGlob]) =>
+      readSandboxObjectGroup('adapter', label, folderGlob),
+  );
 
   return (
     <Playground
       algoSandboxFiles={algoSandboxFiles}
       typeDeclarations={typeDeclarations}
+      builtInAdapterOptions={builtInAdapterOptions}
       builtInAlgorithmOptions={builtInAlgorithmOptions}
       builtInProblemOptions={builtInProblemOptions}
       builtInVisualizerOptions={builtInVisualizerOptions}

@@ -1,14 +1,21 @@
 import { CatalogGroup } from '@constants/catalog';
-import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
+import {
+  DbAdapterSaved,
+  DbAlgorithmSaved,
+  DbProblemSaved,
+  DbVisualizerSaved,
+} from '@utils/db';
 import { createContext, useContext } from 'react';
 
 type BuiltInComponentsContextType = {
+  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
 };
 
 const BuiltInComponentsContext = createContext<BuiltInComponentsContextType>({
+  builtInAdapterOptions: [],
   builtInAlgorithmOptions: [],
   builtInProblemOptions: [],
   builtInVisualizerOptions: [],
@@ -20,6 +27,7 @@ export function useBuiltInComponents() {
 
 type BuiltInComponentsProviderProps = {
   children: React.ReactNode;
+  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
@@ -27,6 +35,7 @@ type BuiltInComponentsProviderProps = {
 
 export default function BuiltInComponentsProvider({
   children,
+  builtInAdapterOptions,
   builtInAlgorithmOptions,
   builtInProblemOptions,
   builtInVisualizerOptions,
@@ -34,6 +43,7 @@ export default function BuiltInComponentsProvider({
   return (
     <BuiltInComponentsContext.Provider
       value={{
+        builtInAdapterOptions,
         builtInAlgorithmOptions,
         builtInProblemOptions,
         builtInVisualizerOptions,

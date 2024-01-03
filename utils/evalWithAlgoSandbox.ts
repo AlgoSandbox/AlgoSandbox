@@ -1,4 +1,4 @@
-import * as adapters from '@algo-sandbox/adapters';
+import * as adapters from '@algo-sandbox/adapters/example';
 import * as algorithms from '@algo-sandbox/algorithms';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';

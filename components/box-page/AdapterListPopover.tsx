@@ -1,37 +1,39 @@
-import { SandboxAdapter, SandboxStateType } from '@algo-sandbox/core';
+import { SandboxStateType } from '@algo-sandbox/core';
+import { Button, MaterialSymbol, Popover } from '@components/ui';
 import {
-  Button,
-  isSelectGroup,
-  MaterialSymbol,
-  Popover,
-  Select,
-  SelectOption,
-  SelectOptions,
-} from '@components/ui';
+  CatalogGroup,
+  CatalogOption,
+  CatalogOptions,
+} from '@constants/catalog';
+import { DbAdapterSaved } from '@utils/db';
+import { DbObjectEvaluation } from '@utils/evalSavedObject';
 import clsx from 'clsx';
 import _ from 'lodash';
 import { Fragment, ReactElement } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
+
+import CatalogSelect from './app-bar/CatalogSelect';
 
 export type AdapterListPopoverProps = {
   fromLabel: string;
   toLabel: string;
   fromType: SandboxStateType | null;
   toType: SandboxStateType | null;
-  value: Array<
-    SelectOption<SandboxAdapter<SandboxStateType, SandboxStateType>>
-  >;
-  onChange: (
-    value: Array<
-      SelectOption<SandboxAdapter<SandboxStateType, SandboxStateType>>
-    >,
-  ) => void;
-  options: SelectOptions<SandboxAdapter<SandboxStateType, SandboxStateType>>;
+  value: Array<CatalogOption<DbAdapterSaved>>;
+  valueEvaluated: Array<DbObjectEvaluation<'adapter'>>;
+  onChange: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
+  options: CatalogOptions<DbAdapterSaved>;
   children: ReactElement;
 };
 
-function getFirstOption<T>(options: SelectOptions<T>): SelectOption<T> {
-  if (isSelectGroup(options[0])) {
+function isCatalogGroup<T>(
+  option: CatalogGroup<T> | CatalogOption<T>,
+): option is CatalogGroup<T> {
+  return 'options' in option;
+}
+
+function getFirstOption<T>(options: CatalogOptions<T>): CatalogOption<T> {
+  if (isCatalogGroup(options[0])) {
     return options[0].options[0];
   } else {
     return options[0];
@@ -48,6 +50,7 @@ export default function AdapterListPopover({
   fromType,
   toType,
   value,
+  valueEvaluated,
   onChange,
   options,
   children,
@@ -63,32 +66,39 @@ export default function AdapterListPopover({
     name: 'adapters',
   });
 
-  const adapters = watch('adapters');
+  const rawAdapters = watch('adapters');
 
   const faultyAdapterIndex = (() => {
     let input = fromType;
-    for (let i = 0; i < adapters.length; i++) {
-      const adapter = adapters[i];
-      if (adapter.value.accepts.name !== input?.name) {
+    for (let i = 0; i < valueEvaluated.length; i++) {
+      const { objectEvaled: adapter } = valueEvaluated[i];
+
+      if (adapter === null) {
         return i;
       }
-      input = adapter.value.outputs;
+
+      if (adapter.accepts.name !== input?.name) {
+        return i;
+      }
+      input = adapter.outputs;
     }
 
     return null;
   })();
 
   const isLastAdapterFaulty =
-    adapters.length > 0 &&
-    adapters[adapters.length - 1].value.outputs.name !== toType?.name;
+    valueEvaluated.length > 0 &&
+    (valueEvaluated[valueEvaluated.length - 1].objectEvaled === null ||
+      valueEvaluated[valueEvaluated.length - 1].objectEvaled?.outputs.name !==
+        toType?.name);
 
   const isFaulty =
     faultyAdapterIndex !== null ||
     isLastAdapterFaulty ||
-    (adapters.length === 0 && fromType?.name !== toType?.name);
+    (valueEvaluated.length === 0 && fromType?.name !== toType?.name);
 
-  if (!_.isEqual(value, adapters)) {
-    onChange(adapters);
+  if (!_.isEqual(value, rawAdapters)) {
+    onChange(rawAdapters);
   }
 
   return (
@@ -104,7 +114,7 @@ export default function AdapterListPopover({
                 <span>{fromType?.name}</span>
               </div>
             </div>
-            {adapters.length === 0 && (
+            {valueEvaluated.length === 0 && (
               <div
                 className={clsx(
                   fromType === toType ? 'border-primary' : 'border-border',
@@ -142,7 +152,7 @@ export default function AdapterListPopover({
                       >
                         <MaterialSymbol icon="keyboard_double_arrow_down" />
                         <span className="flex-1 overflow-ellipsis overflow-hidden">
-                          {adapters[index].value.accepts.name}
+                          {valueEvaluated[index].objectEvaled?.accepts.name}
                         </span>
                         <Button
                           label="Insert adapter"
@@ -167,10 +177,8 @@ export default function AdapterListPopover({
                       name={`adapters.${index}`}
                       // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       render={({ field: { onChange: _, ...field } }) => (
-                        <Select
-                          placeholder="Select adapter"
+                        <CatalogSelect
                           containerClassName="flex-1"
-                          hideLabel
                           label="Adapter"
                           options={options}
                           onChange={(value) => {
@@ -198,7 +206,7 @@ export default function AdapterListPopover({
                   >
                     <MaterialSymbol icon="keyboard_double_arrow_down" />
                     <span className="flex-1 overflow-ellipsis overflow-hidden">
-                      {adapters[index].value.outputs.name}
+                      {valueEvaluated[index].objectEvaled?.outputs.name}
                     </span>
                     <Button
                       label="Insert adapter"
@@ -214,7 +222,7 @@ export default function AdapterListPopover({
               );
             })}
           </ol>
-          {adapters.length > 0 && (
+          {valueEvaluated.length > 0 && (
             <div
               className={clsx(
                 isFaulty ? 'border-muted' : 'border-primary',

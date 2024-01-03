@@ -12,7 +12,12 @@ import TabManagerProvider, {
 import { Tabs, TabsItem } from '@components/ui/Tabs';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DbAlgorithmSaved, DbProblemSaved, DbVisualizerSaved } from '@utils/db';
+import {
+  DbAdapterSaved,
+  DbAlgorithmSaved,
+  DbProblemSaved,
+  DbVisualizerSaved,
+} from '@utils/db';
 import clsx from 'clsx';
 import { useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
@@ -23,6 +28,7 @@ import { TypeDeclaration } from './page';
 const queryClient = new QueryClient();
 
 type PlaygroundProps = {
+  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
@@ -85,6 +91,7 @@ export function PlaygroundPage() {
 }
 
 export default function Playground({
+  builtInAdapterOptions,
   builtInAlgorithmOptions,
   builtInProblemOptions,
   builtInVisualizerOptions,
@@ -100,6 +107,7 @@ export default function Playground({
         >
           <DndProvider backend={HTML5Backend}>
             <BuiltInComponentsProvider
+              builtInAdapterOptions={builtInAdapterOptions}
               builtInAlgorithmOptions={builtInAlgorithmOptions}
               builtInProblemOptions={builtInProblemOptions}
               builtInVisualizerOptions={builtInVisualizerOptions}

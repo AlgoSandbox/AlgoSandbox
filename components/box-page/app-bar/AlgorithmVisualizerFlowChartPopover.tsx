@@ -102,7 +102,7 @@ export default function AlgorithmVisualizerFlowChartPopover() {
   const algorithm = useBoxContext('algorithm.instance');
   const visualizer = useBoxContext('visualizer.instance');
 
-  const adapters = useBoxContext('algorithmVisualizer.adapters.value');
+  const adapters = useBoxContext('algorithmVisualizer.adapters.evaluated');
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
   const visualizerName = visualizer?.name ?? 'Untitled visualizer';
@@ -118,27 +118,30 @@ export default function AlgorithmVisualizerFlowChartPopover() {
 
   const adapterNodes = useMemo(
     () =>
-      adapters.map((adapter) => ({
-        id: `adapter-${adapter.key}`,
-        type: 'customFlow',
-        width: 500,
-        height: 100,
-        data: {
-          label: adapter.label,
-          inputs: Object.keys(adapter.value.accepts.shape.shape).map(
-            (param) => ({
+      adapters
+        .filter((adapter) => adapter.evaluation.objectEvaled !== null)
+        .map(({ key, label, evaluation }) => ({
+          key,
+          label,
+          adapter: evaluation.objectEvaled!,
+        }))
+        .map(({ key, label, adapter }) => ({
+          id: `adapter-${key}`,
+          type: 'customFlow',
+          width: 500,
+          height: 100,
+          data: {
+            label,
+            inputs: Object.keys(adapter.accepts.shape.shape).map((param) => ({
               id: param,
               label: param,
-            }),
-          ),
-          outputs: Object.keys(adapter.value.outputs.shape.shape).map(
-            (param) => ({
+            })),
+            outputs: Object.keys(adapter.outputs.shape.shape).map((param) => ({
               id: param,
               label: param,
-            }),
-          ),
-        },
-      })) as Array<Node>,
+            })),
+          },
+        })) as Array<Node>,
     [adapters],
   );
 

@@ -1,15 +1,20 @@
-import { DbSandboxObject, DbSandboxObjectSaved } from '@utils/db';
+import {
+  DbSandboxObject,
+  DbSandboxObjectSaved,
+  DbSandboxObjectType,
+} from '@utils/db';
 
-export type BoxContextCustomObjects = {
+export type BoxContextCustomObjects<T extends DbSandboxObjectType> = {
   selected: DbSandboxObjectSaved | null;
-  add: (value: DbSandboxObject) => void;
-  set: (value: DbSandboxObjectSaved) => void;
-  remove: (value: DbSandboxObjectSaved) => void;
+  add: (value: DbSandboxObject<T>) => void;
+  set: (value: DbSandboxObjectSaved<T>) => void;
+  remove: (value: DbSandboxObjectSaved<T>) => void;
 };
 
-export const defaultBoxContextCustomObjects: BoxContextCustomObjects = {
-  selected: null,
-  add: () => {},
-  set: () => {},
-  remove: () => {},
-};
+export const defaultBoxContextCustomObjects: BoxContextCustomObjects<DbSandboxObjectType> =
+  {
+    selected: null,
+    add: () => {},
+    set: () => {},
+    remove: () => {},
+  };

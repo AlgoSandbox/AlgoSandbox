@@ -1,14 +1,19 @@
 import { AdapterListPopover, useBoxContext } from '@components/box-page';
 import { Button, MaterialSymbol } from '@components/ui';
 import clsx from 'clsx';
+import { useMemo } from 'react';
 
 export default function ProblemAlgorithmAdapterSelect() {
   const { instance: problemInstance } = useBoxContext('problem');
   const { instance: algorithmInstance } = useBoxContext('algorithm');
   const {
     compatible,
-    adapters: { options, value, setValue },
+    adapters: { options, value, setValue, evaluated },
   } = useBoxContext('problemAlgorithm');
+
+  const valueEvaluated = useMemo(() => {
+    return evaluated.map(({ evaluation }) => evaluation);
+  }, [evaluated]);
 
   return (
     <AdapterListPopover
@@ -17,6 +22,7 @@ export default function ProblemAlgorithmAdapterSelect() {
       fromType={problemInstance?.type ?? null}
       toType={algorithmInstance?.accepts ?? null}
       value={value}
+      valueEvaluated={valueEvaluated}
       onChange={setValue}
       options={options}
     >

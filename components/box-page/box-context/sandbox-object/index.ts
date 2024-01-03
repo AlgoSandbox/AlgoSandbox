@@ -2,6 +2,7 @@ import {
   getDefaultParameters,
   Parameterized,
   ParsedParameters,
+  SandboxAdapter,
   SandboxAlgorithm,
   SandboxParameters,
   SandboxProblem,
@@ -20,6 +21,8 @@ import {
   SandboxAnyVisualizer,
 } from '@typings/algo-sandbox';
 import {
+  DbAdapter,
+  DbAdapterSaved,
   DbAlgorithm,
   DbAlgorithmSaved,
   DbProblem,
@@ -27,10 +30,12 @@ import {
   DbVisualizer,
   DbVisualizerSaved,
 } from '@utils/db';
-import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
+import { evalSavedObject } from '@utils/evalSavedObject';
 import tryEvaluate from '@utils/tryEvaluate';
 import {
+  sandboxAdapter,
   sandboxAlgorithm,
+  sandboxParameterizedAdapter,
   sandboxParameterizedAlgorithm,
 } from '@utils/verifiers/algorithm';
 import {
@@ -49,6 +54,12 @@ import {
 } from './custom';
 
 type SandboxObjectTypeMap = {
+  adapter: {
+    instance: SandboxAdapter<SandboxStateType, SandboxStateType>;
+    value: SandboxAdapter<SandboxStateType, SandboxStateType>;
+    dbObject: DbAdapter;
+    dbObjectSaved: DbAdapterSaved;
+  };
   algorithm: {
     instance: SandboxAlgorithm<SandboxStateType, SandboxStateType>;
     value: SandboxAnyAlgorithm;
@@ -70,6 +81,10 @@ type SandboxObjectTypeMap = {
 };
 
 const verifiers = {
+  adapter: {
+    instance: sandboxAdapter,
+    parameterized: sandboxParameterizedAdapter,
+  },
   algorithm: {
     instance: sandboxAlgorithm,
     parameterized: sandboxParameterizedAlgorithm,
@@ -86,14 +101,15 @@ const verifiers = {
 
 type Instance<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['instance'];
-type Value<T extends keyof SandboxObjectTypeMap> =
+export type Value<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['value'];
-type DbObject<T extends keyof SandboxObjectTypeMap> =
+export type DbObject<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['dbObject'];
-type DbObjectSaved<T extends keyof SandboxObjectTypeMap> =
+export type DbObjectSaved<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['dbObjectSaved'];
 
-export const defaultBoxContextSandboxObject: BoxContextSandboxObject<never> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
   custom: defaultBoxContextCustomObjects,
   customPanel: {
     visible: false,
@@ -119,7 +135,7 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
     visible: boolean;
     setVisible: (visible: boolean) => void;
   };
-  custom: BoxContextCustomObjects;
+  custom: BoxContextCustomObjects<T>;
   errorMessage: string | null;
   instance: Instance<T> | null;
   value: Value<T> | null;
@@ -151,13 +167,9 @@ export function useBoxContextSandboxObject<
   customPanelVisible: boolean;
   setCustomPanelVisible: (visible: boolean) => void;
   builtInOptions: Array<CatalogGroup<DbObjectSaved<T>>>;
-  addSavedObjectMutation: UseMutationResult<
-    DbObjectSaved<T>,
-    unknown,
-    DbObject<T>
-  >;
+  addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
-    DbObjectSaved<T>,
+    DbObject<T>,
     unknown,
     DbObjectSaved<T>
   >;
@@ -233,16 +245,16 @@ export function useBoxContextSandboxObject<
     return {
       selected: selectedCustomObject,
       add: (value) => {
-        return addSavedObject(value);
+        return addSavedObject(value as DbObject<T>);
       },
       set: (value) => {
-        return setSavedObject(value);
+        return setSavedObject(value as DbObjectSaved<T>);
       },
       remove: (value) => {
         if (selectedOptionKey === value.key) {
           setSelectedOptionKey(null);
         }
-        return removeSavedObject(value);
+        return removeSavedObject(value as DbObjectSaved<T>);
       },
     } satisfies BoxContextSandboxObject<T>['custom'];
   }, [
@@ -269,22 +281,7 @@ export function useBoxContextSandboxObject<
   const { objectEvaled, errorMessage: errorMessageEval } = useMemo(() => {
     const { value: object = null } = selectedOptionObject ?? {};
 
-    if (object === null) {
-      return { objectEvaled: null, errorMessage: null };
-    }
-
-    try {
-      return {
-        objectEvaled: evalWithAlgoSandbox(object.files['index.ts']) as Value<T>,
-        errorMessage: null,
-      };
-    } catch (e) {
-      console.error(e);
-      return {
-        objectEvaled: null,
-        errorMessage: `Error during component code evaluation.\nYou may have a syntax error.\n\n${e}`,
-      };
-    }
+    return evalSavedObject(object);
   }, [selectedOptionObject]);
 
   const { data: objectInstancer, errorMessage: errorMessageInstancer } =
@@ -310,7 +307,8 @@ export function useBoxContextSandboxObject<
           verifiers[type].instance.parse(objectEvaled);
 
           return {
-            name: objectEvaled.name,
+            // TODO: Read name from README
+            name: 'name' in objectEvaled ? objectEvaled.name : 'Untitled',
             parameters: {},
             create: () => {
               return objectEvaled as Instance<T>;

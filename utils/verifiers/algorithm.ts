@@ -3,6 +3,18 @@ import { z } from 'zod';
 import { sandboxParameters } from './parameters';
 import { sandboxState } from './state';
 
+export const sandboxAdapter = z.object({
+  accepts: sandboxState,
+  outputs: sandboxState,
+  transform: z.function(z.tuple([sandboxState]), sandboxState),
+});
+
+export const sandboxParameterizedAdapter = z.object({
+  name: z.string(),
+  parameters: sandboxParameters,
+  create: z.function(z.tuple([z.object({})]), z.any()),
+});
+
 export const sandboxAlgorithm = z.object({
   name: z.string(),
   accepts: sandboxState,

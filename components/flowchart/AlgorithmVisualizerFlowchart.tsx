@@ -40,7 +40,7 @@ function FlowNode({
   data: { inputs = [], outputs = [], label },
 }: VisualizerNodeProps) {
   return (
-    <div className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded">
+    <div className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded bg-surface-high">
       <div>{label}</div>
       {inputs.map(({ id, label }, index) => (
         <Handle

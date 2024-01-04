@@ -1,6 +1,7 @@
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useTabManager } from '@components/tab-manager/TabManager';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
-import _ from 'lodash';
+import _, { isEqual } from 'lodash';
 import {
   createContext,
   ReactNode,
@@ -31,22 +32,21 @@ import useBoxContextVisualizer, {
   defaultBoxContextVisualizer,
 } from './sandbox-object/visualizer';
 
-type BoxContextMode = 'editor' | 'view';
-
 type BoxContextType = {
   problem: BoxContextProblem;
   problemAlgorithm: BoxContextProblemAlgorithm;
   algorithm: BoxContextAlgorithm;
   algorithmVisualizer: BoxContextAlgorithmVisualizer;
   visualizer: BoxContextVisualizer;
-  mode: {
-    value: BoxContextMode;
-    setValue: (value: BoxContextMode) => void;
-  };
-  customPanelType: CustomPanel | null;
   boxEnvironment: {
     value: Record<string, string>;
     setValue: (value: Record<string, string>) => void;
+  };
+  openBoxEditor: () => void;
+  openFlowchart: () => void;
+  boxName: {
+    value: string;
+    setValue: (value: string) => void;
   };
 };
 
@@ -56,13 +56,14 @@ const BoxContext = createContext<BoxContextType>({
   problemAlgorithm: defaultBoxContextProblemAlgorithm,
   algorithmVisualizer: defaultBoxContextAlgorithmVisualizer,
   visualizer: defaultBoxContextVisualizer,
-  customPanelType: null,
-  mode: {
-    value: 'view',
-    setValue: () => {},
-  },
   boxEnvironment: {
     value: {},
+    setValue: () => {},
+  },
+  openBoxEditor: () => {},
+  openFlowchart: () => {},
+  boxName: {
+    value: '',
     setValue: () => {},
   },
 });
@@ -109,13 +110,14 @@ export type BoxContextProviderProps = {
 export default function BoxContextProvider({
   children,
 }: BoxContextProviderProps) {
+  const { addOrFocusTab } = useTabManager();
+  const [boxName, setBoxName] = useState('Untitled box');
   const {
     builtInAdapterOptions,
     builtInAlgorithmOptions,
     builtInProblemOptions,
     builtInVisualizerOptions,
   } = useBuiltInComponents();
-  const [mode, setMode] = useState<BoxContextMode>('view');
   const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
   const {
     customAlgorithmPanelVisible,
@@ -206,9 +208,21 @@ export default function BoxContextProvider({
 
   const setBoxEnvironment = useCallback(
     (boxEnvironment: Record<string, string>) => {
-      const algorithmCode = boxEnvironment['algorithm/index.ts'];
-      const problemCode = boxEnvironment['problem/index.ts'];
-      const visualizerCode = boxEnvironment['visualizer/index.ts'];
+      // Get files matching folder name, then remap keys to remove folder names
+      const getFilesInFolder = (folderName: `${string}/`) => {
+        return Object.fromEntries(
+          Object.entries(boxEnvironment ?? {})
+            .filter(([filePath]) => filePath.startsWith(folderName))
+            .map(([filePath, value]) => [
+              filePath.substring(folderName.length),
+              value,
+            ]),
+        );
+      };
+
+      const algorithmFiles = getFilesInFolder('algorithm/');
+      const problemFiles = getFilesInFolder('problem/');
+      const visualizerFiles = getFilesInFolder('visualizer/');
       const algorithmOption = algorithm.select.value;
       const problemOption = problem.select.value;
       const visualizerOption = visualizer.select.value;
@@ -225,14 +239,12 @@ export default function BoxContextProvider({
         throw new Error('Selected visualizer is null');
       }
 
-      if (algorithmCode !== algorithmOption.value.files['index.ts']) {
+      if (!isEqual(algorithmFiles, algorithmOption.value.files)) {
         const isNew = algorithmOption.type === 'built-in';
         if (isNew) {
           algorithm.custom.add({
             name: getCustomDbObjectName(algorithmOption.value),
-            files: {
-              'index.ts': algorithmCode,
-            },
+            files: algorithmFiles,
             editable: true,
             type: 'algorithm',
           });
@@ -240,21 +252,17 @@ export default function BoxContextProvider({
           algorithm.custom.set({
             ...algorithmOption.value,
             key: algorithm.custom.selected!.key,
-            files: {
-              'index.ts': algorithmCode,
-            },
+            files: algorithmFiles,
           });
         }
       }
 
-      if (problemCode !== problemOption.value.files['index.ts']) {
+      if (!isEqual(problemFiles, problemOption.value.files)) {
         const isNew = problemOption.type === 'built-in';
         if (isNew) {
           problem.custom.add({
             name: getCustomDbObjectName(problemOption.value),
-            files: {
-              'index.ts': problemCode,
-            },
+            files: problemFiles,
             editable: true,
             type: 'problem',
           });
@@ -262,21 +270,17 @@ export default function BoxContextProvider({
           problem.custom.set({
             ...problemOption.value,
             key: problem.custom.selected!.key,
-            files: {
-              'index.ts': problemCode,
-            },
+            files: problemFiles,
           });
         }
       }
 
-      if (visualizerCode !== visualizerOption.value.files['index.ts']) {
+      if (!isEqual(visualizerFiles, visualizerOption.value.files)) {
         const isNew = visualizerOption.type === 'built-in';
         if (isNew) {
           visualizer.custom.add({
             name: getCustomDbObjectName(visualizerOption.value),
-            files: {
-              'index.ts': visualizerCode,
-            },
+            files: visualizerFiles,
             editable: true,
             type: 'visualizer',
           });
@@ -284,9 +288,7 @@ export default function BoxContextProvider({
           visualizer.custom.set({
             ...visualizerOption.value,
             key: visualizer.custom.selected!.key,
-            files: {
-              'index.ts': visualizerCode,
-            },
+            files: visualizerFiles,
           });
         }
       }
@@ -301,6 +303,24 @@ export default function BoxContextProvider({
     ],
   );
 
+  const openBoxEditor = useCallback(() => {
+    addOrFocusTab({
+      icon: 'inventory_2',
+      subIcon: 'edit',
+      type: 'box-editor',
+      environment: boxEnvironment,
+      label: `Edit: ${boxName}`,
+    });
+  }, [addOrFocusTab, boxEnvironment, boxName]);
+
+  const openFlowchart = useCallback(() => {
+    addOrFocusTab({
+      icon: 'schema',
+      type: 'flowchart',
+      label: `Adapters: ${boxName}`,
+    });
+  }, [addOrFocusTab, boxName]);
+
   const value = useMemo(() => {
     return {
       problem,
@@ -308,22 +328,24 @@ export default function BoxContextProvider({
       algorithm,
       algorithmVisualizer,
       visualizer,
-      customPanelType: customPanel,
-      mode: {
-        value: mode,
-        setValue: setMode,
-      },
       boxEnvironment: {
         value: boxEnvironment,
         setValue: setBoxEnvironment,
+      },
+      openBoxEditor,
+      openFlowchart,
+      boxName: {
+        value: boxName,
+        setValue: setBoxName,
       },
     } satisfies BoxContextType;
   }, [
     algorithm,
     algorithmVisualizer,
     boxEnvironment,
-    customPanel,
-    mode,
+    boxName,
+    openBoxEditor,
+    openFlowchart,
     problem,
     problemAlgorithm,
     setBoxEnvironment,

@@ -15,7 +15,7 @@ export default function Toggle({
   onChange,
 }: ToggleProps) {
   return (
-    <div className={clsx('flex items-center gap-2', className)}>
+    <div className={clsx('flex items-center gap-2 flex-shrink-0', className)}>
       <label className="text-sm font-medium">{label}</label>
       <Switch.Root
         className="group w-10 h-6 border hover:border-on-surface/30 rounded px-1 bg-surface data-[state=checked]:bg-primary/30 data-[state=checked]:hover:border-primary-high data-[state=checked]:border-primary transition-colors"

@@ -2,11 +2,13 @@ import 'reactflow/dist/style.css';
 
 import { Button, Popover } from '@components/ui';
 import Dagre from '@dagrejs/dagre';
+import clsx from 'clsx';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
+  Background,
   Connection,
   DefaultEdgeOptions,
   Edge,
@@ -18,7 +20,7 @@ import ReactFlow, {
   Position,
 } from 'reactflow';
 
-import { useBoxContext } from '..';
+import { useBoxContext } from '../box-page';
 
 type VisualizerNodeProps = {
   data: {
@@ -98,7 +100,7 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
 
 const proOptions = { hideAttribution: true };
 
-export default function AlgorithmVisualizerFlowChartPopover() {
+export default function AlgorithmVisualizerFlowchart() {
   const algorithm = useBoxContext('algorithm.instance');
   const visualizer = useBoxContext('visualizer.instance');
 
@@ -232,26 +234,19 @@ export default function AlgorithmVisualizerFlowChartPopover() {
   );
 
   return (
-    <Popover
-      content={
-        <div className="w-[500px] h-[400px] bg-surface">
-          <ReactFlow
-            color="red"
-            nodeTypes={nodeTypes}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onEdgesDelete={onEdgesDelete}
-            onConnect={onConnect}
-            defaultEdgeOptions={defaultEdgeOptions}
-            proOptions={proOptions}
-            fitView={true}
-          />
-        </div>
-      }
+    <ReactFlow
+      nodeTypes={nodeTypes}
+      nodes={nodes.every((node) => node.position) ? nodes : []}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onEdgesDelete={onEdgesDelete}
+      onConnect={onConnect}
+      defaultEdgeOptions={defaultEdgeOptions}
+      proOptions={proOptions}
+      fitView={true}
     >
-      <Button label="View flowchart" />
-    </Popover>
+      <Background className="bg-surface" />
+    </ReactFlow>
   );
 }

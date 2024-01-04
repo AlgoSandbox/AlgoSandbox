@@ -1,6 +1,6 @@
 import AppLogo from '@components/AppLogo';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
-import { Button, Select } from '@components/ui';
+import { Button, MaterialSymbol, Select } from '@components/ui';
 import Toggle from '@components/ui/Toggle';
 import { useTheme } from 'next-themes';
 import { useMemo } from 'react';
@@ -8,7 +8,6 @@ import { useMemo } from 'react';
 import { useBoxContext } from '..';
 import AlgorithmSelect from './AlgorithmSelect';
 import AlgorithmVisualizerAdapterSelect from './AlgorithmVisualizerAdapterSelect';
-import AlgorithmVisualizerFlowChartPopover from './AlgorithmVisualizerFlowChartPopover';
 import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
 import ProblemSelect from './ProblemSelect';
 import VisualizerSelect from './VisualizerSelect';
@@ -20,11 +19,12 @@ const themeOptions = [
 ];
 
 export default function AppBar() {
+  const openBoxEditor = useBoxContext('openBoxEditor');
+  const openFlowchart = useBoxContext('openFlowchart');
   const { theme, setTheme } = useTheme();
   const selectedThemeOption = useMemo(() => {
     return themeOptions.find((option) => option.value === theme);
   }, [theme]);
-  const { setValue: setMode } = useBoxContext('mode');
   const { isAdvancedModeEnabled, setAdvancedModeEnabled } =
     useUserPreferences();
 
@@ -37,15 +37,19 @@ export default function AppBar() {
           <ProblemAlgorithmAdapterSelect />
           <AlgorithmSelect />
           <AlgorithmVisualizerAdapterSelect />
+          <Button
+            hideLabel
+            icon={<MaterialSymbol icon="schema" />}
+            label="Compose adapters"
+            onClick={openFlowchart}
+          />
           <VisualizerSelect />
-          <AlgorithmVisualizerFlowChartPopover />
           {isAdvancedModeEnabled && (
             <Button
-              label="Customize in editor mode"
+              label="Edit box code"
               variant="primary"
-              onClick={() => {
-                setMode('editor');
-              }}
+              onClick={openBoxEditor}
+              icon={<MaterialSymbol icon="open_in_new" />}
             />
           )}
         </div>

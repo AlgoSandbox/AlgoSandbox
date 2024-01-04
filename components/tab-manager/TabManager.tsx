@@ -1,3 +1,4 @@
+import AlgorithmVisualizerFlowchart from '@components/flowchart/AlgorithmVisualizerFlowchart';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useSaveObjectMutation } from '@utils/db/objects';
 import React, {
@@ -8,27 +9,54 @@ import React, {
   useState,
 } from 'react';
 
+import BoxEnvironmentEditorPage from '../../app/BoxEnvironmentEditorPage';
 import BoxPage from '../../app/BoxPage';
 import SandboxObjectEditorPage from '../../app/SandboxObjectEditorPage';
+
+type SandboxEnvironmentEditorTab = {
+  type: 'box-editor';
+  environment: Record<string, string>;
+  label: string;
+  icon: 'inventory_2';
+  subIcon: 'edit';
+  closeable?: boolean;
+};
+
+type SandboxFlowchartTab = {
+  type: 'flowchart';
+  label: string;
+  icon: 'schema';
+  subIcon?: undefined;
+  closeable?: boolean;
+};
 
 type SandboxObjectEditorTab = {
   type: 'editor';
   object: DbSandboxObjectSaved;
   label: string;
+  icon: 'extension';
+  subIcon: 'edit';
   closeable?: boolean;
 };
 
 type BoxTab = {
   type: 'box';
   label: string;
+  icon: 'inventory_2';
+  subIcon?: undefined;
   closeable?: boolean;
 };
 
-type SandboxTab = SandboxObjectEditorTab | BoxTab;
+type SandboxTab =
+  | SandboxObjectEditorTab
+  | BoxTab
+  | SandboxEnvironmentEditorTab
+  | SandboxFlowchartTab;
 type SandboxTabWithId = SandboxTab & { id: string };
 
 type TabManager = {
   addTab: (tab: SandboxTab) => void;
+  addOrFocusTab: (tab: SandboxTab) => void;
   closeTab: (tabId: string) => void;
   selectTab: (tabId: string) => void;
   onTabsReorder: (srcTabId: string, destTabId: string) => void;
@@ -39,6 +67,7 @@ type TabManager = {
 
 export const TabManagerContext = createContext<TabManager>({
   addTab: () => {},
+  addOrFocusTab: () => {},
   closeTab: () => {},
   selectTab: () => {},
   renderTabContent: () => null,
@@ -62,6 +91,7 @@ export default function TabManagerProvider({
     {
       type: 'box',
       id: 'current-box',
+      icon: 'inventory_2',
       label: 'Untitled box',
       closeable: false,
     },
@@ -84,11 +114,25 @@ export default function TabManagerProvider({
     [getNewTabId],
   );
 
+  const addOrFocusTab = useCallback(
+    (tab: SandboxTab) => {
+      const existingTab = tabs.find((t) => t.type === tab.type);
+      if (existingTab !== undefined) {
+        setSelectedTabId(existingTab.id);
+      } else {
+        addTab(tab);
+      }
+    },
+    [addTab, tabs],
+  );
+
   const renderTab = useCallback(
     (tab: SandboxTabWithId): React.ReactNode => {
       switch (tab.type) {
         case 'box':
           return <BoxPage />;
+        case 'box-editor':
+          return <BoxEnvironmentEditorPage />;
         case 'editor':
           return (
             <SandboxObjectEditorPage
@@ -102,6 +146,8 @@ export default function TabManagerProvider({
                 });
                 addTab({
                   type: 'editor',
+                  icon: 'extension',
+                  subIcon: 'edit',
                   object: newObject,
                   label: newObject.name,
                   closeable: true,
@@ -114,6 +160,8 @@ export default function TabManagerProvider({
                     if (tab.id === selectedTabId) {
                       return {
                         id: tab.id,
+                        icon: 'extension',
+                        subIcon: 'edit',
                         type: 'editor',
                         object: newObject,
                         label: newObject.name,
@@ -126,6 +174,8 @@ export default function TabManagerProvider({
               }}
             />
           );
+        case 'flowchart':
+          return <AlgorithmVisualizerFlowchart />;
       }
     },
     [addTab, saveObject, selectedTabId],
@@ -149,7 +199,8 @@ export default function TabManagerProvider({
   const value = useMemo(
     () =>
       ({
-        addTab: addTab,
+        addTab,
+        addOrFocusTab,
         closeTab: (tabId) => {
           setTabs((tabs) => tabs.filter((tab) => tab.id !== tabId));
           setSelectedTabId('current-box');
@@ -168,7 +219,7 @@ export default function TabManagerProvider({
         },
         onTabsReorder,
       }) satisfies TabManager,
-    [addTab, onTabsReorder, renderTab, selectedTabId, tabs],
+    [addOrFocusTab, addTab, onTabsReorder, renderTab, selectedTabId, tabs],
   );
 
   return (

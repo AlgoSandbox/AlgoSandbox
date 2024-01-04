@@ -4,7 +4,6 @@ import { VisualizerRenderer } from '@algo-sandbox/components';
 import { SandboxStateType } from '@algo-sandbox/core';
 import {
   AppBar,
-  BoxContextProvider,
   BoxControlsContextProvider,
   BoxExecutionControls,
   BoxPageShortcuts,
@@ -19,8 +18,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { chromeDark } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
 import { Panel, PanelGroup } from 'react-resizable-panels';
-
-import BoxEnvironmentEditorPage from './BoxEnvironmentEditorPage';
 
 const customChromeDark = {
   ...chromeDark,
@@ -83,7 +80,6 @@ function BoxPageImpl({
   scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
 }) {
   const { resolvedTheme } = useTheme();
-  const mode = useBoxContext('mode.value');
 
   const { currentStepIndex } = useBoxControlsContext();
 
@@ -113,10 +109,6 @@ function BoxPageImpl({
     composedAlgoVizAdapter,
     visualizerInstance,
   ]);
-
-  if (mode === 'editor') {
-    return <BoxEnvironmentEditorPage />;
-  }
 
   return (
     <div className="flex flex-col h-full">
@@ -179,9 +171,5 @@ function BoxPageImpl({
 }
 
 export default function BoxPage() {
-  return (
-    <BoxContextProvider>
-      <BoxPageExecutionWrapper />
-    </BoxContextProvider>
-  );
+  return <BoxPageExecutionWrapper />;
 }

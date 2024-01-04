@@ -140,7 +140,7 @@ export default function AdapterListPopover({
                     <>
                       <div
                         className={clsx(
-                          isFaulty ? 'border-muted' : 'border-primary',
+                          isFaulty ? 'border-muted/10' : 'border-primary',
                           'ms-[11px] border-s-2 ps-3 h-5 transition-colors',
                         )}
                       />
@@ -239,7 +239,7 @@ export default function AdapterListPopover({
             <MaterialSymbol icon="keyboard_double_arrow_down" />
             <div
               className={clsx(
-                isFaulty ? 'bg-muted' : 'bg-primary/10',
+                isFaulty ? 'bg-muted/10' : 'bg-primary/10',
                 'flex flex-col flex-1 px-2 py-1 rounded',
               )}
             >

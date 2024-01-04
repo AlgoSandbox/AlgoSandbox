@@ -5,6 +5,8 @@ import { MaterialSymbol } from '.';
 
 type TabProps = {
   label: string;
+  icon?: string;
+  subIcon?: string;
   isSelected: boolean;
   onClick: () => void;
   onClose: () => void;
@@ -17,6 +19,8 @@ type TabProps = {
 export function Tab({
   className,
   id,
+  icon,
+  subIcon,
   label,
   isSelected,
   onClose,
@@ -63,7 +67,34 @@ export function Tab({
         className,
       )}
     >
-      <button className="p-2 font-medium" onClick={onClick}>
+      <button
+        className={clsx(
+          'font-medium items-center flex gap-2',
+          icon && 'ps-1 pe-2',
+          !icon && 'px-2',
+        )}
+        onClick={onClick}
+      >
+        {icon && (
+          <div className="relative w-6 h-6">
+            <MaterialSymbol
+              icon={icon}
+              className={clsx(
+                'text-on-surface/50',
+                isSelected && 'text-on-surface',
+              )}
+            />
+            {subIcon && (
+              <MaterialSymbol
+                icon={subIcon}
+                className={clsx(
+                  'bg-surface rounded-full text-on-surface/50 !text-[16px] absolute end-0 bottom-0 transform translate-x-1/4 translate-y-1/4',
+                  isSelected && 'text-on-surface',
+                )}
+              />
+            )}
+          </div>
+        )}
         {label}
       </button>
       {closeable && (
@@ -81,6 +112,8 @@ export function Tab({
 
 export type TabsItem = Readonly<{
   key: string;
+  icon?: string;
+  subIcon?: string;
   label: string;
   isSelected: boolean;
   closeable?: boolean;
@@ -109,6 +142,8 @@ export function Tabs({
           isSelected={tab.isSelected}
           label={tab.label}
           id={tab.key}
+          icon={tab.icon}
+          subIcon={tab.subIcon}
           closeable={tab.closeable}
           onClick={() => {
             onTabSelect(tab);

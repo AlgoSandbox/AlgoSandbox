@@ -1,14 +1,13 @@
 import { DirectoryExplorer } from '@components/box-environment-page';
 import { useBoxContext } from '@components/box-page';
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
-import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
+import { Button, ResizeHandle } from '@components/ui';
 import _ from 'lodash';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
 export default function BoxEnvironmentEditorPage() {
-  const setMode = useBoxContext('mode.setValue');
   const { value: boxEnvironment, setValue: setBoxEnvironment } =
     useBoxContext('boxEnvironment');
 
@@ -27,17 +26,6 @@ export default function BoxEnvironmentEditorPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex justify-start items-center px-4 border-b py-2 gap-8">
-        <div className="flex flex-row items-end gap-2">
-          <Button
-            icon={<MaterialSymbol icon="arrow_back" />}
-            label="Back to view"
-            onClick={() => {
-              setMode('view');
-            }}
-          />
-        </div>
-      </header>
       <PanelGroup className="flex-1" direction="horizontal">
         <Panel key="explorer" defaultSize={20}>
           <DirectoryExplorer

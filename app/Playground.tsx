@@ -1,6 +1,7 @@
 'use client';
 
 import AppLogo from '@components/AppLogo';
+import { BoxContextProvider } from '@components/box-page';
 import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
 import BuiltInComponentsProvider from '@components/playground/BuiltInComponentsProvider';
 import UserPreferencesProvider, {
@@ -52,6 +53,8 @@ export function PlaygroundPage() {
       (tab) =>
         ({
           key: tab.id,
+          icon: tab.icon,
+          subIcon: tab.subIcon,
           label: tab.label,
           isSelected: tab.id === selectedTabId,
           closeable: tab.closeable,
@@ -61,7 +64,7 @@ export function PlaygroundPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      {isAdvancedModeEnabled && (
+      {(isAdvancedModeEnabled || tabItems.length > 1) && (
         <div className="flex">
           <div className="border-b py-2 px-4">
             <AppLogo />
@@ -113,7 +116,9 @@ export default function Playground({
               builtInVisualizerOptions={builtInVisualizerOptions}
             >
               <TabManagerProvider>
-                <PlaygroundPage />
+                <BoxContextProvider>
+                  <PlaygroundPage />
+                </BoxContextProvider>
               </TabManagerProvider>
             </BuiltInComponentsProvider>
           </DndProvider>

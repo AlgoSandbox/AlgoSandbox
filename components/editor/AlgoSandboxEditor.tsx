@@ -1,13 +1,15 @@
 import { Editor, useMonaco } from '@monaco-editor/react';
 import getImportNames from '@utils/npm-fetcher/getImportNames';
-import getTypeDefinitions from '@utils/npm-fetcher/getTypeDefinitions';
 import * as EsModuleLexer from 'es-module-lexer';
-import { throttle } from 'lodash';
+import { debounce } from 'lodash';
 import { useTheme } from 'next-themes';
 import _path from 'path';
-import { useCallback, useEffect, useState } from 'react';
+import _ from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAlgoSandboxEditorFilesContext } from './AlgoSandboxEditorFilesContextProvider';
+import getTypeDefinitionsWithWorker from '@utils/npm-fetcher/getTypeDefinitionsWithWorker';
+import { useQueries } from '@tanstack/react-query';
 
 type AlgoSandboxEditorProps = {
   value?: string;
@@ -36,7 +38,7 @@ export default function AlgoSandboxEditor({
   const [internalValue, setInternalValue] = useState(value ?? '');
 
   const onValueChange = useCallback(
-    throttle((value: string) => {
+    debounce((value: string) => {
       setInternalValue(value);
     }, 1000),
     [],
@@ -46,49 +48,45 @@ export default function AlgoSandboxEditor({
     onValueChange(value ?? '');
   }, [onValueChange, value]);
 
-  const [libDeclarations, setLibDeclarations] = useState<
-    Record<string, string>
-  >({});
-
-  useEffect(() => {
+  const importNames = useMemo(() => {
     if (!isParserInitialized) {
-      return;
+      return [];
     }
 
-    try {
-      const importNames = getImportNames(internalValue).filter(
-        (name) => !name.startsWith('@algo-sandbox'),
-      );
-
-      (async () => {
-        const files: Record<string, string> = {};
-        await Promise.all(
-          importNames.map(async (name) => {
-            const typeDefinitions = await getTypeDefinitions(name);
-
-            const flattenedTypeDefinitions: Record<string, string> = {};
-
-            for (const [packageName, files] of Object.entries(
-              typeDefinitions,
-            )) {
-              for (const [filePath, contents] of Object.entries(files)) {
-                flattenedTypeDefinitions[
-                  'file:///' +
-                    _path.join('node_modules/', packageName, filePath)
-                ] = contents;
-              }
-            }
-
-            Object.assign(files, flattenedTypeDefinitions);
-          }),
-        );
-
-        setLibDeclarations(files);
-      })();
-    } catch (e) {
-      console.error(e);
-    }
+    return getImportNames(internalValue).filter(
+      (name) => !name.startsWith('@algo-sandbox'),
+    );
   }, [internalValue, isParserInitialized]);
+
+  const libDeclarationQueries = useQueries({
+    queries: importNames.map((name) => {
+      return {
+        queryKey: ['packages', name],
+        queryFn: () => getTypeDefinitionsWithWorker(name),
+        staleTime: Infinity,
+      };
+    }),
+  });
+
+  const libDeclarations = useMemo(() => {
+    const flattenedTypeDefinitions: Record<string, string> = {};
+
+    for (const { data } of libDeclarationQueries) {
+      if (data === undefined) {
+        continue;
+      }
+
+      for (const [packageName, files] of Object.entries(data)) {
+        for (const [filePath, contents] of Object.entries(files)) {
+          flattenedTypeDefinitions[
+            'file:///' + _path.join('node_modules/', packageName, filePath)
+          ] = contents;
+        }
+      }
+    }
+
+    return flattenedTypeDefinitions;
+  }, [libDeclarationQueries]);
 
   const monaco = useMonaco();
 
@@ -120,6 +118,7 @@ export default function AlgoSandboxEditor({
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
           target: monaco.languages.typescript.ScriptTarget.ES2016,
           strict: true,
+          esModuleInterop: true,
           moduleResolution:
             monaco.languages.typescript.ModuleResolutionKind.NodeJs,
           module: monaco.languages.typescript.ModuleKind.CommonJS,

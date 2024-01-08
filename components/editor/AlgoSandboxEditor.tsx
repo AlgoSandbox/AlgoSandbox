@@ -1,5 +1,11 @@
-import { Editor } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@monaco-editor/react';
+import getImportNames from '@utils/npm-fetcher/getImportNames';
+import getTypeDefinitions from '@utils/npm-fetcher/getTypeDefinitions';
+import * as EsModuleLexer from 'es-module-lexer';
+import { throttle } from 'lodash';
 import { useTheme } from 'next-themes';
+import _path from 'path';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useAlgoSandboxEditorFilesContext } from './AlgoSandboxEditorFilesContextProvider';
 
@@ -18,6 +24,88 @@ export default function AlgoSandboxEditor({
 }: AlgoSandboxEditorProps) {
   const { resolvedTheme } = useTheme();
   const { algoSandboxFiles } = useAlgoSandboxEditorFilesContext();
+
+  const [isParserInitialized, setIsParserInitialized] = useState(false);
+
+  useEffect(() => {
+    EsModuleLexer.init.then(() => {
+      setIsParserInitialized(true);
+    });
+  }, [isParserInitialized]);
+
+  const [internalValue, setInternalValue] = useState(value ?? '');
+
+  const onValueChange = useCallback(
+    throttle((value: string) => {
+      setInternalValue(value);
+    }, 1000),
+    [],
+  );
+
+  useEffect(() => {
+    onValueChange(value ?? '');
+  }, [onValueChange, value]);
+
+  const [libDeclarations, setLibDeclarations] = useState<
+    Record<string, string>
+  >({});
+
+  useEffect(() => {
+    if (!isParserInitialized) {
+      return;
+    }
+
+    try {
+      const importNames = getImportNames(internalValue).filter(
+        (name) => !name.startsWith('@algo-sandbox'),
+      );
+
+      (async () => {
+        const files: Record<string, string> = {};
+        await Promise.all(
+          importNames.map(async (name) => {
+            const typeDefinitions = await getTypeDefinitions(name);
+
+            const flattenedTypeDefinitions: Record<string, string> = {};
+
+            for (const [packageName, files] of Object.entries(
+              typeDefinitions,
+            )) {
+              for (const [filePath, contents] of Object.entries(files)) {
+                flattenedTypeDefinitions[
+                  'file:///' +
+                    _path.join('node_modules/', packageName, filePath)
+                ] = contents;
+              }
+            }
+
+            Object.assign(files, flattenedTypeDefinitions);
+          }),
+        );
+
+        setLibDeclarations(files);
+      })();
+    } catch (e) {
+      console.error(e);
+    }
+  }, [internalValue, isParserInitialized]);
+
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    if (!monaco) {
+      return;
+    }
+
+    const extraLibs = Object.entries(libDeclarations).map(
+      ([filePath, content]) => ({
+        filePath,
+        content,
+      }),
+    );
+
+    monaco.languages.typescript.typescriptDefaults.setExtraLibs(extraLibs);
+  }, [libDeclarations]);
 
   return (
     <Editor
@@ -56,12 +144,12 @@ export default function AlgoSandboxEditor({
           );
         }
 
-        // for (const { contents, path } of typeDeclarations) {
-        //   monaco.languages.typescript.typescriptDefaults.addExtraLib(
-        //     contents,
-        //     path
-        //   );
-        // }
+        for (const [path, contents] of Object.entries(libDeclarations)) {
+          monaco.languages.typescript.typescriptDefaults.addExtraLib(
+            contents,
+            path,
+          );
+        }
         monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
           noSemanticValidation: false,
           noSyntaxValidation: false,

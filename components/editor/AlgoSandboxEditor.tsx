@@ -1,15 +1,14 @@
 import { Editor, useMonaco } from '@monaco-editor/react';
+import { useQueries } from '@tanstack/react-query';
 import getImportNames from '@utils/npm-fetcher/getImportNames';
+import getTypeDefinitionsWithWorker from '@utils/npm-fetcher/getTypeDefinitionsWithWorker';
 import * as EsModuleLexer from 'es-module-lexer';
 import { debounce } from 'lodash';
 import { useTheme } from 'next-themes';
 import _path from 'path';
-import _ from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAlgoSandboxEditorFilesContext } from './AlgoSandboxEditorFilesContextProvider';
-import getTypeDefinitionsWithWorker from '@utils/npm-fetcher/getTypeDefinitionsWithWorker';
-import { useQueries } from '@tanstack/react-query';
 
 type AlgoSandboxEditorProps = {
   value?: string;
@@ -37,12 +36,11 @@ export default function AlgoSandboxEditor({
 
   const [internalValue, setInternalValue] = useState(value ?? '');
 
-  const onValueChange = useCallback(
-    debounce((value: string) => {
+  const onValueChange = useMemo(() => {
+    return debounce((value: string) => {
       setInternalValue(value);
-    }, 1000),
-    [],
-  );
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     onValueChange(value ?? '');
@@ -103,7 +101,7 @@ export default function AlgoSandboxEditor({
     );
 
     monaco.languages.typescript.typescriptDefaults.setExtraLibs(extraLibs);
-  }, [libDeclarations]);
+  }, [libDeclarations, monaco]);
 
   return (
     <Editor

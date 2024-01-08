@@ -1,6 +1,7 @@
-import path from 'path';
-import getImportNames from './getImportNames';
 import _ from 'lodash';
+import path from 'path';
+
+import getImportNames from './getImportNames';
 import getTypeDirectives from './getTypeDirectives';
 
 async function openDatabase() {
@@ -86,7 +87,7 @@ async function getCachedOrFetchFile(packageName: string, filePath: string) {
   const cacheKey = path.join(packageName, filePath);
   const db = await openDatabase();
 
-  return new Promise<string | null>(async (resolve, reject) => {
+  return new Promise<string | null>((resolve, reject) => {
     const readTransaction = db.transaction('packages', 'readonly');
     const objectStore = readTransaction.objectStore('packages');
 

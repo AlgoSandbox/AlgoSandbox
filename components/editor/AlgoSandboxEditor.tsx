@@ -17,6 +17,8 @@ type AlgoSandboxEditorProps = {
   path: string;
 };
 
+const externalPackageWhitelist = ['d3', 'lodash', 'zod'];
+
 export default function AlgoSandboxEditor({
   value,
   onChange,
@@ -51,9 +53,9 @@ export default function AlgoSandboxEditor({
       return [];
     }
 
-    return getImportNames(internalValue).filter(
-      (name) => !name.startsWith('@algo-sandbox'),
-    );
+    return getImportNames(internalValue)
+      .filter((name) => !name.startsWith('@algo-sandbox'))
+      .filter((name) => externalPackageWhitelist.includes(name));
   }, [internalValue, isParserInitialized]);
 
   const libDeclarationQueries = useQueries({

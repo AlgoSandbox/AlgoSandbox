@@ -305,17 +305,13 @@ export default function BoxContextProvider({
 
   const openBoxEditor = useCallback(() => {
     addOrFocusTab({
-      icon: 'inventory_2',
-      subIcon: 'edit',
       type: 'box-editor',
-      environment: boxEnvironment,
       label: `Edit: ${boxName}`,
     });
-  }, [addOrFocusTab, boxEnvironment, boxName]);
+  }, [addOrFocusTab, boxName]);
 
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
-      icon: 'schema',
       type: 'flowchart',
       label: `Adapters: ${boxName}`,
     });

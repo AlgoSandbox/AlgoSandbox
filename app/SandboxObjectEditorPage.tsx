@@ -2,7 +2,7 @@ import { DirectoryExplorer } from '@components/box-environment-page';
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
 import { Button, Input, ResizeHandle } from '@components/ui';
 import { DbSandboxObjectSaved } from '@utils/db';
-import { useSavedObjectQuery } from '@utils/db/objects';
+import { useSavedObjectQuery, useSaveObjectMutation } from '@utils/db/objects';
 import _ from 'lodash';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,21 +10,21 @@ import { Panel, PanelGroup } from 'react-resizable-panels';
 
 type SandboxObjectEditorPageProps = {
   object: DbSandboxObjectSaved;
-  onClone: () => void;
-  onSave: (object: DbSandboxObjectSaved) => void;
+  onCloned: (newObject: DbSandboxObjectSaved) => void;
+  onSaved: (newObject: DbSandboxObjectSaved) => void;
 };
 
 export default function SandboxObjectEditorPage({
   object,
-  onClone,
-  onSave,
+  onCloned,
+  onSaved,
 }: SandboxObjectEditorPageProps) {
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(
     'index.ts' in object.files ? 'index.ts' : null,
   );
-
   const isViewOnly = !object.editable;
 
+  const { mutateAsync: saveObject } = useSaveObjectMutation();
   const { data: savedObject } = useSavedObjectQuery(object.key);
 
   const files = savedObject?.files ?? object.files;
@@ -71,7 +71,15 @@ export default function SandboxObjectEditorPage({
                 label="Clone to edit"
                 type="submit"
                 variant="primary"
-                onClick={onClone}
+                onClick={async () => {
+                  const newObject = await saveObject({
+                    ...object,
+                    key: undefined,
+                    editable: true,
+                    name: `${object.name} (copy)`,
+                  });
+                  onCloned(newObject);
+                }}
               />
             </div>
           )}
@@ -87,14 +95,15 @@ export default function SandboxObjectEditorPage({
         <Panel key="editor">
           <form
             className="flex-1 flex flex-col h-full"
-            onSubmit={handleSubmit((values) => {
-              onSave({
+            onSubmit={handleSubmit(async (values) => {
+              const newObject = await saveObject({
                 ...object,
                 name: values.name,
                 files: _.mapKeys(values.files, (_, key) =>
                   key.replaceAll('$', '.'),
                 ),
               });
+              onSaved(newObject);
               reset(values);
             })}
           >

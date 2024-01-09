@@ -43,7 +43,7 @@ export function PlaygroundPage() {
     selectedTabId,
     tabs,
     renderTabContent,
-    onTabsReorder,
+    reorderTabs,
     closeTab,
     selectTab,
   } = useTabManager();
@@ -53,8 +53,6 @@ export function PlaygroundPage() {
       (tab) =>
         ({
           key: tab.id,
-          icon: tab.icon,
-          subIcon: tab.subIcon,
           label: tab.label,
           isSelected: tab.id === selectedTabId,
           closeable: tab.closeable,
@@ -71,7 +69,7 @@ export function PlaygroundPage() {
           </div>
           <Tabs
             tabs={tabItems}
-            onTabsReorder={onTabsReorder}
+            onTabsReorder={reorderTabs}
             onTabSelect={(tab) => {
               selectTab(tab.key);
             }}

@@ -1,6 +1,3 @@
-import AlgorithmVisualizerFlowchart from '@components/flowchart/AlgorithmVisualizerFlowchart';
-import { DbSandboxObjectSaved } from '@utils/db';
-import { useSaveObjectMutation } from '@utils/db/objects';
 import React, {
   createContext,
   useCallback,
@@ -9,49 +6,63 @@ import React, {
   useState,
 } from 'react';
 
-import BoxEnvironmentEditorPage from '../../app/BoxEnvironmentEditorPage';
-import BoxPage from '../../app/BoxPage';
-import SandboxObjectEditorPage from '../../app/SandboxObjectEditorPage';
+import BoxTab, { boxTabConfig } from './BoxTab';
+import SandboxEnvironmentEditorTab, {
+  sandboxEnvironmentEditorTabConfig,
+} from './SandboxEnvironmentEditorTab';
+import SandboxFlowchartTab, {
+  sandboxFlowchartTabConfig,
+} from './SandboxFlowchartTab';
+import SandboxObjectEditorTab, {
+  sandboxObjectEditorTabConfig,
+} from './SandboxObjectEditorTab';
 
-type SandboxEnvironmentEditorTab = {
-  type: 'box-editor';
-  environment: Record<string, string>;
-  label: string;
-  icon: 'inventory_2';
-  subIcon: 'edit';
-  closeable?: boolean;
-};
+export type SandboxTabType = 'box' | 'box-editor' | 'editor' | 'flowchart';
 
-type SandboxFlowchartTab = {
-  type: 'flowchart';
-  label: string;
-  icon: 'schema';
-  subIcon?: undefined;
-  closeable?: boolean;
-};
+const tabConfigs = {
+  box: boxTabConfig,
+  'box-editor': sandboxEnvironmentEditorTabConfig,
+  editor: sandboxObjectEditorTabConfig,
+  flowchart: sandboxFlowchartTabConfig,
+} as const satisfies Record<SandboxTabType, unknown>;
 
-type SandboxObjectEditorTab = {
-  type: 'editor';
-  object: DbSandboxObjectSaved;
-  label: string;
-  icon: 'extension';
-  subIcon: 'edit';
-  closeable?: boolean;
+export type SandboxBaseTabConfig<T extends SandboxTabType, D = undefined> = {
+  type: SandboxTabType;
+  icon: string;
+  subIcon?: string;
+  render: (
+    args: {
+      context: Omit<TabManager, 'renderTabContent'>;
+      tab: Tab<T> & { id: string };
+    } & (D extends undefined
+      ? unknown
+      : {
+          data: D;
+        }),
+  ) => React.ReactNode;
 };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TabFromConfig<C> = C extends SandboxBaseTabConfig<infer T, any>
+  ? Tab<T>
+  : never;
 
-type BoxTab = {
-  type: 'box';
+type TabData<T extends SandboxTabType> =
+  (typeof tabConfigs)[T] extends SandboxBaseTabConfig<T, infer D> ? D : never;
+
+export type Tab<T extends SandboxTabType> = {
+  type: T;
   label: string;
-  icon: 'inventory_2';
-  subIcon?: undefined;
   closeable?: boolean;
-};
+} & (TabData<T> extends undefined
+  ? { data?: undefined }
+  : { data: TabData<T> });
 
 type SandboxTab =
-  | SandboxObjectEditorTab
   | BoxTab
   | SandboxEnvironmentEditorTab
-  | SandboxFlowchartTab;
+  | SandboxFlowchartTab
+  | SandboxObjectEditorTab;
+
 type SandboxTabWithId = SandboxTab & { id: string };
 
 type TabManager = {
@@ -59,7 +70,8 @@ type TabManager = {
   addOrFocusTab: (tab: SandboxTab) => void;
   closeTab: (tabId: string) => void;
   selectTab: (tabId: string) => void;
-  onTabsReorder: (srcTabId: string, destTabId: string) => void;
+  setTab: (tab: SandboxTabWithId) => void;
+  reorderTabs: (srcTabId: string, destTabId: string) => void;
   renderTabContent: (tabId: string) => React.ReactNode;
   tabs: Array<SandboxTabWithId>;
   selectedTabId: string;
@@ -70,8 +82,9 @@ export const TabManagerContext = createContext<TabManager>({
   addOrFocusTab: () => {},
   closeTab: () => {},
   selectTab: () => {},
+  setTab: () => {},
   renderTabContent: () => null,
-  onTabsReorder: () => {},
+  reorderTabs: () => {},
   tabs: [],
   selectedTabId: '',
 });
@@ -91,7 +104,6 @@ export default function TabManagerProvider({
     {
       type: 'box',
       id: 'current-box',
-      icon: 'inventory_2',
       label: 'Untitled box',
       closeable: false,
     },
@@ -102,8 +114,6 @@ export default function TabManagerProvider({
     setNextTabId((id) => id + 1);
     return id.toString();
   }, [nextTabId]);
-
-  const { mutateAsync: saveObject } = useSaveObjectMutation();
 
   const addTab = useCallback(
     (tab: SandboxTab) => {
@@ -126,62 +136,22 @@ export default function TabManagerProvider({
     [addTab, tabs],
   );
 
-  const renderTab = useCallback(
-    (tab: SandboxTabWithId): React.ReactNode => {
-      switch (tab.type) {
-        case 'box':
-          return <BoxPage />;
-        case 'box-editor':
-          return <BoxEnvironmentEditorPage />;
-        case 'editor':
-          return (
-            <SandboxObjectEditorPage
-              object={tab.object}
-              onClone={async () => {
-                const newObject = await saveObject({
-                  ...tab.object,
-                  key: undefined,
-                  editable: true,
-                  name: `${tab.object.name} (copy)`,
-                });
-                addTab({
-                  type: 'editor',
-                  icon: 'extension',
-                  subIcon: 'edit',
-                  object: newObject,
-                  label: newObject.name,
-                  closeable: true,
-                });
-              }}
-              onSave={async (object) => {
-                const newObject = await saveObject(object);
-                setTabs((tabs) => {
-                  return tabs.map((tab) => {
-                    if (tab.id === selectedTabId) {
-                      return {
-                        id: tab.id,
-                        icon: 'extension',
-                        subIcon: 'edit',
-                        type: 'editor',
-                        object: newObject,
-                        label: newObject.name,
-                        closeable: true,
-                      };
-                    }
-                    return tab;
-                  });
-                });
-              }}
-            />
-          );
-        case 'flowchart':
-          return <AlgorithmVisualizerFlowchart />;
-      }
+  const setTab = useCallback(
+    (tab: SandboxTabWithId) => {
+      setTabs((tabs) => {
+        const newTabs = [...tabs];
+        const index = newTabs.findIndex((t) => t.id === tab.id);
+        if (index === -1) {
+          return newTabs;
+        }
+        newTabs[index] = tab;
+        return newTabs;
+      });
     },
-    [addTab, saveObject, selectedTabId],
+    [setTabs],
   );
 
-  const onTabsReorder = useCallback((srcTabId: string, destTabId: string) => {
+  const reorderTabs = useCallback((srcTabId: string, destTabId: string) => {
     setTabs((tabs) => {
       const newTabs = [...tabs];
 
@@ -196,31 +166,55 @@ export default function TabManagerProvider({
     });
   }, []);
 
-  const value = useMemo(
-    () =>
-      ({
-        addTab,
-        addOrFocusTab,
-        closeTab: (tabId) => {
-          setTabs((tabs) => tabs.filter((tab) => tab.id !== tabId));
-          setSelectedTabId('current-box');
-        },
-        selectTab: (tabId) => {
-          setSelectedTabId(tabId);
-        },
-        selectedTabId,
-        tabs,
-        renderTabContent: (tabId) => {
-          const tab = tabs.find((tab) => tab.id === tabId);
-          if (tab === undefined) {
-            return null;
-          }
-          return renderTab(tab);
-        },
-        onTabsReorder,
-      }) satisfies TabManager,
-    [addOrFocusTab, addTab, onTabsReorder, renderTab, selectedTabId, tabs],
-  );
+  const closeTab = useCallback((tabId: string) => {
+    setTabs((tabs) => tabs.filter((tab) => tab.id !== tabId));
+    setSelectedTabId('current-box');
+  }, []);
+
+  const value = useMemo(() => {
+    return {
+      addTab,
+      addOrFocusTab,
+      closeTab,
+      selectTab: setSelectedTabId,
+      selectedTabId,
+      setTab,
+      tabs,
+      renderTabContent: (tabId) => {
+        const tab = tabs.find((tab) => tab.id === tabId);
+        if (tab === undefined) {
+          return null;
+        }
+        return (
+          tabConfigs[tab.type] as SandboxBaseTabConfig<SandboxTabType, unknown>
+        ).render({
+          context: {
+            addTab,
+            addOrFocusTab,
+            closeTab,
+            selectTab: setSelectedTabId,
+            selectedTabId,
+            setTab,
+            tabs,
+            reorderTabs,
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tab: tab as any,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data: tab.data as any,
+        });
+      },
+      reorderTabs,
+    } satisfies TabManager;
+  }, [
+    addOrFocusTab,
+    addTab,
+    closeTab,
+    reorderTabs,
+    selectedTabId,
+    setTab,
+    tabs,
+  ]);
 
   return (
     <TabManagerContext.Provider value={value}>

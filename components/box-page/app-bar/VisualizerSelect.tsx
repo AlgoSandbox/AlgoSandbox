@@ -89,10 +89,8 @@ export default function VisualizerSelect() {
           onClick={() => {
             addTab({
               type: 'editor',
-              icon: 'extension',
-              subIcon: 'edit',
               label: selectedOption.label,
-              object: selectedOption.value,
+              data: { object: selectedOption.value },
             });
           }}
           icon={<MaterialSymbol icon="open_in_new" />}

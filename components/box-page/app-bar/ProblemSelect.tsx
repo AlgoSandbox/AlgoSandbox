@@ -10,7 +10,7 @@ import ProblemDetails from '../ProblemDetails';
 import CatalogSelect from './CatalogSelect';
 
 export default function ProblemSelect() {
-  const { addTab } = useTabManager();
+  const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const {
     value: selectedOption,
@@ -86,7 +86,7 @@ export default function ProblemSelect() {
           hideLabel
           role="checkbox"
           onClick={() => {
-            addTab({
+            addOrFocusTab({
               type: 'editor',
               label: selectedOption.label,
               data: { object: selectedOption.value },

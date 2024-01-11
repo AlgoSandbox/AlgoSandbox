@@ -1,6 +1,4 @@
-import AppLogo from '@components/AppLogo';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
-import { useTabManager } from '@components/tab-manager/TabManager';
 import { Button, MaterialSymbol, Select } from '@components/ui';
 import Toggle from '@components/ui/Toggle';
 import { useTheme } from 'next-themes';
@@ -20,7 +18,6 @@ const themeOptions = [
 ];
 
 export default function AppBar() {
-  const { tabs } = useTabManager();
   const openBoxEditor = useBoxContext('openBoxEditor');
   const openFlowchart = useBoxContext('openFlowchart');
   const { theme, setTheme } = useTheme();
@@ -32,29 +29,26 @@ export default function AppBar() {
 
   return (
     <header className="flex justify-between items-center px-4 border-b py-2 gap-8 bg-surface">
-      <div className="flex gap-8 items-center">
-        {!isAdvancedModeEnabled && tabs.length <= 1 && <AppLogo />}
-        <div className="flex flex-row items-end gap-2">
-          <ProblemSelect />
-          <ProblemAlgorithmAdapterSelect />
-          <AlgorithmSelect />
-          <AlgorithmVisualizerAdapterSelect />
+      <div className="flex flex-row items-end gap-2">
+        <ProblemSelect />
+        <ProblemAlgorithmAdapterSelect />
+        <AlgorithmSelect />
+        <AlgorithmVisualizerAdapterSelect />
+        <Button
+          hideLabel
+          icon={<MaterialSymbol icon="schema" />}
+          label="Compose adapters"
+          onClick={openFlowchart}
+        />
+        <VisualizerSelect />
+        {isAdvancedModeEnabled && (
           <Button
-            hideLabel
-            icon={<MaterialSymbol icon="schema" />}
-            label="Compose adapters"
-            onClick={openFlowchart}
+            label="Edit box code"
+            variant="primary"
+            onClick={openBoxEditor}
+            icon={<MaterialSymbol icon="open_in_new" />}
           />
-          <VisualizerSelect />
-          {isAdvancedModeEnabled && (
-            <Button
-              label="Edit box code"
-              variant="primary"
-              onClick={openBoxEditor}
-              icon={<MaterialSymbol icon="open_in_new" />}
-            />
-          )}
-        </div>
+        )}
       </div>
       <div className="flex gap-4 items-end">
         <Toggle

@@ -4,12 +4,11 @@ import AppLogo from '@components/AppLogo';
 import { BoxContextProvider } from '@components/box-page';
 import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
 import BuiltInComponentsProvider from '@components/playground/BuiltInComponentsProvider';
-import UserPreferencesProvider, {
-  useUserPreferences,
-} from '@components/preferences/UserPreferencesProvider';
+import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
 import TabManagerProvider, {
   useTabManager,
 } from '@components/tab-manager/TabManager';
+import { HeadingContextProvider } from '@components/ui/Heading';
 import { Tabs, TabsItem } from '@components/ui/Tabs';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -38,7 +37,6 @@ type PlaygroundProps = {
 };
 
 export function PlaygroundPage() {
-  const { isAdvancedModeEnabled } = useUserPreferences();
   const {
     selectedTabId,
     tabs,
@@ -46,6 +44,7 @@ export function PlaygroundPage() {
     reorderTabs,
     closeTab,
     selectTab,
+    addTab,
   } = useTabManager();
 
   const tabItems = useMemo(() => {
@@ -54,6 +53,8 @@ export function PlaygroundPage() {
         ({
           key: tab.id,
           label: tab.label,
+          icon: tab.icon,
+          subIcon: tab.subIcon,
           isSelected: tab.id === selectedTabId,
           closeable: tab.closeable,
         }) satisfies TabsItem,
@@ -62,23 +63,27 @@ export function PlaygroundPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      {(isAdvancedModeEnabled || tabItems.length > 1) && (
-        <div className="flex">
-          <div className="border-b py-2 px-4">
-            <AppLogo />
-          </div>
-          <Tabs
-            tabs={tabItems}
-            onTabsReorder={reorderTabs}
-            onTabSelect={(tab) => {
-              selectTab(tab.key);
-            }}
-            onTabClose={(tab) => {
-              closeTab(tab.key);
-            }}
-          />
+      <div className="flex sticky top-0 bg-canvas z-10">
+        <div className="border-b py-2 px-4">
+          <AppLogo />
         </div>
-      )}
+        <Tabs
+          tabs={tabItems}
+          onNewTabOpen={() => {
+            addTab({
+              type: 'new-tab',
+              label: 'New tab',
+            });
+          }}
+          onTabsReorder={reorderTabs}
+          onTabSelect={(tab) => {
+            selectTab(tab.key);
+          }}
+          onTabClose={(tab) => {
+            closeTab(tab.key);
+          }}
+        />
+      </div>
       {tabs.map((tab) => (
         <main
           key={tab.id}
@@ -102,25 +107,27 @@ export default function Playground({
   return (
     <QueryClientProvider client={queryClient}>
       <UserPreferencesProvider>
-        <AlgoSandboxEditorFilesContextProvider
-          algoSandboxFiles={algoSandboxFiles}
-          typeDeclarations={typeDeclarations}
-        >
-          <DndProvider backend={HTML5Backend}>
-            <BuiltInComponentsProvider
-              builtInAdapterOptions={builtInAdapterOptions}
-              builtInAlgorithmOptions={builtInAlgorithmOptions}
-              builtInProblemOptions={builtInProblemOptions}
-              builtInVisualizerOptions={builtInVisualizerOptions}
-            >
-              <TabManagerProvider>
-                <BoxContextProvider>
-                  <PlaygroundPage />
-                </BoxContextProvider>
-              </TabManagerProvider>
-            </BuiltInComponentsProvider>
-          </DndProvider>
-        </AlgoSandboxEditorFilesContextProvider>
+        <HeadingContextProvider>
+          <AlgoSandboxEditorFilesContextProvider
+            algoSandboxFiles={algoSandboxFiles}
+            typeDeclarations={typeDeclarations}
+          >
+            <DndProvider backend={HTML5Backend}>
+              <BuiltInComponentsProvider
+                builtInAdapterOptions={builtInAdapterOptions}
+                builtInAlgorithmOptions={builtInAlgorithmOptions}
+                builtInProblemOptions={builtInProblemOptions}
+                builtInVisualizerOptions={builtInVisualizerOptions}
+              >
+                <TabManagerProvider>
+                  <BoxContextProvider>
+                    <PlaygroundPage />
+                  </BoxContextProvider>
+                </TabManagerProvider>
+              </BuiltInComponentsProvider>
+            </DndProvider>
+          </AlgoSandboxEditorFilesContextProvider>
+        </HeadingContextProvider>
       </UserPreferencesProvider>
     </QueryClientProvider>
   );

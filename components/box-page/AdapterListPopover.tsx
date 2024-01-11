@@ -169,7 +169,7 @@ export default function AdapterListPopover({
                   <li
                     className={clsx(
                       isFaulty ? 'border-muted' : 'border-primary',
-                      'flex gap-2 items-center ms-[11px] border-s-2 ps-[19px]',
+                      'flex gap-2 items-end ms-[11px] border-s-2 ps-[19px]',
                     )}
                   >
                     <Controller
@@ -189,6 +189,7 @@ export default function AdapterListPopover({
                       )}
                     />
                     <Button
+                      className="mb-1.5"
                       label="Remove"
                       hideLabel
                       size="sm"

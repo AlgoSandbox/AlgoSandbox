@@ -46,7 +46,19 @@ export default function SandboxObjectEditorPage({
   });
 
   return (
-    <div className="flex flex-col h-screen">
+    <form
+      className="flex flex-col h-full"
+      onSubmit={handleSubmit(async (values) => {
+        const newObject = await saveObject({
+          ...object,
+          name: values.name,
+          files: _.mapKeys(values.files, (_, key) => key.replaceAll('$', '.')),
+        });
+        console.log('SAVING');
+        onSaved(newObject);
+        reset(values);
+      })}
+    >
       <PanelGroup className="flex-1" direction="horizontal">
         <Panel key="explorer" defaultSize={20}>
           {!isViewOnly && (
@@ -69,7 +81,7 @@ export default function SandboxObjectEditorPage({
               <h1 className="font-medium text-lg">{object.name}</h1>
               <Button
                 label="Clone to edit"
-                type="submit"
+                type="button"
                 variant="primary"
                 onClick={async () => {
                   const newObject = await saveObject({
@@ -93,20 +105,7 @@ export default function SandboxObjectEditorPage({
         </Panel>
         <ResizeHandle />
         <Panel key="editor">
-          <form
-            className="flex-1 flex flex-col h-full"
-            onSubmit={handleSubmit(async (values) => {
-              const newObject = await saveObject({
-                ...object,
-                name: values.name,
-                files: _.mapKeys(values.files, (_, key) =>
-                  key.replaceAll('$', '.'),
-                ),
-              });
-              onSaved(newObject);
-              reset(values);
-            })}
-          >
+          <div className="flex-1 flex flex-col h-full">
             {selectedFilePath && (
               <div className="flex-1">
                 <Controller
@@ -129,9 +128,9 @@ export default function SandboxObjectEditorPage({
                 />
               </div>
             )}
-          </form>
+          </div>
         </Panel>
       </PanelGroup>
-    </div>
+    </form>
   );
 }

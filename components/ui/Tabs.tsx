@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { MaterialSymbol } from '.';
+import { Button, MaterialSymbol } from '.';
 
 type TabProps = {
   label: string;
@@ -121,6 +121,7 @@ export type TabsItem = Readonly<{
 
 type TabsProps = {
   tabs: Array<TabsItem>;
+  onNewTabOpen: () => void;
   onTabClose: (tab: TabsItem) => void;
   onTabSelect: (tab: TabsItem) => void;
   onTabsReorder: (srcTabId: string, destTabId: string) => void;
@@ -128,34 +129,44 @@ type TabsProps = {
 
 export function Tabs({
   tabs,
+  onNewTabOpen,
   onTabClose,
   onTabSelect,
   onTabsReorder,
 }: TabsProps) {
   return (
-    <div className="flex relative w-full">
+    <div className="flex relative w-full overflow-x-hidden">
       <div className="absolute bottom-0 w-full border-b -z-10"></div>
-      {tabs.map((tab, index) => (
-        <Tab
-          className={clsx(index > 0 && 'ms-1')}
-          key={tab.key}
-          isSelected={tab.isSelected}
-          label={tab.label}
-          id={tab.key}
-          icon={tab.icon}
-          subIcon={tab.subIcon}
-          closeable={tab.closeable}
-          onClick={() => {
-            onTabSelect(tab);
-          }}
-          onTabDrop={(tabId) => {
-            onTabsReorder(tabId, tab.key);
-          }}
-          onClose={() => {
-            onTabClose(tab);
-          }}
-        />
-      ))}
+      <div className="flex overflow-x-auto">
+        {tabs.map((tab, index) => (
+          <Tab
+            className={clsx('flex-shrink-0', index > 0 && 'ms-1')}
+            key={tab.key}
+            isSelected={tab.isSelected}
+            label={tab.label}
+            id={tab.key}
+            icon={tab.icon}
+            subIcon={tab.subIcon}
+            closeable={tab.closeable}
+            onClick={() => {
+              onTabSelect(tab);
+            }}
+            onTabDrop={(tabId) => {
+              onTabsReorder(tabId, tab.key);
+            }}
+            onClose={() => {
+              onTabClose(tab);
+            }}
+          />
+        ))}
+      </div>
+      <Button
+        className="border-s border-r border-t rounded-es-none rounded-ee-none ms-1"
+        onClick={onNewTabOpen}
+        label="New tab"
+        hideLabel={true}
+        icon={<MaterialSymbol icon="add" />}
+      />
     </div>
   );
 }

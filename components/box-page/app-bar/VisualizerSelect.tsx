@@ -10,7 +10,7 @@ import VisualizerDetails from '../VisualizerDetails';
 import CatalogSelect from './CatalogSelect';
 
 export default function VisualizerSelect() {
-  const { addTab } = useTabManager();
+  const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const { visible: customPanelVisible } = useBoxContext(
     'visualizer.customPanel',
@@ -87,7 +87,7 @@ export default function VisualizerSelect() {
           role="checkbox"
           selected={customPanelVisible}
           onClick={() => {
-            addTab({
+            addOrFocusTab({
               type: 'editor',
               label: selectedOption.label,
               data: { object: selectedOption.value },

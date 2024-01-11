@@ -10,7 +10,7 @@ import { useBoxContext } from '../box-context';
 import CatalogSelect from './CatalogSelect';
 
 export default function AlgorithmSelect() {
-  const { addTab } = useTabManager();
+  const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const { visible: customPanelVisible } = useBoxContext(
     'algorithm.customPanel',
@@ -86,7 +86,7 @@ export default function AlgorithmSelect() {
           role="checkbox"
           selected={customPanelVisible}
           onClick={() => {
-            addTab({
+            addOrFocusTab({
               type: 'editor',
               label: selectedOption.label,
               data: { object: selectedOption.value },

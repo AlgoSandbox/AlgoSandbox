@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import React, {
   createContext,
   useCallback,
@@ -6,29 +7,30 @@ import React, {
   useState,
 } from 'react';
 
-import BoxTab, { boxTabConfig } from './BoxTab';
-import SandboxEnvironmentEditorTab, {
-  sandboxEnvironmentEditorTabConfig,
-} from './SandboxEnvironmentEditorTab';
-import SandboxFlowchartTab, {
-  sandboxFlowchartTabConfig,
-} from './SandboxFlowchartTab';
-import SandboxObjectEditorTab, {
-  sandboxObjectEditorTabConfig,
-} from './SandboxObjectEditorTab';
+import { boxTabConfig } from './BoxTab';
+import { newTabConfig } from './NewTab';
+import { sandboxEnvironmentEditorTabConfig } from './SandboxEnvironmentEditorTab';
+import { sandboxFlowchartTabConfig } from './SandboxFlowchartTab';
+import { sandboxObjectEditorTabConfig } from './SandboxObjectEditorTab';
 
-export type SandboxTabType = 'box' | 'box-editor' | 'editor' | 'flowchart';
+export type SandboxTabType =
+  | 'new-tab'
+  | 'box'
+  | 'box-editor'
+  | 'editor'
+  | 'flowchart';
 
 const tabConfigs = {
   box: boxTabConfig,
   'box-editor': sandboxEnvironmentEditorTabConfig,
   editor: sandboxObjectEditorTabConfig,
   flowchart: sandboxFlowchartTabConfig,
+  'new-tab': newTabConfig,
 } as const satisfies Record<SandboxTabType, unknown>;
 
 export type SandboxBaseTabConfig<T extends SandboxTabType, D = undefined> = {
-  type: SandboxTabType;
-  icon: string;
+  type: T;
+  icon?: string;
   subIcon?: string;
   render: (
     args: {
@@ -57,13 +59,19 @@ export type Tab<T extends SandboxTabType> = {
   ? { data?: undefined }
   : { data: TabData<T> });
 
-type SandboxTab =
-  | BoxTab
-  | SandboxEnvironmentEditorTab
-  | SandboxFlowchartTab
-  | SandboxObjectEditorTab;
+type SandboxTab = {
+  [K in SandboxTabType]: Tab<K>;
+}[SandboxTabType];
 
-type SandboxTabWithId = SandboxTab & { id: string };
+type SandboxTabWithId = SandboxTab & {
+  id: string;
+};
+
+type SandboxTabInstance = SandboxTabWithId & {
+  id: string;
+  icon?: string;
+  subIcon?: string;
+};
 
 type TabManager = {
   addTab: (tab: SandboxTab) => void;
@@ -73,7 +81,7 @@ type TabManager = {
   setTab: (tab: SandboxTabWithId) => void;
   reorderTabs: (srcTabId: string, destTabId: string) => void;
   renderTabContent: (tabId: string) => React.ReactNode;
-  tabs: Array<SandboxTabWithId>;
+  tabs: Array<SandboxTabInstance>;
   selectedTabId: string;
 };
 
@@ -126,7 +134,9 @@ export default function TabManagerProvider({
 
   const addOrFocusTab = useCallback(
     (tab: SandboxTab) => {
-      const existingTab = tabs.find((t) => t.type === tab.type);
+      const existingTab = tabs.find(
+        (t) => t.type === tab.type && isEqual(t.data, tab.data),
+      );
       if (existingTab !== undefined) {
         setSelectedTabId(existingTab.id);
       } else {
@@ -166,12 +176,25 @@ export default function TabManagerProvider({
     });
   }, []);
 
-  const closeTab = useCallback((tabId: string) => {
-    setTabs((tabs) => tabs.filter((tab) => tab.id !== tabId));
-    setSelectedTabId('current-box');
-  }, []);
+  const closeTab = useCallback(
+    (tabId: string) => {
+      const tabIndex = tabs.findIndex((tab) => tab.id === tabId);
+      const newTabs = tabs.filter((tab) => tab.id !== tabId);
+      setTabs(newTabs);
+      setSelectedTabId(
+        newTabs[tabIndex - 1]?.id ?? newTabs[tabIndex]?.id ?? 'current-box',
+      );
+    },
+    [tabs],
+  );
 
   const value = useMemo(() => {
+    const valueTabs = tabs.map((tab) => ({
+      ...tab,
+      icon: tabConfigs[tab.type].icon,
+      subIcon: tabConfigs[tab.type].subIcon,
+    }));
+
     return {
       addTab,
       addOrFocusTab,
@@ -179,7 +202,7 @@ export default function TabManagerProvider({
       selectTab: setSelectedTabId,
       selectedTabId,
       setTab,
-      tabs,
+      tabs: valueTabs,
       renderTabContent: (tabId) => {
         const tab = tabs.find((tab) => tab.id === tabId);
         if (tab === undefined) {
@@ -195,7 +218,7 @@ export default function TabManagerProvider({
             selectTab: setSelectedTabId,
             selectedTabId,
             setTab,
-            tabs,
+            tabs: valueTabs,
             reorderTabs,
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

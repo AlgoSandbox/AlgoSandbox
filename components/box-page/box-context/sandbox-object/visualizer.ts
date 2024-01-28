@@ -20,18 +20,12 @@ export const defaultBoxContextVisualizer =
 
 export default function useBoxContextVisualizer({
   builtInVisualizerOptions,
-  customPanelVisible,
-  setCustomPanelVisible,
 }: {
-  customPanelVisible: boolean;
-  setCustomPanelVisible: (visible: boolean) => void;
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
 }) {
   return useBoxContextSandboxObject({
     type: 'visualizer',
     builtInOptions: builtInVisualizerOptions,
-    customPanelVisible,
-    setCustomPanelVisible,
     addSavedObjectMutation: useAddSavedVisualizerMutation(),
     setSavedObjectMutation: useSetSavedVisualizerMutation(),
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),

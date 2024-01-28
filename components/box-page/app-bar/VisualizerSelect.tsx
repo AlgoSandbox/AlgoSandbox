@@ -12,9 +12,6 @@ import CatalogSelect from './CatalogSelect';
 export default function VisualizerSelect() {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { visible: customPanelVisible } = useBoxContext(
-    'visualizer.customPanel',
-  );
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -85,7 +82,6 @@ export default function VisualizerSelect() {
           label="Edit visualizer in new tab"
           hideLabel
           role="checkbox"
-          selected={customPanelVisible}
           onClick={() => {
             addOrFocusTab({
               type: 'editor',

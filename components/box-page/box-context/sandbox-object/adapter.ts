@@ -20,18 +20,12 @@ export const defaultBoxContextAdapter =
 
 export default function useBoxContextAdapter({
   builtInAdapterOptions,
-  customPanelVisible,
-  setCustomPanelVisible,
 }: {
-  customPanelVisible: boolean;
-  setCustomPanelVisible: (visible: boolean) => void;
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
 }) {
   return useBoxContextSandboxObject({
     type: 'adapter',
     builtInOptions: builtInAdapterOptions,
-    customPanelVisible,
-    setCustomPanelVisible,
     addSavedObjectMutation: useAddSavedAdapterMutation(),
     setSavedObjectMutation: useSetSavedAdapterMutation(),
     removeSavedObjectMutation: useRemoveSavedAdapterMutation(),

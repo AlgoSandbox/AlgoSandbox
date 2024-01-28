@@ -111,10 +111,6 @@ export type DbObjectSaved<T extends keyof SandboxObjectTypeMap> =
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
   custom: defaultBoxContextCustomObjects,
-  customPanel: {
-    visible: false,
-    setVisible: () => {},
-  },
   errorMessage: null,
   instance: null,
   value: null,
@@ -131,10 +127,6 @@ export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
 };
 
 export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
-  customPanel: {
-    visible: boolean;
-    setVisible: (visible: boolean) => void;
-  };
   custom: BoxContextCustomObjects<T>;
   errorMessage: string | null;
   instance: Instance<T> | null;
@@ -154,8 +146,6 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
 export function useBoxContextSandboxObject<
   T extends keyof SandboxObjectTypeMap,
 >({
-  customPanelVisible,
-  setCustomPanelVisible,
   builtInOptions,
   addSavedObjectMutation,
   setSavedObjectMutation,
@@ -164,8 +154,6 @@ export function useBoxContextSandboxObject<
   type,
 }: {
   type: T;
-  customPanelVisible: boolean;
-  setCustomPanelVisible: (visible: boolean) => void;
   builtInOptions: Array<CatalogGroup<DbObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
@@ -355,10 +343,6 @@ export function useBoxContextSandboxObject<
   const object = useMemo(() => {
     return {
       custom,
-      customPanel: {
-        visible: customPanelVisible,
-        setVisible: setCustomPanelVisible,
-      },
       errorMessage,
       instance: objectInstance,
       value: objectEvaled,
@@ -382,8 +366,6 @@ export function useBoxContextSandboxObject<
     objectParameters,
     objectOptions,
     custom,
-    customPanelVisible,
-    setCustomPanelVisible,
     defaultParameters,
     selectedOptionObject,
   ]);

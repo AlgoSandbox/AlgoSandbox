@@ -101,8 +101,6 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
   return _.get(value, path) as BoxContextReturn<P>;
 }
 
-type CustomPanel = 'algorithm' | 'problem' | 'visualizer' | null;
-
 export type BoxContextProviderProps = {
   children: ReactNode;
 };
@@ -118,45 +116,14 @@ export default function BoxContextProvider({
     builtInProblemOptions,
     builtInVisualizerOptions,
   } = useBuiltInComponents();
-  const [customPanel, setCustomPanel] = useState<CustomPanel>(null);
-  const {
-    customAlgorithmPanelVisible,
-    customProblemPanelVisible,
-    customVisualizerPanelVisible,
-    setCustomAlgorithmPanelVisible,
-    setCustomProblemPanelVisible,
-    setCustomVisualizerPanelVisible,
-  } = useMemo(() => {
-    return {
-      customAlgorithmPanelVisible: customPanel === 'algorithm',
-      customProblemPanelVisible: customPanel === 'problem',
-      customVisualizerPanelVisible: customPanel === 'visualizer',
-      setCustomAlgorithmPanelVisible: (visible: boolean) => {
-        setCustomPanel(visible ? 'algorithm' : null);
-      },
-      setCustomVisualizerPanelVisible: (visible: boolean) => {
-        setCustomPanel(visible ? 'visualizer' : null);
-      },
-      setCustomProblemPanelVisible: (visible: boolean) => {
-        setCustomPanel(visible ? 'problem' : null);
-      },
-    };
-  }, [customPanel]);
-
   const problem = useBoxContextProblem({
     builtInProblemOptions,
-    customPanelVisible: customProblemPanelVisible,
-    setCustomPanelVisible: setCustomProblemPanelVisible,
   });
   const algorithm = useBoxContextAlgorithm({
     builtInAlgorithmOptions,
-    customPanelVisible: customAlgorithmPanelVisible,
-    setCustomPanelVisible: setCustomAlgorithmPanelVisible,
   });
   const visualizer = useBoxContextVisualizer({
     builtInVisualizerOptions,
-    customPanelVisible: customVisualizerPanelVisible,
-    setCustomPanelVisible: setCustomVisualizerPanelVisible,
   });
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,

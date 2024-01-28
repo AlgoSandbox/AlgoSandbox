@@ -12,9 +12,6 @@ import CatalogSelect from './CatalogSelect';
 export default function AlgorithmSelect() {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { visible: customPanelVisible } = useBoxContext(
-    'algorithm.customPanel',
-  );
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -84,7 +81,6 @@ export default function AlgorithmSelect() {
           label="Edit algorithm in new tab"
           hideLabel
           role="checkbox"
-          selected={customPanelVisible}
           onClick={() => {
             addOrFocusTab({
               type: 'editor',

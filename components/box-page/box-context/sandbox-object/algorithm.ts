@@ -19,18 +19,12 @@ export const defaultBoxContextAlgorithm =
   defaultBoxContextSandboxObject as BoxContextAlgorithm;
 
 export default function useBoxContextAlgorithm({
-  customPanelVisible,
-  setCustomPanelVisible,
   builtInAlgorithmOptions,
 }: {
-  customPanelVisible: boolean;
-  setCustomPanelVisible: (visible: boolean) => void;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
 }) {
   return useBoxContextSandboxObject({
     type: 'algorithm',
-    customPanelVisible,
-    setCustomPanelVisible,
     builtInOptions: builtInAlgorithmOptions,
     addSavedObjectMutation: useAddSavedAlgorithmMutation(),
     setSavedObjectMutation: useSetSavedAlgorithmMutation(),

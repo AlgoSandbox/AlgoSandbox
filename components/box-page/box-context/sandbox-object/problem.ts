@@ -20,18 +20,12 @@ export const defaultBoxContextProblem =
 
 export default function useBoxContextProblem({
   builtInProblemOptions,
-  customPanelVisible,
-  setCustomPanelVisible,
 }: {
-  customPanelVisible: boolean;
-  setCustomPanelVisible: (visible: boolean) => void;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
 }) {
   return useBoxContextSandboxObject({
     type: 'problem',
     builtInOptions: builtInProblemOptions,
-    customPanelVisible,
-    setCustomPanelVisible,
     addSavedObjectMutation: useAddSavedProblemMutation(),
     setSavedObjectMutation: useSetSavedProblemMutation(),
     removeSavedObjectMutation: useRemoveSavedProblemMutation(),

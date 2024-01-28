@@ -10,6 +10,8 @@ import path from 'path';
 import { ModuleKind, ScriptTarget, transpile } from 'typescript';
 import * as zod from 'zod';
 
+import hyphenCaseToCamelCase from './hyphenCaseToCamelCase';
+
 export function evalWithContext(
   code: string,
   context: Record<string, unknown> = {},
@@ -22,6 +24,11 @@ export function evalWithContext(
 
     return eval(`${def}${code}`);
   }.call(context);
+}
+
+function isAbsolutePath(libraryPath: string) {
+  // Returns if the js library path is absolute
+  return !libraryPath.startsWith('.');
 }
 
 export default function evalWithAlgoSandbox(
@@ -50,7 +57,7 @@ export default function evalWithAlgoSandbox(
       if (library in libraryToValue) {
         return libraryToValue[library as keyof typeof libraryToValue];
       } else {
-        const isAbsolute = path.isAbsolute(library);
+        const isAbsolute = isAbsolutePath(library);
         if (isAbsolute) {
           const matchingLibraryPrefixes = Object.keys(libraryToValue).filter(
             (key) =>
@@ -75,7 +82,18 @@ export default function evalWithAlgoSandbox(
             libraryToValue[
               bestMatchingLibraryPrefix as keyof typeof libraryToValue
             ];
-          return _.get(libraryValue, dottedRelativePath);
+
+          const camelCaseRelativePath =
+            hyphenCaseToCamelCase(dottedRelativePath);
+
+          const object =
+            _.get(libraryValue, dottedRelativePath) ??
+            _.get(libraryValue, camelCaseRelativePath);
+
+          if (object !== undefined) {
+            object.default = object;
+          }
+          return object;
         } else if (fileContext) {
           const resolvedPath = path.resolve(
             path.dirname(fileContext.currentFilePath),

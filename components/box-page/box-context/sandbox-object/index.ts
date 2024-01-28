@@ -1,9 +1,11 @@
+import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
 import {
   getDefaultParameters,
   Parameterized,
   ParsedParameters,
   SandboxAdapter,
   SandboxAlgorithm,
+  SandboxBox,
   SandboxParameters,
   SandboxProblem,
   SandboxStateType,
@@ -25,6 +27,8 @@ import {
   DbAdapterSaved,
   DbAlgorithm,
   DbAlgorithmSaved,
+  DbBox,
+  DbBoxSaved,
   DbProblem,
   DbProblemSaved,
   DbVisualizer,
@@ -38,6 +42,7 @@ import {
   sandboxParameterizedAdapter,
   sandboxParameterizedAlgorithm,
 } from '@utils/verifiers/algorithm';
+import { sandboxBox } from '@utils/verifiers/box';
 import {
   sandboxParameterizedProblem,
   sandboxProblem,
@@ -78,6 +83,12 @@ type SandboxObjectTypeMap = {
     dbObject: DbVisualizer;
     dbObjectSaved: DbVisualizerSaved;
   };
+  box: {
+    instance: SandboxBox;
+    value: SandboxBox;
+    dbObject: DbBox;
+    dbObjectSaved: DbBoxSaved;
+  };
 };
 
 const verifiers = {
@@ -96,6 +107,10 @@ const verifiers = {
   visualizer: {
     instance: sandboxVisualizer,
     parameterized: sandboxParameterizedVisualizer,
+  },
+  box: {
+    instance: sandboxBox,
+    parameterized: sandboxBox,
   },
 };
 
@@ -123,6 +138,7 @@ export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
     value: null,
     setValue: () => {},
     options: [],
+    reset: () => {},
   },
 };
 
@@ -140,6 +156,7 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
     value: CatalogOption<DbObjectSaved<T>> | null;
     setValue: (value: CatalogOption<DbObjectSaved<T>> | null) => void;
     options: CatalogOptions<DbObjectSaved<T>>;
+    reset: () => void;
   };
 };
 
@@ -152,8 +169,10 @@ export function useBoxContextSandboxObject<
   removeSavedObjectMutation,
   savedObjects,
   type,
+  defaultKey,
 }: {
   type: T;
+  defaultKey: SandboxKey<T> | undefined;
   builtInOptions: Array<CatalogGroup<DbObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
@@ -183,8 +202,12 @@ export function useBoxContextSandboxObject<
   );
 
   const [selectedOptionKey, setSelectedOptionKey] = useState<string | null>(
-    null,
+    defaultKey ?? null,
   );
+
+  useEffect(() => {
+    setSelectedOptionKey(defaultKey ?? null);
+  }, [defaultKey]);
 
   const selectedOptionObject = useMemo(() => {
     if (selectedOptionKey === null) {
@@ -357,17 +380,21 @@ export function useBoxContextSandboxObject<
           setSelectedOptionKey(option?.key ?? null);
         },
         options: objectOptions,
+        reset: () => {
+          setSelectedOptionKey(defaultKey ?? null);
+        },
       },
     } satisfies BoxContextSandboxObject<T>;
   }, [
-    errorMessage,
-    objectEvaled,
-    objectInstance,
-    objectParameters,
-    objectOptions,
     custom,
+    errorMessage,
+    objectInstance,
+    objectEvaled,
     defaultParameters,
+    objectParameters,
     selectedOptionObject,
+    objectOptions,
+    defaultKey,
   ]);
 
   return object;

@@ -1,8 +1,5 @@
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
-import { Button, MaterialSymbol, Select } from '@components/ui';
-import Toggle from '@components/ui/Toggle';
-import { useTheme } from 'next-themes';
-import { useMemo } from 'react';
+import { Button, MaterialSymbol } from '@components/ui';
 
 import { useBoxContext } from '..';
 import AlgorithmSelect from './AlgorithmSelect';
@@ -11,21 +8,9 @@ import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
 import ProblemSelect from './ProblemSelect';
 import VisualizerSelect from './VisualizerSelect';
 
-const themeOptions = [
-  { label: 'System', key: 'system', value: 'system' },
-  { label: 'Light', key: 'light', value: 'light' },
-  { label: 'Dark', key: 'dark', value: 'dark' },
-];
-
 export default function AppBar() {
-  const openBoxEditor = useBoxContext('openBoxEditor');
-  const openFlowchart = useBoxContext('openFlowchart');
-  const { theme, setTheme } = useTheme();
-  const selectedThemeOption = useMemo(() => {
-    return themeOptions.find((option) => option.value === theme);
-  }, [theme]);
-  const { isAdvancedModeEnabled, setAdvancedModeEnabled } =
-    useUserPreferences();
+  const { isDraft, reset, openBoxEditor, openFlowchart } = useBoxContext();
+  const { isAdvancedModeEnabled } = useUserPreferences();
 
   return (
     <header className="flex justify-between items-center px-4 border-b py-2 gap-8 bg-surface">
@@ -41,30 +26,24 @@ export default function AppBar() {
           onClick={openFlowchart}
         />
         <VisualizerSelect />
-        {isAdvancedModeEnabled && (
+      </div>
+      <div className="flex gap-2">
+        {!isDraft && (
           <Button
-            label="Edit box code"
+            label="Reset box"
+            variant="filled"
+            onClick={reset}
+            icon={<MaterialSymbol icon="settings_backup_restore" />}
+          />
+        )}
+        {isAdvancedModeEnabled && !isDraft && (
+          <Button
+            label="Edit box"
             variant="primary"
             onClick={openBoxEditor}
             icon={<MaterialSymbol icon="open_in_new" />}
           />
         )}
-      </div>
-      <div className="flex gap-4 items-end">
-        <Toggle
-          className="mb-2"
-          label="Advanced mode"
-          value={isAdvancedModeEnabled}
-          onChange={setAdvancedModeEnabled}
-        />
-        <Select
-          options={themeOptions}
-          value={selectedThemeOption}
-          onChange={(option) => {
-            setTheme(option.value);
-          }}
-          label="Theme"
-        />
       </div>
     </header>
   );

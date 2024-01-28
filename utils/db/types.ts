@@ -1,5 +1,6 @@
 export type DbSandboxObjectType =
   | 'algorithm'
+  | 'box'
   | 'problem'
   | 'visualizer'
   | 'adapter';
@@ -29,3 +30,5 @@ export type DbProblem = DbSandboxObject<'problem'>;
 export type DbProblemSaved = DbSandboxObjectSaved<'problem'>;
 export type DbVisualizer = DbSandboxObject<'visualizer'>;
 export type DbVisualizerSaved = DbSandboxObjectSaved<'visualizer'>;
+export type DbBox = DbSandboxObject<'box'>;
+export type DbBoxSaved = DbSandboxObjectSaved<'box'>;

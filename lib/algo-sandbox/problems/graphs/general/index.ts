@@ -5,7 +5,7 @@ import { z } from 'zod';
 type GraphEdge = z.infer<typeof graphEdge>;
 type UndirectedGraph = z.infer<typeof undirectedGraph.shape>;
 
-const graphParameterized = createParameterizedProblem({
+const general = createParameterizedProblem({
   name: 'Search graph generator',
   type: searchGraph,
   parameters: {
@@ -50,4 +50,4 @@ const graphParameterized = createParameterizedProblem({
   },
 });
 
-export default graphParameterized;
+export default general;

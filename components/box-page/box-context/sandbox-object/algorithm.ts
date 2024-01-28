@@ -1,3 +1,4 @@
+import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
 import { CatalogGroup } from '@constants/catalog';
 import {
   DbAlgorithmSaved,
@@ -20,8 +21,10 @@ export const defaultBoxContextAlgorithm =
 
 export default function useBoxContextAlgorithm({
   builtInAlgorithmOptions,
+  defaultKey,
 }: {
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
+  defaultKey: SandboxKey<'algorithm'> | undefined;
 }) {
   return useBoxContextSandboxObject({
     type: 'algorithm',
@@ -30,5 +33,6 @@ export default function useBoxContextAlgorithm({
     setSavedObjectMutation: useSetSavedAlgorithmMutation(),
     removeSavedObjectMutation: useRemoveSavedAlgorithmMutation(),
     savedObjects: useSavedAlgorithmsQuery().data,
+    defaultKey,
   }) as BoxContextAlgorithm;
 }

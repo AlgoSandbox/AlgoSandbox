@@ -9,7 +9,7 @@ import {
 type Directory = Record<string, string | Record<string, string>>;
 
 export function buildDirectory(
-  files: Record<string, string>
+  files: Record<string, string>,
 ): BoxExplorerDirectory {
   const directoryStructure: Directory = {};
 
@@ -30,7 +30,7 @@ export function buildDirectory(
   function toBoxExplorerItem(
     parentPath: string,
     name: string,
-    item: string | Record<string, unknown>
+    item: string | Record<string, unknown>,
   ): BoxExplorerItem {
     if (typeof item === 'string') {
       return {
@@ -48,8 +48,8 @@ export function buildDirectory(
           toBoxExplorerItem(
             path.join(parentPath, name),
             itemName,
-            contents as string | Record<string, unknown>
-          )
+            contents as string | Record<string, unknown>,
+          ),
         ),
       } satisfies BoxExplorerDirectory;
     }

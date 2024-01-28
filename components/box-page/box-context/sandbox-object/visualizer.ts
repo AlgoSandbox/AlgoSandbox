@@ -1,3 +1,4 @@
+import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
 import { CatalogGroup } from '@constants/catalog';
 import { DbVisualizerSaved } from '@utils/db';
 import {
@@ -20,8 +21,10 @@ export const defaultBoxContextVisualizer =
 
 export default function useBoxContextVisualizer({
   builtInVisualizerOptions,
+  defaultKey,
 }: {
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
+  defaultKey: SandboxKey<'visualizer'> | undefined;
 }) {
   return useBoxContextSandboxObject({
     type: 'visualizer',
@@ -30,5 +33,6 @@ export default function useBoxContextVisualizer({
     setSavedObjectMutation: useSetSavedVisualizerMutation(),
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
     savedObjects: useSavedVisualizersQuery().data,
+    defaultKey,
   }) as BoxContextVisualizer;
 }

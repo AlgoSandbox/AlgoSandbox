@@ -1,6 +1,9 @@
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
+import { DbBoxSaved } from '@utils/db';
+import { evalSavedObject } from '@utils/evalSavedObject';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
+import { Get, RecursivePath } from '@utils/RecursivePath';
 import _, { isEqual } from 'lodash';
 import {
   createContext,
@@ -44,10 +47,12 @@ type BoxContextType = {
   };
   openBoxEditor: () => void;
   openFlowchart: () => void;
+  reset: () => void;
   boxName: {
     value: string;
     setValue: (value: string) => void;
   };
+  isDraft: boolean;
 };
 
 const BoxContext = createContext<BoxContextType>({
@@ -56,10 +61,12 @@ const BoxContext = createContext<BoxContextType>({
   problemAlgorithm: defaultBoxContextProblemAlgorithm,
   algorithmVisualizer: defaultBoxContextAlgorithmVisualizer,
   visualizer: defaultBoxContextVisualizer,
+  isDraft: true,
   boxEnvironment: {
     value: {},
     setValue: () => {},
   },
+  reset: () => {},
   openBoxEditor: () => {},
   openFlowchart: () => {},
   boxName: {
@@ -68,24 +75,7 @@ const BoxContext = createContext<BoxContextType>({
   },
 });
 
-type Paths<T> = T extends Record<string, unknown>
-  ? {
-      [K in keyof T]: `${Exclude<K, symbol>}${'' | `.${Paths<T[K]>}`}`;
-    }[keyof T]
-  : never;
-
-type Get<
-  T extends Record<string, unknown>,
-  P,
-> = P extends `${infer K}.${infer Rest}`
-  ? T[K] extends Record<string, unknown>
-    ? Get<T[K], Rest>
-    : never
-  : P extends keyof T
-  ? T[P]
-  : never;
-
-type BoxContextPath = Paths<BoxContextType>;
+type BoxContextPath = RecursivePath<BoxContextType>;
 
 type BoxContextReturn<P> = P extends undefined
   ? BoxContextType
@@ -102,28 +92,62 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
 }
 
 export type BoxContextProviderProps = {
+  box?: DbBoxSaved;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
+  box,
   children,
 }: BoxContextProviderProps) {
   const { addOrFocusTab } = useTabManager();
   const [boxName, setBoxName] = useState('Untitled box');
+  const builtInComponents = useBuiltInComponents();
   const {
     builtInAdapterOptions,
     builtInAlgorithmOptions,
     builtInProblemOptions,
     builtInVisualizerOptions,
-  } = useBuiltInComponents();
+  } = builtInComponents;
+
+  const { algorithmKey, problemKey, visualizerKey } = useMemo(() => {
+    if (box === undefined) {
+      return {};
+    }
+    const { objectEvaled: evaledBox, errorMessage } =
+      evalSavedObject<'box'>(box);
+    if (errorMessage != null) {
+      return {};
+    }
+
+    if (evaledBox === null) {
+      return {};
+    }
+
+    const {
+      algorithm: algorithmKey,
+      problem: problemKey,
+      visualizer: visualizerKey,
+    } = evaledBox;
+
+    return {
+      algorithmKey,
+      problemKey,
+      visualizerKey,
+    };
+  }, [box]);
+
   const problem = useBoxContextProblem({
     builtInProblemOptions,
+    defaultKey: problemKey,
   });
   const algorithm = useBoxContextAlgorithm({
     builtInAlgorithmOptions,
+    defaultKey: algorithmKey,
   });
   const visualizer = useBoxContextVisualizer({
     builtInVisualizerOptions,
+    defaultKey: visualizerKey,
   });
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,
@@ -271,11 +295,17 @@ export default function BoxContextProvider({
   );
 
   const openBoxEditor = useCallback(() => {
+    if (box === undefined) {
+      return;
+    }
     addOrFocusTab({
       type: 'box-editor',
       label: `Edit: ${boxName}`,
+      data: {
+        box,
+      },
     });
-  }, [addOrFocusTab, boxName]);
+  }, [addOrFocusTab, box, boxName]);
 
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
@@ -301,10 +331,17 @@ export default function BoxContextProvider({
         value: boxName,
         setValue: setBoxName,
       },
+      isDraft: box === undefined,
+      reset: () => {
+        problem.select.reset();
+        algorithm.select.reset();
+        visualizer.select.reset();
+      },
     } satisfies BoxContextType;
   }, [
     algorithm,
     algorithmVisualizer,
+    box,
     boxEnvironment,
     boxName,
     openBoxEditor,

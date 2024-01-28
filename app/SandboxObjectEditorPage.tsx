@@ -54,7 +54,6 @@ export default function SandboxObjectEditorPage({
           name: values.name,
           files: _.mapKeys(values.files, (_, key) => key.replaceAll('$', '.')),
         });
-        console.log('SAVING');
         onSaved(newObject);
         reset(values);
       })}

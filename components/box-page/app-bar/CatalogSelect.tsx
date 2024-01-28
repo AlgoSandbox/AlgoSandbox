@@ -1,5 +1,6 @@
-import VisualizationRenderer from '@algo-sandbox/components/VisualizationRenderer';
-import { Box } from '@algo-sandbox/core';
+import { SandboxBox } from '@algo-sandbox/core';
+import VisualizationRenderer from '@algo-sandbox/react-components/VisualizationRenderer';
+import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import {
   Button,
   FormLabel,
@@ -17,6 +18,7 @@ import {
   isParameterizedVisualizer,
 } from '@utils';
 import { DbSandboxObjectSaved } from '@utils/db';
+import evalBox from '@utils/evalBox';
 import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
 import useCancelableInterval from '@utils/useCancelableInterval';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -76,6 +78,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   onChange,
   errorMessage,
 }: CatalogSelectProps<T>) {
+  const builtInComponents = useBuiltInComponents();
   const [selectedOption, setSelectedOption] = useState<CatalogOption<T> | null>(
     value ?? null,
   );
@@ -117,9 +120,24 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
       const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
         files,
         currentFilePath: defaultBoxFilePath,
-      }) as Box;
+      }) as SandboxBox;
 
-      const { algorithm, problem, visualizer } = defaultBox;
+      const evaledBox = evalBox({
+        box: defaultBox,
+        builtInComponents,
+        currentFilePath: defaultBoxFilePath,
+        files,
+      });
+
+      const { algorithm, problem, visualizer } = evaledBox;
+
+      if (
+        algorithm === undefined ||
+        problem === undefined ||
+        visualizer === undefined
+      ) {
+        return;
+      }
 
       const problemInstance = (() => {
         if (isParameterizedProblem(problem)) {
@@ -155,7 +173,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
           .executionTrace,
         visualizerInstance,
       };
-    }, [selectedOption]) ?? {};
+    }, [builtInComponents, selectedOption]) ?? {};
 
   const stepCount = Math.min(
     MAX_EXECUTION_STEP_COUNT,

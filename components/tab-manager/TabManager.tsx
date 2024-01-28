@@ -114,6 +114,9 @@ export default function TabManagerProvider({
       id: 'current-box',
       label: 'Untitled box',
       closeable: false,
+      data: {
+        box: null,
+      },
     },
   ]);
 

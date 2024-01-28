@@ -1,15 +1,9 @@
-import { Search } from '@algo-sandbox/algorithms';
-import { Box } from '@algo-sandbox/core';
-import { searchGraphVisualizer } from '@algo-sandbox/visualizers';
+import { SandboxBox } from '@algo-sandbox/core';
 
-import problem from '.';
-
-const box: Box = {
-  problem,
-  problemAlgorithmAdapters: [],
-  algorithm: Search.dfs,
-  algorithmVisualizerAdapters: [],
-  visualizer: searchGraphVisualizer,
+const box: SandboxBox = {
+  problem: '.',
+  algorithm: 'algorithm.search.dfs',
+  visualizer: 'visualizer.graphs.searchGraph',
 };
 
 export default box;

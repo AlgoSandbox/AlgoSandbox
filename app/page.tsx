@@ -1,5 +1,6 @@
 import { CatalogGroup } from '@constants/catalog';
 import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
+import hyphenCaseToCamelCase from '@utils/hyphenCaseToCamelCase';
 import fs from 'fs';
 import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';
 import path from 'path';
@@ -93,6 +94,10 @@ const adapterGroupToFolderGlob = {
   Example: 'lib/algo-sandbox/adapters/example',
 };
 
+const boxGroupToFolderGlob = {
+  Graphs: 'lib/algo-sandbox/boxes/graphs',
+};
+
 function readSandboxObjectGroup<T extends DbSandboxObjectType>(
   type: T,
   groupLabel: string,
@@ -124,8 +129,18 @@ function readSandboxObjectGroup<T extends DbSandboxObjectType>(
         ]),
       );
 
+      // Extract out key using regex
+      // Key is "lib/algo-sandbox/componentType/{key}/index.ts"
+      const keyWithSlashes =
+        contentFileName.match(
+          /^lib\/algo-sandbox\/(?:.+?)\/(.+)\/index.ts$/,
+        )?.[1] ?? '';
+
+      const key =
+        type + '.' + hyphenCaseToCamelCase(keyWithSlashes).replaceAll('/', '.');
+
       return {
-        key: contentFileName,
+        key,
         name: title,
         writeup,
         files: renamedFiles,
@@ -151,13 +166,15 @@ function readSandboxObjectGroup<T extends DbSandboxObjectType>(
 export default async function Page() {
   const algoSandboxFiles = await getAlgoSandboxFiles();
 
-  // TODO: Fetch d3 and lodash type declarations
   const typeDeclarations: Array<TypeDeclaration> = [];
 
   const builtInAlgorithmOptions = Object.entries(
     algorithmGroupToFolderGlob,
   ).map(([label, folderGlob]) =>
     readSandboxObjectGroup('algorithm', label, folderGlob),
+  );
+  const buildInBoxOptions = Object.entries(boxGroupToFolderGlob).map(
+    ([label, folderGlob]) => readSandboxObjectGroup('box', label, folderGlob),
   );
   const builtInProblemOptions = Object.entries(problemGroupToFolderGlob).map(
     ([label, folderGlob]) =>
@@ -179,6 +196,7 @@ export default async function Page() {
       typeDeclarations={typeDeclarations}
       builtInAdapterOptions={builtInAdapterOptions}
       builtInAlgorithmOptions={builtInAlgorithmOptions}
+      builtInBoxOptions={buildInBoxOptions}
       builtInProblemOptions={builtInProblemOptions}
       builtInVisualizerOptions={builtInVisualizerOptions}
     />

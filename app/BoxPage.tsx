@@ -1,7 +1,7 @@
 'use client';
 
-import { VisualizerRenderer } from '@algo-sandbox/components';
 import { SandboxStateType } from '@algo-sandbox/core';
+import { VisualizerRenderer } from '@algo-sandbox/react-components';
 import {
   AppBar,
   BoxControlsContextProvider,

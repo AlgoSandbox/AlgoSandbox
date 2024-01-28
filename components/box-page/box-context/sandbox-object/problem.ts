@@ -1,3 +1,4 @@
+import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
 import { CatalogGroup } from '@constants/catalog';
 import { DbProblemSaved } from '@utils/db';
 import {
@@ -20,8 +21,10 @@ export const defaultBoxContextProblem =
 
 export default function useBoxContextProblem({
   builtInProblemOptions,
+  defaultKey,
 }: {
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
+  defaultKey: SandboxKey<'problem'> | undefined;
 }) {
   return useBoxContextSandboxObject({
     type: 'problem',
@@ -30,5 +33,6 @@ export default function useBoxContextProblem({
     setSavedObjectMutation: useSetSavedProblemMutation(),
     removeSavedObjectMutation: useRemoveSavedProblemMutation(),
     savedObjects: useSavedProblemsQuery().data,
+    defaultKey,
   }) as BoxContextProblem;
 }

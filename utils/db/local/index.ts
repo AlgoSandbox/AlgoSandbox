@@ -19,6 +19,8 @@ function createKey(object: DbSandboxObject): string {
       return `sandbox:problems:${object.name}-${new Date().getTime()}`;
     case 'visualizer':
       return `sandbox:visualizers:${object.name}-${new Date().getTime()}`;
+    case 'box':
+      return `sandbox:boxes:${object.name}-${new Date().getTime()}`;
   }
 }
 
@@ -32,6 +34,8 @@ function getListKey(object: DbSandboxObject): string {
       return 'sandbox:problems:custom';
     case 'visualizer':
       return 'sandbox:visualizers:custom';
+    case 'box':
+      return 'sandbox:boxes:custom';
   }
 }
 

@@ -13,12 +13,7 @@ export default function BoxEnvironmentEditorPage() {
 
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { isDirty },
-    reset,
-  } = useForm<Record<string, string>>({
+  const { control, handleSubmit, reset } = useForm<Record<string, string>>({
     defaultValues: _.mapKeys(boxEnvironment, (_, key) =>
       key.replaceAll('.', '$'),
     ),
@@ -49,10 +44,11 @@ export default function BoxEnvironmentEditorPage() {
           >
             <div className="flex justify-end">
               <Button
-                label="Save"
+                label="Save (disabled for now, buggy)"
                 type="submit"
                 variant="primary"
-                disabled={!isDirty}
+                disabled={true}
+                // disabled={!isDirty}
               />
             </div>
             {selectedFilePath && (

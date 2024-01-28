@@ -1,4 +1,4 @@
-import nodeGraphVisualizer from './node-graph';
-import searchGraphVisualizer from './search-graph';
+import nodeGraph from './node-graph';
+import searchGraph from './search-graph';
 
-export { nodeGraphVisualizer, searchGraphVisualizer}
+export { nodeGraph, searchGraph };

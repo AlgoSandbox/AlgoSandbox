@@ -35,7 +35,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "components/box-page/box-context/sandbox-object"
   ],
   "exclude": ["node_modules"]
 }

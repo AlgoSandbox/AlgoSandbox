@@ -1,24 +1,29 @@
 'use client';
 
 import AppLogo from '@components/AppLogo';
-import { BoxContextProvider } from '@components/box-page';
 import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
 import BuiltInComponentsProvider from '@components/playground/BuiltInComponentsProvider';
-import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
+import UserPreferencesProvider, {
+  useUserPreferences,
+} from '@components/preferences/UserPreferencesProvider';
 import TabManagerProvider, {
   useTabManager,
 } from '@components/tab-manager/TabManager';
-import { HeadingContextProvider } from '@components/ui/Heading';
+import { Button, MaterialSymbol, Popover, Select } from '@components/ui';
+import Heading, { HeadingContextProvider } from '@components/ui/Heading';
 import { Tabs, TabsItem } from '@components/ui/Tabs';
+import Toggle from '@components/ui/Toggle';
 import { CatalogGroup } from '@constants/catalog';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   DbAdapterSaved,
   DbAlgorithmSaved,
+  DbBoxSaved,
   DbProblemSaved,
   DbVisualizerSaved,
 } from '@utils/db';
 import clsx from 'clsx';
+import { useTheme } from 'next-themes';
 import { useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -30,13 +35,27 @@ const queryClient = new QueryClient();
 type PlaygroundProps = {
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
+  builtInBoxOptions: Array<CatalogGroup<DbBoxSaved>>;
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
   algoSandboxFiles: Array<TypeDeclaration>;
   typeDeclarations: Array<TypeDeclaration>;
 };
 
+const themeOptions = [
+  { label: 'System', key: 'system', value: 'system' },
+  { label: 'Light', key: 'light', value: 'light' },
+  { label: 'Dark', key: 'dark', value: 'dark' },
+];
+
 export function PlaygroundPage() {
+  const { theme, setTheme } = useTheme();
+  const selectedThemeOption = useMemo(() => {
+    return themeOptions.find((option) => option.value === theme);
+  }, [theme]);
+  const { isAdvancedModeEnabled, setAdvancedModeEnabled } =
+    useUserPreferences();
+
   const {
     selectedTabId,
     tabs,
@@ -83,6 +102,34 @@ export function PlaygroundPage() {
             closeTab(tab.key);
           }}
         />
+        <Popover
+          content={
+            <div className="bg-surface p-2 flex flex-col gap-4 items-start">
+              <Heading variant="h4">Settings</Heading>
+              <Select
+                options={themeOptions}
+                value={selectedThemeOption}
+                onChange={(option) => {
+                  setTheme(option.value);
+                }}
+                label="Theme"
+              />
+              <Toggle
+                className="mb-2"
+                label="Advanced mode"
+                value={isAdvancedModeEnabled}
+                onChange={setAdvancedModeEnabled}
+              />
+            </div>
+          }
+        >
+          <div className="border-b">
+            <Button
+              label="Settings"
+              icon={<MaterialSymbol icon="settings" />}
+            />
+          </div>
+        </Popover>
       </div>
       {tabs.map((tab) => (
         <main
@@ -99,6 +146,7 @@ export function PlaygroundPage() {
 export default function Playground({
   builtInAdapterOptions,
   builtInAlgorithmOptions,
+  builtInBoxOptions,
   builtInProblemOptions,
   builtInVisualizerOptions,
   algoSandboxFiles,
@@ -116,13 +164,12 @@ export default function Playground({
               <BuiltInComponentsProvider
                 builtInAdapterOptions={builtInAdapterOptions}
                 builtInAlgorithmOptions={builtInAlgorithmOptions}
+                builtInBoxOptions={builtInBoxOptions}
                 builtInProblemOptions={builtInProblemOptions}
                 builtInVisualizerOptions={builtInVisualizerOptions}
               >
                 <TabManagerProvider>
-                  <BoxContextProvider>
-                    <PlaygroundPage />
-                  </BoxContextProvider>
+                  <PlaygroundPage />
                 </TabManagerProvider>
               </BuiltInComponentsProvider>
             </DndProvider>

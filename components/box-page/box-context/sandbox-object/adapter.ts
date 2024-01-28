@@ -1,3 +1,4 @@
+import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
 import { CatalogGroup } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
 import {
@@ -20,8 +21,10 @@ export const defaultBoxContextAdapter =
 
 export default function useBoxContextAdapter({
   builtInAdapterOptions,
+  defaultKey,
 }: {
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  defaultKey: SandboxKey<'adapter'> | undefined;
 }) {
   return useBoxContextSandboxObject({
     type: 'adapter',
@@ -30,5 +33,6 @@ export default function useBoxContextAdapter({
     setSavedObjectMutation: useSetSavedAdapterMutation(),
     removeSavedObjectMutation: useRemoveSavedAdapterMutation(),
     savedObjects: useSavedAdaptersQuery().data,
+    defaultKey,
   }) as BoxContextAdapter;
 }

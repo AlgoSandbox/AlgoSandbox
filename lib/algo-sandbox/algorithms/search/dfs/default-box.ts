@@ -1,15 +1,9 @@
-import { Box } from '@algo-sandbox/core';
-import { fiveNodes } from '@algo-sandbox/problems';
-import { searchGraphVisualizer } from '@algo-sandbox/visualizers';
+import { SandboxBox } from '@algo-sandbox/core';
 
-import algorithm from '.';
-
-const box: Box = {
-  problem: fiveNodes,
-  problemAlgorithmAdapters: [],
-  algorithm,
-  algorithmVisualizerAdapters: [],
-  visualizer: searchGraphVisualizer,
+const box: SandboxBox = {
+  problem: 'problem.graphs.fiveNodes',
+  algorithm: '.',
+  visualizer: 'visualizer.graphs.searchGraph',
 };
 
 export default box;

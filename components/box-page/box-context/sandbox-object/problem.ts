@@ -22,9 +22,11 @@ export const defaultBoxContextProblem =
 export default function useBoxContextProblem({
   builtInProblemOptions,
   defaultKey,
+  onKeyChange,
 }: {
   builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
   defaultKey: SandboxKey<'problem'> | undefined;
+  onKeyChange: (key: SandboxKey<'problem'>) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'problem',
@@ -34,5 +36,8 @@ export default function useBoxContextProblem({
     removeSavedObjectMutation: useRemoveSavedProblemMutation(),
     savedObjects: useSavedProblemsQuery().data,
     defaultKey,
+    onSelect: ({ key }) => {
+      onKeyChange(key);
+    },
   }) as BoxContextProblem;
 }

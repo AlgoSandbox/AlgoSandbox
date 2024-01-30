@@ -170,6 +170,7 @@ export function useBoxContextSandboxObject<
   savedObjects,
   type,
   defaultKey,
+  onSelect,
 }: {
   type: T;
   defaultKey: SandboxKey<T> | undefined;
@@ -182,6 +183,7 @@ export function useBoxContextSandboxObject<
   >;
   removeSavedObjectMutation: UseMutationResult<void, unknown, DbObjectSaved<T>>;
   savedObjects: Array<DbObjectSaved<T>> | undefined;
+  onSelect?: (option: CatalogOption<DbObjectSaved<T>>) => void;
 }) {
   const objectOptions = useMemo(
     () =>
@@ -378,6 +380,9 @@ export function useBoxContextSandboxObject<
         value: selectedOptionObject,
         setValue: (option) => {
           setSelectedOptionKey(option?.key ?? null);
+          if (option !== null) {
+            onSelect?.(option);
+          }
         },
         options: objectOptions,
         reset: () => {

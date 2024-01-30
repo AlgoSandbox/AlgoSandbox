@@ -63,7 +63,7 @@ type SandboxTab = {
   [K in SandboxTabType]: Tab<K>;
 }[SandboxTabType];
 
-type SandboxTabWithId = SandboxTab & {
+export type SandboxTabWithId = SandboxTab & {
   id: string;
 };
 
@@ -77,6 +77,7 @@ type TabManager = {
   addTab: (tab: SandboxTab) => void;
   addOrFocusTab: (tab: SandboxTab) => void;
   closeTab: (tabId: string) => void;
+  renameTab: (tabId: string, newName: string) => void;
   selectTab: (tabId: string) => void;
   setTab: (tab: SandboxTabWithId) => void;
   reorderTabs: (srcTabId: string, destTabId: string) => void;
@@ -89,6 +90,7 @@ export const TabManagerContext = createContext<TabManager>({
   addTab: () => {},
   addOrFocusTab: () => {},
   closeTab: () => {},
+  renameTab: () => {},
   selectTab: () => {},
   setTab: () => {},
   renderTabContent: () => null,
@@ -107,16 +109,12 @@ export default function TabManagerProvider({
   children: React.ReactNode;
 }) {
   const [nextTabId, setNextTabId] = useState<number>(0);
-  const [selectedTabId, setSelectedTabId] = useState<string>('current-box');
+  const [selectedTabId, setSelectedTabId] = useState<string>('default');
   const [tabs, setTabs] = useState<Array<SandboxTabWithId>>([
     {
-      type: 'box',
-      id: 'current-box',
-      label: 'Untitled box',
-      closeable: false,
-      data: {
-        box: null,
-      },
+      id: 'default',
+      type: 'new-tab',
+      label: 'New tab',
     },
   ]);
 
@@ -147,6 +145,23 @@ export default function TabManagerProvider({
       }
     },
     [addTab, tabs],
+  );
+
+  const renameTab = useCallback(
+    (tabId: string, newName: string) => {
+      setTabs(
+        tabs.map((tab) => {
+          if (tab.id === tabId) {
+            return {
+              ...tab,
+              label: newName,
+            };
+          }
+          return tab;
+        }),
+      );
+    },
+    [tabs],
   );
 
   const setTab = useCallback(
@@ -217,6 +232,7 @@ export default function TabManagerProvider({
           context: {
             addTab,
             addOrFocusTab,
+            renameTab,
             closeTab,
             selectTab: setSelectedTabId,
             selectedTabId,
@@ -230,12 +246,14 @@ export default function TabManagerProvider({
           data: tab.data as any,
         });
       },
+      renameTab,
       reorderTabs,
     } satisfies TabManager;
   }, [
     addOrFocusTab,
     addTab,
     closeTab,
+    renameTab,
     reorderTabs,
     selectedTabId,
     setTab,

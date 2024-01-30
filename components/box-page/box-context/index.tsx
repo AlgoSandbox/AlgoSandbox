@@ -1,7 +1,6 @@
+import { useBox, useBoxManager } from '@app/BoxManager';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
-import { DbBoxSaved } from '@utils/db';
-import { evalSavedObject } from '@utils/evalSavedObject';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
 import { Get, RecursivePath } from '@utils/RecursivePath';
 import _, { isEqual } from 'lodash';
@@ -11,7 +10,6 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
 } from 'react';
 
 import useBoxContextAlgorithmVisualizer, {
@@ -92,16 +90,15 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
 }
 
 export type BoxContextProviderProps = {
-  box?: DbBoxSaved;
+  boxKey: string;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
-  box,
+  boxKey,
   children,
 }: BoxContextProviderProps) {
   const { addOrFocusTab } = useTabManager();
-  const [boxName, setBoxName] = useState('Untitled box');
   const builtInComponents = useBuiltInComponents();
   const {
     builtInAdapterOptions,
@@ -110,25 +107,16 @@ export default function BoxContextProvider({
     builtInVisualizerOptions,
   } = builtInComponents;
 
+  const box = useBox(boxKey);
+  const boxName = box?.name ?? 'Untitled box';
+  const { updateBox } = useBoxManager();
+
   const { algorithmKey, problemKey, visualizerKey } = useMemo(() => {
-    if (box === undefined) {
-      return {};
-    }
-    const { objectEvaled: evaledBox, errorMessage } =
-      evalSavedObject<'box'>(box);
-    if (errorMessage != null) {
-      return {};
-    }
-
-    if (evaledBox === null) {
-      return {};
-    }
-
     const {
       algorithm: algorithmKey,
       problem: problemKey,
       visualizer: visualizerKey,
-    } = evaledBox;
+    } = box ?? {};
 
     return {
       algorithmKey,
@@ -140,14 +128,38 @@ export default function BoxContextProvider({
   const problem = useBoxContextProblem({
     builtInProblemOptions,
     defaultKey: problemKey,
+    onKeyChange: (key) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          problem: key,
+        });
+      }
+    },
   });
   const algorithm = useBoxContextAlgorithm({
     builtInAlgorithmOptions,
     defaultKey: algorithmKey,
+    onKeyChange: (key) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          algorithm: key,
+        });
+      }
+    },
   });
   const visualizer = useBoxContextVisualizer({
     builtInVisualizerOptions,
     defaultKey: visualizerKey,
+    onKeyChange: (key) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          visualizer: key,
+        });
+      }
+    },
   });
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,
@@ -295,24 +307,24 @@ export default function BoxContextProvider({
   );
 
   const openBoxEditor = useCallback(() => {
-    if (box === undefined) {
-      return;
-    }
     addOrFocusTab({
       type: 'box-editor',
       label: `Edit: ${boxName}`,
       data: {
-        box,
+        boxKey,
       },
     });
-  }, [addOrFocusTab, box, boxName]);
+  }, [addOrFocusTab, boxKey, boxName]);
 
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
       type: 'flowchart',
       label: `Adapters: ${boxName}`,
+      data: {
+        boxKey,
+      },
     });
-  }, [addOrFocusTab, boxName]);
+  }, [addOrFocusTab, boxKey, boxName]);
 
   const value = useMemo(() => {
     return {
@@ -329,7 +341,12 @@ export default function BoxContextProvider({
       openFlowchart,
       boxName: {
         value: boxName,
-        setValue: setBoxName,
+        setValue: (newName) => {
+          if (box === null) {
+            return;
+          }
+          updateBox(boxKey, { ...box, name: newName });
+        },
       },
       isDraft: box === undefined,
       reset: () => {
@@ -343,12 +360,14 @@ export default function BoxContextProvider({
     algorithmVisualizer,
     box,
     boxEnvironment,
+    boxKey,
     boxName,
     openBoxEditor,
     openFlowchart,
     problem,
     problemAlgorithm,
     setBoxEnvironment,
+    updateBox,
     visualizer,
   ]);
 

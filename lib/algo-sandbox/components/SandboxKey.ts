@@ -49,16 +49,20 @@ type RelativeSandboxKey = '.';
 
 export type SandboxAlgorithmKey =
   | `algorithm.${ComponentPaths<typeof algorithms>}`
-  | RelativeSandboxKey;
+  | RelativeSandboxKey
+  | (string & Record<never, never>);
 export type SandboxProblemKey =
   | `problem.${ComponentPaths<typeof problems>}`
-  | RelativeSandboxKey;
+  | RelativeSandboxKey
+  | (string & Record<never, never>);
 export type SandboxVisualizerKey =
   | `visualizer.${ComponentPaths<typeof visualizers>}`
-  | RelativeSandboxKey;
+  | RelativeSandboxKey
+  | (string & Record<never, never>);
 export type SandboxAdapterKey =
   | `adapter.${ComponentPaths<typeof adapters>}`
-  | RelativeSandboxKey;
+  | RelativeSandboxKey
+  | (string & Record<never, never>);
 export type SandboxBoxKey = `box.${ComponentPaths<typeof adapters>}`;
 
 type SandboxKeyMap = {

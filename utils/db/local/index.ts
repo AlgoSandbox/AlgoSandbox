@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { DbSandboxObject, DbSandboxObjectType } from '../types';
+import {
+  DbSandboxObject,
+  DbSandboxObjectSaved,
+  DbSandboxObjectType,
+} from '../types';
 
 function getSavedObjectKeys(listKey: string) {
   return z
@@ -69,5 +73,5 @@ export function getSandboxObject<
     return null;
   }
 
-  return JSON.parse(saved) as DbSandboxObject<T>;
+  return JSON.parse(saved) as DbSandboxObjectSaved<T>;
 }

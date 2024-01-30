@@ -22,9 +22,11 @@ export const defaultBoxContextVisualizer =
 export default function useBoxContextVisualizer({
   builtInVisualizerOptions,
   defaultKey,
+  onKeyChange,
 }: {
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
   defaultKey: SandboxKey<'visualizer'> | undefined;
+  onKeyChange: (key: SandboxKey<'visualizer'>) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'visualizer',
@@ -34,5 +36,8 @@ export default function useBoxContextVisualizer({
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
     savedObjects: useSavedVisualizersQuery().data,
     defaultKey,
+    onSelect: ({ key }) => {
+      onKeyChange(key);
+    },
   }) as BoxContextVisualizer;
 }

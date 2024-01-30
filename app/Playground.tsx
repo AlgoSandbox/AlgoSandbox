@@ -9,6 +9,7 @@ import UserPreferencesProvider, {
 import TabManagerProvider, {
   useTabManager,
 } from '@components/tab-manager/TabManager';
+import TabProvider from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Popover, Select } from '@components/ui';
 import Heading, { HeadingContextProvider } from '@components/ui/Heading';
 import { Tabs, TabsItem } from '@components/ui/Tabs';
@@ -28,6 +29,7 @@ import { useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
+import BoxManagerProvider from './BoxManager';
 import { TypeDeclaration } from './page';
 
 const queryClient = new QueryClient();
@@ -132,12 +134,13 @@ export function PlaygroundPage() {
         </Popover>
       </div>
       {tabs.map((tab) => (
-        <main
-          key={tab.id}
-          className={clsx('flex-1', tab.id !== selectedTabId && 'hidden')}
-        >
-          {renderTabContent(tab.id)}
-        </main>
+        <TabProvider key={tab.id} tab={tab}>
+          <main
+            className={clsx('flex-1', tab.id !== selectedTabId && 'hidden')}
+          >
+            {renderTabContent(tab.id)}
+          </main>
+        </TabProvider>
       ))}
     </div>
   );
@@ -168,9 +171,11 @@ export default function Playground({
                 builtInProblemOptions={builtInProblemOptions}
                 builtInVisualizerOptions={builtInVisualizerOptions}
               >
-                <TabManagerProvider>
-                  <PlaygroundPage />
-                </TabManagerProvider>
+                <BoxManagerProvider>
+                  <TabManagerProvider>
+                    <PlaygroundPage />
+                  </TabManagerProvider>
+                </BoxManagerProvider>
               </BuiltInComponentsProvider>
             </DndProvider>
           </AlgoSandboxEditorFilesContextProvider>

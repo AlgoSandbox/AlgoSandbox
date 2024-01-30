@@ -1,5 +1,4 @@
 import { BoxContextProvider } from '@components/box-page';
-import { DbBoxSaved } from '@utils/db';
 
 import BoxEnvironmentEditorPage from '../../app/BoxEnvironmentEditorPage';
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
@@ -7,14 +6,14 @@ import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 export const sandboxEnvironmentEditorTabConfig: SandboxBaseTabConfig<
   'box-editor',
   {
-    box: DbBoxSaved;
+    boxKey: string;
   }
 > = {
   type: 'box-editor',
   icon: 'inventory_2',
   subIcon: 'edit',
-  render: ({ data: { box } }) => (
-    <BoxContextProvider box={box}>
+  render: ({ data: { boxKey } }) => (
+    <BoxContextProvider boxKey={boxKey}>
       <BoxEnvironmentEditorPage />
     </BoxContextProvider>
   ),

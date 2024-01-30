@@ -1,5 +1,7 @@
 import 'reactflow/dist/style.css';
 
+import { useTabManager } from '@components/tab-manager/TabManager';
+import { useTab } from '@components/tab-manager/TabProvider';
 import Dagre from '@dagrejs/dagre';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
@@ -98,7 +100,14 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
 
 const proOptions = { hideAttribution: true };
 
-export default function AlgorithmVisualizerFlowchart() {
+export default function AlgorithmVisualizerFlowchart({
+  tabId,
+}: {
+  tabId: string;
+}) {
+  const { label: tabName } = useTab();
+  const { renameTab } = useTabManager();
+  const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
   const visualizer = useBoxContext('visualizer.instance');
 
@@ -106,6 +115,13 @@ export default function AlgorithmVisualizerFlowchart() {
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
   const visualizerName = visualizer?.name ?? 'Untitled visualizer';
+
+  useEffect(() => {
+    const newTabName = `Adapters: ${boxName}`;
+    if (tabName !== newTabName) {
+      renameTab(tabId, newTabName);
+    }
+  }, [boxName, renameTab, tabId, tabName]);
 
   const algorithmOutputs = useMemo(
     () => algorithm?.outputs.shape.shape ?? {},

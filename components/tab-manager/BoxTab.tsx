@@ -1,5 +1,4 @@
 import { BoxContextProvider } from '@components/box-page';
-import { DbBoxSaved } from '@utils/db';
 
 import BoxPage from '../../app/BoxPage';
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
@@ -10,13 +9,13 @@ export type BoxTabConfigEntry = {
 export const boxTabConfig: SandboxBaseTabConfig<
   'box',
   {
-    box: DbBoxSaved | null;
+    boxKey: string;
   }
 > = {
   type: 'box',
   icon: 'inventory_2',
-  render: ({ data: { box } }) => (
-    <BoxContextProvider box={box ?? undefined}>
+  render: ({ data: { boxKey } }) => (
+    <BoxContextProvider boxKey={boxKey}>
       <BoxPage />
     </BoxContextProvider>
   ),

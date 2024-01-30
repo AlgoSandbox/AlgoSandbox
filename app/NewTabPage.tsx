@@ -1,11 +1,14 @@
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
-import { MaterialSymbol } from '@components/ui';
+import { Button, MaterialSymbol } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import { DbSandboxObjectSaved, useSavedAlgorithmsQuery } from '@utils/db';
 import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
+import { evalSavedObject } from '@utils/evalSavedObject';
+
+import { useBoxManager } from './BoxManager';
 
 type SavedObjectsSectionProps = {
   title: string;
@@ -50,6 +53,7 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
 
 export default function NewTabPage() {
   const { setTab, selectedTabId } = useTabManager();
+  const { createNewBox } = useBoxManager();
   const { data: adapters } = useSavedAdaptersQuery();
   const { data: algorithms } = useSavedAlgorithmsQuery();
   const { data: problems } = useSavedProblemsQuery();
@@ -59,6 +63,18 @@ export default function NewTabPage() {
   return (
     <div className="flex flex-col max-w-4xl px-4 gap-8 mx-auto py-6">
       <div className="flex flex-col gap-4">
+        <Button
+          label="New box"
+          onClick={() => {
+            const boxKey = createNewBox();
+            setTab({
+              id: selectedTabId,
+              data: { boxKey },
+              type: 'box',
+              label: 'Untitled box',
+            });
+          }}
+        />
         <Heading variant="h2">Explore boxes</Heading>
         {builtInBoxOptions.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
@@ -69,11 +85,23 @@ export default function NewTabPage() {
                   key={option.key}
                   className="bg-surface-high hover:bg-surface-higher transition rounded h-20 flex items-center justify-center font-semibold text-label"
                   onClick={() => {
+                    const { objectEvaled: evaledBox } = evalSavedObject<'box'>(
+                      option.value,
+                    );
+                    if (evaledBox === null) {
+                      // TODO: display error
+                      return;
+                    }
+
+                    const boxKey = createNewBox({
+                      ...evaledBox,
+                      name: option.label,
+                    });
                     setTab({
                       id: selectedTabId,
                       type: 'box',
                       label: option.label,
-                      data: { box: option.value },
+                      data: { boxKey },
                     });
                   }}
                 >

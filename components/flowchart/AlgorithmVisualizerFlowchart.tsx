@@ -3,6 +3,7 @@ import 'reactflow/dist/style.css';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import Dagre from '@dagrejs/dagre';
+import buildAdapterConfiguration from '@utils/buildAdapterConfiguration';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   addEdge,
@@ -100,6 +101,19 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
 
 const proOptions = { hideAttribution: true };
 
+const adapterConfiguration = buildAdapterConfiguration({
+  'adapter-0': 'adapter.example.searchGraphToCounter',
+  'adapter-1': 'adapter.example.counterToSearchGraph',
+})
+  .tree()
+  .connect({
+    fromKey: 'adapter-0',
+    fromSlot: 'counter',
+    toKey: 'adapter-1',
+    toSlot: 'currentNodeId',
+  })
+  .build();
+
 export default function AlgorithmVisualizerFlowchart({
   tabId,
 }: {
@@ -113,8 +127,14 @@ export default function AlgorithmVisualizerFlowchart({
 
   const adapters = useBoxContext('algorithmVisualizer.adapters.evaluated');
 
+  // const adapterConfig = useBoxContext('algorithmVisualizer.adapters.config');
+  const adapterConfig = adapterConfiguration;
+
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
   const visualizerName = visualizer?.name ?? 'Untitled visualizer';
+
+  console.log('adapterConfigReal', adapterConfig);
+  console.log(adapters);
 
   useEffect(() => {
     const newTabName = `Adapters: ${boxName}`;
@@ -132,17 +152,30 @@ export default function AlgorithmVisualizerFlowchart({
     [visualizer],
   );
 
+  console.log('adapters', adapters);
+
   const adapterNodes = useMemo(
     () =>
-      adapters
-        .filter((adapter) => adapter.evaluation.objectEvaled !== null)
-        .map(({ key, label, evaluation }) => ({
-          key,
+      Object.entries(adapterConfig.adapters)
+        .map(([id, adapterKey]) => {
+          return {
+            id,
+            adapter: adapters.find((adapter) => adapter.key === adapterKey),
+          };
+        })
+        .filter(({ adapter }) => adapter !== undefined)
+        .map(({ id, adapter }) => ({
+          id,
+          adapter: adapter!,
+        }))
+        .filter(({ adapter }) => adapter.evaluation.objectEvaled !== null)
+        .map(({ id, adapter: { label, evaluation } }) => ({
+          id,
           label,
           adapter: evaluation.objectEvaled!,
         }))
-        .map(({ key, label, adapter }) => ({
-          id: `adapter-${key}`,
+        .map(({ id, label, adapter }) => ({
+          id: `adapter-${id}`,
           type: 'customFlow',
           width: 500,
           height: 100,
@@ -158,8 +191,37 @@ export default function AlgorithmVisualizerFlowchart({
             })),
           },
         })) as Array<Node>,
-    [adapters],
+    [adapterConfig.adapters, adapters],
   );
+
+  // const adapterNodes = useMemo(
+  //   () =>
+  //     adapters
+  //       .filter((adapter) => adapter.evaluation.objectEvaled !== null)
+  //       .map(({ key, label, evaluation }) => ({
+  //         key,
+  //         label,
+  //         adapter: evaluation.objectEvaled!,
+  //       }))
+  //       .map(({ key, label, adapter }) => ({
+  //         id: `adapter-${key}`,
+  //         type: 'customFlow',
+  //         width: 500,
+  //         height: 100,
+  //         data: {
+  //           label,
+  //           inputs: Object.keys(adapter.accepts.shape.shape).map((param) => ({
+  //             id: param,
+  //             label: param,
+  //           })),
+  //           outputs: Object.keys(adapter.outputs.shape.shape).map((param) => ({
+  //             id: param,
+  //             label: param,
+  //           })),
+  //         },
+  //       })) as Array<Node>,
+  //   [adapters],
+  // );
 
   const initialNodes = useMemo(
     () =>
@@ -202,16 +264,22 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   const initialEdges = useMemo(() => {
-    // To update with actual edges later
-    return Object.keys(visualizerInputs).map((parameterName) => ({
-      id: parameterName,
-      source: 'algorithm',
-      sourceHandle: parameterName,
-      target: 'visualizer',
-      targetHandle: parameterName,
-      animated: true,
-    })) as Array<Edge>;
-  }, [visualizerInputs]);
+    const configType = adapterConfiguration.composition.type;
+    if (configType === 'flat') {
+      return [];
+    }
+
+    return adapterConfiguration.composition.connections.map(
+      ({ fromKey, fromSlot, toKey, toSlot }) => ({
+        id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
+        source: `adapter-${fromKey}`,
+        sourceHandle: fromSlot,
+        target: `adapter-${toKey}`,
+        targetHandle: `adapter-${toKey}`,
+        animated: true,
+      }),
+    ) as Array<Edge>;
+  }, []);
 
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);

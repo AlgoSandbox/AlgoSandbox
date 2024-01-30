@@ -1,3 +1,4 @@
+import { AdapterConfiguration } from '@algo-sandbox/core';
 import { CatalogGroup } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
 import { useMemo } from 'react';
@@ -25,12 +26,20 @@ export default function useBoxContextAlgorithmVisualizer({
   algorithm,
   builtInAdapterOptions,
   visualizer,
+  adapterConfiguration,
+  onAdapterConfigurationChange,
 }: {
   algorithm: BoxContextAlgorithm;
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   visualizer: BoxContextVisualizer;
+  adapterConfiguration: AdapterConfiguration;
+  onAdapterConfigurationChange: (config: AdapterConfiguration) => void;
 }) {
-  const adapters = useBoxContextAdapters(builtInAdapterOptions);
+  const adapters = useBoxContextAdapters({
+    builtInOptions: builtInAdapterOptions,
+    adapterConfiguration,
+    onAdapterConfigurationChange,
+  });
   const { composed: composedAdapter, value: adapterList } = adapters;
   const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
 

@@ -1,3 +1,4 @@
+import { AdapterConfiguration } from '@algo-sandbox/core';
 import { useBox, useBoxManager } from '@app/BoxManager';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -161,15 +162,55 @@ export default function BoxContextProvider({
       }
     },
   });
+
+  const problemAlgorithmConfig = useMemo(
+    () =>
+      box?.problemAlgorithm ??
+      ({
+        adapters: {},
+        composition: { type: 'flat', order: [] },
+      } as AdapterConfiguration),
+    [box?.problemAlgorithm],
+  );
+
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,
     builtInAdapterOptions,
     problem,
+    adapterConfiguration: problemAlgorithmConfig,
+    onAdapterConfigurationChange: (config) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          problemAlgorithm: config,
+        });
+      }
+    },
   });
+
+  const algorithmVisualizerConfig = useMemo(
+    () =>
+      box?.algorithmVisualizer ??
+      ({
+        adapters: {},
+        composition: { type: 'flat', order: [] },
+      } as AdapterConfiguration),
+    [box?.algorithmVisualizer],
+  );
+
   const algorithmVisualizer = useBoxContextAlgorithmVisualizer({
     algorithm,
     builtInAdapterOptions,
     visualizer,
+    adapterConfiguration: algorithmVisualizerConfig,
+    onAdapterConfigurationChange: (config) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          algorithmVisualizer: config,
+        });
+      }
+    },
   });
 
   const boxEnvironment = useMemo(() => {

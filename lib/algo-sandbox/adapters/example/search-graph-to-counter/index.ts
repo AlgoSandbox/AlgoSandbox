@@ -1,7 +1,7 @@
 import { SandboxAdapter } from '@algo-sandbox/core/adapter';
 import { counterState, graphSearchAlgorithmState } from '@algo-sandbox/states';
 
-const searchGraphStateToCounterAdapter: SandboxAdapter<
+const searchGraphToCounter: SandboxAdapter<
   typeof graphSearchAlgorithmState,
   typeof counterState
 > = {
@@ -14,4 +14,4 @@ const searchGraphStateToCounterAdapter: SandboxAdapter<
   },
 };
 
-export default searchGraphStateToCounterAdapter;
+export default searchGraphToCounter;

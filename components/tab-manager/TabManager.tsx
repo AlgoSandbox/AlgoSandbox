@@ -199,11 +199,13 @@ export default function TabManagerProvider({
       const tabIndex = tabs.findIndex((tab) => tab.id === tabId);
       const newTabs = tabs.filter((tab) => tab.id !== tabId);
       setTabs(newTabs);
-      setSelectedTabId(
-        newTabs[tabIndex - 1]?.id ?? newTabs[tabIndex]?.id ?? 'current-box',
-      );
+      if (selectedTabId === tabId) {
+        setSelectedTabId(
+          newTabs[tabIndex - 1]?.id ?? newTabs[tabIndex]?.id ?? 'current-box',
+        );
+      }
     },
-    [tabs],
+    [tabs, selectedTabId],
   );
 
   const value = useMemo(() => {

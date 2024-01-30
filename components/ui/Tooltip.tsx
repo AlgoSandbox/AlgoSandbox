@@ -14,7 +14,7 @@ export default function Tooltip({ content, children, disabled }: TooltipProps) {
       <RadixTooltip.Root delayDuration={500}>
         <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
         <RadixTooltip.Portal>
-          <RadixTooltip.Content className="bg-surface rounded px-4 py-2 text-on-surface border">
+          <RadixTooltip.Content className="bg-surface rounded px-4 py-2 text-on-surface border z-30">
             {content}
             <RadixTooltip.Arrow className="fill-border" />
           </RadixTooltip.Content>

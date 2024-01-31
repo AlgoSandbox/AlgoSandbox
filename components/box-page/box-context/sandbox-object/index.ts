@@ -399,6 +399,7 @@ export function useBoxContextSandboxObject<
     objectParameters,
     selectedOptionObject,
     objectOptions,
+    onSelect,
     defaultKey,
   ]);
 

@@ -184,6 +184,7 @@ export default function AdapterListPopover({
                           onChange={(value) => {
                             setValue(`adapters.${index}` as const, value);
                           }}
+                          showPreview={false}
                           {...field}
                         />
                       )}

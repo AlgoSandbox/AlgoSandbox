@@ -1,9 +1,22 @@
 import 'reactflow/dist/style.css';
 
+import { SandboxVisualizer } from '@algo-sandbox/core';
+import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
+import { ResizeHandle } from '@components/ui';
+import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { evalSavedObject } from '@utils/evalSavedObject';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { useDrop } from 'react-dnd';
+import { Panel, PanelGroup } from 'react-resizable-panels';
 import ReactFlow, {
   addEdge,
   applyEdgeChanges,
@@ -22,7 +35,7 @@ import ReactFlow, {
 
 import { useBoxContext } from '../box-page';
 
-type VisualizerNodeProps = {
+type FlowNodeProps = {
   data: {
     inputs?: Array<{
       id: string;
@@ -36,39 +49,73 @@ type VisualizerNodeProps = {
   };
 };
 
-function FlowNode({
-  data: { inputs = [], outputs = [], label },
-}: VisualizerNodeProps) {
-  return (
-    <div className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded bg-surface-high">
-      <div>{label}</div>
-      {inputs.map(({ id, label }, index) => (
-        <Handle
-          className="relative"
-          style={{ top: 20 * index + 16 }}
-          key={id}
-          type="target"
-          position={Position.Left}
-          id={id}
-        >
-          <span className="absolute start-2 -mt-2 font-mono">{label}</span>
-        </Handle>
-      ))}
-      {outputs.map(({ id, label }, index) => (
-        <Handle
-          className="relative"
-          style={{ top: 20 * index + 16 }}
-          key={id}
-          type="source"
-          position={Position.Right}
-          id={id}
-        >
-          <span className="absolute end-2 -mt-2 font-mono">{label}</span>
-        </Handle>
-      ))}
-    </div>
-  );
-}
+const FlowNodePreview = forwardRef<HTMLDivElement, FlowNodeProps>(
+  ({ data: { inputs = [], outputs = [], label } }, ref) => {
+    return (
+      <div ref={ref} className="px-4">
+        <div className="border py-4 relative gap-2 flex items-center justify-center rounded bg-surface-high">
+          <div className="flex flex-col">
+            {inputs.map(({ id, label }) => (
+              <div key={id} id={id} className="flex items-center gap-2 -ms-1">
+                <div className="rounded-full w-2 h-2 bg-surface border border-on-surface" />
+                <span className="text-sm font-mono">{label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex-1 text-lg">{label}</div>
+          <div className="flex flex-col">
+            {outputs.map(({ id, label }) => (
+              <div key={id} id={id}>
+                <span className="text-sm font-mono">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  },
+);
+
+FlowNodePreview.displayName = 'FlowNodePreview';
+
+const FlowNode = forwardRef<HTMLDivElement, FlowNodeProps>(
+  ({ data: { inputs = [], outputs = [], label } }, ref) => {
+    return (
+      <div
+        className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded bg-surface-high"
+        ref={ref}
+      >
+        <div>{label}</div>
+        {inputs.map(({ id, label }, index) => (
+          <Handle
+            className="relative"
+            style={{ top: 20 * index + 16 }}
+            key={id}
+            type="target"
+            position={Position.Left}
+            id={id}
+          >
+            <span className="absolute start-2 -mt-2 font-mono">{label}</span>
+          </Handle>
+        ))}
+        {outputs.map(({ id, label }, index) => (
+          <Handle
+            className="relative"
+            style={{ top: 20 * index + 16 }}
+            key={id}
+            type="source"
+            position={Position.Right}
+            id={id}
+          >
+            <span className="absolute end-2 -mt-2 font-mono">{label}</span>
+          </Handle>
+        ))}
+      </div>
+    );
+  },
+);
+
+FlowNode.displayName = 'FlowNode';
 
 const nodeTypes: NodeTypes = {
   customFlow: FlowNode,
@@ -100,6 +147,11 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
 
 const proOptions = { hideAttribution: true };
 
+type Visualizers = {
+  aliases: Record<string, string>;
+  order: Array<string>;
+};
+
 export default function AlgorithmVisualizerFlowchart({
   tabId,
 }: {
@@ -109,12 +161,51 @@ export default function AlgorithmVisualizerFlowchart({
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
-  const visualizer = useBoxContext('visualizer.instance');
+  const visualizerOptions = useBoxContext('visualizer.select.options');
 
   const adapters = useBoxContext('algorithmVisualizer.adapters.evaluated');
+  // const [selectedVisualizers, setSelectedVisualizers] = useState<
+  //   Array<CatalogOption<DbVisualizerSaved>>
+  // >([]);
+
+  const [visualizers, setVisualizers] = useState<Visualizers>({
+    aliases: {},
+    order: [],
+  });
+
+  const selectedVisualizers = useMemo(() => {
+    const flattenedOptions = visualizerOptions.flatMap((item) =>
+      'options' in item ? item.options : item,
+    );
+    return visualizers.order.map(
+      (key) =>
+        flattenedOptions.find(
+          (option) => option.key === visualizers.aliases[key],
+        )!,
+    );
+  }, [visualizerOptions, visualizers.aliases, visualizers.order]);
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
-  const visualizerName = visualizer?.name ?? 'Untitled visualizer';
+
+  const visualizerInstances = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(visualizers.aliases).map(([id, visualizerKey]) => {
+        const savedVisualizer = selectedVisualizers.find(
+          (visualizer) => visualizer.key === visualizerKey,
+        )!.value;
+        const name = savedVisualizer?.name ?? 'Untitled visualizer';
+        const { objectEvaled: visualizer } =
+          evalSavedObject<'visualizer'>(savedVisualizer);
+
+        const instance =
+          visualizer !== null && 'parameters' in visualizer
+            ? visualizer.create()
+            : visualizer;
+
+        return [id, { instance, name }];
+      }),
+    );
+  }, [selectedVisualizers, visualizers.aliases]);
 
   useEffect(() => {
     const newTabName = `Adapters: ${boxName}`;
@@ -126,10 +217,6 @@ export default function AlgorithmVisualizerFlowchart({
   const algorithmOutputs = useMemo(
     () => algorithm?.outputs.shape.shape ?? {},
     [algorithm],
-  );
-  const visualizerInputs = useMemo(
-    () => visualizer?.accepts.shape.shape ?? {},
-    [visualizer],
   );
 
   const adapterNodes = useMemo(
@@ -161,6 +248,28 @@ export default function AlgorithmVisualizerFlowchart({
     [adapters],
   );
 
+  const initialVisualizerNodes = useMemo(() => {
+    return Object.entries(visualizerInstances).map(
+      ([id, { name, instance }]) => {
+        const visualizerInputs = instance?.accepts.shape.shape ?? {};
+
+        return {
+          id,
+          type: 'customFlow',
+          width: 500,
+          height: 100,
+          data: {
+            label: name,
+            inputs: Object.keys(visualizerInputs).map((param) => ({
+              id: param,
+              label: param,
+            })),
+          },
+        };
+      },
+    ) as Array<Node>;
+  }, [visualizerInstances]);
+
   const initialNodes = useMemo(
     () =>
       [
@@ -178,40 +287,15 @@ export default function AlgorithmVisualizerFlowchart({
           },
         },
         ...adapterNodes,
-        {
-          id: 'visualizer',
-          type: 'customFlow',
-          width: 500,
-          height: 100,
-          data: {
-            label: visualizerName,
-            inputs: Object.keys(visualizerInputs).map((param) => ({
-              id: param,
-              label: param,
-            })),
-          },
-        },
+        ...initialVisualizerNodes,
       ] as Array<Node>,
-    [
-      algorithmName,
-      algorithmOutputs,
-      adapterNodes,
-      visualizerName,
-      visualizerInputs,
-    ],
+    [algorithmName, algorithmOutputs, adapterNodes, initialVisualizerNodes],
   );
 
   const initialEdges = useMemo(() => {
     // To update with actual edges later
-    return Object.keys(visualizerInputs).map((parameterName) => ({
-      id: parameterName,
-      source: 'algorithm',
-      sourceHandle: parameterName,
-      target: 'visualizer',
-      targetHandle: parameterName,
-      animated: true,
-    })) as Array<Edge>;
-  }, [visualizerInputs]);
+    return [] as Array<Edge>;
+  }, []);
 
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
@@ -247,20 +331,134 @@ export default function AlgorithmVisualizerFlowchart({
     [setEdges],
   );
 
+  const [, drop] = useDrop(() => {
+    return {
+      accept: 'flowchart-node',
+      drop: ({
+        visualizer,
+        id,
+      }: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        visualizer: SandboxVisualizer<any> | null;
+        id: string;
+      }) => {
+        if (visualizer === null) {
+          return;
+        }
+
+        const visualizerInputs = visualizer?.accepts.shape.shape ?? [];
+
+        const newNode = {
+          id: `visualizer-${id}`,
+          type: 'customFlow',
+          data: {
+            label: visualizer.name,
+            inputs: Object.keys(visualizerInputs).map((param) => ({
+              id: param,
+              label: param,
+            })),
+          },
+        } as Node;
+
+        setNodes((nds) => [...nds, newNode]);
+      },
+    };
+  });
+
   return (
-    <ReactFlow
-      nodeTypes={nodeTypes}
-      nodes={nodes.every((node) => node.position) ? nodes : []}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onEdgesDelete={onEdgesDelete}
-      onConnect={onConnect}
-      defaultEdgeOptions={defaultEdgeOptions}
-      proOptions={proOptions}
-      fitView={true}
-    >
-      <Background className="bg-surface" />
-    </ReactFlow>
+    <PanelGroup direction="horizontal">
+      <Panel>
+        <Heading variant="h2">Library</Heading>
+        <HeadingContent>
+          <Heading variant="h3">1. Select visualizers</Heading>
+          <div>
+            {selectedVisualizers.map((visualizer) => (
+              <div key={visualizer.key} className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-surface border border-on-surface rounded-full" />
+                <span>{visualizer.value.name}</span>
+              </div>
+            ))}
+          </div>
+          {/* <div>
+            {visualizers.order.map((visualizerId) => (
+              <FlowchartVisualizerNodePreview
+                key={visualizerId}
+                instance={visualizerInstances[visualizerId].instance!}
+              />
+            ))}
+          </div> */}
+          <CatalogSelect
+            label="Add visualizer"
+            options={visualizerOptions}
+            value={undefined}
+            onChange={(value) => {
+              const newKey = `visualizer-${
+                Object.keys(visualizers.aliases).length
+              }`;
+              setVisualizers({
+                aliases: {
+                  ...visualizers.aliases,
+                  [newKey]: value.key,
+                },
+                order: [...visualizers.order, newKey],
+              });
+            }}
+          />
+        </HeadingContent>
+      </Panel>
+      <ResizeHandle />
+      <Panel>
+        <ReactFlow
+          ref={drop}
+          nodeTypes={nodeTypes}
+          nodes={nodes.every((node) => node.position) ? nodes : []}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onEdgesDelete={onEdgesDelete}
+          onConnect={onConnect}
+          defaultEdgeOptions={defaultEdgeOptions}
+          proOptions={proOptions}
+          fitView={true}
+        >
+          <Background className="bg-surface" />
+        </ReactFlow>
+      </Panel>
+    </PanelGroup>
   );
 }
+
+// function FlowchartVisualizerNodePreview({
+//   instance,
+// }: {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   instance: SandboxVisualizer<any>;
+// }) {
+//   const inputs = useMemo(() => {
+//     if (instance === null) {
+//       return [];
+//     }
+
+//     const accepts = instance.accepts as SandboxStateType;
+
+//     return Object.keys(accepts.shape.shape).map((param) => ({
+//       id: param,
+//       label: param,
+//     }));
+//   }, [instance]);
+
+//   const [, drag] = useDrag(
+//     () => ({
+//       type: 'flowchart-node',
+//       item: { visualizer: instance, id },
+//       collect: (monitor) => ({
+//         opacity: monitor.isDragging() ? 0.5 : 1,
+//       }),
+//     }),
+//     [],
+//   );
+
+//   return (
+//     <FlowNodePreview ref={drag} data={{ label: visualizerName, inputs }} />
+//   );
+// }

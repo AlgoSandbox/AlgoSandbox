@@ -44,6 +44,7 @@ export type CatalogSelectProps<
   onChange?: (value: O) => void;
   label: string;
   errorMessage?: string | null;
+  showPreview?: boolean;
 };
 
 function ListItem<T>({
@@ -77,6 +78,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   value,
   onChange,
   errorMessage,
+  showPreview = true,
 }: CatalogSelectProps<T>) {
   const builtInComponents = useBuiltInComponents();
   const [selectedOption, setSelectedOption] = useState<CatalogOption<T> | null>(
@@ -92,6 +94,10 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   const { executionTrace, visualizerInstance } =
     useMemo(() => {
       if (selectedOption === null) {
+        return;
+      }
+
+      if (!showPreview) {
         return;
       }
 
@@ -173,7 +179,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
           .executionTrace,
         visualizerInstance,
       };
-    }, [builtInComponents, selectedOption]) ?? {};
+    }, [builtInComponents, selectedOption, showPreview]) ?? {};
 
   const stepCount = Math.min(
     MAX_EXECUTION_STEP_COUNT,
@@ -310,7 +316,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                   </div>
                 </div>
               )}
-              {!visualization && (
+              {!visualization && showPreview && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
                   <span className="text-label">No preview available</span>
                 </div>

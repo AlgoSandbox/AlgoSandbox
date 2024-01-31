@@ -20,10 +20,10 @@ export default function AppBar() {
         <AlgorithmSelect />
         <AlgorithmVisualizerAdapterSelect />
         <Button
-          hideLabel
           icon={<MaterialSymbol icon="schema" />}
-          label="Compose adapters"
+          label="Visualize"
           onClick={openFlowchart}
+          variant="primary"
         />
         <VisualizerSelect />
       </div>

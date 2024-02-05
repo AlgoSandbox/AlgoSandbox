@@ -65,14 +65,16 @@ const defaultBox: SandboxBoxNamed = {
   algorithm: 'algorithm.search.bfs',
   problem: 'problem.graphs.fiveNodes',
   algorithmVisualizers: {
-    visualizers: {
-      'visualizer-0': 'visualizer.graphs.searchGraph',
-    },
-    visualizerOrder: ['visualizer-0'],
     composition: {
       type: 'flat',
       order: ['algorithm', 'visualizer-0'],
     },
+  },
+  visualizers: {
+    aliases: {
+      'visualizer-0': 'visualizer.graphs.searchGraph',
+    },
+    order: ['visualizer-0'],
   },
 };
 

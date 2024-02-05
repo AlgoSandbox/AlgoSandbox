@@ -32,23 +32,27 @@ export default function evalBox({
       type: 'visualizer',
       // TODO: change this
       key:
-        box.algorithmVisualizers.visualizers['visualizer-0'] ??
+        box.visualizers.aliases['visualizer-0'] ??
         'visualizer.graphs.searchGraph',
       builtInComponents,
       files,
     }) ?? undefined;
 
   const algorithmVisualizers: SandboxBoxEvaluated['algorithmVisualizers'] = {
-    visualizers: {
+    composition: box.algorithmVisualizers.composition,
+  };
+
+  const visualizers: SandboxBoxEvaluated['visualizers'] = {
+    aliases: {
       'visualizer-0': visualizer,
     },
-    visualizerOrder: box.algorithmVisualizers.visualizerOrder,
-    composition: box.algorithmVisualizers.composition,
+    order: box.visualizers.order,
   };
 
   return {
     problem,
     algorithm,
     algorithmVisualizers,
+    visualizers,
   };
 }

@@ -95,18 +95,29 @@ type AlgorithmVisualizers<
   > = SandboxAliases<string, SandboxVisualizerKey>,
 > = {
   adapters?: AdapterAliases;
-  visualizers: VisualizerAliases;
   composition: AdapterComposition<AdapterAliases & VisualizerAliases>;
-  visualizerOrder: Array<keyof VisualizerAliases>;
 };
 
 type AlgorithmVisualizersEvaluated = {
   adapters?: Record<string, SandboxAnyAdapter | undefined>;
-  visualizers: Record<string, SandboxAnyVisualizer | undefined>;
   composition: AdapterComposition<
     SandboxAliases<string, SandboxVisualizerKey | SandboxAdapterKey>
   >;
-  visualizerOrder: Array<string>;
+};
+
+type Visualizers<
+  VisualizerAliases extends SandboxAliases<
+    string,
+    SandboxVisualizerKey
+  > = SandboxAliases<string, SandboxVisualizerKey>,
+> = {
+  aliases: VisualizerAliases;
+  order: Array<keyof VisualizerAliases>;
+};
+
+type VisualizersEvaluated = {
+  aliases: Record<string, SandboxAnyVisualizer | undefined>;
+  order: Array<string>;
 };
 
 export type SandboxBox = Readonly<{
@@ -114,6 +125,7 @@ export type SandboxBox = Readonly<{
   problemAlgorithm?: AdapterConfiguration;
   algorithm: SandboxAlgorithmKey;
   algorithmVisualizers: AlgorithmVisualizers;
+  visualizers: Visualizers;
 }>;
 
 export type SandboxBoxEvaluated = {
@@ -121,4 +133,5 @@ export type SandboxBoxEvaluated = {
   problemAlgorithm?: AdapterConfigurationEvaluated;
   algorithm?: SandboxAnyAlgorithm;
   algorithmVisualizers?: AlgorithmVisualizersEvaluated;
+  visualizers?: VisualizersEvaluated;
 };

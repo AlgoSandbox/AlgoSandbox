@@ -1,0 +1,125 @@
+import { useBoxContext } from '@components/box-page';
+import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
+import { useBoxContextSandboxObject } from '@components/box-page/box-context/sandbox-object';
+import VisualizerDetails from '@components/box-page/VisualizerDetails';
+import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
+import { useTabManager } from '@components/tab-manager/TabManager';
+import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
+import { isParameterizedVisualizer } from '@utils';
+import {
+  useAddSavedVisualizerMutation,
+  useRemoveSavedVisualizerMutation,
+  useSavedVisualizersQuery,
+  useSetSavedVisualizerMutation,
+} from '@utils/db/visualizers';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+
+export default function VisualizerSelect({ alias }: { alias: string }) {
+  const { addOrFocusTab } = useTabManager();
+  const { isAdvancedModeEnabled } = useUserPreferences();
+  const { builtInVisualizerOptions } = useBuiltInComponents();
+  const aliases = useBoxContext('visualizers.aliases');
+  const setAlias = useBoxContext('visualizers.setAlias');
+
+  const visualizerKey = aliases[alias];
+
+  const visualizerObject = useBoxContextSandboxObject({
+    type: 'visualizer',
+    builtInOptions: builtInVisualizerOptions,
+    addSavedObjectMutation: useAddSavedVisualizerMutation(),
+    setSavedObjectMutation: useSetSavedVisualizerMutation(),
+    removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
+    savedObjects: useSavedVisualizersQuery().data,
+    defaultKey: visualizerKey,
+    onSelect: ({ key }) => {
+      setAlias(alias, key);
+    },
+  });
+
+  const {
+    value: selectedOption,
+    setValue: setSelectedOption,
+    options,
+  } = visualizerObject.select;
+
+  const visualizer = visualizerObject.value;
+
+  const {
+    default: defaultParameters,
+    setValue: setParameters,
+    value: parameters = {},
+  } = useBoxContext('visualizer.parameters');
+
+  const methods = useForm({ defaultValues: defaultParameters ?? {} });
+
+  const changedParameterCount = useMemo(() => {
+    if (parameters === null || defaultParameters === null) {
+      return 0;
+    }
+
+    return Object.keys(parameters ?? {}).filter(
+      (key) => parameters[key] !== defaultParameters[key],
+    ).length;
+  }, [parameters, defaultParameters]);
+
+  useEffect(() => {
+    methods.reset(defaultParameters ?? {});
+  }, [defaultParameters, methods]);
+  return (
+    <div className="flex items-end gap-2">
+      <CatalogSelect
+        label="Visualizer"
+        options={options}
+        value={selectedOption ?? undefined}
+        onChange={(value) => {
+          setSelectedOption(value as typeof selectedOption);
+        }}
+      />
+      {visualizer !== null && isParameterizedVisualizer(visualizer) && (
+        <Popover
+          content={
+            <FormProvider {...methods}>
+              <form
+                onSubmit={methods.handleSubmit((values) => {
+                  methods.reset(values);
+                  setParameters(values);
+                })}
+              >
+                <VisualizerDetails visualizer={visualizer} />
+              </form>
+            </FormProvider>
+          }
+        >
+          <Badge
+            visible={changedParameterCount > 0}
+            content={changedParameterCount}
+          >
+            <Button
+              label="Customize"
+              hideLabel
+              variant="filled"
+              icon={<MaterialSymbol icon="tune" />}
+            />
+          </Badge>
+        </Popover>
+      )}
+      {isAdvancedModeEnabled && selectedOption && (
+        <Button
+          label="Edit visualizer in new tab"
+          hideLabel
+          role="checkbox"
+          onClick={() => {
+            addOrFocusTab({
+              type: 'editor',
+              label: selectedOption.label,
+              data: { object: selectedOption.value },
+            });
+          }}
+          icon={<MaterialSymbol icon="open_in_new" />}
+        />
+      )}
+    </div>
+  );
+}

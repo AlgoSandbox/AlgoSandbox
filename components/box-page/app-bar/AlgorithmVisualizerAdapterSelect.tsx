@@ -12,7 +12,9 @@ export default function AlgorithmVisualizerAdapterSelect() {
   const { instance: visualizerInstance } = useBoxContext('visualizer');
 
   const valueEvaluated = useMemo(() => {
-    return evaluated.map(({ evaluation }) => evaluation);
+    return Object.fromEntries(
+      evaluated.map(({ key, evaluation }) => [key, evaluation]),
+    );
   }, [evaluated]);
 
   return (

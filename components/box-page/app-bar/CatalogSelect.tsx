@@ -1,6 +1,3 @@
-import { SandboxBox } from '@algo-sandbox/core';
-import VisualizationRenderer from '@algo-sandbox/react-components/VisualizationRenderer';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import {
   Button,
   FormLabel,
@@ -11,20 +8,12 @@ import {
   Tooltip,
 } from '@components/ui';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
-import {
-  createScene,
-  isParameterizedAlgorithm,
-  isParameterizedProblem,
-  isParameterizedVisualizer,
-} from '@utils';
 import { DbSandboxObjectSaved } from '@utils/db';
-import evalBox from '@utils/evalBox';
-import evalWithAlgoSandbox from '@utils/evalWithAlgoSandbox';
-import useCancelableInterval from '@utils/useCancelableInterval';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Markdown, { Components } from 'react-markdown';
 
-const MAX_EXECUTION_STEP_COUNT = 20;
+// TODO: Restore preview
+// const MAX_EXECUTION_STEP_COUNT = 20;
 
 const markdownComponents: Components = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -78,136 +67,136 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   value,
   onChange,
   errorMessage,
-  showPreview = true,
-}: CatalogSelectProps<T>) {
-  const builtInComponents = useBuiltInComponents();
+} // showPreview = true,
+: CatalogSelectProps<T>) {
+  // const builtInComponents = useBuiltInComponents();
   const [selectedOption, setSelectedOption] = useState<CatalogOption<T> | null>(
     value ?? null,
   );
   const [query, setQuery] = useState('');
-  const [stepIndex, setStepIndex] = useState(0);
+  // const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     setSelectedOption(value ?? null);
   }, [value]);
 
-  const { executionTrace, visualizerInstance } =
-    useMemo(() => {
-      if (selectedOption === null) {
-        return;
-      }
+  // const { executionTrace, visualizerInstance } =
+  //   useMemo(() => {
+  //     if (selectedOption === null) {
+  //       return;
+  //     }
 
-      if (!showPreview) {
-        return;
-      }
+  //     if (!showPreview) {
+  //       return;
+  //     }
 
-      const {
-        value: { files },
-      } = selectedOption;
+  //     const {
+  //       value: { files },
+  //     } = selectedOption;
 
-      if (!files) {
-        return;
-      }
+  //     if (!files) {
+  //       return;
+  //     }
 
-      const defaultBoxFilePath = Object.keys(files).find((path) =>
-        path.includes('default-box.ts'),
-      );
+  //     const defaultBoxFilePath = Object.keys(files).find((path) =>
+  //       path.includes('default-box.ts'),
+  //     );
 
-      if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
-        return;
-      }
+  //     if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
+  //       return;
+  //     }
 
-      const defaultBoxCode = files[defaultBoxFilePath];
+  //     const defaultBoxCode = files[defaultBoxFilePath];
 
-      if (defaultBoxCode === undefined) {
-        return;
-      }
+  //     if (defaultBoxCode === undefined) {
+  //       return;
+  //     }
 
-      const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
-        files,
-        currentFilePath: defaultBoxFilePath,
-      }) as SandboxBox;
+  //     const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
+  //       files,
+  //       currentFilePath: defaultBoxFilePath,
+  //     }) as SandboxBox;
 
-      const evaledBox = evalBox({
-        box: defaultBox,
-        builtInComponents,
-        currentFilePath: defaultBoxFilePath,
-        files,
-      });
+  //     const evaledBox = evalBox({
+  //       box: defaultBox,
+  //       builtInComponents,
+  //       currentFilePath: defaultBoxFilePath,
+  //       files,
+  //     });
 
-      const { algorithm, problem, visualizer } = evaledBox;
+  //     const { algorithm, problem, visualizer } = evaledBox;
 
-      if (
-        algorithm === undefined ||
-        problem === undefined ||
-        visualizer === undefined
-      ) {
-        return;
-      }
+  //     if (
+  //       algorithm === undefined ||
+  //       problem === undefined ||
+  //       visualizer === undefined
+  //     ) {
+  //       return;
+  //     }
 
-      const problemInstance = (() => {
-        if (isParameterizedProblem(problem)) {
-          return problem.create();
-        }
+  //     const problemInstance = (() => {
+  //       if (isParameterizedProblem(problem)) {
+  //         return problem.create();
+  //       }
 
-        return problem;
-      })();
+  //       return problem;
+  //     })();
 
-      const algorithmInstance = (() => {
-        if (isParameterizedAlgorithm(algorithm)) {
-          return algorithm.create();
-        }
+  //     const algorithmInstance = (() => {
+  //       if (isParameterizedAlgorithm(algorithm)) {
+  //         return algorithm.create();
+  //       }
 
-        return algorithm;
-      })();
+  //       return algorithm;
+  //     })();
 
-      const visualizerInstance = (() => {
-        if (isParameterizedVisualizer(visualizer)) {
-          return visualizer.create();
-        }
+  //     const visualizerInstance = (() => {
+  //       if (isParameterizedVisualizer(visualizer)) {
+  //         return visualizer.create();
+  //       }
 
-        return visualizer;
-      })();
+  //       return visualizer;
+  //     })();
 
-      const scene = createScene({
-        algorithm: algorithmInstance,
-        problem: problemInstance,
-      });
+  //     const scene = createScene({
+  //       algorithm: algorithmInstance,
+  //       problem: problemInstance,
+  //     });
 
-      return {
-        executionTrace: scene.copyWithExecution(MAX_EXECUTION_STEP_COUNT)
-          .executionTrace,
-        visualizerInstance,
-      };
-    }, [builtInComponents, selectedOption, showPreview]) ?? {};
+  //     return {
+  //       executionTrace: scene.copyWithExecution(MAX_EXECUTION_STEP_COUNT)
+  //         .executionTrace,
+  //       visualizerInstance,
+  //     };
+  //   }, [builtInComponents, selectedOption, showPreview]) ?? {};
 
-  const stepCount = Math.min(
-    MAX_EXECUTION_STEP_COUNT,
-    executionTrace?.length ?? MAX_EXECUTION_STEP_COUNT,
-  );
+  // const stepCount = Math.min(
+  //   MAX_EXECUTION_STEP_COUNT,
+  //   executionTrace?.length ?? MAX_EXECUTION_STEP_COUNT,
+  // );
 
-  const interval = useCancelableInterval(() => {
-    setStepIndex((stepIndex) => (stepIndex + 1) % stepCount);
-  }, 300);
+  // const interval = useCancelableInterval(() => {
+  //   setStepIndex((stepIndex) => (stepIndex + 1) % stepCount);
+  // }, 300);
 
-  useEffect(() => {
-    if (!interval.isRunning && selectedOption !== null) interval.start();
-  }, [interval, selectedOption]);
+  // useEffect(() => {
+  //   if (!interval.isRunning && selectedOption !== null) interval.start();
+  // }, [interval, selectedOption]);
 
-  const visualization = useMemo(() => {
-    if (visualizerInstance && executionTrace) {
-      try {
-        const step = executionTrace.at(stepIndex);
-        if (step === undefined) {
-          return undefined;
-        }
+  // const visualization = useMemo(() => {
+  //   if (visualizerInstance && executionTrace) {
+  //     try {
+  //       const step = executionTrace.at(stepIndex);
+  //       if (step === undefined) {
+  //         return undefined;
+  //       }
 
-        return visualizerInstance.visualize(step.state);
-      } catch {
-        return undefined;
-      }
-    }
-  }, [executionTrace, stepIndex, visualizerInstance]);
+  //       return visualizerInstance.visualize(step.state);
+  //     } catch {
+  //       return undefined;
+  //     }
+  //   }
+  // }, [executionTrace, stepIndex, visualizerInstance]);
 
   const [open, setOpen] = useState(false);
 
@@ -274,7 +263,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                           option={option}
                           onClick={() => {
                             setSelectedOption(option);
-                            setStepIndex(0);
+                            // setStepIndex(0);
                           }}
                           onDoubleClick={() => {
                             onChange?.(option);
@@ -305,7 +294,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
           </div>
           {selectedOption !== null && (
             <div className="w-[250px] overflow-y-auto">
-              {visualization && (
+              {/* {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
                   <div className="w-[250px] h-[200px]">
                     <VisualizationRenderer
@@ -320,7 +309,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
                   <span className="text-label">No preview available</span>
                 </div>
-              )}
+              )} */}
               <div className="p-4 flex-col flex gap-2 items-start">
                 <Markdown components={markdownComponents}>
                   {selectedOption.value.writeup ?? `# ${selectedOption.label}`}

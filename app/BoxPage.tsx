@@ -1,6 +1,11 @@
 'use client';
 
-import { SandboxStateType } from '@algo-sandbox/core';
+import {
+  SandboxAdapter,
+  SandboxProblem,
+  SandboxStateType,
+  TreeAdapterConfiguration,
+} from '@algo-sandbox/core';
 import { VisualizerRenderer } from '@algo-sandbox/react-components';
 import {
   AppBar,
@@ -72,6 +77,83 @@ function BoxPageExecutionWrapper() {
       </BoxPageShortcuts>
     </BoxControlsContextProvider>
   );
+}
+
+function topologicalSort(graph: Record<string, Array<string>>) {
+  const visited = new Set<string>();
+  const result: Array<string> = [];
+
+  function dfs(node: string) {
+    if (visited.has(node)) {
+      return;
+    }
+
+    visited.add(node);
+
+    for (const neighbor of graph[node] ?? []) {
+      dfs(neighbor);
+    }
+
+    result.push(node);
+  }
+
+  for (const node of Object.keys(graph)) {
+    dfs(node);
+  }
+
+  return result.reverse();
+}
+
+// Return adjacency matrix in the form matrix[src][dst] = [{fromSlot, toSlot}]
+function buildGraphFromAdapterConfiguration(
+  adapterConfiguration: TreeAdapterConfiguration,
+) {
+  const graph: Record<
+    string,
+    Record<string, Array<{ fromSlot: string; toSlot: string }>>
+  > = {};
+
+  adapterConfiguration.composition.connections.forEach(
+    ({ fromKey, fromSlot, toKey, toSlot }) => {
+      if (graph[fromKey] === undefined) {
+        graph[fromKey] = {};
+      }
+
+      if (graph[fromKey][toKey] === undefined) {
+        graph[fromKey][toKey] = [];
+      }
+
+      graph[fromKey][toKey].push({ fromSlot, toSlot });
+    },
+  );
+
+  return graph;
+}
+
+function solve(
+  adapterConfiguration: TreeAdapterConfiguration,
+  problem: SandboxProblem<any>,
+  algorithmState: any,
+  adapters: Record<string, SandboxAdapter<any, any>>,
+) {
+  const graph = buildGraphFromAdapterConfiguration(adapterConfiguration);
+  const nodesToExplore = topologicalSort(
+    Object.fromEntries(
+      Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
+    ),
+  );
+
+  const results: Record<string, any> = {
+    problem: problem.initialState,
+    algorithm: algorithmState,
+  };
+
+  while (nodesToExplore.length > 0) {
+    const node = nodesToExplore.shift()!;
+    const neighbors = Object.keys(graph[node]);
+
+    console.log('node', node, 'neighbors', neighbors);
+  }
 }
 
 function BoxPageImpl({

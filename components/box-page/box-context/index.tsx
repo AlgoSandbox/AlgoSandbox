@@ -1,3 +1,4 @@
+import { AdapterConfiguration } from '@algo-sandbox/core';
 import { useBox, useBoxManager } from '@app/BoxManager';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -32,6 +33,9 @@ import useBoxContextVisualizer, {
   BoxContextVisualizer,
   defaultBoxContextVisualizer,
 } from './sandbox-object/visualizer';
+import useBoxContextVisualizers, {
+  BoxContextVisualizers,
+} from './sandbox-object/visualizers';
 
 type BoxContextType = {
   problem: BoxContextProblem;
@@ -39,6 +43,7 @@ type BoxContextType = {
   algorithm: BoxContextAlgorithm;
   algorithmVisualizer: BoxContextAlgorithmVisualizer;
   visualizer: BoxContextVisualizer;
+  visualizers: BoxContextVisualizers;
   boxEnvironment: {
     value: Record<string, string>;
     setValue: (value: Record<string, string>) => void;
@@ -70,6 +75,13 @@ const BoxContext = createContext<BoxContextType>({
   boxName: {
     value: '',
     setValue: () => {},
+  },
+  visualizers: {
+    aliases: {},
+    order: [],
+    appendAlias: () => {},
+    setAlias: () => {},
+    removeAlias: () => {},
   },
 });
 
@@ -115,7 +127,7 @@ export default function BoxContextProvider({
     const {
       algorithm: algorithmKey,
       problem: problemKey,
-      visualizer: visualizerKey,
+      algorithmVisualizers: visualizerKey,
     } = box ?? {};
 
     return {
@@ -149,27 +161,75 @@ export default function BoxContextProvider({
       }
     },
   });
+
+  const visualizers = useBoxContextVisualizers();
+
   const visualizer = useBoxContextVisualizer({
     builtInVisualizerOptions,
-    defaultKey: visualizerKey,
+    defaultKey: 'visualizer.graphs.searchGraph',
     onKeyChange: (key) => {
       if (box !== null) {
         updateBox(boxKey, {
           ...box,
-          visualizer: key,
+          // visualizer: key,
         });
       }
     },
   });
+
+  const problemAlgorithmConfig = useMemo(
+    () =>
+      box?.problemAlgorithm ??
+      ({
+        aliases: {},
+        composition: { type: 'flat', order: [] },
+      } as AdapterConfiguration),
+    [box?.problemAlgorithm],
+  );
+
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,
     builtInAdapterOptions,
     problem,
+    adapterConfiguration: problemAlgorithmConfig,
+    onAdapterConfigurationChange: (config) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          problemAlgorithm: config,
+        });
+      }
+    },
   });
+
+  // const algorithmVisualizerConfig = useMemo(
+  //   () =>
+  //     box?.algorithmVisualizer ??
+  //     ({
+  //       aliases: {},
+  //       composition: { type: 'flat', order: [] },
+  //     } as AdapterConfiguration),
+  //   [box?.algorithmVisualizer],
+  // );
+
+  const defaultAdapterConfiguration: AdapterConfiguration = {
+    aliases: {},
+    composition: { type: 'flat', order: [] },
+  };
+
   const algorithmVisualizer = useBoxContextAlgorithmVisualizer({
     algorithm,
     builtInAdapterOptions,
     visualizer,
+    adapterConfiguration: defaultAdapterConfiguration,
+    onAdapterConfigurationChange: (config) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          // algorithmVisualizer: config,
+        });
+      }
+    },
   });
 
   const boxEnvironment = useMemo(() => {
@@ -354,6 +414,7 @@ export default function BoxContextProvider({
         algorithm.select.reset();
         visualizer.select.reset();
       },
+      visualizers,
     } satisfies BoxContextType;
   }, [
     algorithm,
@@ -369,6 +430,7 @@ export default function BoxContextProvider({
     setBoxEnvironment,
     updateBox,
     visualizer,
+    visualizers,
   ]);
 
   return <BoxContext.Provider value={value}>{children}</BoxContext.Provider>;

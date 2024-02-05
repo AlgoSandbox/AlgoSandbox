@@ -1,4 +1,5 @@
 import {
+  AdapterConfiguration,
   SandboxAdapter,
   SandboxCompositeAdapter,
   SandboxStateType,
@@ -7,7 +8,7 @@ import {
 import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
 import { DbObjectEvaluation, evalSavedObject } from '@utils/evalSavedObject';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 export type BoxContextAdapters = {
   composed: SandboxCompositeAdapter<
@@ -15,6 +16,7 @@ export type BoxContextAdapters = {
     SandboxStateType,
     SandboxAdapter<SandboxStateType, SandboxStateType>[]
   > | null;
+  config: AdapterConfiguration;
   value: Array<CatalogOption<DbAdapterSaved>>;
   evaluated: Array<{
     evaluation: DbObjectEvaluation<'adapter'>;
@@ -27,18 +29,35 @@ export type BoxContextAdapters = {
 
 export const defaultBoxContextAdapters: BoxContextAdapters = {
   composed: null,
+  config: { aliases: {}, composition: { type: 'flat', order: [] } },
   setValue: () => {},
   value: [],
   options: [],
   evaluated: [],
 };
 
-export function useBoxContextAdapters(
-  options: Array<CatalogGroup<DbAdapterSaved>>,
-) {
-  const [selectedAdapters, setSelectedAdapters] = useState<
-    CatalogOption<DbAdapterSaved>[]
-  >([]);
+export function useBoxContextAdapters({
+  builtInOptions,
+  adapterConfiguration,
+  onAdapterConfigurationChange,
+}: {
+  builtInOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  adapterConfiguration: AdapterConfiguration;
+  onAdapterConfigurationChange: (config: AdapterConfiguration) => void;
+}) {
+  const selectedAdapters = useMemo(() => {
+    return Object.values(adapterConfiguration.aliases).map((key) => {
+      const option = builtInOptions
+        .flatMap((group) => group.options)
+        .find((option) => option.value.key === key);
+
+      if (option === undefined) {
+        throw new Error(`Adapter ${key} not found`);
+      }
+
+      return option;
+    });
+  }, [adapterConfiguration, builtInOptions]);
 
   const evaluated = useMemo(() => {
     return selectedAdapters.map(({ label, key, value: object }) => ({
@@ -65,14 +84,35 @@ export function useBoxContextAdapters(
   const adapters = useMemo(() => {
     const value: BoxContextAdapters = {
       composed: composedAdapter,
-      setValue: setSelectedAdapters,
+      config: adapterConfiguration,
+      setValue: (adapters) => {
+        onAdapterConfigurationChange({
+          aliases: Object.fromEntries(
+            adapters.map(({ key, value }, index) => [
+              `adapter-${index}`,
+              value.key,
+            ]),
+          ),
+          composition: {
+            type: 'flat',
+            order: adapters.map(({ key }) => key),
+          },
+        });
+      },
       value: selectedAdapters,
-      options,
+      options: builtInOptions,
       evaluated,
     };
 
     return value;
-  }, [composedAdapter, evaluated, options, selectedAdapters]);
+  }, [
+    composedAdapter,
+    adapterConfiguration,
+    selectedAdapters,
+    builtInOptions,
+    evaluated,
+    onAdapterConfigurationChange,
+  ]);
 
   return adapters;
 }

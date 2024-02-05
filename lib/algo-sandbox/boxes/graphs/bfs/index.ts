@@ -3,7 +3,17 @@ import { SandboxBox } from '@algo-sandbox/core';
 const box: SandboxBox = {
   problem: 'problem.graphs.fiveNodes',
   algorithm: 'algorithm.search.bfs',
-  visualizer: 'visualizer.graphs.searchGraph',
+  algorithmVisualizers: {
+    adapters: {},
+    visualizers: {
+      'visualizer-0': 'visualizer.graphs.searchGraph',
+    },
+    visualizerOrder: ['visualizer-0'],
+    composition: {
+      type: 'flat',
+      order: ['algorithm', 'visualizer-0'],
+    },
+  },
 };
 
 export default box;

@@ -1,4 +1,4 @@
-import counterToSearchGraphStateAdapter from './counter-to-search-graph';
-import searchGraphStateToCounterAdapter from './search-graph-to-counter';
+import counterToSearchGraph from './counter-to-search-graph';
+import searchGraphToCounter from './search-graph-to-counter';
 
-export { counterToSearchGraphStateAdapter, searchGraphStateToCounterAdapter };
+export { counterToSearchGraph, searchGraphToCounter };

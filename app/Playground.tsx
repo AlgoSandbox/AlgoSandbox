@@ -106,7 +106,7 @@ export function PlaygroundPage() {
         />
         <Popover
           content={
-            <div className="bg-surface p-2 flex flex-col gap-4 items-start">
+            <div className="bg-surface p-4 flex flex-col gap-4 items-start">
               <Heading variant="h4">Settings</Heading>
               <Select
                 options={themeOptions}

@@ -1,5 +1,8 @@
 import {
+  SandboxAdapterKey,
+  SandboxAdapterOutput,
   SandboxAlgorithmKey,
+  SandboxKey,
   SandboxProblemKey,
   SandboxVisualizerKey,
 } from '@algo-sandbox/components/SandboxKey';
@@ -10,43 +13,112 @@ import {
   SandboxAnyVisualizer,
 } from '@typings/algo-sandbox';
 
-type AdapterComposition<A extends string> =
+type StringIfNever<T> = [T] extends [never] ? string : T;
+
+export type AdapterConnection<
+  Aliases extends SandboxAliases,
+  F extends keyof Aliases = keyof Aliases,
+  T extends keyof Aliases = keyof Aliases,
+> = {
+  fromKey: F;
+  fromSlot: StringIfNever<
+    SandboxAdapterOutput<SandboxKeyFromAlias<Aliases, F>>
+  >;
+  toKey: T;
+  toSlot: StringIfNever<SandboxAdapterOutput<SandboxKeyFromAlias<Aliases, T>>>;
+};
+
+export type SandboxKeyFromAlias<
+  Aliases extends SandboxAliases,
+  Alias extends keyof Aliases,
+> = Aliases[Alias] extends SandboxKey ? Aliases[Alias] : SandboxAdapterKey;
+
+type AdapterComposition<Aliases extends SandboxAliases> =
   | {
       type: 'tree';
-      connections: Array<{
-        fromKey: A;
-        fromSlot: string;
-        toKey: A;
-        toSlot: string;
-      }>;
+      connections: Array<AdapterConnection<Aliases>>;
     }
   | {
       type: 'flat';
-      order: Array<A>;
+      order: Array<keyof Aliases>;
     };
 
-type AdapterConfiguration<
-  A extends string,
-  V extends SandboxAnyAdapter | SandboxKey,
+export type SandboxAliases<
+  Alias extends string = string,
+  V extends SandboxAnyAdapter | SandboxKey = SandboxAnyAdapter | SandboxKey,
+> = Record<Alias, V>;
+
+export type RawAdapterConfiguration<Aliases extends SandboxAliases> = {
+  aliases: Aliases;
+  composition: AdapterComposition<Aliases>;
+};
+
+export type FlatAdapterConfiguration<
+  Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
+    string,
+    SandboxKey
+  >,
+> = RawAdapterConfiguration<Aliases> & {
+  composition: { type: 'flat' };
+};
+
+export type TreeAdapterConfiguration<
+  Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
+    string,
+    SandboxKey
+  >,
+> = RawAdapterConfiguration<Aliases> & {
+  composition: { type: 'tree'; connections: Array<AdapterConnection<Aliases>> };
+};
+
+export type AdapterConfiguration<
+  Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
+    string,
+    SandboxKey
+  >,
+> = RawAdapterConfiguration<Aliases>;
+export type AdapterConfigurationEvaluated<
+  Aliases extends SandboxAliases<string, SandboxAnyAdapter> = SandboxAliases<
+    string,
+    SandboxAnyAdapter
+  >,
+> = RawAdapterConfiguration<Aliases>;
+
+type AlgorithmVisualizers<
+  AdapterAliases extends SandboxAliases<
+    string,
+    SandboxAdapterKey
+  > = SandboxAliases<string, SandboxAdapterKey>,
+  VisualizerAliases extends SandboxAliases<
+    string,
+    SandboxVisualizerKey
+  > = SandboxAliases<string, SandboxVisualizerKey>,
 > = {
-  adapters: Record<A, V>;
-  composition: AdapterComposition<A>;
+  adapters?: AdapterAliases;
+  visualizers: VisualizerAliases;
+  composition: AdapterComposition<AdapterAliases & VisualizerAliases>;
+  visualizerOrder: Array<keyof VisualizerAliases>;
 };
 
-export type SandboxBox = {
+type AlgorithmVisualizersEvaluated = {
+  adapters?: Record<string, SandboxAnyAdapter | undefined>;
+  visualizers: Record<string, SandboxAnyVisualizer | undefined>;
+  composition: AdapterComposition<
+    SandboxAliases<string, SandboxVisualizerKey | SandboxAdapterKey>
+  >;
+  visualizerOrder: Array<string>;
+};
+
+export type SandboxBox = Readonly<{
   problem: SandboxProblemKey;
-  problemAlgorithm?: AdapterConfiguration<string, SandboxAnyAdapter>;
+  problemAlgorithm?: AdapterConfiguration;
   algorithm: SandboxAlgorithmKey;
-  algorithmVisualizer?: AdapterConfiguration<string, SandboxAnyAdapter>;
-  visualizer: SandboxVisualizerKey;
-};
-
-type SandboxKey = string;
+  algorithmVisualizers: AlgorithmVisualizers;
+}>;
 
 export type SandboxBoxEvaluated = {
   problem?: SandboxAnyProblem;
-  problemAlgorithm?: AdapterConfiguration<string, SandboxAnyAdapter>;
+  problemAlgorithm?: AdapterConfigurationEvaluated;
   algorithm?: SandboxAnyAlgorithm;
-  algorithmVisualizer?: AdapterConfiguration<string, SandboxAnyAdapter>;
-  visualizer?: SandboxAnyVisualizer;
+  algorithmVisualizers?: AlgorithmVisualizersEvaluated;
 };

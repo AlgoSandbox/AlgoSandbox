@@ -64,7 +64,16 @@ const defaultBox: SandboxBoxNamed = {
   name: 'Untitled box',
   algorithm: 'algorithm.search.bfs',
   problem: 'problem.graphs.fiveNodes',
-  visualizer: 'visualizer.graphs.searchGraph',
+  algorithmVisualizers: {
+    visualizers: {
+      'visualizer-0': 'visualizer.graphs.searchGraph',
+    },
+    visualizerOrder: ['visualizer-0'],
+    composition: {
+      type: 'flat',
+      order: ['algorithm', 'visualizer-0'],
+    },
+  },
 };
 
 export type SandboxBoxNamed = SandboxBox & {

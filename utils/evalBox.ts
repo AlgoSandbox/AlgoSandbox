@@ -30,14 +30,25 @@ export default function evalBox({
   const visualizer =
     getSandboxObjectWithKey({
       type: 'visualizer',
-      key: box.visualizer,
+      // TODO: change this
+      key:
+        box.algorithmVisualizers.visualizers['visualizer-0'] ??
+        'visualizer.graphs.searchGraph',
       builtInComponents,
       files,
     }) ?? undefined;
 
+  const algorithmVisualizers: SandboxBoxEvaluated['algorithmVisualizers'] = {
+    visualizers: {
+      'visualizer-0': visualizer,
+    },
+    visualizerOrder: box.algorithmVisualizers.visualizerOrder,
+    composition: box.algorithmVisualizers.composition,
+  };
+
   return {
     problem,
     algorithm,
-    visualizer,
+    algorithmVisualizers,
   };
 }

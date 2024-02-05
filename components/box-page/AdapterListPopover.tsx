@@ -9,7 +9,7 @@ import { DbAdapterSaved } from '@utils/db';
 import { DbObjectEvaluation } from '@utils/evalSavedObject';
 import clsx from 'clsx';
 import _ from 'lodash';
-import { Fragment, ReactElement } from 'react';
+import { Fragment, ReactElement, useMemo } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
 import CatalogSelect from './app-bar/CatalogSelect';
@@ -20,7 +20,7 @@ export type AdapterListPopoverProps = {
   fromType: SandboxStateType | null;
   toType: SandboxStateType | null;
   value: Array<CatalogOption<DbAdapterSaved>>;
-  valueEvaluated: Array<DbObjectEvaluation<'adapter'>>;
+  valueEvaluated: Record<string, DbObjectEvaluation<'adapter'> | undefined>;
   onChange: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
   options: CatalogOptions<DbAdapterSaved>;
   children: ReactElement;
@@ -50,7 +50,7 @@ export default function AdapterListPopover({
   fromType,
   toType,
   value,
-  valueEvaluated,
+  valueEvaluated: evaluated,
   onChange,
   options,
   children,
@@ -68,10 +68,19 @@ export default function AdapterListPopover({
 
   const rawAdapters = watch('adapters');
 
+  const valueEvaluated = useMemo(() => {
+    return value.map(({ key }) => evaluated[key]);
+  }, [evaluated, value]);
+
   const faultyAdapterIndex = (() => {
     let input = fromType;
     for (let i = 0; i < valueEvaluated.length; i++) {
-      const { objectEvaled: adapter } = valueEvaluated[i];
+      const adapterEvaluation = valueEvaluated[i];
+      if (adapterEvaluation === undefined) {
+        return i;
+      }
+
+      const { objectEvaled: adapter } = adapterEvaluation;
 
       if (adapter === null) {
         return i;
@@ -88,8 +97,8 @@ export default function AdapterListPopover({
 
   const isLastAdapterFaulty =
     valueEvaluated.length > 0 &&
-    (valueEvaluated[valueEvaluated.length - 1].objectEvaled === null ||
-      valueEvaluated[valueEvaluated.length - 1].objectEvaled?.outputs.name !==
+    (valueEvaluated[valueEvaluated.length - 1]?.objectEvaled === null ||
+      valueEvaluated[valueEvaluated.length - 1]?.objectEvaled?.outputs.name !==
         toType?.name);
 
   const isFaulty =
@@ -152,7 +161,7 @@ export default function AdapterListPopover({
                       >
                         <MaterialSymbol icon="keyboard_double_arrow_down" />
                         <span className="flex-1 overflow-ellipsis overflow-hidden">
-                          {valueEvaluated[index].objectEvaled?.accepts.name}
+                          {valueEvaluated[index]?.objectEvaled?.accepts.name}
                         </span>
                         <Button
                           label="Insert adapter"
@@ -208,7 +217,7 @@ export default function AdapterListPopover({
                   >
                     <MaterialSymbol icon="keyboard_double_arrow_down" />
                     <span className="flex-1 overflow-ellipsis overflow-hidden">
-                      {valueEvaluated[index].objectEvaled?.outputs.name}
+                      {valueEvaluated[index]?.objectEvaled?.outputs.name}
                     </span>
                     <Button
                       label="Insert adapter"

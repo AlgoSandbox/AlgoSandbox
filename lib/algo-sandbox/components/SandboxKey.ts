@@ -13,6 +13,8 @@ import {
 } from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
 import * as visualizers from '@algo-sandbox/visualizers';
+import { Get } from '@utils/RecursivePath';
+import { z } from 'zod';
 
 export type SandboxAnyAlgorithm =
   | SandboxAlgorithm<any, any>
@@ -87,3 +89,14 @@ export type SandboxKey<K extends SandboxObjectType = SandboxObjectType> =
   SandboxKeyMap[K];
 export type SandboxComponent<K extends SandboxObjectType = SandboxObjectType> =
   SandboxComponentMap[K];
+
+type AdapterWithKey<T extends SandboxAdapterKey> =
+  T extends `adapter.${infer P}` ? Get<typeof adapters, P> : never;
+
+export type SandboxAdapterInput<T extends SandboxAdapterKey> = keyof z.infer<
+  AdapterWithKey<T>['accepts']['shape']
+>;
+
+export type SandboxAdapterOutput<T extends SandboxAdapterKey> = keyof z.infer<
+  AdapterWithKey<T>['outputs']['shape']
+>;

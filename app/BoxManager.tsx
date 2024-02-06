@@ -13,7 +13,10 @@ import {
 type BoxManagerType = {
   getBox: (key: string) => SandboxBoxNamed | null;
   createNewBox: (box?: SandboxBoxNamed) => string;
-  updateBox: (key: string, box: SandboxBoxNamed) => void;
+  updateBox: (
+    key: string,
+    update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed,
+  ) => void;
 };
 
 const BoxManagerContext = createContext<BoxManagerType>({
@@ -103,9 +106,15 @@ export default function BoxManagerProvider({
     [boxes],
   );
 
-  const updateBox = useCallback((key: string, box: SandboxBoxNamed) => {
-    setBoxes((boxes) => ({ ...boxes, [key]: box }));
-  }, []);
+  const updateBox = useCallback(
+    (key: string, update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => {
+      setBoxes((boxes) => {
+        console.log('updating box', key, update(boxes[key]));
+        return { ...boxes, [key]: update(boxes[key]) };
+      });
+    },
+    [],
+  );
 
   const value = useMemo(
     () =>

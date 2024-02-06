@@ -139,12 +139,10 @@ export default function BoxContextProvider({
     builtInProblemOptions,
     defaultKey: problemKey,
     onKeyChange: (key) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          problem: key,
-        });
-      }
+      updateBox(boxKey, (box) => ({
+        ...box,
+        problem: key,
+      }));
     },
   });
 
@@ -152,42 +150,38 @@ export default function BoxContextProvider({
     builtInAlgorithmOptions,
     defaultKey: algorithmKey,
     onKeyChange: (key) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          algorithm: key,
-        });
-      }
+      updateBox(boxKey, (box) => ({
+        ...box,
+        algorithm: key,
+      }));
     },
   });
 
   const boxVisualizers = box?.visualizers;
+
+  console.log('box visualizers', boxVisualizers);
 
   const visualizers = useBoxContextVisualizers({
     builtInOptions: builtInVisualizerOptions,
     defaultAliases: boxVisualizers?.aliases ?? {},
     defaultOrder: boxVisualizers?.order ?? [],
     onAliasesChange: (aliases) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          visualizers: {
-            order: boxVisualizers?.order ?? [],
-            aliases,
-          },
-        });
-      }
+      updateBox(boxKey, (box) => ({
+        ...box,
+        visualizers: {
+          order: box.visualizers?.order ?? [],
+          aliases,
+        },
+      }));
     },
     onOrderChange: (order) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          visualizers: {
-            aliases: boxVisualizers?.aliases ?? {},
-            order,
-          },
-        });
-      }
+      updateBox(boxKey, (box) => ({
+        ...box,
+        visualizers: {
+          aliases: box.visualizers?.aliases ?? {},
+          order,
+        },
+      }));
     },
   });
 
@@ -207,24 +201,12 @@ export default function BoxContextProvider({
     problem,
     adapterConfiguration: problemAlgorithmConfig,
     onAdapterConfigurationChange: (config) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          problemAlgorithm: config,
-        });
-      }
+      updateBox(boxKey, (box) => ({
+        ...box,
+        problemAlgorithm: config,
+      }));
     },
   });
-
-  // const algorithmVisualizerConfig = useMemo(
-  //   () =>
-  //     box?.algorithmVisualizer ??
-  //     ({
-  //       aliases: {},
-  //       composition: { type: 'flat', order: [] },
-  //     } as AdapterConfiguration),
-  //   [box?.algorithmVisualizer],
-  // );
 
   const visualizerInputKeys = useMemo(() => {
     return Object.fromEntries(
@@ -251,12 +233,10 @@ export default function BoxContextProvider({
     ),
     visualizerInputKeys,
     onChange: (newValue) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          algorithmVisualizers: newValue,
-        });
-      }
+      updateBox(boxKey, (box) => ({
+        ...box,
+        algorithmVisualizers: newValue,
+      }));
     },
   });
 
@@ -397,10 +377,7 @@ export default function BoxContextProvider({
       boxName: {
         value: boxName,
         setValue: (newName) => {
-          if (box === null) {
-            return;
-          }
-          updateBox(boxKey, { ...box, name: newName });
+          updateBox(boxKey, (box) => ({ ...box, name: newName }));
         },
       },
       isDraft: box === undefined,

@@ -51,6 +51,8 @@ export default function useBoxContextVisualizers({
     Record<string, ParsedParameters<SandboxParameters> | null>
   >({});
 
+  console.log('defaultAliases', defaultAliases);
+
   useEffect(() => {
     setAliases(defaultAliases);
   }, [defaultAliases]);

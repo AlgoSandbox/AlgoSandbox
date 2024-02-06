@@ -277,6 +277,10 @@ function BoxPageImpl({
     initialLayout,
   );
 
+  useEffect(() => {
+    setLayout(initialLayout);
+  }, [initialLayout]);
+
   const renderTile = useCallback(
     (id: string) => {
       if (id === 'pseudocode') {

@@ -52,12 +52,6 @@ export default function useBoxContextAlgorithmVisualizers({
   value: AlgorithmVisualizers;
   onChange: (value: AlgorithmVisualizers) => void;
 }) {
-  // const adapters = useBoxContextAdapters({
-  //   builtInOptions: builtInAdapterOptions,
-  //   adapterConfiguration,
-  //   onAdapterConfigurationChange,
-  // });
-
   const selectedAdapterOptions = useMemo(() => {
     return Object.fromEntries(
       Object.entries(value?.adapters ?? {}).map(([alias, adapterKey]) => [
@@ -120,8 +114,7 @@ export default function useBoxContextAlgorithmVisualizers({
         ...adapterInputKeys,
       };
 
-      // Try to generate edges between algorithm -> adapter 1->adapter 2->visualizer/s
-
+      // Try to generate edges between algorithm -> adapter 1 -> adapter 2 -> visualizer/s
       const orderedAdapterAliases = value.composition.order;
       const orderedNodeAliases = ['algorithm', ...orderedAdapterAliases];
       const lastNode = orderedNodeAliases[orderedNodeAliases.length - 1];

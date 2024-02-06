@@ -13,6 +13,7 @@ import {
   useSavedVisualizersQuery,
   useSetSavedVisualizerMutation,
 } from '@utils/db/visualizers';
+import clsx from 'clsx';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -20,9 +21,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 export default function VisualizerSelect({
   alias,
   onChange,
+  className,
 }: {
   alias: string;
   onChange: () => void;
+  className?: string;
 }) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
@@ -81,9 +84,10 @@ export default function VisualizerSelect({
     methods.reset(defaultParameters ?? {});
   }, [defaultParameters, methods]);
   return (
-    <div className="flex items-end gap-2">
+    <div className={clsx('flex items-end gap-2', className)}>
       <CatalogSelect
-        label="Visualizer"
+        containerClassName="flex-1"
+        label={alias}
         options={options}
         value={selectedOption ?? undefined}
         onChange={(value) => {

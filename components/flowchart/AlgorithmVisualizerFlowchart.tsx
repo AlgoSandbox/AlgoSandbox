@@ -501,12 +501,13 @@ export default function AlgorithmVisualizerFlowchart({
 
   return (
     <PanelGroup direction="horizontal">
-      <Panel className="p-4 flex flex-col gap-2">
+      <Panel className="p-4 flex flex-col items-stretch gap-2">
         <Heading variant="h3">1. Select visualizers</Heading>
         <HeadingContent>
           {visualizers.order.map((alias) => (
-            <div className="flex justify-between items-end" key={alias}>
+            <div className="flex items-end gap-2" key={alias}>
               <VisualizerSelect
+                className="flex-1"
                 alias={alias}
                 onChange={() => {
                   setAlgorithmVisualizers({
@@ -560,9 +561,10 @@ export default function AlgorithmVisualizerFlowchart({
         </Heading>
         <HeadingContent>
           {Object.entries(selectedAdapters).map(([alias, option]) => (
-            <div className="flex justify-between items-end" key={alias}>
+            <div className="flex w-full items-end gap-2" key={alias}>
               <CatalogSelect
-                label="Adapter"
+                containerClassName="flex-1"
+                label={alias}
                 options={adapterOptions}
                 value={option}
                 onChange={(value) => {
@@ -642,8 +644,14 @@ export default function AlgorithmVisualizerFlowchart({
         >
           <Background className="bg-surface" />
         </ReactFlow>
-        <div className="absolute rounded-full bottom-0 bg-surface-high">
-          <Button label="Auto layout" onClick={autoLayoutNodes} />
+        <div className="absolute top-2 left-0 right-0 mx-auto flex justify-center">
+          <div className="rounded-full bg-surface overflow-clip border">
+            <Button
+              label="Auto layout"
+              onClick={autoLayoutNodes}
+              icon={<MaterialSymbol icon="mitre" />}
+            />
+          </div>
         </div>
       </Panel>
     </PanelGroup>

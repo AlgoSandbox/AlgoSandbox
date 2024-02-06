@@ -18,7 +18,7 @@ import {
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
-import { ResizeHandle } from '@components/ui';
+import { MaterialSymbol, Tooltip } from '@components/ui';
 import { createScene, SandboxScene } from '@utils';
 import clsx from 'clsx';
 import { mapValues } from 'lodash';
@@ -28,11 +28,10 @@ import { useDragDropManager } from 'react-dnd';
 import { chromeDark } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
-import { Panel, PanelGroup } from 'react-resizable-panels';
 
 const customChromeDark = {
   ...chromeDark,
-  BASE_BACKGROUND_COLOR: 'rgb(10, 10, 10)',
+  BASE_BACKGROUND_COLOR: 'rgb(23, 23, 23)',
 };
 
 function BoxPageExecutionWrapper() {
@@ -267,11 +266,11 @@ function BoxPageImpl({
         direction: 'row',
         first: alias,
         second: makeRowLayout(remainingAliases[0], remainingAliases.slice(1)),
-        splitPercentage: 50,
+        splitPercentage: 100 / (remainingAliases.length + 1),
       };
     };
 
-    return makeRowLayout('pseudocode', visualizerOrder);
+    return makeRowLayout('pseudocode', [...visualizerOrder, 'state-inspector']);
   }, [visualizerOrder]);
 
   const [layout, setLayout] = useState<MosaicNode<string> | null>(
@@ -287,6 +286,24 @@ function BoxPageImpl({
             startLine={executionStep?.startLine}
             endLine={executionStep?.endLine}
           />
+        );
+      }
+      if (id === 'state-inspector') {
+        if (executionStep === undefined) {
+          return <div className="text-label">Error in execution</div>;
+        }
+        return (
+          <div className="font-mono w-full h-full text-xs px-2 pt-2 overflow-y-auto">
+            <ObjectInspector
+              theme={
+                (resolvedTheme === 'dark'
+                  ? customChromeDark
+                  : 'chromeLight') as string
+              }
+              data={executionStep.state}
+              expandLevel={5}
+            />
+          </div>
         );
       }
 
@@ -311,99 +328,98 @@ function BoxPageImpl({
         </div>
       );
     },
-    [visualizations, pseudocode, executionStep],
+    [visualizations, pseudocode, executionStep, resolvedTheme],
   );
+
+  const windowTitles = useMemo(() => {
+    const getVisualizerName = (alias: string) => {
+      const visualizer = visualizerInstances[alias];
+      if (visualizer === undefined) {
+        return alias;
+      }
+      return `${visualizer.name} (${alias})`;
+    };
+
+    return {
+      pseudocode: 'Pseudocode',
+      'state-inspector': 'Algorithm state',
+      ...Object.fromEntries(
+        visualizerOrder.map((alias) => [alias, getVisualizerName(alias)]),
+      ),
+    } as Record<string, string>;
+  }, [visualizerOrder, visualizerInstances]);
 
   const dragAndDropManager = useDragDropManager();
 
   return (
     <div className="flex flex-col h-full">
       <AppBar />
-      <PanelGroup className="overflow-y-hidden" direction="horizontal">
-        <Panel id="center" order={2} defaultSize={80}>
-          <main className="relative h-full flex flex-col">
-            <Mosaic<string>
-              className={clsx(
-                'bg-transparent',
-                '[&_.mosaic-window-body]:!bg-surface',
-                '[&_.mosaic-window-toolbar]:!bg-surface-high',
-                '[&_.mosaic-split]:!bg-transparent',
-                '[&_.mosaic-tile]:!m-1',
-                [
-                  '[&_.mosaic-root]:!top-1',
-                  '[&_.mosaic-root]:!bottom-1',
-                  '[&_.mosaic-root]:!left-1',
-                  '[&_.mosaic-root]:!right-1',
-                ],
-                '[&_.mosaic-window]:rounded',
-                [
-                  '[&_.mosaic-split.-row]:!-ml-1',
-                  '[&_.mosaic-split.-row]:!py-1',
-                  '[&_.mosaic-split.-row]:!w-2',
-                  '[&_.mosaic-split.-row]:flex',
-                  '[&_.mosaic-split.-row]:justify-center',
-                ],
-                '[&_.mosaic-split_.mosaic-split-line]:rounded-full',
-                '[&_.mosaic-split_.mosaic-split-line]:!left-auto',
-                '[&_.mosaic-split_.mosaic-split-line]:!right-auto',
-                '[&_.mosaic-split_.mosaic-split-line]:!relative',
-                '[&_.mosaic-split_.mosaic-split-line]:h-full',
-                '[&_.drop-target-container_.drop-target]:!border-primary',
-                '[&_.drop-target-container_.drop-target]:dark:!bg-[rgba(255,255,255,0.1)]',
-                '[&_.mosaic-split-line]:transition-all [&_.mosaic-split-line]:bg-transparent',
-                '[&_.mosaic-split_.mosaic-split-line]:w-px [&_.mosaic-split:hover_.mosaic-split-line]:w-1 [&_.mosaic-split:hover_.mosaic-split-line]:bg-primary',
+      <main className="relative h-full flex flex-col z-0">
+        <Mosaic<string>
+          className={clsx(
+            'bg-transparent',
+            '[&_.mosaic-window-body]:!bg-surface',
+            '[&_.mosaic-window-toolbar]:!bg-surface-high',
+            '[&_.mosaic-split]:!bg-transparent',
+            '[&_.mosaic-tile]:!m-1',
+            [
+              '[&_.mosaic-root]:!top-1',
+              '[&_.mosaic-root]:!bottom-1',
+              '[&_.mosaic-root]:!left-1',
+              '[&_.mosaic-root]:!right-1',
+            ],
+            ['[&_.mosaic-window]:rounded', '[&_.mosaic-window]:border'],
+            [
+              '[&_.mosaic-split.-row]:!-ml-1',
+              '[&_.mosaic-split.-row]:!py-1',
+              '[&_.mosaic-split.-row]:!w-2',
+              '[&_.mosaic-split.-row]:flex',
+              '[&_.mosaic-split.-row]:justify-center',
+            ],
+            '[&_.mosaic-split_.mosaic-split-line]:rounded-full',
+            '[&_.mosaic-split_.mosaic-split-line]:!left-auto',
+            '[&_.mosaic-split_.mosaic-split-line]:!right-auto',
+            '[&_.mosaic-split_.mosaic-split-line]:!relative',
+            '[&_.mosaic-split_.mosaic-split-line]:h-full',
+            '[&_.drop-target-container_.drop-target]:!border-primary',
+            '[&_.drop-target-container_.drop-target]:!rounded',
+            '[&_.drop-target-container_.drop-target]:dark:!bg-[rgba(255,255,255,0.1)]',
+            '[&_.drop-target-container_.drop-target]:!bg-[rgba(0,0,0,0.1)]',
+            '[&_.mosaic-split-line]:transition-all [&_.mosaic-split-line]:bg-transparent',
+            '[&_.mosaic-split_.mosaic-split-line]:w-px [&_.mosaic-split:hover_.mosaic-split-line]:w-1 [&_.mosaic-split:hover_.mosaic-split-line]:bg-primary',
+          )}
+          renderTile={(alias, path) => (
+            <MosaicWindow
+              path={path}
+              title={alias}
+              toolbarControls={<div></div>}
+              renderToolbar={(props) => (
+                <div className="flex w-full">
+                  <Tooltip content={windowTitles[alias]}>
+                    <div className="text-label px-2 font-medium truncate flex items-center justify-between flex-1">
+                      {windowTitles[alias]}
+                      <MaterialSymbol
+                        icon="drag_handle"
+                        className="text-muted"
+                      />
+                    </div>
+                  </Tooltip>
+                </div>
               )}
-              renderTile={(alias, path) => (
-                <MosaicWindow
-                  path={path}
-                  title={alias}
-                  toolbarControls={<div></div>}
-                  renderToolbar={(props) => (
-                    <div className="text-label px-2 font-medium">{alias}</div>
-                  )}
-                >
-                  {renderTile(alias)}
-                </MosaicWindow>
-              )}
-              value={layout}
-              onChange={setLayout}
-              dragAndDropManager={dragAndDropManager}
-            />
-            {scene && (
-              <div className="absolute w-full z-10 bottom-8 flex justify-center">
-                <BoxExecutionControls />
-              </div>
-            )}
-          </main>
-        </Panel>
-        <ResizeHandle />
-        <Panel
-          className="h-full"
-          id="right"
-          order={3}
-          defaultSize={20}
-          minSize={10}
-        >
-          <aside className="h-full lg:flex flex-col hidden">
-            <span className="font-medium text-xs border-b py-2 px-2">
-              State inspector
-            </span>
-            {executionStep && (
-              <div className="font-mono text-xs px-2 pt-2 overflow-y-auto">
-                <ObjectInspector
-                  theme={
-                    (resolvedTheme === 'dark'
-                      ? customChromeDark
-                      : 'chromeLight') as string
-                  }
-                  data={executionStep.state}
-                  expandLevel={5}
-                />
-              </div>
-            )}
-          </aside>
-        </Panel>
-      </PanelGroup>
+            >
+              {renderTile(alias)}
+            </MosaicWindow>
+          )}
+          value={layout}
+          onChange={setLayout}
+          dragAndDropManager={dragAndDropManager}
+        />
+        {scene && (
+          <div className="absolute w-full z-10 bottom-8 flex justify-center">
+            <BoxExecutionControls />
+          </div>
+        )}
+      </main>
     </div>
   );
 }

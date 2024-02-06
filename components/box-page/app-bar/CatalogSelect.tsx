@@ -9,6 +9,7 @@ import {
 } from '@components/ui';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
+import clsx from 'clsx';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import Markdown, { Components } from 'react-markdown';
 
@@ -63,12 +64,13 @@ function ListItem<T>({
 
 export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   options,
+  containerClassName,
+  className,
   label,
   value,
   onChange,
-  errorMessage,
-} // showPreview = true,
-: CatalogSelectProps<T>) {
+  errorMessage, // showPreview = true,
+}: CatalogSelectProps<T>) {
   // const builtInComponents = useBuiltInComponents();
   const [selectedOption, setSelectedOption] = useState<CatalogOption<T> | null>(
     value ?? null,
@@ -328,7 +330,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
         </div>
       }
     >
-      <div className="flex flex-col min-w-[200px]">
+      <div className={clsx('flex flex-col min-w-[200px]', containerClassName)}>
         <div className="flex items-center gap-1">
           <FormLabel>{label}</FormLabel>
           {errorMessage && (
@@ -345,7 +347,10 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
           )}
         </div>
         <Button
-          className={errorMessage ? 'border-2 border-danger' : ''}
+          className={clsx(
+            errorMessage ? 'border-2 border-danger' : '',
+            className,
+          )}
           label={value?.label ?? ''}
           variant="filled"
           endIcon={<MaterialSymbol icon="arrow_drop_down" />}

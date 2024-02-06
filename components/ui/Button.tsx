@@ -77,6 +77,7 @@ function Button(
             disabled && 'text-muted',
           ],
           variant === 'filled' && [
+            'border',
             !disabled &&
               'bg-surface-high hover:bg-surface-higher text-on-surface/80',
             disabled && 'text-muted bg-surface/50',

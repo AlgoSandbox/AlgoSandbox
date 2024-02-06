@@ -78,7 +78,7 @@ type SandboxObjectTypeMap = {
     dbObjectSaved: DbProblemSaved;
   };
   visualizer: {
-    instance: SandboxVisualizer<SandboxStateType>;
+    instance: SandboxVisualizer<SandboxStateType, unknown>;
     value: SandboxAnyVisualizer;
     dbObject: DbVisualizer;
     dbObjectSaved: DbVisualizerSaved;

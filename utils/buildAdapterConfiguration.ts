@@ -4,11 +4,11 @@ import {
   SandboxKey,
 } from '@algo-sandbox/components/SandboxKey';
 import {
-  FlatAdapterConfiguration,
-  RawAdapterConfiguration,
+  AdapterConfigurationFlat,
+  AdapterConfigurationRaw,
   SandboxAliases,
   SandboxKeyFromAlias,
-  TreeAdapterConfiguration,
+  AdapterConfigurationTree,
 } from '@algo-sandbox/core';
 
 type FlatConfigurationBuilder<
@@ -17,7 +17,7 @@ type FlatConfigurationBuilder<
   connect: <T extends keyof Aliases>(
     key: T,
   ) => FlatConfigurationBuilder<Aliases>;
-  build: () => FlatAdapterConfiguration<Aliases>;
+  build: () => AdapterConfigurationFlat<Aliases>;
 };
 
 type StringIfNever<T> = [T] extends [never] ? string : T;
@@ -33,7 +33,7 @@ type TreeAdapterConfigurationBuilder<
     toKey: T;
     toSlot: StringIfNever<SandboxAdapterInput<SandboxKeyFromAlias<Aliases, T>>>;
   }) => TreeAdapterConfigurationBuilder<Aliases>;
-  build: () => TreeAdapterConfiguration<Aliases>;
+  build: () => AdapterConfigurationTree<Aliases>;
 };
 
 type BaseAdapterConfigurationBuilder<
@@ -47,7 +47,7 @@ export default function buildAdapterConfiguration<
   Aliases extends SandboxAliases<string, SandboxKey>,
 >(adapters: Aliases): BaseAdapterConfigurationBuilder<Aliases> {
   function treeBuilder(
-    config: RawAdapterConfiguration<Aliases> & {
+    config: AdapterConfigurationRaw<Aliases> & {
       composition: { type: 'tree' };
     },
   ): TreeAdapterConfigurationBuilder<Aliases> {
@@ -66,7 +66,7 @@ export default function buildAdapterConfiguration<
   }
 
   function flatBuilder(
-    config: RawAdapterConfiguration<Aliases> & {
+    config: AdapterConfigurationRaw<Aliases> & {
       composition: { type: 'flat' };
     },
   ): FlatConfigurationBuilder<Aliases> {

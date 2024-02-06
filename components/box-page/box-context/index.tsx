@@ -1,4 +1,9 @@
-import { AdapterConfiguration } from '@algo-sandbox/core';
+import {
+  AdapterConfiguration,
+  AdapterConfigurationFlat,
+  SandboxStateType,
+  SandboxVisualizer,
+} from '@algo-sandbox/core';
 import { useBox, useBoxManager } from '@app/BoxManager';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -11,12 +16,13 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useState,
 } from 'react';
 
-import useBoxContextAlgorithmVisualizer, {
-  BoxContextAlgorithmVisualizer,
-  defaultBoxContextAlgorithmVisualizer,
-} from './algorithm-visualizer';
+import useBoxContextAlgorithmVisualizers, {
+  BoxContextAlgorithmVisualizers,
+  defaultBoxContextAlgorithmVisualizer as defaultBoxContextAlgorithmVisualizers,
+} from './algorithm-visualizers';
 import useBoxContextProblemAlgorithm, {
   BoxContextProblemAlgorithm,
   defaultBoxContextProblemAlgorithm,
@@ -29,20 +35,13 @@ import useBoxContextProblem, {
   BoxContextProblem,
   defaultBoxContextProblem,
 } from './sandbox-object/problem';
-import useBoxContextVisualizer, {
-  BoxContextVisualizer,
-  defaultBoxContextVisualizer,
-} from './sandbox-object/visualizer';
-import useBoxContextVisualizers, {
-  BoxContextVisualizers,
-} from './sandbox-object/visualizers';
+import useBoxContextVisualizers, { BoxContextVisualizers } from './visualizers';
 
 type BoxContextType = {
   problem: BoxContextProblem;
   problemAlgorithm: BoxContextProblemAlgorithm;
   algorithm: BoxContextAlgorithm;
-  algorithmVisualizer: BoxContextAlgorithmVisualizer;
-  visualizer: BoxContextVisualizer;
+  algorithmVisualizers: BoxContextAlgorithmVisualizers;
   visualizers: BoxContextVisualizers;
   boxEnvironment: {
     value: Record<string, string>;
@@ -62,8 +61,7 @@ const BoxContext = createContext<BoxContextType>({
   algorithm: defaultBoxContextAlgorithm,
   problem: defaultBoxContextProblem,
   problemAlgorithm: defaultBoxContextProblemAlgorithm,
-  algorithmVisualizer: defaultBoxContextAlgorithmVisualizer,
-  visualizer: defaultBoxContextVisualizer,
+  algorithmVisualizers: defaultBoxContextAlgorithmVisualizers,
   isDraft: true,
   boxEnvironment: {
     value: {},
@@ -78,10 +76,16 @@ const BoxContext = createContext<BoxContextType>({
   },
   visualizers: {
     aliases: {},
+    instances: {},
     order: [],
     appendAlias: () => {},
     setAlias: () => {},
     removeAlias: () => {},
+    parameters: {
+      value: {},
+      default: {},
+      setValue: () => {},
+    },
   },
 });
 
@@ -149,6 +153,7 @@ export default function BoxContextProvider({
       }
     },
   });
+
   const algorithm = useBoxContextAlgorithm({
     builtInAlgorithmOptions,
     defaultKey: algorithmKey,
@@ -162,16 +167,31 @@ export default function BoxContextProvider({
     },
   });
 
-  const visualizers = useBoxContextVisualizers();
+  const boxVisualizers = box?.visualizers;
 
-  const visualizer = useBoxContextVisualizer({
-    builtInVisualizerOptions,
-    defaultKey: 'visualizer.graphs.searchGraph',
-    onKeyChange: (key) => {
+  const visualizers = useBoxContextVisualizers({
+    builtInOptions: builtInVisualizerOptions,
+    defaultAliases: boxVisualizers?.aliases ?? {},
+    defaultOrder: boxVisualizers?.order ?? [],
+    onAliasesChange: (aliases) => {
       if (box !== null) {
         updateBox(boxKey, {
           ...box,
-          // visualizer: key,
+          visualizers: {
+            order: boxVisualizers?.order ?? [],
+            aliases,
+          },
+        });
+      }
+    },
+    onOrderChange: (order) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          visualizers: {
+            aliases: boxVisualizers?.aliases ?? {},
+            order,
+          },
         });
       }
     },
@@ -183,7 +203,7 @@ export default function BoxContextProvider({
       ({
         aliases: {},
         composition: { type: 'flat', order: [] },
-      } as AdapterConfiguration),
+      } as AdapterConfigurationFlat),
     [box?.problemAlgorithm],
   );
 
@@ -217,25 +237,44 @@ export default function BoxContextProvider({
     composition: { type: 'flat', order: [] },
   };
 
-  const algorithmVisualizer = useBoxContextAlgorithmVisualizer({
-    algorithm,
+  const visualizerInputKeys = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(visualizers.instances).map(([alias, instance]) => {
+        if (instance === undefined) {
+          return [alias, []];
+        }
+
+        const inputKeys = Object.keys(instance.value.accepts.shape.shape);
+        return [alias, inputKeys];
+      }),
+    );
+  }, [visualizers.instances]);
+
+  const [adapterConfiguration, setAdapterConfiguration] =
+    useState<AdapterConfiguration>(defaultAdapterConfiguration);
+
+  const algorithmVisualizers = useBoxContextAlgorithmVisualizers({
     builtInAdapterOptions,
-    visualizer,
-    adapterConfiguration: defaultAdapterConfiguration,
+    adapterConfiguration,
+    problemOutputKeys: Object.keys(problem.instance?.type.shape.shape ?? {}),
+    algorithmOutputKeys: Object.keys(
+      algorithm.instance?.outputs.shape.shape ?? {},
+    ),
+    visualizerInputKeys,
     onAdapterConfigurationChange: (config) => {
-      if (box !== null) {
-        updateBox(boxKey, {
-          ...box,
-          // algorithmVisualizer: config,
-        });
-      }
+      setAdapterConfiguration(config);
+      // if (box !== null) {
+      //   updateBox(boxKey, {
+      //     ...box,
+      //     // algorithmVisualizer: config,
+      //   });
+      // }
     },
   });
 
   const boxEnvironment = useMemo(() => {
     const algorithmFiles = algorithm.select.value?.value.files;
     const problemFiles = problem.select.value?.value.files;
-    const visualizerFiles = visualizer.select.value?.value?.files;
 
     const renameFiles = (
       files: Record<string, string> | undefined,
@@ -254,20 +293,14 @@ export default function BoxContextProvider({
 
     const algorithmFilesRenamed = renameFiles(algorithmFiles, 'algorithm');
     const problemFilesRenamed = renameFiles(problemFiles, 'problem');
-    const visualizerFilesRenamed = renameFiles(visualizerFiles, 'visualizer');
 
     const boxEnvironment = {
       ...algorithmFilesRenamed,
       ...problemFilesRenamed,
-      ...visualizerFilesRenamed,
     };
 
     return boxEnvironment;
-  }, [
-    algorithm.select.value?.value.files,
-    problem.select.value?.value.files,
-    visualizer.select.value?.value?.files,
-  ]);
+  }, [algorithm.select.value?.value.files, problem.select.value?.value.files]);
 
   const setBoxEnvironment = useCallback(
     (boxEnvironment: Record<string, string>) => {
@@ -288,7 +321,6 @@ export default function BoxContextProvider({
       const visualizerFiles = getFilesInFolder('visualizer/');
       const algorithmOption = algorithm.select.value;
       const problemOption = problem.select.value;
-      const visualizerOption = visualizer.select.value;
 
       if (algorithmOption === null) {
         throw new Error('Selected algorithm is null');
@@ -296,10 +328,6 @@ export default function BoxContextProvider({
 
       if (problemOption === null) {
         throw new Error('Selected problem is null');
-      }
-
-      if (visualizerOption === null) {
-        throw new Error('Selected visualizer is null');
       }
 
       if (!isEqual(algorithmFiles, algorithmOption.value.files)) {
@@ -337,32 +365,12 @@ export default function BoxContextProvider({
           });
         }
       }
-
-      if (!isEqual(visualizerFiles, visualizerOption.value.files)) {
-        const isNew = visualizerOption.type === 'built-in';
-        if (isNew) {
-          visualizer.custom.add({
-            name: getCustomDbObjectName(visualizerOption.value),
-            files: visualizerFiles,
-            editable: true,
-            type: 'visualizer',
-          });
-        } else {
-          visualizer.custom.set({
-            ...visualizerOption.value,
-            key: visualizer.custom.selected!.key,
-            files: visualizerFiles,
-          });
-        }
-      }
     },
     [
       algorithm.custom,
       algorithm.select.value,
       problem.custom,
       problem.select.value,
-      visualizer.custom,
-      visualizer.select.value,
     ],
   );
 
@@ -391,8 +399,7 @@ export default function BoxContextProvider({
       problem,
       problemAlgorithm,
       algorithm,
-      algorithmVisualizer,
-      visualizer,
+      algorithmVisualizers: algorithmVisualizers,
       boxEnvironment: {
         value: boxEnvironment,
         setValue: setBoxEnvironment,
@@ -412,13 +419,12 @@ export default function BoxContextProvider({
       reset: () => {
         problem.select.reset();
         algorithm.select.reset();
-        visualizer.select.reset();
       },
       visualizers,
     } satisfies BoxContextType;
   }, [
     algorithm,
-    algorithmVisualizer,
+    algorithmVisualizers,
     box,
     boxEnvironment,
     boxKey,
@@ -429,7 +435,6 @@ export default function BoxContextProvider({
     problemAlgorithm,
     setBoxEnvironment,
     updateBox,
-    visualizer,
     visualizers,
   ]);
 

@@ -25,8 +25,8 @@ export type SandboxAnyProblem =
   | SandboxParameterizedProblem<any, any>;
 
 export type SandboxAnyVisualizer =
-  | SandboxVisualizer<any>
-  | SandboxParameterizedVisualizer<any, any>;
+  | SandboxVisualizer<any, any>
+  | SandboxParameterizedVisualizer<any, any, any>;
 
 export type SandboxAnyAdapter = SandboxAdapter<any, any>;
 

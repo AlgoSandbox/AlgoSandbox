@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import { DbSandboxObject, DbSandboxObjectType } from '.';
 import * as LocalDb from './local';
@@ -8,6 +13,19 @@ export function useSavedObjectQuery<T extends DbSandboxObjectType>(
 ) {
   return useQuery(['objects', key], async () => {
     return LocalDb.getSandboxObject<T>(key);
+  });
+}
+
+export function useSavedObjectsQuery<T extends DbSandboxObjectType>(
+  keys: Array<string>,
+) {
+  return useQueries({
+    queries: keys.map((key) => ({
+      queryKey: ['objects', key],
+      queryFn: async () => {
+        return LocalDb.getSandboxObject<T>(key);
+      },
+    })),
   });
 }
 

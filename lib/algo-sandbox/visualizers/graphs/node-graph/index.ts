@@ -8,7 +8,7 @@ import {
 import { graphNode, nodeGraph } from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
-import _ from 'lodash';
+import _, { isEqual } from 'lodash';
 import { z } from 'zod';
 
 type NodeGraph = z.infer<typeof nodeGraph.shape>;
@@ -45,79 +45,87 @@ type NodeGraphVisualizationParameters = SandboxParameters<{
   renderNode: (node: NodeGraphSVGNode) => void;
 }>;
 
+export type NodeGraphVisualizerState = {
+  graph: NodeGraph;
+  nodes: Array<GraphNode>;
+  links: Array<{
+    source: string | number;
+    target: string | number;
+  }>;
+  simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
+  width: number;
+  height: number;
+};
+
+const getVisualizerState = (
+  graph: NodeGraph,
+  oldNodes: Array<GraphNode>,
+  oldLinks: Array<{
+    source: string | number;
+    target: string | number;
+  }>,
+) => {
+  const { nodes: newNodes, edges } = _.cloneDeep(graph);
+  const nodes = newNodes.map((node) => {
+    const oldNode = oldNodes.find(({ id: oldId }) => node.id === oldId);
+    return oldNode ? { ...oldNode } : node;
+  });
+
+  const newLinks = edges.map(([source, target]) => ({
+    source,
+    target,
+  }));
+  const links = newLinks.map((link) => {
+    const oldLink = oldLinks.find(({ source, target }) => {
+      if (typeof source === 'string' && typeof target === 'string') {
+        return (
+          (source as any).id === link.source &&
+          (target as any).id === link.target
+        );
+      } else {
+        return (
+          (source as any).index === link.source &&
+          (target as any).index === link.target
+        );
+      }
+    });
+
+    return oldLink ? { ...oldLink } : link;
+  });
+
+  // Create a force simulation to spread the nodes
+  const simulation = d3
+    .forceSimulation(nodes as d3.SimulationNodeDatum[])
+    .force('charge', d3.forceManyBody().strength(-300))
+    .force(
+      'link',
+      d3
+        .forceLink<
+          d3.SimulationNodeDatum & GraphNode,
+          d3.SimulationLinkDatum<d3.SimulationNodeDatum & GraphNode>
+        >(links)
+        .id((d) => d.id)
+        .distance(40)
+        .strength(1),
+    )
+    .force('x', d3.forceX())
+    .force('y', d3.forceY());
+
+  return {
+    simulation,
+    nodes,
+    edges,
+    links,
+  };
+};
+
 const nodeGraphVisualizer: SandboxParameterizedVisualizer<
   typeof nodeGraph,
+  NodeGraphVisualizerState,
   NodeGraphVisualizationParameters
 > = (() => {
   return createParameterizedVisualizer(
     (() => {
-      let visualizerState: ReturnType<typeof getVisualizerState>;
-      let cachedGraph: NodeGraph;
-      let cachedWidth: number;
-      let cachedHeight: number;
-
-      const getVisualizerState = (
-        graph: NodeGraph,
-        oldNodes: Array<GraphNode>,
-        oldLinks: Array<{
-          source: string | number;
-          target: string | number;
-        }>,
-      ) => {
-        const { nodes: newNodes, edges } = _.cloneDeep(graph);
-        const nodes = newNodes.map((node) => {
-          const oldNode = oldNodes.find(({ id: oldId }) => node.id === oldId);
-          return oldNode ? { ...oldNode } : node;
-        });
-
-        const newLinks = edges.map(([source, target]) => ({
-          source,
-          target,
-        }));
-        const links = newLinks.map((link) => {
-          const oldLink = oldLinks.find(({ source, target }) => {
-            if (typeof source === 'string' && typeof target === 'string') {
-              return (
-                (source as any).id === link.source &&
-                (target as any).id === link.target
-              );
-            } else {
-              return (
-                (source as any).index === link.source &&
-                (target as any).index === link.target
-              );
-            }
-          });
-
-          return oldLink ? { ...oldLink } : link;
-        });
-
-        // Create a force simulation to spread the nodes
-        const simulation = d3
-          .forceSimulation(nodes as d3.SimulationNodeDatum[])
-          .force('charge', d3.forceManyBody().strength(-300))
-          .force(
-            'link',
-            d3
-              .forceLink<
-                d3.SimulationNodeDatum & GraphNode,
-                d3.SimulationLinkDatum<d3.SimulationNodeDatum & GraphNode>
-              >(links)
-              .id((d) => d.id)
-              .distance(40)
-              .strength(1),
-          )
-          .force('x', d3.forceX())
-          .force('y', d3.forceY());
-
-        return {
-          simulation,
-          nodes,
-          edges,
-          links,
-        };
-      };
-
       return {
         name: 'Node graph',
         accepts: nodeGraph,
@@ -127,28 +135,35 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             () => {},
           ),
         },
-        onUpdate: ({ parameters, svg, width, height, state: graph }) => {
-          if (!visualizerState || !_.isEqual(graph, cachedGraph)) {
-            // Clear canvas and re-render nodes
-            svg.selectChildren().remove();
-            if (visualizerState?.simulation) {
-              visualizerState?.simulation.stop();
+        onUpdate: ({
+          parameters,
+          svg,
+          width,
+          height,
+          state: graph,
+          previousVisualizerState,
+        }) => {
+          const visualizerState = (() => {
+            if (
+              previousVisualizerState &&
+              isEqual(previousVisualizerState.graph, graph)
+            ) {
+              return previousVisualizerState;
             }
-            visualizerState = getVisualizerState(
+            return getVisualizerState(
               graph,
-              visualizerState?.nodes ?? [],
-              visualizerState?.links ?? [],
+              previousVisualizerState?.nodes ?? [],
+              previousVisualizerState?.links ?? [],
             );
-            cachedGraph = graph;
-          }
+          })();
 
           const { nodes, links, simulation } = visualizerState;
 
           // Only re-heat the simulation if required
-          if (width !== cachedWidth || height !== cachedHeight) {
-            cachedWidth = width;
-            cachedHeight = height;
-
+          if (
+            width !== previousVisualizerState?.width ||
+            height !== previousVisualizerState?.height
+          ) {
             if (simulation.alpha() <= simulation.alphaMin()) {
               simulation.restart();
             }
@@ -290,6 +305,15 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
           simulation.on('tick', updateValues);
           updateValues();
+
+          return {
+            graph,
+            nodes,
+            links,
+            simulation,
+            width,
+            height,
+          };
         },
       };
     })(),

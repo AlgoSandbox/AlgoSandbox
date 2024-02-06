@@ -1,4 +1,4 @@
-import { AdapterConfiguration } from '@algo-sandbox/core';
+import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { CatalogGroup } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
 import { useMemo } from 'react';
@@ -31,8 +31,8 @@ export default function useBoxContextProblemAlgorithm({
   algorithm: BoxContextAlgorithm;
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   problem: BoxContextProblem;
-  adapterConfiguration: AdapterConfiguration;
-  onAdapterConfigurationChange: (config: AdapterConfiguration) => void;
+  adapterConfiguration: AdapterConfigurationFlat;
+  onAdapterConfigurationChange: (config: AdapterConfigurationFlat) => void;
 }) {
   const adapters = useBoxContextAdapters({
     builtInOptions: builtInAdapterOptions,

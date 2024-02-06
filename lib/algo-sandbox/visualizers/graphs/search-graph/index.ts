@@ -1,9 +1,12 @@
 import { SandboxVisualizer } from '@algo-sandbox/core';
 import { graphSearchAlgorithmState } from '@algo-sandbox/states';
-import nodeGraphVisualizer from '@algo-sandbox/visualizers/graphs/node-graph';
+import nodeGraphVisualizer, {
+  NodeGraphVisualizerState,
+} from '@algo-sandbox/visualizers/graphs/node-graph';
 
 const searchGraphVisualizer: SandboxVisualizer<
-  typeof graphSearchAlgorithmState
+  typeof graphSearchAlgorithmState,
+  NodeGraphVisualizerState
 > = (() => {
   return {
     name: 'Search graph',

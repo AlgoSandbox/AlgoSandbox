@@ -16,7 +16,7 @@ import {
 type StringIfNever<T> = [T] extends [never] ? string : T;
 
 export type AdapterConnection<
-  Aliases extends SandboxAliases,
+  Aliases extends SandboxAliases = SandboxAliases,
   F extends keyof Aliases = keyof Aliases,
   T extends keyof Aliases = keyof Aliases,
 > = {
@@ -33,41 +33,49 @@ export type SandboxKeyFromAlias<
   Alias extends keyof Aliases,
 > = Aliases[Alias] extends SandboxKey ? Aliases[Alias] : SandboxAdapterKey;
 
-type AdapterComposition<Aliases extends SandboxAliases> =
-  | {
-      type: 'tree';
-      connections: Array<AdapterConnection<Aliases>>;
-    }
-  | {
-      type: 'flat';
-      order: Array<keyof Aliases>;
-    };
+export type AdapterCompositionTree<
+  Aliases extends SandboxAliases = SandboxAliases,
+> = {
+  type: 'tree';
+  connections: Array<AdapterConnection<Aliases>>;
+};
+
+export type AdapterCompositionFlat<
+  Aliases extends SandboxAliases = SandboxAliases,
+> = {
+  type: 'flat';
+  order: Array<keyof Aliases>;
+};
+
+export type AdapterComposition<
+  Aliases extends SandboxAliases = SandboxAliases,
+> = AdapterCompositionTree<Aliases> | AdapterCompositionFlat<Aliases>;
 
 export type SandboxAliases<
   Alias extends string = string,
-  V extends SandboxAnyAdapter | SandboxKey = SandboxAnyAdapter | SandboxKey,
+  V extends SandboxAnyAdapter | SandboxKey = SandboxKey,
 > = Record<Alias, V>;
 
-export type RawAdapterConfiguration<Aliases extends SandboxAliases> = {
+export type AdapterConfigurationRaw<Aliases extends SandboxAliases> = {
   aliases: Aliases;
   composition: AdapterComposition<Aliases>;
 };
 
-export type FlatAdapterConfiguration<
+export type AdapterConfigurationFlat<
   Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
     string,
     SandboxKey
   >,
-> = RawAdapterConfiguration<Aliases> & {
+> = AdapterConfigurationRaw<Aliases> & {
   composition: { type: 'flat' };
 };
 
-export type TreeAdapterConfiguration<
+export type AdapterConfigurationTree<
   Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
     string,
     SandboxKey
   >,
-> = RawAdapterConfiguration<Aliases> & {
+> = AdapterConfigurationRaw<Aliases> & {
   composition: { type: 'tree'; connections: Array<AdapterConnection<Aliases>> };
 };
 
@@ -76,13 +84,18 @@ export type AdapterConfiguration<
     string,
     SandboxKey
   >,
-> = RawAdapterConfiguration<Aliases>;
-export type AdapterConfigurationEvaluated<
-  Aliases extends SandboxAliases<string, SandboxAnyAdapter> = SandboxAliases<
-    string,
-    SandboxAnyAdapter
-  >,
-> = RawAdapterConfiguration<Aliases>;
+> = AdapterConfigurationRaw<Aliases>;
+
+export type AdapterConfigurationEvaluated = {
+  aliases: Record<string, SandboxEvaluated<SandboxAnyAdapter> | undefined>;
+  composition: AdapterComposition<SandboxAliases<string, SandboxAdapterKey>>;
+};
+
+export type SandboxEvaluated<T> = {
+  name: string;
+  key: string;
+  value: T;
+};
 
 type AlgorithmVisualizers<
   AdapterAliases extends SandboxAliases<
@@ -122,9 +135,9 @@ type VisualizersEvaluated = {
 
 export type SandboxBox = Readonly<{
   problem: SandboxProblemKey;
-  problemAlgorithm?: AdapterConfiguration;
+  problemAlgorithm?: AdapterConfigurationFlat;
   algorithm: SandboxAlgorithmKey;
-  algorithmVisualizers: AlgorithmVisualizers;
+  algorithmVisualizers?: AlgorithmVisualizers;
   visualizers: Visualizers;
 }>;
 

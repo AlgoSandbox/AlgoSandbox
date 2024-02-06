@@ -12,8 +12,9 @@ const box: SandboxBox = {
   visualizers: {
     aliases: {
       'visualizer-0': 'visualizer.graphs.searchGraph',
+      'visualizer-1': 'visualizer.graphs.searchGraph',
     },
-    order: ['visualizer-0'],
+    order: ['visualizer-0', 'visualizer-1'],
   },
 };
 

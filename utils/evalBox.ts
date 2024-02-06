@@ -39,7 +39,10 @@ export default function evalBox({
     }) ?? undefined;
 
   const algorithmVisualizers: SandboxBoxEvaluated['algorithmVisualizers'] = {
-    composition: box.algorithmVisualizers.composition,
+    composition: box.algorithmVisualizers?.composition ?? {
+      type: 'flat',
+      order: [],
+    },
   };
 
   const visualizers: SandboxBoxEvaluated['visualizers'] = {

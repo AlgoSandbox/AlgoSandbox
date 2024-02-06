@@ -1,6 +1,6 @@
+import BoxPage from '@app/BoxPage';
 import { BoxContextProvider } from '@components/box-page';
 
-import BoxPage from '../../app/BoxPage';
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 export type BoxTabConfigEntry = {
   box: never;

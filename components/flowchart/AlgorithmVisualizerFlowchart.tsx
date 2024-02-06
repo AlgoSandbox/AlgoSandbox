@@ -1,16 +1,13 @@
 import 'reactflow/dist/style.css';
 
-import {
-  SandboxVisualizer,
-  TreeAdapterConfiguration,
-} from '@algo-sandbox/core';
+import { SandboxVisualizer } from '@algo-sandbox/core';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
+import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
-import buildAdapterConfiguration from '@utils/buildAdapterConfiguration';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import React, {
   forwardRef,
@@ -176,14 +173,14 @@ const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
 
 const proOptions = { hideAttribution: true };
 
-const adapterConfiguration = buildAdapterConfiguration({
-  algorithm: 'algorithm.search.bfs',
-  'adapter-0': 'adapter.example.searchGraphToCounter',
-  'adapter-1': 'adapter.example.counterToSearchGraph',
-  'visualizer-0': 'visualizer.graphs.searchGraph',
-})
-  .tree()
-  .build();
+// const adapterConfiguration = buildAdapterConfiguration({
+//   algorithm: 'algorithm.search.bfs',
+//   'adapter-0': 'adapter.example.searchGraphToCounter',
+//   'adapter-1': 'adapter.example.counterToSearchGraph',
+//   'visualizer-0': 'visualizer.graphs.searchGraph',
+// })
+//   .tree()
+//   .build();
 
 export default function AlgorithmVisualizerFlowchart({
   tabId,
@@ -194,9 +191,20 @@ export default function AlgorithmVisualizerFlowchart({
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
-  const visualizerOptions = useBoxContext('visualizer.select.options');
+  const { builtInVisualizerOptions: visualizerOptions } =
+    useBuiltInComponents();
 
-  const adapters = useBoxContext('algorithmVisualizer.adapters.evaluated');
+  const adapterConfigurationEvaluated = useBoxContext(
+    'algorithmVisualizers.adapterConfiguration.evaluated',
+  );
+
+  const setAdapterConfiguration = useBoxContext(
+    'algorithmVisualizers.adapterConfiguration.set',
+  );
+
+  const adapterConfiguration = useBoxContext(
+    'algorithmVisualizers.adapterConfiguration.tree',
+  );
 
   const visualizers = useBoxContext('visualizers');
 
@@ -211,10 +219,6 @@ export default function AlgorithmVisualizerFlowchart({
         )!,
     );
   }, [visualizerOptions, visualizers.aliases, visualizers.order]);
-
-  // const adapterConfig = useBoxContext('algorithmVisualizer.adapters.config');
-  const [adapterConfig, setAdapterConfig] =
-    useState<TreeAdapterConfiguration>(adapterConfiguration);
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
 
@@ -250,35 +254,28 @@ export default function AlgorithmVisualizerFlowchart({
     [algorithm],
   );
 
-  console.log('adapters', adapters);
-
   const initialAdapterNodes = useMemo(
     () =>
-      Object.entries(adapterConfig.aliases)
-        .map(([id, adapterKey]) => {
-          return {
-            id,
-            adapter: adapters.find((adapter) => adapter.key === adapterKey),
-          };
-        })
-        .filter(({ adapter }) => adapter !== undefined)
-        .map(({ id, adapter }) => ({
-          id,
-          adapter: adapter!,
+      Object.entries(adapterConfigurationEvaluated.aliases)
+        // .map(([alias, evaluated]) => {
+        //   return {
+        //     id: alias,
+        //     label: evaluated?.name,
+        //     adapter: adapterConfigurationEvaluated.aliases[]find((adapter) => adapter.key === adapterKey),
+        //   };
+        // })
+        .filter(([, evaluated]) => evaluated !== undefined)
+        .map(([alias, evaluated]) => ({
+          alias,
+          evaluated: evaluated!,
         }))
-        .filter(({ adapter }) => adapter.evaluation.objectEvaled !== null)
-        .map(({ id, adapter: { label, evaluation } }) => ({
-          id,
-          label,
-          adapter: evaluation.objectEvaled!,
-        }))
-        .map(({ id, label, adapter }) => ({
-          id,
+        .map(({ alias, evaluated: { name, value: adapter } }) => ({
+          id: alias,
           type: 'customFlow',
           width: 500,
           height: 100,
           data: {
-            label,
+            label: name,
             inputs: Object.keys(adapter.accepts.shape.shape).map((param) => ({
               id: param,
               label: param,
@@ -289,7 +286,7 @@ export default function AlgorithmVisualizerFlowchart({
             })),
           },
         })) as Array<Node>,
-    [adapterConfig.aliases, adapters],
+    [adapterConfigurationEvaluated.aliases],
   );
 
   const initialVisualizerNodes = useMemo(() => {
@@ -342,7 +339,7 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   const initialEdges = useMemo(() => {
-    return adapterConfig.composition.connections.map(
+    return adapterConfigurationEvaluated.composition.connections.map(
       ({ fromKey, fromSlot, toKey, toSlot }) => ({
         id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
         source: fromKey,
@@ -352,7 +349,7 @@ export default function AlgorithmVisualizerFlowchart({
         animated: true,
       }),
     ) as Array<Edge>;
-  }, [adapterConfig]);
+  }, [adapterConfigurationEvaluated]);
 
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
@@ -395,23 +392,19 @@ export default function AlgorithmVisualizerFlowchart({
   }, [initialEdges, initialNodes]);
 
   const onNodesChange = useCallback((changes: Array<NodeChange>) => {
-    console.log('node changes', changes);
     return setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
   const onEdgesChange = useCallback((changes: Array<EdgeChange>) => {
-    console.log('edge changes', changes);
     return setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
-  const onEdgesDelete = useCallback((edgesToDelete: Array<Edge>) => {
-    console.log('deleted!');
-
-    setAdapterConfig((config) => {
-      const newConfig = {
-        ...config,
+  const onEdgesDelete = useCallback(
+    (edgesToDelete: Array<Edge>) => {
+      setAdapterConfiguration({
+        ...adapterConfiguration,
         composition: {
-          ...config.composition,
-          connections: config.composition.connections.filter(
+          ...adapterConfiguration.composition,
+          connections: adapterConfiguration.composition.connections.filter(
             ({ fromKey, fromSlot, toKey, toSlot }) =>
               !edgesToDelete.some(
                 (edge) =>
@@ -422,44 +415,41 @@ export default function AlgorithmVisualizerFlowchart({
               ),
           ),
         },
-      };
+      });
+    },
+    [adapterConfiguration, setAdapterConfiguration],
+  );
 
-      return newConfig;
-    });
-  }, []);
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      // update adapter config
+      const fromKey = connection.source;
+      const fromSlot = connection.sourceHandle;
+      const toKey = connection.target;
+      const toSlot = connection.targetHandle;
 
-  const onConnect = useCallback((connection: Connection) => {
-    console.log('connect', connection);
-    // update adapter config
-    const fromKey = connection.source;
-    const fromSlot = connection.sourceHandle;
-    const toKey = connection.target;
-    const toSlot = connection.targetHandle;
+      if (
+        fromKey === null ||
+        toKey === null ||
+        fromSlot === null ||
+        toSlot === null
+      ) {
+        return;
+      }
 
-    if (
-      fromKey === null ||
-      toKey === null ||
-      fromSlot === null ||
-      toSlot === null
-    ) {
-      return;
-    }
-
-    setAdapterConfig((config) => {
-      const newConfig = {
-        ...config,
+      setAdapterConfiguration({
+        ...adapterConfiguration,
         composition: {
-          ...config.composition,
+          ...adapterConfiguration.composition,
           connections: [
-            ...config.composition.connections,
+            ...adapterConfiguration.composition.connections,
             { fromKey, fromSlot, toKey, toSlot },
           ],
         },
-      };
-
-      return newConfig;
-    });
-  }, []);
+      });
+    },
+    [adapterConfiguration, setAdapterConfiguration],
+  );
 
   const [, drop] = useDrop(() => {
     return {
@@ -469,7 +459,7 @@ export default function AlgorithmVisualizerFlowchart({
         id,
       }: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        visualizer: SandboxVisualizer<any> | null;
+        visualizer: SandboxVisualizer<any, unknown> | null;
         id: string;
       }) => {
         if (visualizer === null) {
@@ -516,18 +506,16 @@ export default function AlgorithmVisualizerFlowchart({
 
   return (
     <PanelGroup direction="horizontal">
-      <Panel>
+      <Panel className="p-4">
         <Heading variant="h2">Library</Heading>
         <HeadingContent>
           <Heading variant="h3">1. Select visualizers</Heading>
           {visualizers.order.map((alias) => (
-            <div className="flex justify-between items-center" key={alias}>
+            <div className="flex justify-between items-end" key={alias}>
               <VisualizerSelect alias={alias} />
               <Button
-                className="mb-1.5"
                 label="Remove"
                 hideLabel
-                size="sm"
                 icon={<MaterialSymbol icon="delete" />}
                 onClick={() => {
                   visualizers.removeAlias(alias);
@@ -546,20 +534,6 @@ export default function AlgorithmVisualizerFlowchart({
               visualizers.appendAlias(newKey, value.key);
             }}
           />
-          <pre>
-            {JSON.stringify(
-              {
-                nodeIds: nodes.map((node) => node.id),
-                algorithmVisualizer: {
-                  adapters: adapterConfig.aliases,
-                  composition: adapterConfig.composition,
-                },
-                visualizers,
-              },
-              null,
-              2,
-            )}
-          </pre>
         </HeadingContent>
       </Panel>
       <ResizeHandle />

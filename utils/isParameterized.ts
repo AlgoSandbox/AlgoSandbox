@@ -14,7 +14,7 @@ export function isParameterizedAlgorithm<
   M extends SandboxStateType,
   P extends SandboxParameters,
 >(
-  algorithm: SandboxAlgorithm<N, M> | SandboxParameterizedAlgorithm<N, M, P>
+  algorithm: SandboxAlgorithm<N, M> | SandboxParameterizedAlgorithm<N, M, P>,
 ): algorithm is SandboxParameterizedAlgorithm<N, M, P> {
   return (
     (algorithm as SandboxParameterizedAlgorithm<N, M, P>).parameters !==
@@ -24,12 +24,13 @@ export function isParameterizedAlgorithm<
 
 export function isParameterizedVisualizer<
   N extends SandboxStateType,
+  V,
   P extends SandboxParameters,
 >(
-  visualizer: SandboxVisualizer<N> | SandboxParameterizedVisualizer<N, P>
-): visualizer is SandboxParameterizedVisualizer<N, P> {
+  visualizer: SandboxVisualizer<N, V> | SandboxParameterizedVisualizer<N, V, P>,
+): visualizer is SandboxParameterizedVisualizer<N, V, P> {
   return (
-    (visualizer as SandboxParameterizedVisualizer<N, P>).parameters !==
+    (visualizer as SandboxParameterizedVisualizer<N, V, P>).parameters !==
     undefined
   );
 }
@@ -38,7 +39,7 @@ export function isParameterizedProblem<
   N extends SandboxStateType,
   P extends SandboxParameters,
 >(
-  problem: SandboxProblem<N> | SandboxParameterizedProblem<N, P>
+  problem: SandboxProblem<N> | SandboxParameterizedProblem<N, P>,
 ): problem is SandboxParameterizedProblem<N, P> {
   return (
     (problem as SandboxParameterizedProblem<N, P>).parameters !== undefined

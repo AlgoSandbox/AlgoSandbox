@@ -10,11 +10,13 @@ import { SandboxVisualizer } from '.';
 
 export type SandboxParameterizedVisualizer<
   N extends SandboxStateType,
+  V,
   P extends SandboxParameters,
-> = Parameterized<SandboxVisualizer<N>, P>;
+> = Parameterized<SandboxVisualizer<N, V>, P>;
 
 export type SandboxVisualizerContext<
   N extends SandboxStateType,
+  V,
   P extends SandboxParameters,
 > = {
   parameters: ParsedParameters<P>;
@@ -22,10 +24,12 @@ export type SandboxVisualizerContext<
   width: number;
   height: number;
   state: SandboxState<N>;
+  previousVisualizerState: V | null;
 };
 
 export function createParameterizedVisualizer<
   N extends SandboxStateType,
+  V,
   P extends SandboxParameters,
 >({
   name,
@@ -36,8 +40,8 @@ export function createParameterizedVisualizer<
   name: string;
   accepts: N;
   parameters: P;
-  onUpdate: (context: SandboxVisualizerContext<N, P>) => void;
-}): SandboxParameterizedVisualizer<N, P> {
+  onUpdate: (context: SandboxVisualizerContext<N, V, P>) => V;
+}): SandboxParameterizedVisualizer<N, V, P> {
   return {
     name,
     parameters,
@@ -48,7 +52,11 @@ export function createParameterizedVisualizer<
         visualize: (state) => {
           return {
             onUpdate: (context) => {
-              onUpdate({ parameters: parsedParameters, state, ...context });
+              return onUpdate({
+                parameters: parsedParameters,
+                state,
+                ...context,
+              });
             },
           };
         },

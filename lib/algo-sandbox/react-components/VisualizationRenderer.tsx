@@ -1,18 +1,19 @@
 import { SandboxVisualization } from '@algo-sandbox/core';
 import * as d3 from 'd3';
+import { isEqual } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
-export type VisualizationRendererProps = {
+export type VisualizationRendererProps<V> = {
   className?: string;
-  visualization: SandboxVisualization;
+  visualization: SandboxVisualization<V>;
   zoomLevel?: number;
 };
 
-export default function VisualizationRenderer({
+export default function VisualizationRenderer<V>({
   className,
   visualization: { onUpdate },
   zoomLevel = 1,
-}: VisualizationRendererProps) {
+}: VisualizationRendererProps<V>) {
   const [svgElement, setSvgElement] = useState<SVGSVGElement | null>(null);
   const [svg, setSvg] = useState<d3.Selection<
     SVGSVGElement,
@@ -22,6 +23,7 @@ export default function VisualizationRenderer({
   > | null>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const [visualizerState, setVisualizerState] = useState<V | null>(null);
 
   const svgRef = useCallback((svgElement: SVGSVGElement) => {
     setSvgElement(svgElement);
@@ -66,12 +68,22 @@ export default function VisualizationRenderer({
         zoomedHeight,
       ]);
       svg.selectChildren().remove();
-      onUpdate({ svg, width: zoomedWidth, height: zoomedHeight });
+      const newVisualizerState = onUpdate({
+        svg,
+        width: zoomedWidth,
+        height: zoomedHeight,
+        previousVisualizerState: visualizerState,
+      });
+
+      if (isEqual(newVisualizerState, visualizerState)) {
+        return;
+      }
+      setVisualizerState(newVisualizerState);
     } catch (e) {
       // TODO: Display error
       console.error(e);
     }
-  }, [onUpdate, svg, zoomedHeight, zoomedWidth]);
+  }, [onUpdate, svg, visualizerState, zoomedHeight, zoomedWidth]);
 
   return <svg ref={svgRef} className={className} />;
 }

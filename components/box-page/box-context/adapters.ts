@@ -1,5 +1,6 @@
 import {
   AdapterConfiguration,
+  AdapterConfigurationFlat,
   SandboxAdapter,
   SandboxCompositeAdapter,
   SandboxStateType,
@@ -42,8 +43,8 @@ export function useBoxContextAdapters({
   onAdapterConfigurationChange,
 }: {
   builtInOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  adapterConfiguration: AdapterConfiguration;
-  onAdapterConfigurationChange: (config: AdapterConfiguration) => void;
+  adapterConfiguration: AdapterConfigurationFlat;
+  onAdapterConfigurationChange: (config: AdapterConfigurationFlat) => void;
 }) {
   const selectedAdapters = useMemo(() => {
     return Object.values(adapterConfiguration.aliases).map((key) => {
@@ -88,10 +89,7 @@ export function useBoxContextAdapters({
       setValue: (adapters) => {
         onAdapterConfigurationChange({
           aliases: Object.fromEntries(
-            adapters.map(({ key, value }, index) => [
-              `adapter-${index}`,
-              value.key,
-            ]),
+            adapters.map(({ value }, index) => [`adapter-${index}`, value.key]),
           ),
           composition: {
             type: 'flat',

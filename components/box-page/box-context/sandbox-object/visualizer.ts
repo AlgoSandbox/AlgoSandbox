@@ -8,16 +8,9 @@ import {
   useSetSavedVisualizerMutation,
 } from '@utils/db/visualizers';
 
-import {
-  BoxContextSandboxObject,
-  defaultBoxContextSandboxObject,
-  useBoxContextSandboxObject,
-} from '.';
+import { BoxContextSandboxObject, useBoxContextSandboxObject } from '.';
 
 export type BoxContextVisualizer = BoxContextSandboxObject<'visualizer'>;
-
-export const defaultBoxContextVisualizer =
-  defaultBoxContextSandboxObject as BoxContextVisualizer;
 
 export default function useBoxContextVisualizer({
   builtInVisualizerOptions,

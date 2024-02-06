@@ -1,10 +1,10 @@
 'use client';
 
 import {
+  AdapterConfigurationTree,
   SandboxAdapter,
   SandboxProblem,
   SandboxStateType,
-  TreeAdapterConfiguration,
 } from '@algo-sandbox/core';
 import { VisualizerRenderer } from '@algo-sandbox/react-components';
 import {
@@ -106,7 +106,7 @@ function topologicalSort(graph: Record<string, Array<string>>) {
 
 // Return adjacency matrix in the form matrix[src][dst] = [{fromSlot, toSlot}]
 function buildGraphFromAdapterConfiguration(
-  adapterConfiguration: TreeAdapterConfiguration,
+  adapterConfiguration: AdapterConfigurationTree,
 ) {
   const graph: Record<
     string,
@@ -130,12 +130,17 @@ function buildGraphFromAdapterConfiguration(
   return graph;
 }
 
-function solve(
-  adapterConfiguration: TreeAdapterConfiguration,
-  problem: SandboxProblem<any>,
-  algorithmState: any,
-  adapters: Record<string, SandboxAdapter<any, any>>,
-) {
+function solve({
+  adapterConfiguration,
+  problem,
+  algorithmState,
+  adapters,
+}: {
+  adapterConfiguration: AdapterConfigurationTree;
+  problem: SandboxProblem<SandboxStateType>;
+  algorithmState: Record<string, unknown> | undefined;
+  adapters: Record<string, SandboxAdapter<SandboxStateType, SandboxStateType>>;
+}) {
   const graph = buildGraphFromAdapterConfiguration(adapterConfiguration);
   const nodesToExplore = topologicalSort(
     Object.fromEntries(
@@ -143,17 +148,35 @@ function solve(
     ),
   );
 
-  const results: Record<string, any> = {
+  const outputs: Record<string, Record<string, unknown>> = {
     problem: problem.initialState,
-    algorithm: algorithmState,
+    algorithm: algorithmState ?? {},
   };
+
+  const inputs: Record<string, Record<string, unknown>> = {};
 
   while (nodesToExplore.length > 0) {
     const node = nodesToExplore.shift()!;
-    const neighbors = Object.keys(graph[node]);
+    const neighbors = graph[node] ?? {};
 
-    console.log('node', node, 'neighbors', neighbors);
+    // Try to calculate the state of the node from intermediates
+    if (inputs[node] === undefined && node in adapters) {
+      // Node should be an adapter
+      const adapter = adapters[node];
+      const output = adapter.transform(inputs[node]);
+      outputs[node] = output;
+    }
+
+    for (const [neighbor, connections] of Object.entries(neighbors)) {
+      connections.forEach(({ fromSlot, toSlot }) => {
+        inputs[neighbor] = {
+          ...inputs[neighbor],
+          [toSlot]: outputs[node][fromSlot],
+        };
+      });
+    }
   }
+  return { inputs, outputs };
 }
 
 function BoxPageImpl({
@@ -165,32 +188,50 @@ function BoxPageImpl({
 
   const { currentStepIndex } = useBoxControlsContext();
 
-  const { compatible: areAlgorithmVisualizerCompatible } = useBoxContext(
-    'algorithmVisualizer',
-  );
-  const { composed: composedAlgoVizAdapter } = useBoxContext(
-    'algorithmVisualizer.adapters',
-  );
   const algorithmInstance = useBoxContext('algorithm.instance');
-  const visualizerInstance = useBoxContext('visualizer.instance');
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
   const pseudocode = algorithmInstance?.pseudocode ?? '';
 
-  const visualization = useMemo(() => {
-    if (executionStep && areAlgorithmVisualizerCompatible) {
-      const { state: algorithmState } = executionStep;
+  const problemInstance = useBoxContext('problem.instance');
+  const adapterConfigurationTree = useBoxContext(
+    'algorithmVisualizers.adapterConfiguration.tree',
+  );
+  const algorithmState = executionStep?.state;
+  const visualizerOrder = useBoxContext('visualizers.order');
+  const visualizerInstances = useBoxContext('visualizers.instances');
 
-      const adaptedState =
-        composedAlgoVizAdapter?.transform(algorithmState) ?? algorithmState;
-      return visualizerInstance?.visualize(adaptedState);
+  const { inputs, outputs } = useMemo(() => {
+    if (problemInstance === null || algorithmInstance === undefined) {
+      return {};
     }
+
+    const { inputs, outputs } = solve({
+      adapterConfiguration: adapterConfigurationTree,
+      problem: problemInstance,
+      algorithmState: algorithmState,
+      adapters: {},
+    });
+
+    return { inputs, outputs };
   }, [
-    executionStep,
-    areAlgorithmVisualizerCompatible,
-    composedAlgoVizAdapter,
-    visualizerInstance,
+    problemInstance,
+    algorithmInstance,
+    adapterConfigurationTree,
+    algorithmState,
   ]);
+
+  const visualizations = useMemo(() => {
+    return visualizerOrder.map((alias) => {
+      const instance = visualizerInstances[alias]?.value;
+
+      if (instance === undefined) {
+        return { alias, visualization: null };
+      }
+      const input = inputs?.[alias] ?? {};
+      return { alias, visualization: instance.visualize(input) };
+    });
+  }, [visualizerOrder, visualizerInstances, inputs]);
 
   return (
     <div className="flex flex-col h-full">
@@ -198,12 +239,19 @@ function BoxPageImpl({
       <PanelGroup className="overflow-y-hidden" direction="horizontal">
         <Panel id="center" order={2} defaultSize={80}>
           <main className="relative h-full flex flex-col">
-            <div className="flex-1">
-              {visualization && (
-                <VisualizerRenderer
-                  className="w-full h-full"
-                  visualization={visualization}
-                />
+            <div className="flex-1 flex">
+              {visualizations.map(({ alias, visualization }) =>
+                visualization ? (
+                  <VisualizerRenderer
+                    key={alias}
+                    className="flex-1 h-full"
+                    visualization={visualization}
+                  />
+                ) : (
+                  <div className="flex items-center h-full" key={alias}>
+                    Error in visualization: {alias}
+                  </div>
+                ),
               )}
             </div>
             <div className="absolute p-2 max-w-full">

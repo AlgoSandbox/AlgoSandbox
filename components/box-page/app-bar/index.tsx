@@ -3,10 +3,8 @@ import { Button, MaterialSymbol } from '@components/ui';
 
 import { useBoxContext } from '..';
 import AlgorithmSelect from './AlgorithmSelect';
-import AlgorithmVisualizerAdapterSelect from './AlgorithmVisualizerAdapterSelect';
 import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
 import ProblemSelect from './ProblemSelect';
-import VisualizerSelect from './VisualizerSelect';
 
 export default function AppBar() {
   const { isDraft, reset, openBoxEditor, openFlowchart } = useBoxContext();
@@ -18,14 +16,12 @@ export default function AppBar() {
         <ProblemSelect />
         <ProblemAlgorithmAdapterSelect />
         <AlgorithmSelect />
-        <AlgorithmVisualizerAdapterSelect />
         <Button
           icon={<MaterialSymbol icon="schema" />}
           label="Visualize"
           onClick={openFlowchart}
           variant="primary"
         />
-        <VisualizerSelect />
       </div>
       <div className="flex gap-2">
         {!isDraft && (

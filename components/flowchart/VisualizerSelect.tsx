@@ -47,10 +47,15 @@ export default function VisualizerSelect({ alias }: { alias: string }) {
   const visualizer = visualizerObject.value;
 
   const {
-    default: defaultParameters,
+    default: defaultAll,
     setValue: setParameters,
-    value: parameters = {},
-  } = useBoxContext('visualizer.parameters');
+    value: parameters,
+  } = useBoxContext('visualizers.parameters');
+
+  const defaultParameters = useMemo(
+    () => defaultAll[alias] ?? {},
+    [alias, defaultAll],
+  );
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
@@ -84,7 +89,7 @@ export default function VisualizerSelect({ alias }: { alias: string }) {
               <form
                 onSubmit={methods.handleSubmit((values) => {
                   methods.reset(values);
-                  setParameters(values);
+                  setParameters(alias, values);
                 })}
               >
                 <VisualizerDetails visualizer={visualizer} />

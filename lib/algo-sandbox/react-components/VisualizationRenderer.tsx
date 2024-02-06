@@ -42,12 +42,16 @@ export default function VisualizationRenderer<V>({
       setHeight(height);
     };
 
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+
+    resizeObserver.observe(svgElement);
 
     handleResize();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       setSvg(null);
     };
   }, [svgElement]);

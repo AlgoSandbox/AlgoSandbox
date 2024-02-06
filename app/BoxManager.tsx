@@ -109,7 +109,6 @@ export default function BoxManagerProvider({
   const updateBox = useCallback(
     (key: string, update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => {
       setBoxes((boxes) => {
-        console.log('updating box', key, update(boxes[key]));
         return { ...boxes, [key]: update(boxes[key]) };
       });
     },

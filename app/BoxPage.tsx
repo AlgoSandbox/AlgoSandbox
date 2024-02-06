@@ -248,7 +248,13 @@ function BoxPageImpl({
       if (instance === undefined) {
         return { alias, visualization: null };
       }
+
       const input = inputs?.[alias] ?? {};
+
+      if (instance.accepts.shape.safeParse(input).success === false) {
+        return { alias, visualization: null };
+      }
+
       return { alias, visualization: instance.visualize(input) };
     });
   }, [visualizerOrder, visualizerInstances, inputs]);

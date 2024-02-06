@@ -159,8 +159,6 @@ export default function BoxContextProvider({
 
   const boxVisualizers = box?.visualizers;
 
-  console.log('box visualizers', boxVisualizers);
-
   const visualizers = useBoxContextVisualizers({
     builtInOptions: builtInVisualizerOptions,
     defaultAliases: boxVisualizers?.aliases ?? {},

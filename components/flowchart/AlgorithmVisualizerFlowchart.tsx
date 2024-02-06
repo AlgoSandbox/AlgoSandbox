@@ -549,9 +549,14 @@ export default function AlgorithmVisualizerFlowchart({
             options={visualizerOptions}
             value={undefined}
             onChange={(value) => {
-              const newKey = `visualizer-${
-                Object.keys(visualizers.aliases).length
-              }`;
+              const getKey = (index: number): string => {
+                const key = `visualizer-${index}`;
+                if (visualizers.order.includes(key)) {
+                  return getKey(index + 1);
+                }
+                return key;
+              };
+              const newKey = getKey(0);
               visualizers.appendAlias(newKey, value.key);
             }}
           />
@@ -613,9 +618,14 @@ export default function AlgorithmVisualizerFlowchart({
             options={adapterOptions}
             value={undefined}
             onChange={(value) => {
-              const newKey = `adapter-${
-                Object.keys(algorithmVisualizersTree.adapters ?? {}).length
-              }`;
+              const getKey = (index: number): string => {
+                const key = `adapter-${index}`;
+                if (visualizers.order.includes(key)) {
+                  return getKey(index + 1);
+                }
+                return key;
+              };
+              const newKey = getKey(0);
               setAlgorithmVisualizers({
                 ...algorithmVisualizersTree,
                 adapters: {

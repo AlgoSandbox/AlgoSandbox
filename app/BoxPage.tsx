@@ -1,5 +1,7 @@
 'use client';
 
+import 'react-mosaic-component/react-mosaic-component.css';
+
 import {
   AdapterConfigurationTree,
   SandboxAdapter,
@@ -18,10 +20,13 @@ import {
 } from '@components/box-page';
 import { ResizeHandle } from '@components/ui';
 import { createScene, SandboxScene } from '@utils';
+import clsx from 'clsx';
 import { useTheme } from 'next-themes';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDragDropManager } from 'react-dnd';
 import { chromeDark } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
+import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 
 const customChromeDark = {
@@ -201,7 +206,7 @@ function BoxPageImpl({
   const visualizerOrder = useBoxContext('visualizers.order');
   const visualizerInstances = useBoxContext('visualizers.instances');
 
-  const { inputs, outputs } = useMemo(() => {
+  const { inputs } = useMemo(() => {
     if (problemInstance === null || algorithmInstance === undefined) {
       return {};
     }
@@ -233,36 +238,101 @@ function BoxPageImpl({
     });
   }, [visualizerOrder, visualizerInstances, inputs]);
 
+  const initialLayout: MosaicNode<string> | null = useMemo(() => {
+    const makeRowLayout = (
+      alias: string,
+      remainingAliases: Array<string>,
+    ): MosaicNode<string> => {
+      if (remainingAliases.length === 0) {
+        return alias;
+      }
+
+      return {
+        direction: 'row',
+        first: alias,
+        second: makeRowLayout(remainingAliases[0], remainingAliases.slice(1)),
+        splitPercentage: 50,
+      };
+    };
+
+    return makeRowLayout('pseudocode', visualizerOrder);
+  }, [visualizerOrder]);
+
+  const [layout, setLayout] = useState<MosaicNode<string> | null>(
+    initialLayout,
+  );
+
+  const renderTile = useCallback(
+    (id: string) => {
+      if (id === 'pseudocode') {
+        return (
+          <Pseudocode
+            pseudocode={pseudocode}
+            startLine={executionStep?.startLine}
+            endLine={executionStep?.endLine}
+          />
+        );
+      }
+
+      const alias = id;
+
+      const visualization = visualizations.find((v) => v.alias === alias)
+        ?.visualization;
+
+      if (visualization) {
+        return (
+          <VisualizerRenderer
+            key={alias}
+            className="w-full h-full"
+            visualization={visualization}
+          />
+        );
+      }
+
+      return (
+        <div className="w-full flex items-center h-full" key={alias}>
+          Error in visualization: {alias}
+        </div>
+      );
+    },
+    [visualizations, pseudocode, executionStep],
+  );
+
+  const dragAndDropManager = useDragDropManager();
+
   return (
     <div className="flex flex-col h-full">
       <AppBar />
       <PanelGroup className="overflow-y-hidden" direction="horizontal">
         <Panel id="center" order={2} defaultSize={80}>
           <main className="relative h-full flex flex-col">
-            <div className="flex-1 flex">
-              {visualizations.map(({ alias, visualization }) =>
-                visualization ? (
-                  <VisualizerRenderer
-                    key={alias}
-                    className="flex-1 h-full"
-                    visualization={visualization}
-                  />
-                ) : (
-                  <div className="flex items-center h-full" key={alias}>
-                    Error in visualization: {alias}
-                  </div>
-                ),
+            <Mosaic<string>
+              className={clsx(
+                'bg-transparent',
+                '[&_.mosaic-window-body]:!bg-canvas',
+                '[&_.mosaic-window-toolbar]:!bg-surface',
+                '[&_.mosaic-split]:!bg-transparent',
+                '[&_.mosaic-previerw]:bg-blue-500',
+                '[&_.drop-target-container_.drop-target]:!border-primary',
+                '[&_.drop-target-container_.drop-target]:dark:!bg-[rgba(255,255,255,0.1)]',
+                '[&_.mosaic-split-line]:transition-colors [&_.mosaic-split-line]:border',
+                '[&_.mosaic-split:hover_.mosaic-split-line]:border-2 [&_.mosaic-split:hover_.mosaic-split-line]:border-primary',
               )}
-            </div>
-            <div className="absolute p-2 max-w-full">
-              <Pseudocode
-                pseudocode={pseudocode}
-                startLine={executionStep?.startLine}
-                endLine={executionStep?.endLine}
-              />
-            </div>
+              renderTile={(alias, path) => (
+                <MosaicWindow
+                  path={path}
+                  title={alias}
+                  toolbarControls={<div></div>}
+                >
+                  {renderTile(alias)}
+                </MosaicWindow>
+              )}
+              value={layout}
+              onChange={setLayout}
+              dragAndDropManager={dragAndDropManager}
+            />
             {scene && (
-              <div className="absolute w-full bottom-8 flex justify-center">
+              <div className="absolute w-full z-10 bottom-8 flex justify-center">
                 <BoxExecutionControls />
               </div>
             )}

@@ -1,9 +1,4 @@
-import {
-  AdapterConfiguration,
-  AdapterConfigurationFlat,
-  SandboxStateType,
-  SandboxVisualizer,
-} from '@algo-sandbox/core';
+import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { useBox, useBoxManager } from '@app/BoxManager';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -16,7 +11,6 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
 } from 'react';
 
 import useBoxContextAlgorithmVisualizers, {
@@ -232,11 +226,6 @@ export default function BoxContextProvider({
   //   [box?.algorithmVisualizer],
   // );
 
-  const defaultAdapterConfiguration: AdapterConfiguration = {
-    aliases: {},
-    composition: { type: 'flat', order: [] },
-  };
-
   const visualizerInputKeys = useMemo(() => {
     return Object.fromEntries(
       Object.entries(visualizers.instances).map(([alias, instance]) => {
@@ -250,25 +239,24 @@ export default function BoxContextProvider({
     );
   }, [visualizers.instances]);
 
-  const [adapterConfiguration, setAdapterConfiguration] =
-    useState<AdapterConfiguration>(defaultAdapterConfiguration);
-
   const algorithmVisualizers = useBoxContextAlgorithmVisualizers({
     builtInAdapterOptions,
-    adapterConfiguration,
+    value: box?.algorithmVisualizers ?? {
+      composition: { type: 'flat', order: [] },
+      adapters: {},
+    },
     problemOutputKeys: Object.keys(problem.instance?.type.shape.shape ?? {}),
     algorithmOutputKeys: Object.keys(
       algorithm.instance?.outputs.shape.shape ?? {},
     ),
     visualizerInputKeys,
-    onAdapterConfigurationChange: (config) => {
-      setAdapterConfiguration(config);
-      // if (box !== null) {
-      //   updateBox(boxKey, {
-      //     ...box,
-      //     // algorithmVisualizer: config,
-      //   });
-      // }
+    onChange: (newValue) => {
+      if (box !== null) {
+        updateBox(boxKey, {
+          ...box,
+          algorithmVisualizers: newValue,
+        });
+      }
     },
   });
 
@@ -387,7 +375,7 @@ export default function BoxContextProvider({
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
       type: 'flowchart',
-      label: `Adapters: ${boxName}`,
+      label: `Visualizers: ${boxName}`,
       data: {
         boxKey,
       },

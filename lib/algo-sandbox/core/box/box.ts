@@ -97,7 +97,7 @@ export type SandboxEvaluated<T> = {
   value: T;
 };
 
-type AlgorithmVisualizers<
+export type AlgorithmVisualizers<
   AdapterAliases extends SandboxAliases<
     string,
     SandboxAdapterKey
@@ -108,11 +108,18 @@ type AlgorithmVisualizers<
   > = SandboxAliases<string, SandboxVisualizerKey>,
 > = {
   adapters?: AdapterAliases;
-  composition: AdapterComposition<AdapterAliases & VisualizerAliases>;
+  composition: AdapterComposition<AdapterAliases | VisualizerAliases>;
 };
 
-type AlgorithmVisualizersEvaluated = {
-  adapters?: Record<string, SandboxAnyAdapter | undefined>;
+export type AlgorithmVisualizersTree = AlgorithmVisualizers & {
+  composition: {
+    type: 'tree';
+  };
+};
+
+export type AlgorithmVisualizersEvaluated = {
+  adapters?: Record<string, SandboxEvaluated<SandboxAnyAdapter> | undefined>;
+
   composition: AdapterComposition<
     SandboxAliases<string, SandboxVisualizerKey | SandboxAdapterKey>
   >;

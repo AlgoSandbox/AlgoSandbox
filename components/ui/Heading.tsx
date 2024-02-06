@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import {
   createContext,
   DetailedHTMLProps,
@@ -11,6 +12,7 @@ type HeadingVariant = 'h1' | 'h2' | 'h3' | 'h4';
 type HeadingProps = {
   variant: HeadingVariant;
   children: React.ReactNode;
+  className?: string;
 };
 
 type HeadingContextType = {
@@ -46,14 +48,18 @@ export function HeadingContent({ children }: { children: React.ReactNode }) {
   return <HeadingContextProvider>{children}</HeadingContextProvider>;
 }
 
-export default function Heading({ variant, children }: HeadingProps) {
+export default function Heading({
+  variant,
+  children,
+  className,
+}: HeadingProps) {
   const { level } = useContext(HeadingContext);
 
   const commonProps: DetailedHTMLProps<
     HTMLAttributes<HTMLHeadingElement>,
     HTMLHeadingElement
   > = {
-    className: headingClasses[variant],
+    className: clsx(headingClasses[variant], className),
   };
 
   return (

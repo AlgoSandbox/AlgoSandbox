@@ -16,7 +16,14 @@ import {
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-export default function VisualizerSelect({ alias }: { alias: string }) {
+// TODO: Take all state ouf of this component
+export default function VisualizerSelect({
+  alias,
+  onChange,
+}: {
+  alias: string;
+  onChange: () => void;
+}) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const { builtInVisualizerOptions } = useBuiltInComponents();
@@ -35,6 +42,7 @@ export default function VisualizerSelect({ alias }: { alias: string }) {
     defaultKey: visualizerKey,
     onSelect: ({ key }) => {
       setAlias(alias, key);
+      onChange();
     },
   });
 

@@ -18,7 +18,7 @@ export default function AppBar() {
         <AlgorithmSelect />
         <Button
           icon={<MaterialSymbol icon="schema" />}
-          label="Visualize"
+          label="Visualizations"
           onClick={openFlowchart}
           variant="primary"
         />

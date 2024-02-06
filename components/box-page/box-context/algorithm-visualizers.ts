@@ -1,8 +1,8 @@
 import {
-  AdapterConfiguration,
-  AdapterConfigurationEvaluated,
-  AdapterConfigurationTree,
   AdapterConnection,
+  AlgorithmVisualizers,
+  AlgorithmVisualizersEvaluated,
+  AlgorithmVisualizersTree,
 } from '@algo-sandbox/core';
 import { CatalogGroup } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
@@ -11,34 +11,30 @@ import { useMemo } from 'react';
 
 export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizers =
   {
-    adapterConfiguration: {
-      raw: {
-        aliases: {},
-        composition: { type: 'tree', connections: [] },
-      },
-      tree: {
-        aliases: {},
-        composition: { type: 'tree', connections: [] },
-      },
-      evaluated: {
-        aliases: {},
-        composition: { type: 'tree', connections: [] },
-      },
-      set: () => {},
+    raw: {
+      adapters: {},
+      composition: { type: 'tree', connections: [] },
     },
+    tree: {
+      adapters: {},
+      composition: { type: 'tree', connections: [] },
+    },
+    evaluated: {
+      adapters: {},
+      composition: { type: 'tree', connections: [] },
+    },
+    set: () => {},
   };
 
 export type BoxContextAlgorithmVisualizers = {
-  adapterConfiguration: {
-    raw: AdapterConfiguration;
-    tree: AdapterConfigurationTree;
-    evaluated: AdapterConfigurationEvaluated & {
-      composition: {
-        type: 'tree';
-      };
+  raw: AlgorithmVisualizers;
+  tree: AlgorithmVisualizersTree;
+  evaluated: AlgorithmVisualizersEvaluated & {
+    composition: {
+      type: 'tree';
     };
-    set: (configuration: AdapterConfiguration) => void;
   };
+  set: (value: AlgorithmVisualizersTree) => void;
 };
 
 export default function useBoxContextAlgorithmVisualizers({
@@ -46,15 +42,15 @@ export default function useBoxContextAlgorithmVisualizers({
   problemOutputKeys,
   algorithmOutputKeys,
   visualizerInputKeys,
-  adapterConfiguration,
-  onAdapterConfigurationChange,
+  value,
+  onChange,
 }: {
   problemOutputKeys: Array<string>;
   algorithmOutputKeys: Array<string>;
   visualizerInputKeys: Record<string, Array<string>>;
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  adapterConfiguration: AdapterConfiguration;
-  onAdapterConfigurationChange: (config: AdapterConfiguration) => void;
+  value: AlgorithmVisualizers;
+  onChange: (value: AlgorithmVisualizers) => void;
 }) {
   // const adapters = useBoxContextAdapters({
   //   builtInOptions: builtInAdapterOptions,
@@ -64,16 +60,14 @@ export default function useBoxContextAlgorithmVisualizers({
 
   const selectedAdapterOptions = useMemo(() => {
     return Object.fromEntries(
-      Object.entries(adapterConfiguration.aliases).map(
-        ([alias, adapterKey]) => [
-          alias,
-          builtInAdapterOptions
-            .flatMap((group) => group.options)
-            .find((option) => option.value.key === adapterKey),
-        ],
-      ),
+      Object.entries(value?.adapters ?? {}).map(([alias, adapterKey]) => [
+        alias,
+        builtInAdapterOptions
+          .flatMap((group) => group.options)
+          .find((option) => option.value.key === adapterKey),
+      ]),
     );
-  }, [adapterConfiguration, builtInAdapterOptions]);
+  }, [value?.adapters, builtInAdapterOptions]);
 
   const adapterEvaluations = useMemo(() => {
     return Object.fromEntries(
@@ -99,9 +93,9 @@ export default function useBoxContextAlgorithmVisualizers({
   }, [selectedAdapterOptions]);
 
   const treeConfiguration = useMemo(() => {
-    const type = adapterConfiguration.composition.type;
+    const type = value.composition.type;
     if (type === 'tree') {
-      return adapterConfiguration as AdapterConfigurationTree;
+      return value as AlgorithmVisualizersTree;
     } else {
       const adapterOutputKeys = Object.fromEntries(
         Object.entries(adapterEvaluations).map(([alias, evaluation]) => [
@@ -128,12 +122,12 @@ export default function useBoxContextAlgorithmVisualizers({
 
       // Try to generate edges between algorithm -> adapter 1->adapter 2->visualizer/s
 
-      const orderedAdapterAliases = adapterConfiguration.composition.order;
+      const orderedAdapterAliases = value.composition.order;
       const orderedNodeAliases = ['algorithm', ...orderedAdapterAliases];
       const lastNode = orderedNodeAliases[orderedNodeAliases.length - 1];
 
       const nodeConnections = orderedNodeAliases.flatMap((alias, index) => {
-        if (index === 0) {
+        if (alias === 'algorithm' || alias === 'problem') {
           return [];
         }
 
@@ -174,8 +168,8 @@ export default function useBoxContextAlgorithmVisualizers({
         },
       );
 
-      const convertedConfiguration: AdapterConfigurationTree = {
-        aliases: adapterConfiguration.aliases,
+      const convertedConfiguration: AlgorithmVisualizersTree = {
+        adapters: value.adapters ?? {},
         composition: {
           type: 'tree',
           connections: [...nodeConnections, ...visualizerConnections],
@@ -183,33 +177,21 @@ export default function useBoxContextAlgorithmVisualizers({
       };
       return convertedConfiguration;
     }
-  }, [
-    adapterConfiguration,
-    adapterEvaluations,
-    algorithmOutputKeys,
-    visualizerInputKeys,
-  ]);
+  }, [adapterEvaluations, algorithmOutputKeys, value, visualizerInputKeys]);
 
   const algorithmVisualizers = useMemo(() => {
     return {
-      adapterConfiguration: {
-        raw: adapterConfiguration,
-        tree: treeConfiguration,
-        evaluated: {
-          ...treeConfiguration,
-          aliases: adapterEvaluations,
-        },
-        set: (configuration: AdapterConfiguration) => {
-          onAdapterConfigurationChange(configuration);
-        },
+      raw: value,
+      tree: treeConfiguration,
+      evaluated: {
+        ...treeConfiguration,
+        adapters: adapterEvaluations,
+      },
+      set: (newValue: AlgorithmVisualizers) => {
+        onChange(newValue);
       },
     } satisfies BoxContextAlgorithmVisualizers;
-  }, [
-    adapterConfiguration,
-    adapterEvaluations,
-    onAdapterConfigurationChange,
-    treeConfiguration,
-  ]);
+  }, [value, treeConfiguration, adapterEvaluations, onChange]);
 
   return algorithmVisualizers;
 }

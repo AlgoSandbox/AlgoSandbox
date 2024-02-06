@@ -3,7 +3,7 @@
 import 'react-mosaic-component/react-mosaic-component.css';
 
 import {
-  AdapterConfigurationTree,
+  AlgorithmVisualizersTree,
   SandboxAdapter,
   SandboxProblem,
   SandboxStateType,
@@ -21,6 +21,7 @@ import {
 import { ResizeHandle } from '@components/ui';
 import { createScene, SandboxScene } from '@utils';
 import clsx from 'clsx';
+import { mapValues } from 'lodash';
 import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDragDropManager } from 'react-dnd';
@@ -109,9 +110,8 @@ function topologicalSort(graph: Record<string, Array<string>>) {
   return result.reverse();
 }
 
-// Return adjacency matrix in the form matrix[src][dst] = [{fromSlot, toSlot}]
 function buildGraphFromAdapterConfiguration(
-  adapterConfiguration: AdapterConfigurationTree,
+  adapterConfiguration: AlgorithmVisualizersTree,
 ) {
   const graph: Record<
     string,
@@ -141,10 +141,13 @@ function solve({
   algorithmState,
   adapters,
 }: {
-  adapterConfiguration: AdapterConfigurationTree;
+  adapterConfiguration: AlgorithmVisualizersTree;
   problem: SandboxProblem<SandboxStateType>;
   algorithmState: Record<string, unknown> | undefined;
-  adapters: Record<string, SandboxAdapter<SandboxStateType, SandboxStateType>>;
+  adapters: Record<
+    string,
+    SandboxAdapter<SandboxStateType, SandboxStateType> | undefined
+  >;
 }) {
   const graph = buildGraphFromAdapterConfiguration(adapterConfiguration);
   const nodesToExplore = topologicalSort(
@@ -165,10 +168,18 @@ function solve({
     const neighbors = graph[node] ?? {};
 
     // Try to calculate the state of the node from intermediates
-    if (inputs[node] === undefined && node in adapters) {
+    if (outputs[node] === undefined && node in adapters) {
       // Node should be an adapter
       const adapter = adapters[node];
-      const output = adapter.transform(inputs[node]);
+      if (adapter === undefined) {
+        continue;
+      }
+      // Inputs should be full
+      const result = adapter.accepts.shape.safeParse(inputs[node]);
+      if (!result.success) {
+        continue;
+      }
+      const output = adapter.transform(result.data);
       outputs[node] = output;
     }
 
@@ -199,8 +210,9 @@ function BoxPageImpl({
   const pseudocode = algorithmInstance?.pseudocode ?? '';
 
   const problemInstance = useBoxContext('problem.instance');
-  const adapterConfigurationTree = useBoxContext(
-    'algorithmVisualizers.adapterConfiguration.tree',
+  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
+  const algorithmVisualizersAdapters = useBoxContext(
+    'algorithmVisualizers.evaluated.adapters',
   );
   const algorithmState = executionStep?.state;
   const visualizerOrder = useBoxContext('visualizers.order');
@@ -212,18 +224,22 @@ function BoxPageImpl({
     }
 
     const { inputs, outputs } = solve({
-      adapterConfiguration: adapterConfigurationTree,
+      adapterConfiguration: algorithmVisualizersTree,
       problem: problemInstance,
       algorithmState: algorithmState,
-      adapters: {},
+      adapters: mapValues(
+        algorithmVisualizersAdapters ?? {},
+        (val) => val?.value,
+      ),
     });
 
     return { inputs, outputs };
   }, [
     problemInstance,
     algorithmInstance,
-    adapterConfigurationTree,
+    algorithmVisualizersTree,
     algorithmState,
+    algorithmVisualizersAdapters,
   ]);
 
   const visualizations = useMemo(() => {
@@ -309,20 +325,42 @@ function BoxPageImpl({
             <Mosaic<string>
               className={clsx(
                 'bg-transparent',
-                '[&_.mosaic-window-body]:!bg-canvas',
-                '[&_.mosaic-window-toolbar]:!bg-surface',
+                '[&_.mosaic-window-body]:!bg-surface',
+                '[&_.mosaic-window-toolbar]:!bg-surface-high',
                 '[&_.mosaic-split]:!bg-transparent',
-                '[&_.mosaic-previerw]:bg-blue-500',
+                '[&_.mosaic-tile]:!m-1',
+                [
+                  '[&_.mosaic-root]:!top-1',
+                  '[&_.mosaic-root]:!bottom-1',
+                  '[&_.mosaic-root]:!left-1',
+                  '[&_.mosaic-root]:!right-1',
+                ],
+                '[&_.mosaic-window]:rounded',
+                [
+                  '[&_.mosaic-split.-row]:!-ml-1',
+                  '[&_.mosaic-split.-row]:!py-1',
+                  '[&_.mosaic-split.-row]:!w-2',
+                  '[&_.mosaic-split.-row]:flex',
+                  '[&_.mosaic-split.-row]:justify-center',
+                ],
+                '[&_.mosaic-split_.mosaic-split-line]:rounded-full',
+                '[&_.mosaic-split_.mosaic-split-line]:!left-auto',
+                '[&_.mosaic-split_.mosaic-split-line]:!right-auto',
+                '[&_.mosaic-split_.mosaic-split-line]:!relative',
+                '[&_.mosaic-split_.mosaic-split-line]:h-full',
                 '[&_.drop-target-container_.drop-target]:!border-primary',
                 '[&_.drop-target-container_.drop-target]:dark:!bg-[rgba(255,255,255,0.1)]',
-                '[&_.mosaic-split-line]:transition-colors [&_.mosaic-split-line]:border',
-                '[&_.mosaic-split:hover_.mosaic-split-line]:border-2 [&_.mosaic-split:hover_.mosaic-split-line]:border-primary',
+                '[&_.mosaic-split-line]:transition-all [&_.mosaic-split-line]:bg-transparent',
+                '[&_.mosaic-split_.mosaic-split-line]:w-px [&_.mosaic-split:hover_.mosaic-split-line]:w-1 [&_.mosaic-split:hover_.mosaic-split-line]:bg-primary',
               )}
               renderTile={(alias, path) => (
                 <MosaicWindow
                   path={path}
                   title={alias}
                   toolbarControls={<div></div>}
+                  renderToolbar={(props) => (
+                    <div className="text-label px-2 font-medium">{alias}</div>
+                  )}
                 >
                   {renderTile(alias)}
                 </MosaicWindow>

@@ -154,7 +154,7 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
 const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
-  g.setGraph({ rankdir: 'TD' });
+  g.setGraph({ rankdir: 'LR' });
 
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
   nodes.forEach((node) => g.setNode(node.id, node as Dagre.Label));
@@ -191,20 +191,17 @@ export default function AlgorithmVisualizerFlowchart({
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
-  const { builtInVisualizerOptions: visualizerOptions } =
-    useBuiltInComponents();
+  const {
+    builtInVisualizerOptions: visualizerOptions,
+    builtInAdapterOptions: adapterOptions,
+  } = useBuiltInComponents();
 
-  const adapterConfigurationEvaluated = useBoxContext(
-    'algorithmVisualizers.adapterConfiguration.evaluated',
+  const algorithmVisualizersEvaluated = useBoxContext(
+    'algorithmVisualizers.evaluated',
   );
 
-  const setAdapterConfiguration = useBoxContext(
-    'algorithmVisualizers.adapterConfiguration.set',
-  );
-
-  const adapterConfiguration = useBoxContext(
-    'algorithmVisualizers.adapterConfiguration.tree',
-  );
+  const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
+  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
 
   const visualizers = useBoxContext('visualizers');
 
@@ -219,6 +216,20 @@ export default function AlgorithmVisualizerFlowchart({
         )!,
     );
   }, [visualizerOptions, visualizers.aliases, visualizers.order]);
+
+  const selectedAdapters = useMemo(() => {
+    const flattenedOptions = adapterOptions.flatMap((item) =>
+      'options' in item ? item.options : item,
+    );
+    return Object.fromEntries(
+      Object.entries(algorithmVisualizersTree.adapters ?? {}).map(
+        ([alias, key]) => [
+          alias,
+          flattenedOptions.find((option) => option.key === key)!,
+        ],
+      ),
+    );
+  }, [adapterOptions, algorithmVisualizersTree.adapters]);
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
 
@@ -243,7 +254,7 @@ export default function AlgorithmVisualizerFlowchart({
   }, [selectedVisualizers, visualizers.aliases]);
 
   useEffect(() => {
-    const newTabName = `Adapters: ${boxName}`;
+    const newTabName = `Visualizations: ${boxName}`;
     if (tabName !== newTabName) {
       renameTab(tabId, newTabName);
     }
@@ -256,14 +267,7 @@ export default function AlgorithmVisualizerFlowchart({
 
   const initialAdapterNodes = useMemo(
     () =>
-      Object.entries(adapterConfigurationEvaluated.aliases)
-        // .map(([alias, evaluated]) => {
-        //   return {
-        //     id: alias,
-        //     label: evaluated?.name,
-        //     adapter: adapterConfigurationEvaluated.aliases[]find((adapter) => adapter.key === adapterKey),
-        //   };
-        // })
+      Object.entries(algorithmVisualizersEvaluated.adapters ?? {})
         .filter(([, evaluated]) => evaluated !== undefined)
         .map(([alias, evaluated]) => ({
           alias,
@@ -286,7 +290,7 @@ export default function AlgorithmVisualizerFlowchart({
             })),
           },
         })) as Array<Node>,
-    [adapterConfigurationEvaluated.aliases],
+    [algorithmVisualizersEvaluated.adapters],
   );
 
   const initialVisualizerNodes = useMemo(() => {
@@ -339,7 +343,7 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   const initialEdges = useMemo(() => {
-    return adapterConfigurationEvaluated.composition.connections.map(
+    return algorithmVisualizersEvaluated.composition.connections.map(
       ({ fromKey, fromSlot, toKey, toSlot }) => ({
         id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
         source: fromKey,
@@ -349,7 +353,7 @@ export default function AlgorithmVisualizerFlowchart({
         animated: true,
       }),
     ) as Array<Edge>;
-  }, [adapterConfigurationEvaluated]);
+  }, [algorithmVisualizersEvaluated]);
 
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
@@ -391,6 +395,16 @@ export default function AlgorithmVisualizerFlowchart({
     });
   }, [initialEdges, initialNodes]);
 
+  const autoLayoutNodes = useCallback(() => {
+    const { nodes: newNodes, edges: newEdges } = getLayoutedElements(
+      nodes,
+      edges,
+    );
+
+    setNodes(newNodes);
+    setEdges(newEdges);
+  }, [edges, nodes]);
+
   const onNodesChange = useCallback((changes: Array<NodeChange>) => {
     return setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
@@ -400,11 +414,11 @@ export default function AlgorithmVisualizerFlowchart({
 
   const onEdgesDelete = useCallback(
     (edgesToDelete: Array<Edge>) => {
-      setAdapterConfiguration({
-        ...adapterConfiguration,
+      setAlgorithmVisualizers({
+        ...algorithmVisualizersTree,
         composition: {
-          ...adapterConfiguration.composition,
-          connections: adapterConfiguration.composition.connections.filter(
+          ...algorithmVisualizersTree.composition,
+          connections: algorithmVisualizersTree.composition.connections.filter(
             ({ fromKey, fromSlot, toKey, toSlot }) =>
               !edgesToDelete.some(
                 (edge) =>
@@ -417,7 +431,7 @@ export default function AlgorithmVisualizerFlowchart({
         },
       });
     },
-    [adapterConfiguration, setAdapterConfiguration],
+    [algorithmVisualizersTree, setAlgorithmVisualizers],
   );
 
   const onConnect = useCallback(
@@ -437,18 +451,18 @@ export default function AlgorithmVisualizerFlowchart({
         return;
       }
 
-      setAdapterConfiguration({
-        ...adapterConfiguration,
+      setAlgorithmVisualizers({
+        ...algorithmVisualizersTree,
         composition: {
-          ...adapterConfiguration.composition,
+          ...algorithmVisualizersTree.composition,
           connections: [
-            ...adapterConfiguration.composition.connections,
+            ...algorithmVisualizersTree.composition.connections,
             { fromKey, fromSlot, toKey, toSlot },
           ],
         },
       });
     },
-    [adapterConfiguration, setAdapterConfiguration],
+    [algorithmVisualizersTree, setAlgorithmVisualizers],
   );
 
   const [, drop] = useDrop(() => {
@@ -485,40 +499,46 @@ export default function AlgorithmVisualizerFlowchart({
     };
   });
 
-  // const nodeOrder = useMemo(() => {
-  //   const graph = buildGraphFromAdapterConfiguration(adapterConfig);
-  //   return topologicalSort(
-  //     Object.fromEntries(
-  //       Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
-  //     ),
-  //   );
-  // }, [adapterConfig]);
-
-  // const problemInstance = useBoxContext('problem.instance');
-  // const algorithmInstance = useBoxContext('algorithm.instance');
-  // const algorithmState = useBoxContext('')
-
-  // useEffect(() => {
-  //   if (problemInstance === null || algorithmInstance === null) {
-  //     return
-  //   }
-  //   solve(adapterConfig, problemInstance, algorithm, {});
-
   return (
     <PanelGroup direction="horizontal">
-      <Panel className="p-4">
-        <Heading variant="h2">Library</Heading>
+      <Panel className="p-4 flex flex-col gap-2">
+        <Heading variant="h3">1. Select visualizers</Heading>
         <HeadingContent>
-          <Heading variant="h3">1. Select visualizers</Heading>
           {visualizers.order.map((alias) => (
             <div className="flex justify-between items-end" key={alias}>
-              <VisualizerSelect alias={alias} />
+              <VisualizerSelect
+                alias={alias}
+                onChange={() => {
+                  setAlgorithmVisualizers({
+                    adapters: algorithmVisualizersTree.adapters,
+                    composition: {
+                      ...algorithmVisualizersTree.composition,
+                      connections:
+                        algorithmVisualizersTree.composition.connections.filter(
+                          ({ fromKey, toKey }) =>
+                            fromKey !== alias && toKey !== alias,
+                        ),
+                    },
+                  });
+                }}
+              />
               <Button
                 label="Remove"
                 hideLabel
                 icon={<MaterialSymbol icon="delete" />}
                 onClick={() => {
                   visualizers.removeAlias(alias);
+                  setAlgorithmVisualizers({
+                    adapters: algorithmVisualizersTree.adapters,
+                    composition: {
+                      ...algorithmVisualizersTree.composition,
+                      connections:
+                        algorithmVisualizersTree.composition.connections.filter(
+                          ({ fromKey, toKey }) =>
+                            fromKey !== alias && toKey !== alias,
+                        ),
+                    },
+                  });
                 }}
               />
             </div>
@@ -535,9 +555,78 @@ export default function AlgorithmVisualizerFlowchart({
             }}
           />
         </HeadingContent>
+        <Heading className="mt-4" variant="h3">
+          2. Select adapters
+        </Heading>
+        <HeadingContent>
+          {Object.entries(selectedAdapters).map(([alias, option]) => (
+            <div className="flex justify-between items-end" key={alias}>
+              <CatalogSelect
+                label="Adapter"
+                options={adapterOptions}
+                value={option}
+                onChange={(value) => {
+                  setAlgorithmVisualizers({
+                    adapters: {
+                      ...algorithmVisualizersTree.adapters,
+                      [alias]: value.key,
+                    },
+                    composition: {
+                      ...algorithmVisualizersTree.composition,
+                      connections:
+                        algorithmVisualizersTree.composition.connections.filter(
+                          ({ fromKey, toKey }) =>
+                            fromKey !== alias && toKey !== alias,
+                        ),
+                    },
+                  });
+                }}
+              />
+              <Button
+                label="Remove"
+                hideLabel
+                icon={<MaterialSymbol icon="delete" />}
+                onClick={() => {
+                  setAlgorithmVisualizers({
+                    adapters: Object.fromEntries(
+                      Object.entries(
+                        algorithmVisualizersTree.adapters ?? {},
+                      ).filter(([key]) => key !== alias),
+                    ),
+                    composition: {
+                      ...algorithmVisualizersTree.composition,
+                      connections:
+                        algorithmVisualizersTree.composition.connections.filter(
+                          ({ fromKey, toKey }) =>
+                            fromKey !== alias && toKey !== alias,
+                        ),
+                    },
+                  });
+                }}
+              />
+            </div>
+          ))}
+          <CatalogSelect
+            label="Add adapter"
+            options={adapterOptions}
+            value={undefined}
+            onChange={(value) => {
+              const newKey = `adapter-${
+                Object.keys(algorithmVisualizersTree.adapters ?? {}).length
+              }`;
+              setAlgorithmVisualizers({
+                ...algorithmVisualizersTree,
+                adapters: {
+                  ...algorithmVisualizersTree.adapters,
+                  [newKey]: value.key,
+                },
+              });
+            }}
+          />
+        </HeadingContent>
       </Panel>
       <ResizeHandle />
-      <Panel>
+      <Panel className="relative">
         <ReactFlow
           ref={drop}
           nodeTypes={nodeTypes}
@@ -553,6 +642,9 @@ export default function AlgorithmVisualizerFlowchart({
         >
           <Background className="bg-surface" />
         </ReactFlow>
+        <div className="absolute rounded-full bottom-0 bg-surface-high">
+          <Button label="Auto layout" onClick={autoLayoutNodes} />
+        </div>
       </Panel>
     </PanelGroup>
   );

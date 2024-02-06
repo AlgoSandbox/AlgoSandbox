@@ -39,7 +39,6 @@ export type BoxContextAlgorithmVisualizers = {
 
 export default function useBoxContextAlgorithmVisualizers({
   builtInAdapterOptions,
-  problemOutputKeys,
   algorithmOutputKeys,
   visualizerInputKeys,
   value,

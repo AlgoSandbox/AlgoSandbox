@@ -403,7 +403,7 @@ function BoxPageImpl({
               path={path}
               title={alias}
               toolbarControls={<div></div>}
-              renderToolbar={(props) => (
+              renderToolbar={() => (
                 <div className="flex w-full">
                   <Tooltip content={windowTitles[alias]}>
                     <div className="text-label px-2 font-medium truncate flex items-center justify-between flex-1">

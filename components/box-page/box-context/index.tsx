@@ -121,7 +121,7 @@ export default function BoxContextProvider({
   const boxName = box?.name ?? 'Untitled box';
   const { updateBox } = useBoxManager();
 
-  const { algorithmKey, problemKey, visualizerKey } = useMemo(() => {
+  const { algorithmKey, problemKey } = useMemo(() => {
     const {
       algorithm: algorithmKey,
       problem: problemKey,
@@ -284,7 +284,6 @@ export default function BoxContextProvider({
 
       const algorithmFiles = getFilesInFolder('algorithm/');
       const problemFiles = getFilesInFolder('problem/');
-      const visualizerFiles = getFilesInFolder('visualizer/');
       const algorithmOption = algorithm.select.value;
       const problemOption = problem.select.value;
 

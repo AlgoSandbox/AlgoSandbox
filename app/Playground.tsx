@@ -85,7 +85,7 @@ export function PlaygroundPage() {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex sticky top-0 bg-canvas z-10">
-        <div className="border-b py-2 px-4">
+        <div className="border-b flex items-center px-2">
           <AppLogo />
         </div>
         <Tabs

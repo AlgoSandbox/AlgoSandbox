@@ -31,7 +31,7 @@ import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
 
 const customChromeDark = {
   ...chromeDark,
-  BASE_BACKGROUND_COLOR: 'rgb(23, 23, 23)',
+  BASE_BACKGROUND_COLOR: 'rgb(1 8 31)',
 };
 
 function BoxPageExecutionWrapper() {

@@ -11,6 +11,7 @@ const config: Config = {
       colors: {
         primary: 'rgb(var(--color-primary) / <alpha-value>)',
         'primary-high': 'rgb(var(--color-primary-high) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
         border: 'rgb(var(--color-border) / <alpha-value>)',
         canvas: 'rgb(var(--color-canvas) / <alpha-value>)',
         surface: 'rgb(var(--color-surface) / <alpha-value>)',

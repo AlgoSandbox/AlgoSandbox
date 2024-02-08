@@ -71,21 +71,23 @@ function Button(
           ],
           variant === 'flat' && [
             !disabled && [
-              !selected && 'hover:bg-surface-high text-on-surface/80',
-              selected && 'hover:bg-primary/20 bg-primary/10',
+              !selected &&
+                'hover:bg-surface-high text-on-surface/80 focus-visible:outline-accent',
+              selected &&
+                'hover:bg-primary/20 bg-primary/10 focus-visible:outline-accent',
             ],
             disabled && 'text-muted',
           ],
           variant === 'filled' && [
             'border',
             !disabled &&
-              'bg-surface-high hover:bg-surface-higher text-on-surface/80',
+              'bg-surface-high hover:bg-surface-higher text-on-surface/80 focus-visible:outline-accent',
             disabled && 'text-muted bg-surface/50',
           ],
           variant === 'primary' && [
-            'text-on-primary',
-            !disabled && 'bg-primary hover:bg-primary-high',
-            disabled && 'bg-muted',
+            !disabled &&
+              'text-accent border hover:border-accent focus-visible:outline-accent bg-surface-high transition-all hover:bg-surface-higher',
+            disabled && 'bg-muted text-muted',
           ],
           className,
         )}

@@ -8,7 +8,7 @@ import { evalSavedObject } from '@utils/evalSavedObject';
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 
-export function LayoutImpl({ children }: { children: React.ReactNode }) {
+function LayoutImpl({ children }: { children: React.ReactNode }) {
   const params = useSearchParams();
   const boxKey = params.get('key') ?? '';
   const { builtInBoxOptions } = useBuiltInComponents();

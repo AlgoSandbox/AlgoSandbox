@@ -10,7 +10,7 @@ import {
 import { Tooltip } from '.';
 
 type ButtonVariant = 'primary' | 'filled' | 'flat';
-type ButtonSize = 'sm' | 'md';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = {
   label: string;
@@ -69,6 +69,11 @@ function Button(
             icon !== undefined ? 'ps-2' : 'ps-3',
             hideLabel || endIcon ? 'pe-2' : 'pe-3',
           ],
+          size === 'lg' && [
+            'py-4 gap-2',
+            icon !== undefined ? 'ps-4' : 'ps-5',
+            hideLabel || endIcon ? 'pe-4' : 'pe-5',
+          ],
           variant === 'flat' && [
             !disabled && [
               !selected &&
@@ -87,7 +92,7 @@ function Button(
           variant === 'primary' && [
             !disabled &&
               'text-accent border hover:border-accent focus-visible:outline-accent bg-surface-high transition-all hover:bg-surface-higher',
-            disabled && 'bg-muted text-muted',
+            disabled && 'border bg-canvas text-muted',
           ],
           className,
         )}
@@ -95,7 +100,7 @@ function Button(
         {...props}
       >
         {icon}
-        {!hideLabel && label}
+        {!hideLabel && <span className="truncate">{label}</span>}
         {endIcon}
       </button>
     </Tooltip>

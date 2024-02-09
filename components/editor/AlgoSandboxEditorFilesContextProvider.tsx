@@ -1,6 +1,5 @@
+import { TypeDeclaration } from '@app/layout';
 import { createContext, useContext, useMemo } from 'react';
-
-import { TypeDeclaration } from '../../app/page';
 
 type AlgoSandboxEditorFilesContextType = {
   algoSandboxFiles: Array<TypeDeclaration>;

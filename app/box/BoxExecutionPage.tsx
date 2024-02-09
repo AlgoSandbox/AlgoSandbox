@@ -11,15 +11,12 @@ import {
 import { VisualizerRenderer } from '@algo-sandbox/react-components';
 import {
   AppBar,
-  BoxControlsContextProvider,
-  BoxExecutionControls,
-  BoxPageShortcuts,
   Pseudocode,
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { MaterialSymbol, Tooltip } from '@components/ui';
-import { createScene, SandboxScene } from '@utils';
 import clsx from 'clsx';
 import { mapValues } from 'lodash';
 import { useTheme } from 'next-themes';
@@ -29,60 +26,12 @@ import { chromeDark } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
 
+import { useScene } from './BoxPage';
+
 const customChromeDark = {
   ...chromeDark,
-  BASE_BACKGROUND_COLOR: 'rgb(1 8 31)',
+  BASE_BACKGROUND_COLOR: 'transparent',
 };
-
-function BoxPageExecutionWrapper() {
-  const { compatible: areAlgorithmProblemCompatible } =
-    useBoxContext('problemAlgorithm');
-  const problemInstance = useBoxContext('problem.instance');
-  const algorithmInstance = useBoxContext('algorithm.instance');
-
-  const initialScene = useMemo(() => {
-    if (
-      areAlgorithmProblemCompatible &&
-      algorithmInstance !== null &&
-      problemInstance !== null
-    ) {
-      try {
-        const scene = createScene({
-          algorithm: algorithmInstance,
-          problem: problemInstance,
-        });
-
-        return scene.copyWithExecution(1);
-      } catch (e) {
-        console.error(e);
-        return null;
-      }
-    }
-    return null;
-  }, [areAlgorithmProblemCompatible, algorithmInstance, problemInstance]);
-  const [scene, setScene] = useState(initialScene);
-
-  useEffect(() => {
-    setScene(initialScene);
-  }, [initialScene]);
-
-  const isFullyExecuted = useMemo(
-    () => scene?.isFullyExecuted ?? false,
-    [scene],
-  );
-
-  return (
-    <BoxControlsContextProvider
-      scene={scene}
-      onSceneChange={setScene}
-      maxSteps={isFullyExecuted ? scene!.executionTrace.length : null}
-    >
-      <BoxPageShortcuts>
-        <BoxPageImpl scene={scene} />
-      </BoxPageShortcuts>
-    </BoxControlsContextProvider>
-  );
-}
 
 function topologicalSort(graph: Record<string, Array<string>>) {
   const visited = new Set<string>();
@@ -194,13 +143,11 @@ function solve({
   return { inputs, outputs };
 }
 
-function BoxPageImpl({
-  scene,
-}: {
-  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
-}) {
+export default function BoxExecutionPage() {
   const { resolvedTheme } = useTheme();
+  const { isBoxComponentsShown } = useUserPreferences();
 
+  const scene = useScene();
   const { currentStepIndex } = useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
@@ -363,7 +310,7 @@ function BoxPageImpl({
 
   return (
     <div className="flex flex-col h-full">
-      <AppBar />
+      {isBoxComponentsShown && <AppBar />}
       <main className="relative h-full flex flex-col z-0">
         <Mosaic<string>
           className={clsx(
@@ -442,16 +389,7 @@ function BoxPageImpl({
           onChange={setLayout}
           dragAndDropManager={dragAndDropManager}
         />
-        {scene && (
-          <div className="absolute w-full z-10 bottom-8 flex justify-center">
-            <BoxExecutionControls />
-          </div>
-        )}
       </main>
     </div>
   );
-}
-
-export default function BoxPage() {
-  return <BoxPageExecutionWrapper />;
 }

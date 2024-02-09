@@ -7,8 +7,8 @@ import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
 import ProblemSelect from './ProblemSelect';
 
 export default function AppBar() {
-  const { isDraft, reset, openBoxEditor, openFlowchart } = useBoxContext();
-  const { isAdvancedModeEnabled } = useUserPreferences();
+  const { setBoxComponentsShown } = useUserPreferences();
+  const { openFlowchart } = useBoxContext();
 
   return (
     <header className="flex justify-between items-center px-4 border-b py-2 gap-8 bg-surface">
@@ -23,24 +23,15 @@ export default function AppBar() {
           variant="primary"
         />
       </div>
-      <div className="flex gap-2">
-        {!isDraft && (
-          <Button
-            label="Reset box"
-            variant="filled"
-            onClick={reset}
-            icon={<MaterialSymbol icon="settings_backup_restore" />}
-          />
-        )}
-        {isAdvancedModeEnabled && !isDraft && (
-          <Button
-            label="Edit box"
-            variant="primary"
-            onClick={openBoxEditor}
-            icon={<MaterialSymbol icon="open_in_new" />}
-          />
-        )}
-      </div>
+      <Button
+        label="Hide box components"
+        hideLabel={true}
+        variant="primary"
+        onClick={() => {
+          setBoxComponentsShown(false);
+        }}
+        icon={<MaterialSymbol icon="unfold_less" />}
+      />
     </header>
   );
 }

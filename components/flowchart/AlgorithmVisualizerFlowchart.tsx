@@ -1,7 +1,9 @@
 import 'reactflow/dist/style.css';
 
 import { SandboxVisualizer } from '@algo-sandbox/core';
+import AlgorithmSelect from '@components/box-page/app-bar/AlgorithmSelect';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
+import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
@@ -254,7 +256,7 @@ export default function AlgorithmVisualizerFlowchart({
   }, [selectedVisualizers, visualizers.aliases]);
 
   useEffect(() => {
-    const newTabName = `Visualizations: ${boxName}`;
+    const newTabName = 'Config';
     if (tabName !== newTabName) {
       renameTab(tabId, newTabName);
     }
@@ -502,7 +504,10 @@ export default function AlgorithmVisualizerFlowchart({
   return (
     <PanelGroup direction="horizontal">
       <Panel className="p-4 flex flex-col items-stretch gap-2">
-        <Heading variant="h3">1. Select visualizers</Heading>
+        <Heading variant="h2">Configure box</Heading>
+        <ProblemSelect />
+        <AlgorithmSelect />
+        <Heading variant="h3">Visualizers</Heading>
         <HeadingContent>
           {visualizers.order.map((alias) => (
             <div className="flex items-end gap-2" key={alias}>
@@ -562,7 +567,7 @@ export default function AlgorithmVisualizerFlowchart({
           />
         </HeadingContent>
         <Heading className="mt-4" variant="h3">
-          2. Select adapters
+          Adapters
         </Heading>
         <HeadingContent>
           {Object.entries(selectedAdapters).map(([alias, option]) => (

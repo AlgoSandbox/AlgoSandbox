@@ -7,6 +7,7 @@ import {
   Popover,
   Tooltip,
 } from '@components/ui';
+import { ButtonProps } from '@components/ui/Button';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import clsx from 'clsx';
@@ -33,6 +34,8 @@ export type CatalogSelectProps<
   value?: O;
   onChange?: (value: O) => void;
   label: string;
+  hideLabel?: boolean;
+  variant?: ButtonProps['variant'];
   errorMessage?: string | null;
   showPreview?: boolean;
 };
@@ -67,6 +70,8 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   containerClassName,
   className,
   label,
+  hideLabel,
+  variant = 'filled',
   value,
   onChange,
   errorMessage, // showPreview = true,
@@ -332,7 +337,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
     >
       <div className={clsx('flex flex-col min-w-[200px]', containerClassName)}>
         <div className="flex items-center gap-1">
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className={hideLabel ? 'hidden' : ''}>{label}</FormLabel>
           {errorMessage && (
             <Tooltip
               content={
@@ -352,7 +357,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
             className,
           )}
           label={value?.label ?? ''}
-          variant="filled"
+          variant={variant}
           endIcon={<MaterialSymbol icon="arrow_drop_down" />}
         />
       </div>

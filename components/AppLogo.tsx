@@ -1,7 +1,7 @@
-export function AppIcon() {
+export default function AppLogo({ className }: { className?: string }) {
   return (
     <svg
-      className="w-16"
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 100 74"
@@ -31,16 +31,5 @@ export function AppIcon() {
         d="m49.618 37.555 23-22m25.799 24.668-17-22"
       />
     </svg>
-  );
-}
-
-export default function AppLogo() {
-  return (
-    <div className="flex items-center gap-2">
-      <AppIcon />
-      <span className="font-semibold tracking-tight text-accent shrink-0">
-        algo sandbox
-      </span>
-    </div>
   );
 }

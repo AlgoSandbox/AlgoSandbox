@@ -1,24 +1,14 @@
-import BoxPage from '@app/BoxPage';
-import { BoxContextProvider } from '@components/box-page';
+import BoxPage from '@app/box/BoxExecutionPage';
 
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 export type BoxTabConfigEntry = {
   box: never;
 };
 
-export const boxTabConfig: SandboxBaseTabConfig<
-  'box',
-  {
-    boxKey: string;
-  }
-> = {
+export const boxTabConfig: SandboxBaseTabConfig<'box'> = {
   type: 'box',
-  icon: 'inventory_2',
-  render: ({ data: { boxKey } }) => (
-    <BoxContextProvider boxKey={boxKey}>
-      <BoxPage />
-    </BoxContextProvider>
-  ),
+  icon: 'view_quilt',
+  render: () => <BoxPage />,
 };
 
 type BoxTab = TabFromConfig<typeof boxTabConfig>;

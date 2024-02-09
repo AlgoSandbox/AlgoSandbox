@@ -120,6 +120,8 @@ export default function BoxContextProvider({
   const box = useBox(boxKey);
   const boxName = box?.name ?? 'Untitled box';
   const { updateBox } = useBoxManager();
+  console.log('box', box);
+  console.log('boxKey', boxKey);
 
   const { algorithmKey, problemKey } = useMemo(() => {
     const {
@@ -139,6 +141,7 @@ export default function BoxContextProvider({
     builtInProblemOptions,
     defaultKey: problemKey,
     onKeyChange: (key) => {
+      console.log('trying to update problem key', key);
       updateBox(boxKey, (box) => ({
         ...box,
         problem: key,
@@ -164,6 +167,7 @@ export default function BoxContextProvider({
     defaultAliases: boxVisualizers?.aliases ?? {},
     defaultOrder: boxVisualizers?.order ?? [],
     onAliasesChange: (aliases) => {
+      console.log('trying to update problem key', aliases);
       updateBox(boxKey, (box) => ({
         ...box,
         visualizers: {
@@ -353,11 +357,8 @@ export default function BoxContextProvider({
     addOrFocusTab({
       type: 'flowchart',
       label: `Visualizers: ${boxName}`,
-      data: {
-        boxKey,
-      },
     });
-  }, [addOrFocusTab, boxKey, boxName]);
+  }, [addOrFocusTab, boxName]);
 
   const value = useMemo(() => {
     return {

@@ -30,7 +30,7 @@ const tabConfigs = {
 
 export type SandboxBaseTabConfig<T extends SandboxTabType, D = undefined> = {
   type: T;
-  icon?: string;
+  icon: string;
   subIcon?: string;
   render: (
     args: {
@@ -69,7 +69,7 @@ export type SandboxTabWithId = SandboxTab & {
 
 type SandboxTabInstance = SandboxTabWithId & {
   id: string;
-  icon?: string;
+  icon: string;
   subIcon?: string;
 };
 
@@ -105,18 +105,25 @@ export function useTabManager() {
 
 export default function TabManagerProvider({
   children,
+  defaultTabs = [],
+  defaultSelectedTabId = 'default',
 }: {
   children: React.ReactNode;
+  defaultTabs?: Array<SandboxTabWithId>;
+  defaultSelectedTabId?: string;
 }) {
   const [nextTabId, setNextTabId] = useState<number>(0);
-  const [selectedTabId, setSelectedTabId] = useState<string>('default');
-  const [tabs, setTabs] = useState<Array<SandboxTabWithId>>([
-    {
-      id: 'default',
-      type: 'new-tab',
-      label: 'New tab',
-    },
-  ]);
+  const [selectedTabId, setSelectedTabId] =
+    useState<string>(defaultSelectedTabId);
+  const [tabs, setTabs] = useState<Array<SandboxTabWithId>>(
+    defaultTabs ?? [
+      {
+        id: 'default',
+        type: 'new-tab',
+        label: 'New tab',
+      },
+    ],
+  );
 
   const getNewTabId = useCallback(() => {
     const id = nextTabId;

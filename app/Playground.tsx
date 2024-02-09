@@ -1,48 +1,27 @@
 'use client';
 
 import AppLogo from '@components/AppLogo';
-import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
-import BuiltInComponentsProvider from '@components/playground/BuiltInComponentsProvider';
-import UserPreferencesProvider, {
-  useUserPreferences,
-} from '@components/preferences/UserPreferencesProvider';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import TabManagerProvider, {
   useTabManager,
 } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
-import { Button, MaterialSymbol, Popover, Select } from '@components/ui';
-import Heading, { HeadingContextProvider } from '@components/ui/Heading';
-import { Tabs, TabsItem } from '@components/ui/Tabs';
-import Toggle from '@components/ui/Toggle';
-import { CatalogGroup } from '@constants/catalog';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
-  DbAdapterSaved,
-  DbAlgorithmSaved,
-  DbBoxSaved,
-  DbProblemSaved,
-  DbVisualizerSaved,
-} from '@utils/db';
+  Button,
+  MaterialSymbol,
+  Popover,
+  ResizeHandle,
+  Select,
+} from '@components/ui';
+import Heading from '@components/ui/Heading';
+import Toggle from '@components/ui/Toggle';
+import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { useMemo } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Panel, PanelGroup } from 'react-resizable-panels';
 
 import BoxManagerProvider from './BoxManager';
-import { TypeDeclaration } from './page';
-
-const queryClient = new QueryClient();
-
-type PlaygroundProps = {
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  builtInBoxOptions: Array<CatalogGroup<DbBoxSaved>>;
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
-  algoSandboxFiles: Array<TypeDeclaration>;
-  typeDeclarations: Array<TypeDeclaration>;
-};
 
 const themeOptions = [
   { label: 'System', key: 'system', value: 'system' },
@@ -65,7 +44,6 @@ export function PlaygroundPage() {
     reorderTabs,
     closeTab,
     selectTab,
-    addTab,
   } = useTabManager();
 
   const tabItems = useMemo(() => {
@@ -84,26 +62,17 @@ export function PlaygroundPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex sticky top-0 bg-canvas z-10">
-        <div className="border-b flex items-center px-4">
+      <div className="flex sticky top-0 bg-canvas justify-between z-10">
+        <div className="border-b flex items-center gap-2 px-4 py-2">
           <AppLogo />
+          <Button
+            className="ms-2"
+            variant="primary"
+            label="Breadth-first-search"
+            icon={<MaterialSymbol icon="inventory_2" />}
+            endIcon={<MaterialSymbol icon="arrow_drop_down" />}
+          />
         </div>
-        <Tabs
-          tabs={tabItems}
-          onNewTabOpen={() => {
-            addTab({
-              type: 'new-tab',
-              label: 'New tab',
-            });
-          }}
-          onTabsReorder={reorderTabs}
-          onTabSelect={(tab) => {
-            selectTab(tab.key);
-          }}
-          onTabClose={(tab) => {
-            closeTab(tab.key);
-          }}
-        />
         <Popover
           content={
             <div className="bg-surface p-4 flex flex-col gap-4 items-start">
@@ -133,54 +102,47 @@ export function PlaygroundPage() {
           </div>
         </Popover>
       </div>
-      {tabs.map((tab) => (
-        <TabProvider key={tab.id} tab={tab}>
-          <main
-            className={clsx('flex-1', tab.id !== selectedTabId && 'hidden')}
-          >
-            {renderTabContent(tab.id)}
-          </main>
-        </TabProvider>
-      ))}
+      <div className="flex flex-1">
+        <PanelGroup direction="horizontal">
+          <Panel>
+            <VerticalTabs
+              tabs={tabItems}
+              onTabsReorder={reorderTabs}
+              onTabSelect={(tab) => {
+                selectTab(tab.key);
+              }}
+              onTabClose={(tab) => {
+                closeTab(tab.key);
+              }}
+            />
+          </Panel>
+          <ResizeHandle />
+          <Panel className="flex h-full">
+            {tabs.map((tab) => (
+              <TabProvider key={tab.id} tab={tab}>
+                <main
+                  className={clsx(
+                    'flex-1',
+                    tab.id !== selectedTabId && 'hidden',
+                  )}
+                >
+                  {renderTabContent(tab.id)}
+                </main>
+              </TabProvider>
+            ))}
+          </Panel>
+        </PanelGroup>
+      </div>
     </div>
   );
 }
 
-export default function Playground({
-  builtInAdapterOptions,
-  builtInAlgorithmOptions,
-  builtInBoxOptions,
-  builtInProblemOptions,
-  builtInVisualizerOptions,
-  algoSandboxFiles,
-  typeDeclarations,
-}: PlaygroundProps) {
+export default function Playground() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <UserPreferencesProvider>
-        <HeadingContextProvider>
-          <AlgoSandboxEditorFilesContextProvider
-            algoSandboxFiles={algoSandboxFiles}
-            typeDeclarations={typeDeclarations}
-          >
-            <DndProvider backend={HTML5Backend}>
-              <BuiltInComponentsProvider
-                builtInAdapterOptions={builtInAdapterOptions}
-                builtInAlgorithmOptions={builtInAlgorithmOptions}
-                builtInBoxOptions={builtInBoxOptions}
-                builtInProblemOptions={builtInProblemOptions}
-                builtInVisualizerOptions={builtInVisualizerOptions}
-              >
-                <BoxManagerProvider>
-                  <TabManagerProvider>
-                    <PlaygroundPage />
-                  </TabManagerProvider>
-                </BoxManagerProvider>
-              </BuiltInComponentsProvider>
-            </DndProvider>
-          </AlgoSandboxEditorFilesContextProvider>
-        </HeadingContextProvider>
-      </UserPreferencesProvider>
-    </QueryClientProvider>
+    <BoxManagerProvider>
+      <TabManagerProvider>
+        <PlaygroundPage />
+      </TabManagerProvider>
+    </BoxManagerProvider>
   );
 }

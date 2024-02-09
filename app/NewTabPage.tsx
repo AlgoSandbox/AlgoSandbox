@@ -6,9 +6,7 @@ import { DbSandboxObjectSaved, useSavedAlgorithmsQuery } from '@utils/db';
 import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
-import { evalSavedObject } from '@utils/evalSavedObject';
-
-import { useBoxManager } from './BoxManager';
+import { useRouter } from 'next/navigation';
 
 type SavedObjectsSectionProps = {
   title: string;
@@ -52,8 +50,8 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
 }
 
 export default function NewTabPage() {
+  const router = useRouter();
   const { setTab, selectedTabId } = useTabManager();
-  const { createNewBox } = useBoxManager();
   const { data: adapters } = useSavedAdaptersQuery();
   const { data: algorithms } = useSavedAlgorithmsQuery();
   const { data: problems } = useSavedProblemsQuery();
@@ -66,10 +64,9 @@ export default function NewTabPage() {
         <Button
           label="New box"
           onClick={() => {
-            const boxKey = createNewBox();
+            // const boxKey = createNewBox();
             setTab({
               id: selectedTabId,
-              data: { boxKey },
               type: 'box',
               label: 'Untitled box',
             });
@@ -85,24 +82,7 @@ export default function NewTabPage() {
                   key={option.key}
                   className="bg-surface-high hover:bg-surface-higher transition rounded h-20 flex items-center justify-center font-semibold text-label"
                   onClick={() => {
-                    const { objectEvaled: evaledBox } = evalSavedObject<'box'>(
-                      option.value,
-                    );
-                    if (evaledBox === null) {
-                      // TODO: display error
-                      return;
-                    }
-
-                    const boxKey = createNewBox({
-                      ...evaledBox,
-                      name: option.label,
-                    });
-                    setTab({
-                      id: selectedTabId,
-                      type: 'box',
-                      label: option.label,
-                      data: { boxKey },
-                    });
+                    router.push(`/box?key=${option.key}`);
                   }}
                 >
                   {option.label}

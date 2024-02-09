@@ -6,6 +6,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -81,11 +82,23 @@ export type SandboxBoxNamed = SandboxBox & {
 
 export default function BoxManagerProvider({
   children,
+  defaultBoxes,
 }: {
   children: React.ReactNode;
+  defaultBoxes?: Record<string, SandboxBoxNamed>;
 }) {
   defaultBoxContextProblem;
-  const [boxes, setBoxes] = useState<Record<string, SandboxBoxNamed>>({});
+  const [boxes, setBoxes] = useState<Record<string, SandboxBoxNamed>>(
+    defaultBoxes ?? {},
+  );
+
+  console.log('ayo', boxes);
+  useEffect(() => {
+    if (defaultBoxes === undefined) {
+      return;
+    }
+    setBoxes(defaultBoxes);
+  }, [defaultBoxes]);
 
   const getBox = useCallback(
     (key: string) => {

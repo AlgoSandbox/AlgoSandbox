@@ -1,6 +1,6 @@
 import { SandboxBox } from '@algo-sandbox/core';
 import { defaultBoxContextProblem } from '@components/box-page/box-context/sandbox-object/problem';
-import { useSavedObjectQuery } from '@utils/db/objects';
+import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import {
   createContext,
@@ -36,12 +36,19 @@ export function useBoxManager() {
 
 export function useBox(key: string) {
   const { getBox } = useContext(BoxManagerContext);
-  const { data: savedBox } = useSavedObjectQuery<'box'>(key);
+  const { builtInBoxOptions } = useBuiltInComponents();
+
+  const allBoxes = useMemo(() => {
+    return builtInBoxOptions.flatMap((box) => box.options);
+  }, [builtInBoxOptions]);
+
   const box: SandboxBoxNamed | null = useMemo(() => {
     const localBox = getBox(key);
     if (localBox !== null) {
       return localBox;
     }
+
+    const savedBox = allBoxes.find((box) => box.key === key)?.value;
 
     const { objectEvaled: evaledBox, errorMessage } = evalSavedObject<'box'>(
       savedBox ?? null,
@@ -60,7 +67,7 @@ export function useBox(key: string) {
     }
 
     return { ...evaledBox, name: savedBox.name };
-  }, [getBox, savedBox, key]);
+  }, [allBoxes, getBox, key]);
   return box;
 }
 

@@ -1,4 +1,4 @@
-import BoxPage from '@app/box/BoxExecutionPage';
+import BoxPage from '@app/playground/BoxExecutionPage';
 
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 export type BoxTabConfigEntry = {

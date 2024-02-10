@@ -1,11 +1,11 @@
-import NewTabPage from '@app/DashboardPage';
+import DashboardPage from '@app/DashboardPage';
 
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 
 export const newTabConfig: SandboxBaseTabConfig<'new-tab'> = {
   type: 'new-tab',
   icon: 'add',
-  render: () => <NewTabPage />,
+  render: () => <DashboardPage />,
 };
 
 type NewTab = TabFromConfig<typeof newTabConfig>;

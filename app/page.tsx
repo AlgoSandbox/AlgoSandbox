@@ -2,7 +2,7 @@
 
 import AppLogoWithName from '@components/AppLogoWithName';
 
-import NewTabPage from './DashboardPage';
+import DashboardPage from './DashboardPage';
 
 export default function Page() {
   return (
@@ -10,7 +10,7 @@ export default function Page() {
       <div className="border-b bg-canvas p-4">
         <AppLogoWithName />
       </div>
-      <NewTabPage />
+      <DashboardPage />
     </div>
   );
 }

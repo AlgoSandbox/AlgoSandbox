@@ -625,7 +625,11 @@ export default function AlgorithmVisualizerFlowchart({
             onChange={(value) => {
               const getKey = (index: number): string => {
                 const key = `adapter-${index}`;
-                if (visualizers.order.includes(key)) {
+                if (
+                  Object.keys(algorithmVisualizersTree.adapters ?? {}).includes(
+                    key,
+                  )
+                ) {
                   return getKey(index + 1);
                 }
                 return key;

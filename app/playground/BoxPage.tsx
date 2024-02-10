@@ -105,7 +105,7 @@ export function useScene() {
 }
 
 function BoxPageImpl() {
-  const boxKey = useSearchParams().get('key') ?? '';
+  const boxKey = useSearchParams().get('box') ?? '';
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const selectedThemeOption = useMemo(() => {
@@ -170,7 +170,7 @@ function BoxPageImpl() {
               variant="primary"
               value={selectedOption}
               onChange={(option) => {
-                router.push(`/box?key=${option.key}`);
+                router.replace(`/playground?box=${option.key}`);
               }}
             />
             <div className="flex gap-2 min-w-0">

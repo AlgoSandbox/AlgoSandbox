@@ -1,5 +1,5 @@
 import { AdapterConfigurationFlat } from '@algo-sandbox/core';
-import { useBox, useBoxManager } from '@app/BoxManager';
+import { SandboxBoxNamed } from '@app/BoxManager';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
@@ -101,12 +101,16 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
 }
 
 export type BoxContextProviderProps = {
-  boxKey: string;
+  box: SandboxBoxNamed | null;
+  onBoxUpdate?: (update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => void;
+  onBoxReset?: () => void;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
-  boxKey,
+  box,
+  onBoxUpdate,
+  onBoxReset,
   children,
 }: BoxContextProviderProps) {
   const { addOrFocusTab } = useTabManager();
@@ -118,9 +122,7 @@ export default function BoxContextProvider({
     builtInVisualizerOptions,
   } = builtInComponents;
 
-  const box = useBox(boxKey);
   const boxName = box?.name ?? 'Untitled box';
-  const { updateBox } = useBoxManager();
 
   const { algorithmKey, problemKey } = useMemo(() => {
     const {
@@ -139,22 +141,22 @@ export default function BoxContextProvider({
   const problem = useBoxContextProblem({
     builtInProblemOptions,
     defaultKey: problemKey,
-    onKeyChange: () => {
-      // updateBox(boxKey, (box) => ({
-      //   ...box,
-      //   problem: key,
-      // }));
+    onKeyChange: (key) => {
+      onBoxUpdate?.((box) => ({
+        ...box,
+        problem: key,
+      }));
     },
   });
 
   const algorithm = useBoxContextAlgorithm({
     builtInAlgorithmOptions,
     defaultKey: algorithmKey,
-    onKeyChange: () => {
-      // updateBox(boxKey, (box) => ({
-      //   ...box,
-      //   algorithm: key,
-      // }));
+    onKeyChange: (key) => {
+      onBoxUpdate?.((box) => ({
+        ...box,
+        algorithm: key,
+      }));
     },
   });
 
@@ -164,23 +166,23 @@ export default function BoxContextProvider({
     builtInOptions: builtInVisualizerOptions,
     defaultAliases: boxVisualizers?.aliases ?? {},
     defaultOrder: boxVisualizers?.order ?? [],
-    onAliasesChange: () => {
-      // updateBox(boxKey, (box) => ({
-      //   ...box,
-      //   visualizers: {
-      //     order: box.visualizers?.order ?? [],
-      //     aliases,
-      //   },
-      // }));
+    onAliasesChange: (aliases) => {
+      onBoxUpdate?.((box) => ({
+        ...box,
+        visualizers: {
+          order: box.visualizers?.order ?? [],
+          aliases,
+        },
+      }));
     },
-    onOrderChange: () => {
-      // updateBox(boxKey, (box) => ({
-      //   ...box,
-      //   visualizers: {
-      //     aliases: box.visualizers?.aliases ?? {},
-      //     order,
-      //   },
-      // }));
+    onOrderChange: (order) => {
+      onBoxUpdate?.((box) => ({
+        ...box,
+        visualizers: {
+          aliases: box.visualizers?.aliases ?? {},
+          order,
+        },
+      }));
     },
   });
 
@@ -200,7 +202,7 @@ export default function BoxContextProvider({
     problem,
     adapterConfiguration: problemAlgorithmConfig,
     onAdapterConfigurationChange: (config) => {
-      updateBox(boxKey, (box) => ({
+      onBoxUpdate?.((box) => ({
         ...box,
         problemAlgorithm: config,
       }));
@@ -232,7 +234,7 @@ export default function BoxContextProvider({
     ),
     visualizerInputKeys,
     onChange: (newValue) => {
-      updateBox(boxKey, (box) => ({
+      onBoxUpdate?.((box) => ({
         ...box,
         algorithmVisualizers: newValue,
       }));
@@ -344,11 +346,8 @@ export default function BoxContextProvider({
     addOrFocusTab({
       type: 'box-editor',
       label: `Edit: ${boxName}`,
-      data: {
-        boxKey,
-      },
     });
-  }, [addOrFocusTab, boxKey, boxName]);
+  }, [addOrFocusTab, boxName]);
 
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
@@ -372,14 +371,12 @@ export default function BoxContextProvider({
       boxName: {
         value: boxName,
         setValue: (newName) => {
-          updateBox(boxKey, (box) => ({ ...box, name: newName }));
+          onBoxUpdate?.((box) => ({ ...box, name: newName }));
         },
       },
       isDraft: box === undefined,
       reset: () => {
-        problem.select.reset();
-        algorithm.select.reset();
-        visualizers.reset();
+        onBoxReset?.();
       },
       visualizers,
     } satisfies BoxContextType;
@@ -388,14 +385,14 @@ export default function BoxContextProvider({
     algorithmVisualizers,
     box,
     boxEnvironment,
-    boxKey,
     boxName,
+    onBoxReset,
+    onBoxUpdate,
     openBoxEditor,
     openFlowchart,
     problem,
     problemAlgorithm,
     setBoxEnvironment,
-    updateBox,
     visualizers,
   ]);
 

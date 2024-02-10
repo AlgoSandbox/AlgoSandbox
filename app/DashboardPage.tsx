@@ -42,8 +42,7 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
   );
 }
 
-export default function NewTabPage() {
-  const router = useRouter();
+export default function DashboardPage() {
   const { setTab, selectedTabId } = useTabManager();
   const { data: adapters } = useSavedAdaptersQuery();
   const { data: algorithms } = useSavedAlgorithmsQuery();
@@ -71,15 +70,13 @@ export default function NewTabPage() {
             <Heading variant="h3">{group.label}</Heading>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {group.options.map((option) => (
-                <button
+                <a
                   key={option.key}
                   className="bg-surface-high hover:bg-surface-higher transition rounded h-20 flex items-center justify-center font-semibold text-label"
-                  onClick={() => {
-                    router.push(`/box?key=${option.key}`);
-                  }}
+                  href={`/playground?box=${option.key}`}
                 >
                   {option.label}
-                </button>
+                </a>
               ))}
               {Array.from({ length: 10 }, (_, i) => i).map((i) => (
                 <div

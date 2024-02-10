@@ -88,7 +88,7 @@ export default function AlgorithmSelect() {
               data: { object: selectedOption.value },
             });
           }}
-          icon={<MaterialSymbol icon="open_in_new" />}
+          icon={<MaterialSymbol icon="edit" />}
         />
       )}
     </div>

@@ -22,6 +22,7 @@ import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 const themeOptions = [
   { label: 'System', key: 'system', value: 'system' },
@@ -149,6 +150,13 @@ function BoxPageImpl() {
     );
   }, [selectedTabId, tabs]);
 
+  const handleCopyLinkClick = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('key', boxKey);
+    navigator.clipboard.writeText(url.toString());
+    toast.success('Link copied to clipboard');
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <AppNavBar>
@@ -180,7 +188,7 @@ function BoxPageImpl() {
                 <Button
                   label="Reset box"
                   hideLabel={true}
-                  variant="filled"
+                  variant="flat"
                   onClick={reset}
                   icon={<MaterialSymbol icon="settings_backup_restore" />}
                 />
@@ -189,9 +197,17 @@ function BoxPageImpl() {
                 <Button
                   label="Edit box"
                   hideLabel={true}
-                  variant="filled"
+                  variant="flat"
                   onClick={openBoxEditor}
-                  icon={<MaterialSymbol icon="open_in_new" />}
+                  icon={<MaterialSymbol icon="edit" />}
+                />
+              )}
+              {!isDraft && (
+                <Button
+                  label="Copy link"
+                  variant="filled"
+                  onClick={handleCopyLinkClick}
+                  icon={<MaterialSymbol icon="link" />}
                 />
               )}
             </div>

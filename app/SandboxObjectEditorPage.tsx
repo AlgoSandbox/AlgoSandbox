@@ -11,13 +11,13 @@ import { Panel, PanelGroup } from 'react-resizable-panels';
 type SandboxObjectEditorPageProps = {
   object: DbSandboxObjectSaved;
   onCloned: (newObject: DbSandboxObjectSaved) => void;
-  onSaved: (newObject: DbSandboxObjectSaved) => void;
+  onSave: (newObject: DbSandboxObjectSaved) => void;
 };
 
 export default function SandboxObjectEditorPage({
   object,
   onCloned,
-  onSaved,
+  onSave,
 }: SandboxObjectEditorPageProps) {
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(
     'index.ts' in object.files ? 'index.ts' : null,
@@ -54,12 +54,12 @@ export default function SandboxObjectEditorPage({
           name: values.name,
           files: _.mapKeys(values.files, (_, key) => key.replaceAll('$', '.')),
         });
-        onSaved(newObject);
+        onSave(newObject);
         reset(values);
       })}
     >
       <PanelGroup className="flex-1" direction="horizontal">
-        <Panel key="explorer" defaultSize={20}>
+        <Panel key="explorer" defaultSize={30}>
           {!isViewOnly && (
             <div className="px-4 py-2 flex gap-2 items-end">
               <Input

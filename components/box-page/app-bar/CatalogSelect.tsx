@@ -259,9 +259,11 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 if (isSelectGroup(item)) {
                   return (
                     <Fragment key={item.key}>
-                      <span className="text-label border-t pt-2 font-mono px-3">
-                        {item.label}
-                      </span>
+                      <div className="flex items-center pt-4 text-sm border-t">
+                        <span className="border rounded-full flex items-center text-label px-2 font-semibold tracking-tight">
+                          {item.label}
+                        </span>
+                      </div>
                       {item.options.map((option) => (
                         <ListItem
                           selected={option.key === selectedOption?.key}

@@ -2,7 +2,7 @@
 
 import AppLogoWithName from '@components/AppLogoWithName';
 
-import NewTabPage from './NewTabPage';
+import NewTabPage from './DashboardPage';
 
 export default function Page() {
   return (

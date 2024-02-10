@@ -13,7 +13,7 @@ function LayoutImpl({ children }: { children: React.ReactNode }) {
   const boxKey = params.get('key') ?? '';
   const { builtInBoxOptions } = useBuiltInComponents();
 
-  // find the box with the given key
+  // TODO: Allow using custom boxes
   const savedBox = useMemo(() => {
     const flattenedOptions = builtInBoxOptions.flatMap(
       (group) => group.options,

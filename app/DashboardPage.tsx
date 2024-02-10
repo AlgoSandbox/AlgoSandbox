@@ -14,7 +14,7 @@ type SavedObjectsSectionProps = {
 };
 
 function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
-  const { setTab, selectedTabId } = useTabManager();
+  const router = useRouter();
 
   if (objects.length === 0) {
     return null;
@@ -29,14 +29,7 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
             <button
               className="border rounded bg-surface hover:bg-surface-high p-4 flex justify-between items-center gap-2 w-full"
               onClick={() => {
-                setTab({
-                  id: selectedTabId,
-                  type: 'editor',
-                  label: object.name,
-                  data: {
-                    object,
-                  },
-                });
+                router.push(`/component?key=${object.key}`);
               }}
             >
               <span className="text-start">{object.name}</span>

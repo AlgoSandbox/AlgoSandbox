@@ -30,6 +30,7 @@ export type BoxContextVisualizers = {
     string,
     SandboxEvaluated<SandboxVisualizer<SandboxStateType, unknown>> | undefined
   >;
+  reset: () => void;
 };
 
 export default function useBoxContextVisualizers({
@@ -179,6 +180,10 @@ export default function useBoxContextVisualizers({
             setParameters({ ...parameters, [alias]: value });
           },
         },
+        reset: () => {
+          setAliases(defaultAliases);
+          setOrder(defaultOrder);
+        },
       }) satisfies BoxContextVisualizers,
     [
       aliases,
@@ -187,6 +192,8 @@ export default function useBoxContextVisualizers({
       parameters,
       handleAliasesChange,
       handleOrderChange,
+      defaultAliases,
+      defaultOrder,
     ],
   );
 }

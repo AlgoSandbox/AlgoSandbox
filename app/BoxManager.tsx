@@ -92,7 +92,6 @@ export default function BoxManagerProvider({
     defaultBoxes ?? {},
   );
 
-  console.log('ayo', boxes);
   useEffect(() => {
     if (defaultBoxes === undefined) {
       return;

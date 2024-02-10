@@ -1,4 +1,4 @@
-import NewTabPage from '@app/NewTabPage';
+import NewTabPage from '@app/DashboardPage';
 
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 

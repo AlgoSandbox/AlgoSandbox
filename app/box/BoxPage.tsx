@@ -1,7 +1,7 @@
 'use client';
 
 import { SandboxStateType } from '@algo-sandbox/core';
-import AppLogo from '@components/AppLogo';
+import AppNavBar from '@components/AppNavBar';
 import {
   BoxControlsContextProvider,
   BoxExecutionControls,
@@ -13,13 +13,7 @@ import { useBuiltInComponents } from '@components/playground/BuiltInComponentsPr
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
-import {
-  Button,
-  MaterialSymbol,
-  Popover,
-  Select,
-  Tooltip,
-} from '@components/ui';
+import { Button, MaterialSymbol, Popover, Select } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import Toggle from '@components/ui/Toggle';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
@@ -157,19 +151,7 @@ function BoxPageImpl() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex sticky border-b top-0 bg-canvas z-10 gap-2">
-        <Tooltip content="Back to home">
-          <a
-            className="group hover:bg-surface-high flex items-center w-14 self-stretch justify-center"
-            href="/"
-          >
-            <MaterialSymbol
-              className="w-0 group-hover:w-6 transition-all opacity-0 group-hover:opacity-100 text-accent"
-              icon="chevron_left"
-            />
-            <AppLogo className="w-6 h-6" />
-          </a>
-        </Tooltip>
+      <AppNavBar>
         <div className="flex justify-between flex-1 px-2">
           <div className="flex items-center gap-2 pe-4 py-2">
             <CatalogSelect
@@ -218,7 +200,7 @@ function BoxPageImpl() {
             <BoxExecutionControls />
           </div>
         </div>
-      </div>
+      </AppNavBar>
       <div className="flex flex-1">
         <div className="flex flex-col items-stretch h-full justify-between border-e">
           <VerticalTabs

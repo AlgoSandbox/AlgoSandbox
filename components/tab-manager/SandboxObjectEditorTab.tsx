@@ -26,7 +26,7 @@ export const sandboxObjectEditorTabConfig: SandboxBaseTabConfig<
             closeable: true,
           });
         }}
-        onSaved={async (newObject) => {
+        onSave={async (newObject) => {
           setTab({
             id: tab.id,
             type: 'editor',

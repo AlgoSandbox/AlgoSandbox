@@ -80,6 +80,7 @@ const BoxContext = createContext<BoxContextType>({
       default: {},
       setValue: () => {},
     },
+    reset: () => {},
   },
 });
 
@@ -120,8 +121,6 @@ export default function BoxContextProvider({
   const box = useBox(boxKey);
   const boxName = box?.name ?? 'Untitled box';
   const { updateBox } = useBoxManager();
-  console.log('box', box);
-  console.log('boxKey', boxKey);
 
   const { algorithmKey, problemKey } = useMemo(() => {
     const {
@@ -140,23 +139,22 @@ export default function BoxContextProvider({
   const problem = useBoxContextProblem({
     builtInProblemOptions,
     defaultKey: problemKey,
-    onKeyChange: (key) => {
-      console.log('trying to update problem key', key);
-      updateBox(boxKey, (box) => ({
-        ...box,
-        problem: key,
-      }));
+    onKeyChange: () => {
+      // updateBox(boxKey, (box) => ({
+      //   ...box,
+      //   problem: key,
+      // }));
     },
   });
 
   const algorithm = useBoxContextAlgorithm({
     builtInAlgorithmOptions,
     defaultKey: algorithmKey,
-    onKeyChange: (key) => {
-      updateBox(boxKey, (box) => ({
-        ...box,
-        algorithm: key,
-      }));
+    onKeyChange: () => {
+      // updateBox(boxKey, (box) => ({
+      //   ...box,
+      //   algorithm: key,
+      // }));
     },
   });
 
@@ -166,24 +164,23 @@ export default function BoxContextProvider({
     builtInOptions: builtInVisualizerOptions,
     defaultAliases: boxVisualizers?.aliases ?? {},
     defaultOrder: boxVisualizers?.order ?? [],
-    onAliasesChange: (aliases) => {
-      console.log('trying to update problem key', aliases);
-      updateBox(boxKey, (box) => ({
-        ...box,
-        visualizers: {
-          order: box.visualizers?.order ?? [],
-          aliases,
-        },
-      }));
+    onAliasesChange: () => {
+      // updateBox(boxKey, (box) => ({
+      //   ...box,
+      //   visualizers: {
+      //     order: box.visualizers?.order ?? [],
+      //     aliases,
+      //   },
+      // }));
     },
-    onOrderChange: (order) => {
-      updateBox(boxKey, (box) => ({
-        ...box,
-        visualizers: {
-          aliases: box.visualizers?.aliases ?? {},
-          order,
-        },
-      }));
+    onOrderChange: () => {
+      // updateBox(boxKey, (box) => ({
+      //   ...box,
+      //   visualizers: {
+      //     aliases: box.visualizers?.aliases ?? {},
+      //     order,
+      //   },
+      // }));
     },
   });
 
@@ -382,6 +379,7 @@ export default function BoxContextProvider({
       reset: () => {
         problem.select.reset();
         algorithm.select.reset();
+        visualizers.reset();
       },
       visualizers,
     } satisfies BoxContextType;

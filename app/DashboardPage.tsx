@@ -1,6 +1,5 @@
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
-import { useTabManager } from '@components/tab-manager/TabManager';
-import { Button, MaterialSymbol } from '@components/ui';
+import { MaterialSymbol } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import { DbSandboxObjectSaved, useSavedAlgorithmsQuery } from '@utils/db';
 import { useSavedAdaptersQuery } from '@utils/db/adapters';
@@ -43,7 +42,6 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
 }
 
 export default function DashboardPage() {
-  const { setTab, selectedTabId } = useTabManager();
   const { data: adapters } = useSavedAdaptersQuery();
   const { data: algorithms } = useSavedAlgorithmsQuery();
   const { data: problems } = useSavedProblemsQuery();
@@ -53,17 +51,6 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col max-w-4xl px-4 gap-8 mx-auto py-6">
       <div className="flex flex-col gap-4">
-        <Button
-          label="New box"
-          onClick={() => {
-            // const boxKey = createNewBox();
-            setTab({
-              id: selectedTabId,
-              type: 'box',
-              label: 'Untitled box',
-            });
-          }}
-        />
         <Heading variant="h2">Explore boxes</Heading>
         {builtInBoxOptions.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
@@ -72,19 +59,11 @@ export default function DashboardPage() {
               {group.options.map((option) => (
                 <a
                   key={option.key}
-                  className="bg-surface-high hover:bg-surface-higher transition rounded h-20 flex items-center justify-center font-semibold text-label"
+                  className="bg-surface-high hover:bg-surface-higher transition rounded h-20 p-4 flex items-center justify-center font-semibold text-label"
                   href={`/playground?box=${option.key}`}
                 >
                   {option.label}
                 </a>
-              ))}
-              {Array.from({ length: 10 }, (_, i) => i).map((i) => (
-                <div
-                  key={i}
-                  className="bg-surface rounded h-20 flex items-center justify-center text-muted font-semibold"
-                >
-                  Coming soon
-                </div>
               ))}
             </div>
           </div>

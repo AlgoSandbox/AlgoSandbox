@@ -65,5 +65,9 @@
   html {
     @apply text-on-surface
   }
+
+  *:focus-visible {
+    @apply outline-accent
+  }
   
 }

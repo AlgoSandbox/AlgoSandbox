@@ -77,16 +77,19 @@ function Button(
           variant === 'flat' && [
             !disabled && [
               !selected &&
-                'hover:bg-surface-high text-on-surface/80 focus-visible:outline-accent',
+                'hover:bg-surface-high border border-transparent text-on-surface/80 focus-visible:outline-accent',
               selected &&
-                'hover:bg-primary/20 bg-primary/10 focus-visible:outline-accent',
+                'hover:bg-surface-high border border-accent focus-visible:outline-accent',
             ],
             disabled && 'text-muted',
           ],
           variant === 'filled' && [
             'border',
-            !disabled &&
-              'bg-surface-high hover:bg-surface-higher text-on-surface/80 focus-visible:outline-accent',
+            !disabled && [
+              'bg-surface-high hover:bg-surface-higher focus-visible:outline-accent',
+              !selected && 'text-on-surface/80',
+              selected && 'border-accent text-accent',
+            ],
             disabled && 'text-muted bg-surface/50',
           ],
           variant === 'primary' && [

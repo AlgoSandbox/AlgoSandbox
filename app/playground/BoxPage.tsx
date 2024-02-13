@@ -7,6 +7,7 @@ import {
   BoxExecutionControls,
   BoxPageShortcuts,
   useBoxContext,
+  useBoxControlsContext,
 } from '@components/box-page';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
@@ -18,11 +19,14 @@ import Heading from '@components/ui/Heading';
 import Toggle from '@components/ui/Toggle';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import { createScene, SandboxScene } from '@utils';
+import solveFlowchart from '@utils/solveFlowchart';
 import clsx from 'clsx';
+import { mapValues } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ZodError } from 'zod';
 
 const themeOptions = [
   { label: 'System', key: 'system', value: 'system' },
@@ -82,9 +86,15 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
 
 type SceneContextType = {
   scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
+  flowchart: {
+    inputs: Record<string, Record<string, unknown>>;
+    outputs: Record<string, Record<string, unknown>>;
+    inputErrors: Record<string, Record<string, ZodError>>;
+  };
 };
 const SceneContext = createContext<SceneContextType>({
   scene: null,
+  flowchart: { inputs: {}, outputs: {}, inputErrors: {} },
 });
 
 function SceneProvider({
@@ -94,7 +104,54 @@ function SceneProvider({
   scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
   children: React.ReactNode;
 }) {
-  const value = useMemo(() => ({ scene }), [scene]);
+  const { currentStepIndex } = useBoxControlsContext();
+
+  const algorithmInstance = useBoxContext('algorithm.instance');
+
+  const executionStep = scene?.executionTrace?.[currentStepIndex];
+
+  const problemInstance = useBoxContext('problem.instance');
+  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
+  const algorithmVisualizersAdapters = useBoxContext(
+    'algorithmVisualizers.evaluated.adapters',
+  );
+  const algorithmState = executionStep?.state;
+
+  const { inputs, outputs, inputErrors } = useMemo(() => {
+    if (problemInstance === null || algorithmInstance === undefined) {
+      return {};
+    }
+
+    const { inputs, outputs, inputErrors } = solveFlowchart({
+      adapterConfiguration: algorithmVisualizersTree,
+      problem: problemInstance,
+      algorithmState: algorithmState,
+      adapters: mapValues(
+        algorithmVisualizersAdapters ?? {},
+        (val) => val?.value,
+      ),
+    });
+
+    return { inputs, outputs, inputErrors };
+  }, [
+    problemInstance,
+    algorithmInstance,
+    algorithmVisualizersTree,
+    algorithmState,
+    algorithmVisualizersAdapters,
+  ]);
+
+  const value = useMemo(
+    () => ({
+      scene,
+      flowchart: {
+        inputs: inputs ?? {},
+        outputs: outputs ?? {},
+        inputErrors: inputErrors ?? {},
+      },
+    }),
+    [scene, inputs, outputs, inputErrors],
+  );
   return (
     <SceneContext.Provider value={value}>{children}</SceneContext.Provider>
   );
@@ -102,6 +159,10 @@ function SceneProvider({
 
 export function useScene() {
   return useContext(SceneContext).scene;
+}
+
+export function useFlowchartCalculations() {
+  return useContext(SceneContext).flowchart;
 }
 
 function BoxPageImpl() {
@@ -177,7 +238,9 @@ function BoxPageImpl() {
               <Button
                 label="Customize"
                 className="min-w-0"
-                variant={isBoxComponentsShown ? 'primary' : 'filled'}
+                variant="filled"
+                selected={isBoxComponentsShown}
+                role="checkbox"
                 hideLabel={true}
                 onClick={() => {
                   setBoxComponentsShown(!isBoxComponentsShown);

@@ -1,16 +1,17 @@
 import 'reactflow/dist/style.css';
 
-import { SandboxVisualizer } from '@algo-sandbox/core';
+import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import AlgorithmSelect from '@components/box-page/app-bar/AlgorithmSelect';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
-import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
+import { Button, MaterialSymbol, ResizeHandle, Tooltip } from '@components/ui';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
 import { evalSavedObject } from '@utils/evalSavedObject';
+import clsx from 'clsx';
 import React, {
   forwardRef,
   useCallback,
@@ -18,7 +19,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { useDrop } from 'react-dnd';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import ReactFlow, {
   applyEdgeChanges,
@@ -37,6 +37,7 @@ import ReactFlow, {
   useNodeId,
   useStore,
 } from 'reactflow';
+import { ZodError } from 'zod';
 
 import { useBoxContext } from '../box-page';
 import VisualizerSelect from './VisualizerSelect';
@@ -46,10 +47,13 @@ type FlowNodeProps = {
     inputs?: Array<{
       id: string;
       label: string;
+      hasValue: boolean;
+      error: ZodError | null;
     }>;
     outputs?: Array<{
       id: string;
       label: string;
+      hasValue: boolean;
     }>;
     label: string;
   };
@@ -84,7 +88,9 @@ const FlowNodePreview = forwardRef<HTMLDivElement, FlowNodeProps>(
 
 FlowNodePreview.displayName = 'FlowNodePreview';
 
-const FlowNode = forwardRef<HTMLDivElement, FlowNodeProps>(
+type FlowNode = Node<FlowNodeProps['data']>;
+
+const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
   ({ data: { inputs = [], outputs = [], label } }, ref) => {
     const { nodeInternals, edges } = useStore(({ nodeInternals, edges }) => ({
       nodeInternals,
@@ -106,47 +112,105 @@ const FlowNode = forwardRef<HTMLDivElement, FlowNodeProps>(
 
     return (
       <div
-        className="border ps-8 py-4 relative h-[100px] w-[500px] flex items-center justify-center rounded bg-surface-high"
+        className={clsx(
+          'border relative h-[200px] w-[500px] flex flex-col items-stretch rounded bg-surface-high',
+        )}
         ref={ref}
       >
-        <div>{label}</div>
-        {inputs.map(({ id, label }, index) => (
-          <Handle
-            className="relative"
-            style={{ top: 20 * index + 16 }}
-            key={id}
-            type="target"
-            position={Position.Left}
-            id={id}
-            isConnectable={
-              connectedEdges.filter((edge) => edge.targetHandle === id)
-                .length === 0
-            }
-          >
-            <span className="absolute start-2 -mt-2 font-mono">{label}</span>
-          </Handle>
-        ))}
-        {outputs.map(({ id, label }, index) => (
-          <Handle
-            className="relative"
-            style={{ top: 20 * index + 16 }}
-            key={id}
-            type="source"
-            position={Position.Right}
-            id={id}
-          >
-            <span className="absolute end-2 -mt-2 font-mono">{label}</span>
-          </Handle>
-        ))}
+        <div className="flex justify-center text-lg font-semibold border-b py-2">
+          {label}
+        </div>
+        <div className="flex justify-between py-2">
+          <div className="flex flex-col gap-2 absolute -start-2">
+            {inputs.map(({ id, label, hasValue, error }) => {
+              const isConnected = connectedEdges.some(
+                (edge) => edge.targetHandle === id,
+              );
+              const hasError = error !== null;
+              return (
+                <div key={id} className="flex items-center gap-2">
+                  <Handle
+                    className={clsx(
+                      hasError && '!bg-danger',
+                      !hasError && [
+                        isConnected && [
+                          hasValue ? '!bg-accent' : '!bg-surface',
+                        ],
+                        !isConnected && '!bg-surface-high',
+                      ],
+                    )}
+                    type="target"
+                    position={Position.Left}
+                    id={id}
+                    isConnectable={!isConnected}
+                  />
+                  <span
+                    className={clsx(
+                      'font-mono',
+                      hasError && 'text-danger',
+                      !hasError && [
+                        hasValue ? 'text-on-surface' : 'text-muted',
+                      ],
+                    )}
+                  >
+                    {label}
+                  </span>
+                  {hasError && (
+                    <Tooltip
+                      content={
+                        <ul>
+                          {error.issues.map(({ path, message }) => (
+                            <li key={path.join('.')}>{message}</li>
+                          ))}
+                        </ul>
+                      }
+                    >
+                      <MaterialSymbol icon="error" className="text-danger" />
+                    </Tooltip>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex flex-col items-end gap-2 absolute -end-2">
+            {outputs.map(({ id, label, hasValue }) => {
+              const isConnected = connectedEdges.some(
+                (edge) => edge.sourceHandle === id,
+              );
+
+              return (
+                <div key={id} className="flex items-center gap-2">
+                  <span
+                    className={clsx(
+                      'font-mono',
+                      hasValue ? 'text-on-surface' : 'text-muted',
+                    )}
+                  >
+                    {label}
+                  </span>
+                  <Handle
+                    className={clsx(
+                      isConnected && [hasValue ? '!bg-accent' : '!bg-surface'],
+                      !isConnected && '!bg-surface-high',
+                    )}
+                    type="source"
+                    position={Position.Right}
+                    id={id}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   },
 );
 
-FlowNode.displayName = 'FlowNode';
+FlowNodeCard.displayName = 'FlowNode';
 
 const nodeTypes: NodeTypes = {
-  customFlow: FlowNode,
+  customFlow: FlowNodeCard,
 };
 
 const defaultEdgeOptions: DefaultEdgeOptions = {
@@ -155,7 +219,10 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 
 const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
-const getLayoutedElements = (nodes: Array<Node>, edges: Array<Edge>) => {
+const getLayoutedElements = (
+  nodes: Array<Omit<Node, 'position'>>,
+  edges: Array<Edge>,
+) => {
   g.setGraph({ rankdir: 'LR' });
 
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
@@ -189,6 +256,7 @@ export default function AlgorithmVisualizerFlowchart({
 }: {
   tabId: string;
 }) {
+  const { inputs, outputs, inputErrors } = useFlowchartCalculations();
   const { label: tabName } = useTab();
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
@@ -275,47 +343,59 @@ export default function AlgorithmVisualizerFlowchart({
           alias,
           evaluated: evaluated!,
         }))
-        .map(({ alias, evaluated: { name, value: adapter } }) => ({
-          id: alias,
-          type: 'customFlow',
-          width: 500,
-          height: 100,
-          data: {
-            label: name,
-            inputs: Object.keys(adapter.accepts.shape.shape).map((param) => ({
-              id: param,
-              label: param,
-            })),
-            outputs: Object.keys(adapter.outputs.shape.shape).map((param) => ({
-              id: param,
-              label: param,
-            })),
-          },
-        })) as Array<Node>,
-    [algorithmVisualizersEvaluated.adapters],
+        .map(
+          ({ alias, evaluated: { name, value: adapter } }) =>
+            ({
+              id: alias,
+              type: 'customFlow',
+              width: 500,
+              height: 100,
+              data: {
+                label: name,
+                inputs: Object.keys(adapter.accepts.shape.shape).map(
+                  (param) => ({
+                    id: param,
+                    label: param,
+                    hasValue: Object.hasOwn(inputs[alias] ?? {}, param),
+                    error: inputErrors[alias]?.[param] ?? null,
+                  }),
+                ),
+                outputs: Object.keys(adapter.outputs.shape.shape).map(
+                  (param) => ({
+                    id: param,
+                    label: param,
+                    hasValue: Object.hasOwn(outputs[alias] ?? {}, param),
+                  }),
+                ),
+              },
+            }) satisfies Omit<FlowNode, 'position'>,
+        ),
+    [algorithmVisualizersEvaluated.adapters, inputErrors, inputs, outputs],
   );
 
   const initialVisualizerNodes = useMemo(() => {
     return Object.entries(visualizerInstances).map(
-      ([id, { name, instance }]) => {
+      ([alias, { name, instance }]) => {
         const visualizerInputs = instance?.accepts.shape.shape ?? {};
 
         return {
-          id,
+          id: alias,
           type: 'customFlow',
           width: 500,
-          height: 100,
+          height: 200,
           data: {
             label: name,
             inputs: Object.keys(visualizerInputs).map((param) => ({
               id: param,
               label: param,
+              hasValue: Object.hasOwn(inputs[alias] ?? {}, param),
+              error: inputErrors[alias]?.[param] ?? null,
             })),
           },
-        };
+        } satisfies Omit<FlowNode, 'position'>;
       },
-    ) as Array<Node>;
-  }, [visualizerInstances]);
+    );
+  }, [inputErrors, inputs, visualizerInstances]);
 
   const initialNodes = useMemo(
     () =>
@@ -324,40 +404,56 @@ export default function AlgorithmVisualizerFlowchart({
           id: 'algorithm',
           type: 'customFlow',
           width: 500,
-          height: 100,
+          height: 200,
           data: {
             label: algorithmName,
             outputs: Object.keys(algorithmOutputs).map((param) => ({
               id: param,
               label: param,
+              // TODO: Determine if algo is valid
+              hasValue: Object.hasOwn(outputs['algorithm'], param),
             })),
           },
         },
         ...initialAdapterNodes,
         ...initialVisualizerNodes,
-      ] as Array<Node>,
+      ] satisfies Array<Omit<FlowNode, 'position'>>,
     [
       algorithmName,
       algorithmOutputs,
       initialAdapterNodes,
       initialVisualizerNodes,
+      outputs,
     ],
   );
 
   const initialEdges = useMemo(() => {
     return algorithmVisualizersEvaluated.composition.connections.map(
-      ({ fromKey, fromSlot, toKey, toSlot }) => ({
-        id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
-        source: fromKey,
-        sourceHandle: fromSlot,
-        target: toKey,
-        targetHandle: toSlot,
-        animated: true,
-      }),
+      ({ fromKey, fromSlot, toKey, toSlot }) => {
+        const hasValue = Object.hasOwn(outputs[fromKey] ?? {}, fromSlot);
+        return {
+          id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
+          source: fromKey,
+          sourceHandle: fromSlot,
+          target: toKey,
+          targetHandle: toSlot,
+          className: clsx([
+            String.raw`[&_.react-flow\_\_edge-path]:stroke-2 [&_.react-flow\_\_edge-path]:hover:!stroke-[4px]`,
+            hasValue && String.raw`[&>.react-flow\_\_edge-path]:!stroke-label`,
+            !hasValue &&
+              String.raw`[&>.react-flow\_\_edge-path]:!stroke-border`,
+            String.raw`[&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-accent [&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-[4px]`,
+          ]),
+          animated: hasValue,
+        };
+      },
     ) as Array<Edge>;
-  }, [algorithmVisualizersEvaluated]);
+  }, [algorithmVisualizersEvaluated.composition.connections, outputs]);
 
-  const [nodes, setNodes] = useState(initialNodes);
+  const [nodes, setNodes] = useState<Array<FlowNode>>(
+    // TODO: Remove typecast
+    initialNodes as Array<FlowNode>,
+  );
   const [edges, setEdges] = useState(initialEdges);
 
   useEffect(() => {
@@ -378,23 +474,7 @@ export default function AlgorithmVisualizerFlowchart({
         };
       });
     });
-    setEdges((oldEdges) => {
-      return edges.map((edge) => {
-        const oldEdge = oldEdges.find(
-          (oldEdge) =>
-            oldEdge.source === edge.source && oldEdge.target === edge.target,
-        );
-
-        if (oldEdge === undefined) {
-          return edge;
-        }
-
-        return {
-          ...edge,
-          animated: oldEdge.animated,
-        };
-      });
-    });
+    setEdges(edges);
   }, [initialEdges, initialNodes]);
 
   const autoLayoutNodes = useCallback(() => {
@@ -467,44 +547,46 @@ export default function AlgorithmVisualizerFlowchart({
     [algorithmVisualizersTree, setAlgorithmVisualizers],
   );
 
-  const [, drop] = useDrop(() => {
-    return {
-      accept: 'flowchart-node',
-      drop: ({
-        visualizer,
-        id,
-      }: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        visualizer: SandboxVisualizer<any, unknown> | null;
-        id: string;
-      }) => {
-        if (visualizer === null) {
-          return;
-        }
+  // const [, drop] = useDrop(() => {
+  //   return {
+  //     accept: 'flowchart-node',
+  //     drop: ({
+  //       visualizer,
+  //       id,
+  //     }: {
+  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //       visualizer: SandboxVisualizer<any, unknown> | null;
+  //       id: string;
+  //     }) => {
+  //       if (visualizer === null) {
+  //         return;
+  //       }
 
-        const visualizerInputs = visualizer?.accepts.shape.shape ?? [];
+  //       const visualizerInputs = visualizer?.accepts.shape.shape ?? [];
 
-        const newNode = {
-          id: `visualizer-${id}`,
-          type: 'customFlow',
-          data: {
-            label: visualizer.name,
-            inputs: Object.keys(visualizerInputs).map((param) => ({
-              id: param,
-              label: param,
-            })),
-          },
-        } as Node;
+  //       const newNode = {
+  //         id: `visualizer-${id}`,
+  //         type: 'customFlow',
+  //         data: {
+  //           label: visualizer.name,
+  //           inputs: Object.keys(visualizerInputs).map((param) => ({
+  //             id: param,
+  //             label: param,
+  //             hasValue: false,
+  //           })),
+  //         },
+  //       } satisfies FlowNode;
 
-        setNodes((nds) => [...nds, newNode]);
-      },
-    };
-  });
+  //       setNodes((nds) => [...nds, newNode]);
+  //     },
+  //   };
+  // });
 
   return (
     <PanelGroup direction="horizontal">
-      <Panel className="p-4 flex flex-col items-stretch gap-2">
+      <Panel defaultSize={20} className="p-4 flex flex-col items-stretch gap-2">
         <Heading variant="h2">Configure box</Heading>
+        {JSON.stringify(inputErrors)}
         <ProblemSelect />
         <AlgorithmSelect />
         <Heading variant="h3">Visualizers</Heading>
@@ -649,7 +731,14 @@ export default function AlgorithmVisualizerFlowchart({
       <ResizeHandle />
       <Panel className="relative">
         <ReactFlow
-          ref={drop}
+          className={clsx(
+            String.raw`[&_.react-flow\_\_handle]:border-2`,
+            String.raw`[&_.react-flow\_\_handle]:border-border [&_.react-flow\_\_handle]:relative`,
+            String.raw`[&_.react-flow\_\_handle:hover]:bg-accent`,
+            String.raw`[&_.react-flow\_\_handle]:w-4 [&_.react-flow\_\_handle]:h-4`,
+            String.raw`[&_.react-flow\_\_handle]:translate-x-0 [&_.react-flow\_\_handle]:translate-y-0`,
+            String.raw`[&_.react-flow\_\_handle]:inset-0`,
+          )}
           nodeTypes={nodeTypes}
           nodes={nodes.every((node) => node.position) ? nodes : []}
           edges={edges}

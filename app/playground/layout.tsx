@@ -94,8 +94,6 @@ function LayoutImpl({
           updateBox('box', update);
         }}
         onBoxReset={() => {
-          console.log('resetting');
-
           router.replace(`/playground?box=${boxKey}`);
         }}
       >

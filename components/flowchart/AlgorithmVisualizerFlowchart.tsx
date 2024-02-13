@@ -586,7 +586,6 @@ export default function AlgorithmVisualizerFlowchart({
     <PanelGroup direction="horizontal">
       <Panel defaultSize={20} className="p-4 flex flex-col items-stretch gap-2">
         <Heading variant="h2">Configure box</Heading>
-        {JSON.stringify(inputErrors)}
         <ProblemSelect />
         <AlgorithmSelect />
         <Heading variant="h3">Visualizers</Heading>

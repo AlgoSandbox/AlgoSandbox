@@ -75,13 +75,14 @@ function Button(
             hideLabel || endIcon ? 'pe-4' : 'pe-5',
           ],
           variant === 'flat' && [
+            'border',
             !disabled && [
               !selected &&
-                'hover:bg-surface-high border border-transparent text-on-surface/80 focus-visible:outline-accent',
+                'hover:bg-surface-high border-transparent text-on-surface/80 focus-visible:outline-accent',
               selected &&
-                'hover:bg-surface-high border border-accent focus-visible:outline-accent',
+                'hover:bg-surface-high border-accent focus-visible:outline-accent',
             ],
-            disabled && 'text-muted',
+            disabled && 'text-muted border-transparent',
           ],
           variant === 'filled' && [
             'border',

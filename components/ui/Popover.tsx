@@ -1,8 +1,6 @@
 import * as RadixPopover from '@radix-ui/react-popover';
 import { useState } from 'react';
 
-import { Button, MaterialSymbol } from '.';
-
 export type PopoverProps = {
   content: React.ReactNode;
   children: React.ReactNode;
@@ -89,14 +87,6 @@ export default function Popover({
           className="border overflow-clip rounded-md pointer-events-auto"
         >
           {content}
-          <RadixPopover.Close asChild>
-            <Button
-              className="absolute top-2 end-2"
-              label="Close"
-              hideLabel
-              icon={<MaterialSymbol icon="close" />}
-            />
-          </RadixPopover.Close>
           <RadixPopover.Arrow className="fill-surface-higher" />
         </RadixPopover.Content>
       </RadixPopover.Portal>

@@ -206,6 +206,20 @@ export default function BoxExecutionPage() {
     });
   }, [visualizerOrder, visualizerInstances, inputs]);
 
+  const allVisualizerOrder = useMemo(() => {
+    return ['pseudocode', ...visualizerOrder, 'state-inspector'];
+  }, [visualizerOrder]);
+
+  const [hiddenVisualizerAliases, setHiddenVisualizerAliases] = useState<
+    Set<string>
+  >(new Set());
+
+  const visibleVisualizerAliases = useMemo(() => {
+    return allVisualizerOrder.filter(
+      (alias) => !hiddenVisualizerAliases.has(alias),
+    );
+  }, [allVisualizerOrder, hiddenVisualizerAliases]);
+
   const initialLayout: MosaicNode<string> | null = useMemo(() => {
     const makeRowLayout = (
       alias: string,
@@ -223,8 +237,11 @@ export default function BoxExecutionPage() {
       };
     };
 
-    return makeRowLayout('pseudocode', [...visualizerOrder, 'state-inspector']);
-  }, [visualizerOrder]);
+    return makeRowLayout(
+      visibleVisualizerAliases[0],
+      visibleVisualizerAliases.slice(1),
+    );
+  }, [visibleVisualizerAliases]);
 
   const [layout, setLayout] = useState<MosaicNode<string> | null>(
     initialLayout,
@@ -310,7 +327,13 @@ export default function BoxExecutionPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {isBoxComponentsShown && <AppBar />}
+      {isBoxComponentsShown && (
+        <AppBar
+          allVisualizerOrder={allVisualizerOrder}
+          hiddenVisualizerAliases={hiddenVisualizerAliases}
+          onHiddenVisualizerAliasesChange={setHiddenVisualizerAliases}
+        />
+      )}
       <main className="relative h-full flex flex-col z-0">
         <Mosaic<string>
           className={clsx(
@@ -373,10 +396,19 @@ export default function BoxExecutionPage() {
                   <Tooltip content={windowTitles[alias]}>
                     <div className="text-label px-2 font-medium truncate flex items-center justify-between flex-1">
                       {windowTitles[alias]}
-                      <MaterialSymbol
-                        icon="drag_handle"
-                        className="text-muted"
-                      />
+                      <div className="flex gap-2 items-center">
+                        <button
+                          className="text-muted hover:text-on-surface transition flex items-center"
+                          aria-label="Hide visualizer"
+                          onClick={() => {
+                            setHiddenVisualizerAliases((prev) => {
+                              return new Set(prev).add(alias);
+                            });
+                          }}
+                        >
+                          <MaterialSymbol icon="close" />
+                        </button>
+                      </div>
                     </div>
                   </Tooltip>
                 </div>

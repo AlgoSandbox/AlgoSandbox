@@ -37,9 +37,10 @@ function DirectoryExplorerItem({
 }: DirectoryExplorerItemProps) {
   return (
     <button
+      type="button"
       className={clsx(
-        'flex gap-2 pe-2 py-2 hover:bg-primary/20',
-        selected && 'text-primary bg-primary/10',
+        'flex gap-2 pe-2 py-2 hover:bg-surface-high',
+        selected && 'text-accent bg-surface-high',
       )}
       style={{
         paddingInlineStart: `${(level + 1) * 8}px`,

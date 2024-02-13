@@ -15,6 +15,7 @@ export const sandboxObjectEditorTabConfig: SandboxBaseTabConfig<
   render: ({ context: { addTab, setTab }, tab, data: { object } }) => {
     return (
       <SandboxObjectEditorPage
+        mode="edit"
         object={object}
         onCloned={(newObject) => {
           addTab({

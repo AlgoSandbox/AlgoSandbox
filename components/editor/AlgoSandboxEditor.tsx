@@ -15,6 +15,7 @@ type AlgoSandboxEditorProps = {
   onChange?: (value: string | undefined) => void;
   files: Record<string, string>;
   path: string;
+  readOnly?: boolean;
 };
 
 const externalPackageWhitelist = ['d3', 'lodash', 'zod'];
@@ -24,6 +25,7 @@ export default function AlgoSandboxEditor({
   onChange,
   files,
   path,
+  readOnly = false,
 }: AlgoSandboxEditorProps) {
   const { resolvedTheme } = useTheme();
   const { algoSandboxFiles } = useAlgoSandboxEditorFilesContext();
@@ -113,6 +115,9 @@ export default function AlgoSandboxEditor({
       value={value}
       onChange={onChange}
       keepCurrentModel={false}
+      options={{
+        readOnly,
+      }}
       beforeMount={(monaco) => {
         monaco.editor.getModels().forEach((model) => model.dispose());
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({

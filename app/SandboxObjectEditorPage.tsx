@@ -1,23 +1,37 @@
 import { DirectoryExplorer } from '@components/box-environment-page';
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
-import { Button, Input, ResizeHandle } from '@components/ui';
-import { DbSandboxObjectSaved } from '@utils/db';
+import { Button, Input, MaterialSymbol, ResizeHandle } from '@components/ui';
+import { DbSandboxObject, DbSandboxObjectSaved } from '@utils/db';
 import { useSavedObjectQuery, useSaveObjectMutation } from '@utils/db/objects';
+import {
+  exportObjectToRelativeUrl,
+  getSavedComponentRelativeUrl,
+} from '@utils/url-object/urlObject';
 import _ from 'lodash';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Panel, PanelGroup } from 'react-resizable-panels';
+import { toast } from 'sonner';
 
-type SandboxObjectEditorPageProps = {
-  object: DbSandboxObjectSaved;
-  onCloned: (newObject: DbSandboxObjectSaved) => void;
-  onSave: (newObject: DbSandboxObjectSaved) => void;
-};
+type SandboxObjectEditorPageProps =
+  | {
+      object: DbSandboxObjectSaved;
+      onCloned: (newObject: DbSandboxObjectSaved) => void;
+      onSave: (newObject: DbSandboxObjectSaved) => void;
+      mode: 'edit';
+    }
+  | {
+      object: DbSandboxObject;
+      mode: 'import';
+      onSave: (newObject: DbSandboxObject) => void;
+      onCloned?: never;
+    };
 
 export default function SandboxObjectEditorPage({
   object,
   onCloned,
   onSave,
+  mode,
 }: SandboxObjectEditorPageProps) {
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(
     'index.ts' in object.files ? 'index.ts' : null,
@@ -25,7 +39,7 @@ export default function SandboxObjectEditorPage({
   const isViewOnly = !object.editable;
 
   const { mutateAsync: saveObject } = useSaveObjectMutation();
-  const { data: savedObject } = useSavedObjectQuery(object.key);
+  const { data: savedObject } = useSavedObjectQuery(object.key ?? null);
 
   const files = savedObject?.files ?? object.files;
 
@@ -60,7 +74,7 @@ export default function SandboxObjectEditorPage({
     >
       <PanelGroup className="flex-1" direction="horizontal">
         <Panel key="explorer" defaultSize={30}>
-          {!isViewOnly && (
+          {mode === 'edit' && !isViewOnly && (
             <div className="px-4 py-2 flex gap-2 items-end">
               <Input
                 containerClassName="flex-1"
@@ -73,25 +87,67 @@ export default function SandboxObjectEditorPage({
                 variant="primary"
                 disabled={isViewOnly || !isDirty}
               />
+              <Button
+                icon={<MaterialSymbol icon="link" />}
+                label="Copy import link"
+                hideLabel={true}
+                type="button"
+                onClick={() => {
+                  const relativeUrl = exportObjectToRelativeUrl(object);
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}${relativeUrl}`,
+                  );
+                  toast.success('Import link copied to clipboard');
+                }}
+                variant="primary"
+                disabled={isDirty}
+              />
             </div>
           )}
-          {isViewOnly && (
+          {mode === 'import' && (
+            <div className="px-4 py-2 flex gap-2 items-end">
+              <Input
+                containerClassName="flex-1"
+                label="Name"
+                {...register('name', { required: true })}
+              />
+              <Button label="Save" type="submit" variant="primary" />
+            </div>
+          )}
+          {mode === 'edit' && isViewOnly && (
             <div className="flex items-center justify-between py-2 px-4">
               <h1 className="font-medium text-lg">{object.name}</h1>
-              <Button
-                label="Clone to edit"
-                type="button"
-                variant="primary"
-                onClick={async () => {
-                  const newObject = await saveObject({
-                    ...object,
-                    key: undefined,
-                    editable: true,
-                    name: `${object.name} (copy)`,
-                  });
-                  onCloned(newObject);
-                }}
-              />
+              <div className="flex gap-2">
+                <Button
+                  label="Clone to edit"
+                  type="button"
+                  variant="filled"
+                  onClick={async () => {
+                    const newObject = await saveObject({
+                      ...object,
+                      key: undefined,
+                      editable: true,
+                      name: `${object.name} (copy)`,
+                    });
+                    onCloned?.(newObject);
+                  }}
+                />
+                <Button
+                  icon={<MaterialSymbol icon="link" />}
+                  label="Copy link"
+                  hideLabel={true}
+                  type="button"
+                  onClick={() => {
+                    const relativeUrl = getSavedComponentRelativeUrl(object);
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}${relativeUrl}`,
+                    );
+                    toast.success('Link copied to clipboard');
+                  }}
+                  variant="primary"
+                  disabled={isDirty}
+                />
+              </div>
             </div>
           )}
           <DirectoryExplorer
@@ -104,30 +160,27 @@ export default function SandboxObjectEditorPage({
         </Panel>
         <ResizeHandle />
         <Panel key="editor">
-          <div className="flex-1 flex flex-col h-full">
-            {selectedFilePath && (
-              <div className="flex-1">
-                <Controller
-                  key={selectedFilePath}
-                  control={control}
-                  name={`files.${selectedFilePath.replaceAll('.', '$')}`}
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value } }) => (
-                    <AlgoSandboxEditor
-                      files={files}
-                      path={`file:///${selectedFilePath}`}
-                      value={value}
-                      onChange={(value) => {
-                        onChange({
-                          target: { value: value ?? '' },
-                        });
-                      }}
-                    />
-                  )}
+          {selectedFilePath && (
+            <Controller
+              key={selectedFilePath}
+              control={control}
+              name={`files.${selectedFilePath.replaceAll('.', '$')}`}
+              rules={{ required: true }}
+              render={({ field: { onChange, value } }) => (
+                <AlgoSandboxEditor
+                  files={files}
+                  path={`file:///${selectedFilePath}`}
+                  readOnly={isViewOnly}
+                  value={value}
+                  onChange={(value) => {
+                    onChange({
+                      target: { value: value ?? '' },
+                    });
+                  }}
                 />
-              </div>
-            )}
-          </div>
+              )}
+            />
+          )}
         </Panel>
       </PanelGroup>
     </form>

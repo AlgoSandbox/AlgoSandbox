@@ -1,9 +1,14 @@
-export type DbSandboxObjectType =
-  | 'algorithm'
-  | 'box'
-  | 'problem'
-  | 'visualizer'
-  | 'adapter';
+import { z } from 'zod';
+
+export const sandboxObjectType = z.enum([
+  'algorithm',
+  'box',
+  'problem',
+  'visualizer',
+  'adapter',
+]);
+
+export type DbSandboxObjectType = z.infer<typeof sandboxObjectType>;
 
 export type DbSandboxObject<
   T extends DbSandboxObjectType = DbSandboxObjectType,

@@ -9,9 +9,12 @@ import { DbSandboxObject, DbSandboxObjectType } from '.';
 import * as LocalDb from './local';
 
 export function useSavedObjectQuery<T extends DbSandboxObjectType>(
-  key: string,
+  key: string | null,
 ) {
   return useQuery(['objects', key], async () => {
+    if (key === null) {
+      return null;
+    }
     return LocalDb.getSandboxObject<T>(key);
   });
 }

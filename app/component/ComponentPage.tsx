@@ -77,6 +77,7 @@ export default function ComponentPage({
       </AppNavBar>
       {component && (
         <SandboxObjectEditorPage
+          mode="edit"
           object={component}
           onCloned={(newComponent) => {
             router.push(`/component?key=${newComponent.key}`);

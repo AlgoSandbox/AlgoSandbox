@@ -1,5 +1,5 @@
 type SandboxVisualizationContext<V> = {
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  element: HTMLElement;
   width: number;
   height: number;
   previousVisualizerState: V | null;

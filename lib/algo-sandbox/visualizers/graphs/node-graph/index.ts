@@ -137,12 +137,18 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
         },
         onUpdate: ({
           parameters,
-          svg,
+          element,
           width,
           height,
           state: graph,
           previousVisualizerState,
         }) => {
+          d3.select(element).selectChildren().remove();
+          const svg = d3
+            .select(element)
+            .append('svg')
+            .attr('viewBox', [-width / 2, -height / 2, width, height]);
+
           const visualizerState = (() => {
             if (
               previousVisualizerState &&

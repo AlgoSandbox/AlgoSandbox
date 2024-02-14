@@ -20,7 +20,7 @@ export type SandboxVisualizerContext<
   P extends SandboxParameters,
 > = {
   parameters: ParsedParameters<P>;
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  element: HTMLElement;
   width: number;
   height: number;
   state: SandboxState<N>;

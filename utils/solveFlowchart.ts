@@ -3,6 +3,7 @@ import {
   SandboxAdapter,
   SandboxProblem,
   SandboxStateType,
+  SandboxVisualizer,
 } from '@algo-sandbox/core';
 import { ZodError } from 'zod';
 
@@ -61,6 +62,7 @@ export default function solveFlowchart({
   problem,
   algorithmState,
   adapters,
+  visualizers,
 }: {
   adapterConfiguration: AlgorithmVisualizersTree;
   problem: SandboxProblem<SandboxStateType>;
@@ -68,6 +70,10 @@ export default function solveFlowchart({
   adapters: Record<
     string,
     SandboxAdapter<SandboxStateType, SandboxStateType> | undefined
+  >;
+  visualizers: Record<
+    string,
+    SandboxVisualizer<SandboxStateType, unknown> | undefined
   >;
 }) {
   const graph = buildGraphFromAdapterConfiguration(adapterConfiguration);
@@ -90,31 +96,55 @@ export default function solveFlowchart({
     const neighbors = graph[node] ?? {};
 
     // Try to calculate the state of the node from intermediates
-    if (outputs[node] === undefined && node in adapters) {
+    if (outputs[node] === undefined) {
       // Node should be an adapter
       const adapter = adapters[node];
-      if (adapter === undefined) {
-        continue;
-      }
-      // Inputs should be full
-      const result = adapter.accepts.shape.safeParse(inputs[node]);
+      if (adapter !== undefined) {
+        // Inputs should be full
+        const result = adapter.accepts.shape.safeParse(inputs[node]);
 
-      if (!result.success) {
-        inputErrors[node] = {};
-        Object.entries(adapter.accepts.shape.shape).forEach(
-          ([inputSlot, inputSlotShape]) => {
-            const parseResult = inputSlotShape.safeParse(
-              inputs[node]?.[inputSlot],
-            );
-            if (!parseResult.success) {
-              inputErrors[node][inputSlot] = parseResult.error;
-            }
-          },
-        );
-        continue;
+        if (!result.success) {
+          inputErrors[node] = {};
+          Object.entries(adapter.accepts.shape.shape).forEach(
+            ([inputSlot, inputSlotShape]) => {
+              const parseResult = inputSlotShape.safeParse(
+                inputs[node]?.[inputSlot],
+              );
+              if (!parseResult.success) {
+                inputErrors[node][inputSlot] = parseResult.error;
+              }
+            },
+          );
+          continue;
+        }
+        const output = adapter.transform(result.data);
+        outputs[node] = output;
+      } else {
+        const visualizer = visualizers[node] as
+          | SandboxVisualizer<SandboxStateType, unknown>
+          | undefined;
+
+        if (visualizer === undefined) {
+          throw new Error(`No adapter or visualizer for node ${node}`);
+        }
+
+        const result = visualizer.accepts.shape.safeParse(inputs[node]);
+
+        if (!result.success) {
+          inputErrors[node] = {};
+          Object.entries(visualizer.accepts.shape.shape).forEach(
+            ([inputSlot, inputSlotShape]) => {
+              const parseResult = inputSlotShape.safeParse(
+                inputs[node]?.[inputSlot],
+              );
+              if (!parseResult.success) {
+                inputErrors[node][inputSlot] = parseResult.error;
+              }
+            },
+          );
+          continue;
+        }
       }
-      const output = adapter.transform(result.data);
-      outputs[node] = output;
     }
 
     for (const [neighbor, connections] of Object.entries(neighbors)) {

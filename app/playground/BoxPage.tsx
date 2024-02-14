@@ -117,6 +117,8 @@ function SceneProvider({
   );
   const algorithmState = executionStep?.state;
 
+  const visualizerInstances = useBoxContext('visualizers.instances');
+
   const { inputs, outputs, inputErrors } = useMemo(() => {
     if (problemInstance === null || algorithmInstance === undefined) {
       return {};
@@ -130,6 +132,7 @@ function SceneProvider({
         algorithmVisualizersAdapters ?? {},
         (val) => val?.value,
       ),
+      visualizers: mapValues(visualizerInstances, (val) => val?.value),
     });
 
     return { inputs, outputs, inputErrors };

@@ -40,6 +40,7 @@ import ReactFlow, {
 import { ZodError } from 'zod';
 
 import { useBoxContext } from '../box-page';
+import AdapterSelect from './AdapterSelect';
 import VisualizerSelect from './VisualizerSelect';
 
 type FlowNodeProps = {
@@ -653,10 +654,9 @@ export default function AlgorithmVisualizerFlowchart({
         <HeadingContent>
           {Object.entries(selectedAdapters).map(([alias, option]) => (
             <div className="flex w-full items-end gap-2" key={alias}>
-              <CatalogSelect
-                containerClassName="flex-1"
+              <AdapterSelect
+                className="flex-1"
                 label={alias}
-                options={adapterOptions}
                 value={option}
                 onChange={(value) => {
                   setAlgorithmVisualizers({

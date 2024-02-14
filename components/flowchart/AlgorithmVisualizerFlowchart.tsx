@@ -412,7 +412,7 @@ export default function AlgorithmVisualizerFlowchart({
               id: param,
               label: param,
               // TODO: Determine if algo is valid
-              hasValue: Object.hasOwn(outputs['algorithm'], param),
+              hasValue: Object.hasOwn(outputs['algorithm'] ?? {}, param),
             })),
           },
         },

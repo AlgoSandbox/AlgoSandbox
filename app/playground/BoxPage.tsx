@@ -142,6 +142,7 @@ function SceneProvider({
     algorithmVisualizersTree,
     algorithmState,
     algorithmVisualizersAdapters,
+    visualizerInstances,
   ]);
 
   const value = useMemo(
@@ -181,7 +182,7 @@ function BoxPageImpl() {
     isBoxComponentsShown,
     setBoxComponentsShown,
   } = useUserPreferences();
-  const { isDraft, reset, openBoxEditor } = useBoxContext();
+  const { isDraft, reset } = useBoxContext();
   const { builtInBoxOptions } = useBuiltInComponents();
 
   const selectedOption = useMemo(() => {
@@ -257,15 +258,6 @@ function BoxPageImpl() {
                   variant="flat"
                   onClick={reset}
                   icon={<MaterialSymbol icon="settings_backup_restore" />}
-                />
-              )}
-              {isAdvancedModeEnabled && !isDraft && (
-                <Button
-                  label="Edit box"
-                  hideLabel={true}
-                  variant="flat"
-                  onClick={openBoxEditor}
-                  icon={<MaterialSymbol icon="edit" />}
                 />
               )}
               {!isDraft && (

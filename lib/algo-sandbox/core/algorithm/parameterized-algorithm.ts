@@ -17,8 +17,9 @@ export type SandboxParameterizedAlgorithm<
 
 type SandboxContextWithParameters<
   N extends SandboxStateType,
+  M extends SandboxStateType,
   P extends SandboxParameters,
-> = SandboxExecutionContext<N> & {
+> = SandboxExecutionContext<N, M> & {
   parameters: ParsedParameters<P>;
 };
 
@@ -42,7 +43,7 @@ export function createParameterizedAlgorithm<
   createInitialState: (problem: Readonly<SandboxState<N>>) => SandboxState<M>;
   getPseudocode: (parameters: ParsedParameters<P>) => string;
   runAlgorithm: (
-    context: SandboxContextWithParameters<M, P>
+    context: SandboxContextWithParameters<N, M, P>,
   ) => ReturnType<SandboxAlgorithm<N, M>['runAlgorithm']>;
 }): SandboxParameterizedAlgorithm<N, M, P> {
   return {

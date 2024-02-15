@@ -25,6 +25,7 @@ import { useDragDropManager } from 'react-dnd';
 import { chromeDark } from 'react-inspector';
 import { ObjectInspector } from 'react-inspector';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
+import { toast } from 'sonner';
 
 import { useScene } from './BoxPage';
 
@@ -105,7 +106,7 @@ function solve({
   );
 
   const outputs: Record<string, Record<string, unknown>> = {
-    problem: problem.initialState,
+    problem: problem.getInitialState(),
     algorithm: algorithmState ?? {},
   };
 
@@ -145,7 +146,7 @@ function solve({
 
 export default function BoxExecutionPage() {
   const { resolvedTheme } = useTheme();
-  const { isBoxComponentsShown } = useUserPreferences();
+  const { isBoxComponentsShown, maxExecutionStepCount } = useUserPreferences();
 
   const scene = useScene();
   const { currentStepIndex } = useBoxControlsContext();
@@ -250,6 +251,21 @@ export default function BoxExecutionPage() {
   useEffect(() => {
     setLayout(initialLayout);
   }, [initialLayout]);
+
+  useEffect(() => {
+    if (
+      (scene?.executionTrace.length ?? 0) > 0 &&
+      scene?.didReachExecutionLimit
+    ) {
+      toast.info(
+        `${maxExecutionStepCount} steps executed. You may adjust the max number of execution steps under Settings`,
+      );
+    }
+  }, [
+    maxExecutionStepCount,
+    scene?.didReachExecutionLimit,
+    scene?.executionTrace.length,
+  ]);
 
   const renderTile = useCallback(
     (id: string) => {

@@ -1,6 +1,7 @@
 import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { CatalogGroup } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
+import { isEqual } from 'lodash';
 import { useMemo } from 'react';
 
 import {
@@ -48,13 +49,22 @@ export default function useBoxContextProblemAlgorithm({
         (composedAdapter === null &&
           algorithm.instance !== null &&
           problem.instance !== null &&
-          problem.instance.type.name === algorithm.instance.accepts.name) ||
+          isEqual(
+            Object.keys(problem.instance.type.shape.shape),
+            Object.keys(algorithm.instance.accepts.shape.shape),
+          )) ||
         (!hasInvalidAdapter &&
           algorithm.instance !== null &&
           problem.instance !== null &&
           composedAdapter !== null &&
-          problem.instance.type.name === composedAdapter.accepts.name &&
-          composedAdapter.outputs === algorithm.instance.accepts),
+          isEqual(
+            Object.keys(problem.instance.type.shape.shape),
+            Object.keys(composedAdapter.accepts.shape.shape),
+          ) &&
+          isEqual(
+            Object.keys(composedAdapter.outputs.shape.shape),
+            Object.keys(algorithm.instance.accepts.shape.shape),
+          )),
       adapters,
     } satisfies BoxContextProblemAlgorithm;
   }, [

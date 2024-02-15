@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash';
+
 import { SandboxState, SandboxStateType } from '../state';
 
 export type SandboxAdapter<
@@ -65,9 +67,20 @@ export function tryCompose<A extends Array<SandboxAdapter<any, any>>>(
   ...adapters: ValidPipe<A>
 ): SandboxCompositeAdapter<Input<A[0]>, Output<Last<A>>, ValidPipe<A>> | null {
   for (let i = 0; i < adapters.length - 1; i++) {
-    const first = adapters[i];
-    const second = adapters[i + 1];
-    if (first.outputs.name !== second.accepts.name) {
+    const first = adapters[i] as SandboxAdapter<
+      SandboxStateType,
+      SandboxStateType
+    >;
+    const second = adapters[i + 1] as SandboxAdapter<
+      SandboxStateType,
+      SandboxStateType
+    >;
+    if (
+      !isEqual(
+        Object.keys(first.outputs.shape.shape),
+        Object.keys(second.accepts.shape.shape),
+      )
+    ) {
       return null;
     }
   }

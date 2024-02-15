@@ -1,7 +1,7 @@
 import { SandboxState, SandboxStateType } from '../state';
 
-export type SandboxProblem<N extends SandboxStateType> = {
+export type SandboxProblem<T extends SandboxStateType> = {
   name: string;
-  type: N;
-  initialState: SandboxState<N>;
+  type: T;
+  getInitialState: () => SandboxState<T>;
 };

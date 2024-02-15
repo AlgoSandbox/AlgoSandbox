@@ -84,7 +84,7 @@ export default function solveFlowchart({
   );
 
   const outputs: Record<string, Record<string, unknown>> = {
-    problem: problem.initialState,
+    problem: problem.getInitialState(),
     algorithm: algorithmState ?? {},
   };
 

@@ -54,7 +54,9 @@ export class SandboxAlgorithmExecutor<
     this.executionTrace = [];
     this.isFullyExecuted = false;
 
-    const initialData = algorithm.createInitialState(this.problem.initialState);
+    const problemState = problem.getInitialState();
+
+    const initialData = algorithm.createInitialState(problemState);
     const state = new SandboxStateImpl<M>(initialData);
 
     const line = (start: number, end?: number) => {
@@ -64,15 +66,41 @@ export class SandboxAlgorithmExecutor<
 
     this.executionGenerator = this.algorithm.runAlgorithm({
       state: state.data,
+      problemState,
       line,
     });
   }
 
-  execute(untilCount?: number) {
-    while (
-      !this.isFullyExecuted &&
-      (untilCount === undefined || this.executionTrace.length < untilCount)
-    ) {
+  /**
+   * Executes until a certain count or until the maximum execution step count is reached.
+   * @param untilCount The count to execute until.
+   * @param maxExecutionStepCount The maximum number of execution steps to execute within an execution attempt.
+   * @returns Whether the max execution step count was reached.
+   */
+  execute({
+    untilCount,
+    maxExecutionStepCount,
+  }: {
+    untilCount?: number;
+    maxExecutionStepCount: number;
+  }): boolean {
+    const previousExecutedCount = this.executionTrace.length;
+    while (!this.isFullyExecuted) {
+      if (
+        untilCount !== undefined &&
+        this.executionTrace.length >= untilCount
+      ) {
+        break;
+      }
+
+      if (untilCount === undefined) {
+        const executedCount =
+          this.executionTrace.length - previousExecutedCount;
+        if (executedCount >= maxExecutionStepCount) {
+          return true;
+        }
+      }
+
       const { done, value: executionStep } = this.executionGenerator.next();
       if (done) {
         this.isFullyExecuted = true;
@@ -83,12 +111,14 @@ export class SandboxAlgorithmExecutor<
         this.executionTrace.push(executionStep);
       }
     }
+
+    return false;
   }
 
   makeExecutionStep(
     startLine: number,
     endLine: number,
-    state: SandboxExecutionState<M>
+    state: SandboxExecutionState<M>,
   ) {
     return {
       startLine,

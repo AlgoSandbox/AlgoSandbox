@@ -6,6 +6,7 @@ import {
   SandboxAlgorithm,
   SandboxBox,
   SandboxParameterizedAlgorithm,
+  SandboxParameterizedEnvironment,
   SandboxParameterizedProblem,
   SandboxParameterizedVisualizer,
   SandboxProblem,
@@ -22,7 +23,15 @@ export type SandboxAnyAlgorithm =
 
 export type SandboxAnyProblem =
   | SandboxProblem<any>
-  | SandboxParameterizedProblem<any, any>;
+  | SandboxParameterizedProblem<any, any>
+  // Workaround: the line below is required even though parameterized environments are
+  // parameterized problems. This is as Typescript is not
+  // eager in evaluating conditional types like "T extends A".
+  // So "T extends SandboxParameterizedEnvironment" can be true,
+  // and "SandboxParameterizedEnvironment extends SandboxParameterizedProblem" is true.
+  // but "T extends SandboxParameterizedEnvironment" is false.
+  // This is required for SandboxProblemKey to be inferred correctly.
+  | SandboxParameterizedEnvironment<any, any, any>;
 
 export type SandboxAnyVisualizer =
   | SandboxVisualizer<any, any>

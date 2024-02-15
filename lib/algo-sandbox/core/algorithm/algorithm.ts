@@ -12,6 +12,13 @@ export type SandboxAlgorithm<
   pseudocode: string;
   createInitialState: (problem: Readonly<SandboxState<N>>) => SandboxState<M>;
   runAlgorithm(
-    context: SandboxExecutionContext<M>
+    context: SandboxExecutionContext<N, M>,
   ): Generator<SandboxExecutionStep<M>, boolean, void>;
 };
+
+export function createAlgorithm<
+  N extends SandboxStateType,
+  M extends SandboxStateType,
+>(algorithm: SandboxAlgorithm<N, M>): SandboxAlgorithm<N, M> {
+  return algorithm;
+}

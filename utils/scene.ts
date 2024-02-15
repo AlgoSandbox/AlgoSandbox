@@ -15,6 +15,7 @@ export type SandboxScene<
   algorithm: Readonly<SandboxAlgorithm<N, M>>;
   problem: Readonly<SandboxProblem<N>>;
   isFullyExecuted: boolean;
+  didReachExecutionLimit: boolean;
 };
 
 export function createScene<
@@ -23,24 +24,32 @@ export function createScene<
 >({
   algorithm,
   problem,
+  maxExecutionStepCount,
 }: {
   algorithm: SandboxAlgorithm<N, M>;
   problem: SandboxProblem<N>;
+  maxExecutionStepCount: number;
 }): SandboxScene<N, M> {
   const executor = new SandboxAlgorithmExecutor(algorithm, problem);
 
-  const createSceneInternal = (): SandboxScene<N, M> => {
+  const createSceneInternal = (
+    didReachExecutionLimit: boolean,
+  ): SandboxScene<N, M> => {
     return {
       algorithm: algorithm,
       problem: problem,
       isFullyExecuted: executor.isFullyExecuted,
+      didReachExecutionLimit,
       executionTrace: [...executor.executionTrace],
       copyWithExecution: (untilCount) => {
-        executor.execute(untilCount);
-        return createSceneInternal();
+        const didReachExecutionLimit = executor.execute({
+          untilCount,
+          maxExecutionStepCount,
+        });
+        return createSceneInternal(didReachExecutionLimit);
       },
     };
   };
 
-  return createSceneInternal();
+  return createSceneInternal(false);
 }

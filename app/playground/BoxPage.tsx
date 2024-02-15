@@ -14,7 +14,7 @@ import { useBuiltInComponents } from '@components/playground/BuiltInComponentsPr
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
-import { Button, MaterialSymbol, Popover, Select } from '@components/ui';
+import { Button, Input, MaterialSymbol, Popover, Select } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import Toggle from '@components/ui/Toggle';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
@@ -39,6 +39,7 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
     useBoxContext('problemAlgorithm');
   const problemInstance = useBoxContext('problem.instance');
   const algorithmInstance = useBoxContext('algorithm.instance');
+  const { maxExecutionStepCount: maxExecutionStepCount } = useUserPreferences();
 
   const initialScene = useMemo(() => {
     if (
@@ -50,6 +51,7 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
         const scene = createScene({
           algorithm: algorithmInstance,
           problem: problemInstance,
+          maxExecutionStepCount,
         });
 
         return scene.copyWithExecution(1);
@@ -59,7 +61,12 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
       }
     }
     return null;
-  }, [areAlgorithmProblemCompatible, algorithmInstance, problemInstance]);
+  }, [
+    areAlgorithmProblemCompatible,
+    algorithmInstance,
+    problemInstance,
+    maxExecutionStepCount,
+  ]);
   const [scene, setScene] = useState(initialScene);
 
   useEffect(() => {
@@ -181,6 +188,8 @@ function BoxPageImpl() {
     setAdvancedModeEnabled,
     isBoxComponentsShown,
     setBoxComponentsShown,
+    maxExecutionStepCount,
+    setMaxExecutionStepCount,
   } = useUserPreferences();
   const { isDraft, reset } = useBoxContext();
   const { builtInBoxOptions } = useBuiltInComponents();
@@ -300,10 +309,17 @@ function BoxPageImpl() {
                   label="Theme"
                 />
                 <Toggle
-                  className="mb-2"
                   label="Advanced mode"
                   value={isAdvancedModeEnabled}
                   onChange={setAdvancedModeEnabled}
+                />
+                <Input
+                  label="Max execution steps"
+                  value={maxExecutionStepCount.toString()}
+                  onChange={(e) => {
+                    setMaxExecutionStepCount(parseInt(e.target.value, 10));
+                  }}
+                  type="number"
                 />
               </div>
             }

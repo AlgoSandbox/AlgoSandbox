@@ -19,11 +19,11 @@ const fiveNodesGraph = {
 const fiveNodes = {
   name: 'Five nodes',
   type: searchGraph,
-  initialState: {
+  getInitialState: () => ({
     ...fiveNodesGraph,
     startId: 'A',
     endId: 'D',
-  },
+  }),
 } satisfies SandboxProblem<typeof searchGraph>;
 
 export default fiveNodes;

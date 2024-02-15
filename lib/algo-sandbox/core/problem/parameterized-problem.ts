@@ -9,12 +9,12 @@ import {
 } from '..';
 
 export type SandboxParameterizedProblem<
-  N extends SandboxStateType,
+  T extends SandboxStateType,
   P extends SandboxParameters,
-> = Parameterized<SandboxProblem<N>, P>;
+> = Parameterized<SandboxProblem<T>, P>;
 
 export function createParameterizedProblem<
-  N extends SandboxStateType,
+  T extends SandboxStateType,
   P extends SandboxParameters,
 >({
   name,
@@ -24,11 +24,11 @@ export function createParameterizedProblem<
   getInitialState,
 }: {
   name: string;
-  type: N;
+  type: T;
   parameters: P;
   getName: (parameters: ParsedParameters<P>) => string;
-  getInitialState: (parameters: ParsedParameters<P>) => SandboxState<N>;
-}): SandboxParameterizedProblem<N, P> {
+  getInitialState: (parameters: ParsedParameters<P>) => SandboxState<T>;
+}): SandboxParameterizedProblem<T, P> {
   return {
     name,
     parameters,
@@ -36,7 +36,7 @@ export function createParameterizedProblem<
       return {
         name: getName(parsedParameters),
         type: type,
-        initialState: getInitialState(parsedParameters),
+        getInitialState: () => getInitialState(parsedParameters),
       };
     },
   };

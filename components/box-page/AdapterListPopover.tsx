@@ -8,7 +8,7 @@ import {
 import { DbAdapterSaved } from '@utils/db';
 import { DbObjectEvaluation } from '@utils/evalSavedObject';
 import clsx from 'clsx';
-import _ from 'lodash';
+import _, { isEqual } from 'lodash';
 import { Fragment, ReactElement, useMemo } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
@@ -86,7 +86,12 @@ export default function AdapterListPopover({
         return i;
       }
 
-      if (adapter.accepts.name !== input?.name) {
+      if (
+        !isEqual(
+          Object.keys(adapter.accepts.shape.shape),
+          Object.keys(input?.shape.shape ?? {}),
+        )
+      ) {
         return i;
       }
       input = adapter.outputs;
@@ -98,8 +103,13 @@ export default function AdapterListPopover({
   const isLastAdapterFaulty =
     valueEvaluated.length > 0 &&
     (valueEvaluated[valueEvaluated.length - 1]?.objectEvaled === null ||
-      valueEvaluated[valueEvaluated.length - 1]?.objectEvaled?.outputs.name !==
-        toType?.name);
+      !isEqual(
+        Object.keys(
+          valueEvaluated[valueEvaluated.length - 1]?.objectEvaled?.outputs.shape
+            .shape ?? {},
+        ),
+        Object.keys(toType?.shape.shape ?? {}),
+      ));
 
   const isFaulty =
     faultyAdapterIndex !== null ||

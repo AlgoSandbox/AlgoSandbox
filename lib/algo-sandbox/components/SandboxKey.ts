@@ -95,7 +95,7 @@ type SandboxComponentMap = {
 };
 
 export type SandboxKey<K extends SandboxObjectType = SandboxObjectType> =
-  SandboxKeyMap[K];
+  SandboxKeyMap[K] & string;
 export type SandboxComponent<K extends SandboxObjectType = SandboxObjectType> =
   SandboxComponentMap[K];
 

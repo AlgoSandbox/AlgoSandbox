@@ -38,8 +38,10 @@ import { evalSavedObject } from '@utils/evalSavedObject';
 import tryEvaluate from '@utils/tryEvaluate';
 import {
   sandboxAdapter,
-  sandboxAlgorithm,
   sandboxParameterizedAdapter,
+} from '@utils/verifiers/adapter';
+import {
+  sandboxAlgorithm,
   sandboxParameterizedAlgorithm,
 } from '@utils/verifiers/algorithm';
 import { sandboxBox } from '@utils/verifiers/box';

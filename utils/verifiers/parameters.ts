@@ -4,7 +4,6 @@ import {
   SandboxParameterType,
   SandboxParameterTypeMap,
 } from '@algo-sandbox/core';
-import { assert, Equals, Extends } from 'tsafe';
 import { z } from 'zod';
 
 export const sandboxParameterType = z.union([
@@ -13,22 +12,13 @@ export const sandboxParameterType = z.union([
   z.literal('float'),
   z.literal('integer'),
   z.literal('string'),
-]);
-type InferredSandboxParameterType = z.infer<typeof sandboxParameterType>;
-assert<Equals<InferredSandboxParameterType, SandboxParameterType>>();
+]) satisfies z.ZodType<SandboxParameterType>;
 
 export const sandboxParameterValue = z.union([
   z.number(),
   z.string(),
   z.function(),
-]);
-type InferredSandboxParameterValue = z.infer<typeof sandboxParameterValue>;
-assert<
-  Extends<
-    InferredSandboxParameterValue,
-    SandboxParameterTypeMap[SandboxParameterType]
-  >
->();
+]) satisfies z.ZodType<SandboxParameterTypeMap[SandboxParameterType]>;
 
 export const sandboxParameter = z.object({
   name: z.string(),
@@ -40,12 +30,8 @@ export const sandboxParameter = z.object({
       z.union([z.boolean(), z.string()]),
     )
     .optional(),
-});
-type InferredSandboxParameter = z.infer<typeof sandboxParameter>;
-assert<
-  Extends<SandboxParameter<SandboxParameterType>, InferredSandboxParameter>
->();
+}) satisfies z.ZodType<SandboxParameter<SandboxParameterType>>;
 
-export const sandboxParameters = z.record(sandboxParameter);
-type InferredSandboxParameters = z.infer<typeof sandboxParameters>;
-assert<Extends<InferredSandboxParameters, SandboxParameters>>();
+export const sandboxParameters = z.record(
+  sandboxParameter,
+) satisfies z.ZodType<SandboxParameters>;

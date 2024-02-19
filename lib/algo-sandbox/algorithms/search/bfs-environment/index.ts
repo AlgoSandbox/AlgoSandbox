@@ -20,7 +20,7 @@ const pseudocode = `BFS(G, start):
               Set visited[u] to true`;
 
 const breadthFirstSearch = createAlgorithm({
-  name: 'Breadth-first search (graph)',
+  name: 'Breadth-first search (env)',
   accepts: sandboxEnvironmentState,
   outputs: {
     name: 'Intermediate state',

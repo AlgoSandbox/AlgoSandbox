@@ -1,34 +1,27 @@
-import { z } from 'zod';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  SandboxAlgorithm,
+  SandboxParameterizedAlgorithm,
+} from '@algo-sandbox/core';
+import { z, ZodType } from 'zod';
 
 import { sandboxParameters } from './parameters';
 import { sandboxState } from './state';
-
-export const sandboxAdapter = z.object({
-  accepts: sandboxState,
-  outputs: sandboxState,
-  transform: z.function(z.tuple([sandboxState]), sandboxState),
-});
-
-export const sandboxParameterizedAdapter = z.object({
-  name: z.string(),
-  parameters: sandboxParameters,
-  create: z.function(z.tuple([z.object({})]), z.any()),
-});
 
 export const sandboxAlgorithm = z.object({
   name: z.string(),
   accepts: sandboxState,
   outputs: sandboxState,
   pseudocode: z.string(),
-  createInitialState: z.function(z.tuple([sandboxState]), sandboxState),
+  createInitialState: z.function().args(z.object({}).readonly()),
   runAlgorithm: z.function(z.tuple([z.any()]), z.any()),
-});
+}) satisfies ZodType<SandboxAlgorithm<any, any>>;
 
 export const sandboxParameterizedAlgorithm = z.object({
   name: z.string(),
   parameters: sandboxParameters,
-  create: z.function(z.tuple([z.object({})]), z.any()),
-});
+  create: z.function().args(z.object({}).optional()).returns(sandboxAlgorithm),
+}) satisfies ZodType<SandboxParameterizedAlgorithm<any, any, any>>;
 
 export const sandboxAnyAlgorithm = z.union([
   sandboxAlgorithm,

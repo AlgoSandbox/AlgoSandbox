@@ -37,7 +37,6 @@
     "react-resizable-panels": "^0.0.55",
     "reactflow": "^11.10.1",
     "sonner": "^1.4.0",
-    "tsafe": "^1.6.5",
     "zod": "^3.22.2"
   },
   "devDependencies": {

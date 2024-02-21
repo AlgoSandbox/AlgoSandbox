@@ -112,7 +112,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
     }, [edges, nodeId, nodeInternals]);
 
     const isUsingInputMainSlot = connectedEdges.some(
-      (edge) => edge.sourceHandle === '.',
+      (edge) => edge.targetHandle === '.',
     );
 
     function createLeftSlot({
@@ -133,15 +133,13 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       );
       const hasError = error !== null;
       const shouldHighlight = hasValue && (isMainSlot || !isUsingInputMainSlot);
-      const isShadowedByMainSlot = !isMainSlot && isUsingInputMainSlot;
+      const isShadowedByMainSlot =
+        !isMainSlot && isConnected && isUsingInputMainSlot;
 
       return (
         <div
           key={id}
-          className={clsx(
-            'flex items-center gap-2',
-            isMainSlot ? 'gap-2' : 'gap-3',
-          )}
+          className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
         >
           <Handle
             className={clsx(
@@ -229,7 +227,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       return (
         <div
           key={id}
-          className={clsx('flex items-center', isMainSlot ? 'gap-2' : 'gap-3')}
+          className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
         >
           {isMainSlot && (
             <Tooltip
@@ -350,6 +348,7 @@ export default function AlgorithmVisualizerFlowchart({
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
+  const problem = useBoxContext('problem.instance');
   const {
     builtInVisualizerOptions: visualizerOptions,
     builtInAdapterOptions: adapterOptions,
@@ -380,6 +379,7 @@ export default function AlgorithmVisualizerFlowchart({
   }, [adapterOptions, algorithmVisualizersTree.adapters]);
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
+  const problemName = problem?.name ?? 'Untitled algorithm';
 
   useEffect(() => {
     const newTabName = 'Config';
@@ -391,6 +391,11 @@ export default function AlgorithmVisualizerFlowchart({
   const algorithmOutputs = useMemo(
     () => algorithm?.outputs.shape.shape ?? {},
     [algorithm],
+  );
+
+  const problemOutputs = useMemo(
+    () => problem?.type.shape.shape ?? {},
+    [problem],
   );
 
   const initialAdapterNodes = useMemo(
@@ -414,7 +419,7 @@ export default function AlgorithmVisualizerFlowchart({
                   (param) => {
                     const label = (() => {
                       if (param === '.') {
-                        return 'input';
+                        return '';
                       }
 
                       return param;
@@ -440,7 +445,7 @@ export default function AlgorithmVisualizerFlowchart({
                   (param) => {
                     const label = (() => {
                       if (param === '.') {
-                        return 'output';
+                        return '';
                       }
 
                       return param;
@@ -495,7 +500,7 @@ export default function AlgorithmVisualizerFlowchart({
 
               const label = (() => {
                 if (param === '.') {
-                  return 'input';
+                  return '';
                 }
 
                 return param;
@@ -534,7 +539,39 @@ export default function AlgorithmVisualizerFlowchart({
 
               const label = (() => {
                 if (param === '.') {
-                  return 'output';
+                  return '';
+                }
+
+                return param;
+              })();
+
+              return {
+                id: param,
+                label,
+                // TODO: Determine if algo is valid
+                hasValue,
+              };
+            }),
+          },
+        },
+        {
+          id: 'problem',
+          type: 'customFlow',
+          width: 500,
+          height: 200,
+          data: {
+            label: problemName,
+            outputs: ['.', ...Object.keys(problemOutputs)].map((param) => {
+              const hasValue = (() => {
+                if (param === '.') {
+                  return outputs['problem'] !== undefined;
+                }
+                return Object.hasOwn(outputs['problem'] ?? {}, param);
+              })();
+
+              const label = (() => {
+                if (param === '.') {
+                  return '';
                 }
 
                 return param;
@@ -558,6 +595,8 @@ export default function AlgorithmVisualizerFlowchart({
       initialAdapterNodes,
       initialVisualizerNodes,
       outputs,
+      problemName,
+      problemOutputs,
     ],
   );
 

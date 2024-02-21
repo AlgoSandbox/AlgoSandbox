@@ -1,6 +1,6 @@
 import z from 'zod';
 
-export type SandboxStateType<T extends z.SomeZodObject = z.SomeZodObject> = {
+export type SandboxStateType<T extends z.ZodType = z.SomeZodObject> = {
   name: string;
   shape: T;
 };

@@ -11,6 +11,8 @@ import {
   useState,
 } from 'react';
 
+import { error, ErrorOr, success } from './errors/ErrorContext';
+
 type BoxManagerType = {
   getBox: (key: string) => SandboxBoxNamed | null;
   createNewBox: (box?: SandboxBoxNamed) => string;
@@ -42,31 +44,21 @@ export function useBox(key: string) {
     return builtInBoxOptions.flatMap((box) => box.options);
   }, [builtInBoxOptions]);
 
-  const box: SandboxBoxNamed | null = useMemo(() => {
+  const box: ErrorOr<SandboxBoxNamed> = useMemo(() => {
     const localBox = getBox(key);
     if (localBox !== null) {
-      return localBox;
+      return success(localBox);
     }
 
     const savedBox = allBoxes.find((box) => box.key === key)?.value;
 
-    const { objectEvaled: evaledBox, errorMessage } = evalSavedObject<'box'>(
-      savedBox ?? null,
-    );
-
-    if (savedBox === null || savedBox === undefined) {
-      return null;
+    if (savedBox === undefined) {
+      return error(`Unable to find box with key: ${key}`);
     }
 
-    if (errorMessage != null) {
-      return null;
-    }
+    const evaledBox = evalSavedObject<'box'>(savedBox);
 
-    if (evaledBox === null) {
-      return null;
-    }
-
-    return { ...evaledBox, name: savedBox.name };
+    return evaledBox.map((b) => ({ ...b, name: savedBox.name }));
   }, [allBoxes, getBox, key]);
   return box;
 }

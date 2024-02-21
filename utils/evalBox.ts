@@ -13,30 +13,27 @@ export default function evalBox({
   files: Record<string, string>;
   builtInComponents: BuiltInComponents;
 }): SandboxBoxEvaluated {
-  const algorithm =
-    getSandboxObjectWithKey({
-      type: 'algorithm',
-      key: box.algorithm,
-      builtInComponents,
-      files,
-    }) ?? undefined;
-  const problem =
-    getSandboxObjectWithKey({
-      type: 'problem',
-      key: box.problem,
-      builtInComponents,
-      files,
-    }) ?? undefined;
-  const visualizer =
-    getSandboxObjectWithKey({
-      type: 'visualizer',
-      // TODO: change this
-      key:
-        box.visualizers.aliases['visualizer-0'] ??
-        'visualizer.graphs.searchGraph',
-      builtInComponents,
-      files,
-    }) ?? undefined;
+  const algorithm = getSandboxObjectWithKey({
+    type: 'algorithm',
+    key: box.algorithm,
+    builtInComponents,
+    files,
+  }).mapLeft(() => undefined).value;
+  const problem = getSandboxObjectWithKey({
+    type: 'problem',
+    key: box.problem,
+    builtInComponents,
+    files,
+  }).mapLeft(() => undefined).value;
+  const visualizer = getSandboxObjectWithKey({
+    type: 'visualizer',
+    // TODO: change this
+    key:
+      box.visualizers.aliases['visualizer-0'] ??
+      'visualizer.graphs.searchGraph',
+    builtInComponents,
+    files,
+  }).mapLeft(() => undefined).value;
 
   const algorithmVisualizers: SandboxBoxEvaluated['algorithmVisualizers'] = {
     composition: box.algorithmVisualizers?.composition ?? {

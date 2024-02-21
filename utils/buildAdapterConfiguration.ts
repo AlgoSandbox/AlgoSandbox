@@ -6,9 +6,9 @@ import {
 import {
   AdapterConfigurationFlat,
   AdapterConfigurationRaw,
+  AdapterConfigurationTree,
   SandboxAliases,
   SandboxKeyFromAlias,
-  AdapterConfigurationTree,
 } from '@algo-sandbox/core';
 
 type FlatConfigurationBuilder<

@@ -1,11 +1,14 @@
-import { SandboxBox } from '@algo-sandbox/core';
+import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
+import { ErrorOr, success } from '@app/errors/ErrorContext';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useMemo } from 'react';
 
 import evalBox from './evalBox';
 import evalWithAlgoSandbox from './evalWithAlgoSandbox';
 
-export default function useDefaultBoxFromFiles(files: Record<string, string>) {
+export default function useDefaultBoxFromFiles(
+  files: Record<string, string>,
+): ErrorOr<SandboxBoxEvaluated | null> {
   const builtInComponents = useBuiltInComponents();
   return useMemo(() => {
     const defaultBoxFilePath = Object.keys(files).find((path) =>
@@ -13,26 +16,28 @@ export default function useDefaultBoxFromFiles(files: Record<string, string>) {
     );
 
     if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
-      return;
+      return success(null);
     }
 
     const defaultBoxCode = files[defaultBoxFilePath];
 
     if (defaultBoxCode === undefined) {
-      return;
+      return success(null);
     }
 
     const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
       files,
       currentFilePath: defaultBoxFilePath,
-    }) as SandboxBox;
+    }) as ErrorOr<SandboxBox>;
 
-    const evaledBox = evalBox({
-      box: defaultBox,
-      builtInComponents,
-      currentFilePath: defaultBoxFilePath,
-      files,
-    });
+    const evaledBox = defaultBox.map((box) =>
+      evalBox({
+        box,
+        builtInComponents,
+        currentFilePath: defaultBoxFilePath,
+        files,
+      }),
+    );
 
     return evaledBox;
   }, [files, builtInComponents]);

@@ -13,7 +13,7 @@ export default function ProblemAlgorithmAdapterSelect() {
 
   const valueEvaluated = useMemo(() => {
     return Object.fromEntries(
-      evaluated.map(({ key, evaluation }) => [key, evaluation]),
+      evaluated.map((evaluation) => [evaluation.key, evaluation]),
     );
   }, [evaluated]);
 
@@ -24,7 +24,7 @@ export default function ProblemAlgorithmAdapterSelect() {
       fromType={problemInstance?.type ?? null}
       toType={algorithmInstance?.accepts ?? null}
       value={value}
-      valueEvaluated={valueEvaluated}
+      evaluated={valueEvaluated}
       onChange={setValue}
       options={options}
     >

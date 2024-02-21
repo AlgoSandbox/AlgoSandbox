@@ -104,6 +104,7 @@ const problemGroupToFolderGlob = {
 
 const visualizerGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/visualizers/graphs',
+  Primitives: 'lib/algo-sandbox/visualizers/primitives',
 };
 
 const adapterGroupToFolderGlob = {
@@ -112,6 +113,7 @@ const adapterGroupToFolderGlob = {
 
 const boxGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/boxes/graphs',
+  Environment: 'lib/algo-sandbox/boxes/environment',
 };
 
 function readSandboxObjectGroup<T extends DbSandboxObjectType>(
@@ -216,6 +218,10 @@ export default async function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap"
           rel="stylesheet"
+        />
+        <link
+          rel="stylesheet"
+          href="//cdn.jsdelivr.net/npm/luna-object-viewer/luna-object-viewer.css"
         />
       </head>
       <body className={clsx(inter.className, 'bg-canvas')}>

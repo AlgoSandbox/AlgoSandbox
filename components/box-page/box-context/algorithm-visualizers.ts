@@ -1,12 +1,13 @@
 import {
-  AdapterConnection,
   AlgorithmVisualizers,
   AlgorithmVisualizersEvaluated,
   AlgorithmVisualizersTree,
 } from '@algo-sandbox/core';
+import { unwrapErrorOr } from '@app/errors/ErrorContext';
 import { CatalogGroup } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
+import { compact } from 'lodash';
 import { useMemo } from 'react';
 
 export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizers =
@@ -69,7 +70,7 @@ export default function useBoxContextAlgorithmVisualizers({
           throw new Error(`Adapter ${alias} not found`);
         }
 
-        const value = evalSavedObject<'adapter'>(option.value).objectEvaled;
+        const value = unwrapErrorOr(evalSavedObject<'adapter'>(option.value));
 
         return [
           alias,
@@ -90,73 +91,35 @@ export default function useBoxContextAlgorithmVisualizers({
     if (type === 'tree') {
       return value as AlgorithmVisualizersTree;
     } else {
-      const adapterOutputKeys = Object.fromEntries(
-        Object.entries(adapterEvaluations).map(([alias, evaluation]) => [
-          alias,
-          Object.keys(evaluation?.value.outputs.shape.shape ?? {}),
-        ]),
-      );
-      const adapterInputKeys = Object.fromEntries(
-        Object.entries(adapterEvaluations).map(([alias, evaluation]) => [
-          alias,
-          Object.keys(evaluation?.value.accepts.shape.shape ?? {}),
-        ]),
-      );
-
-      const outputKeys: Record<string, Array<string>> = {
-        algorithm: algorithmOutputKeys,
-        ...adapterOutputKeys,
-      };
-
-      const inputKeys: Record<string, Array<string>> = {
-        ...visualizerInputKeys,
-        ...adapterInputKeys,
-      };
-
       // Try to generate edges between algorithm -> adapter 1 -> adapter 2 -> visualizer/s
       const orderedAdapterAliases = value.composition.order;
       const orderedNodeAliases = ['algorithm', ...orderedAdapterAliases];
       const lastNode = orderedNodeAliases[orderedNodeAliases.length - 1];
 
-      const nodeConnections = orderedNodeAliases.flatMap((alias, index) => {
-        if (alias === 'algorithm' || alias === 'problem') {
-          return [];
-        }
+      const nodeConnections = compact(
+        orderedNodeAliases.map((alias, index) => {
+          if (alias === 'algorithm' || alias === 'problem') {
+            return null;
+          }
 
-        const previousAlias = orderedNodeAliases[index - 1];
-        const previousOutputs = outputKeys[previousAlias];
-        const currentInputs = inputKeys[alias];
+          const previousAlias = orderedNodeAliases[index - 1];
+          return {
+            fromKey: previousAlias,
+            fromSlot: '.',
+            toKey: alias,
+            toSlot: '.',
+          };
+        }),
+      );
 
-        const connections: Array<AdapterConnection> = previousOutputs.flatMap(
-          (outputKey) => {
-            return currentInputs.map((inputKey) => {
-              return {
-                fromKey: previousAlias,
-                fromSlot: outputKey,
-                toKey: alias,
-                toSlot: inputKey,
-              };
-            });
-          },
-        );
-
-        return connections;
-      });
-
-      const lastNodeOutputKeys = outputKeys[lastNode];
-
-      const visualizerConnections = Object.entries(visualizerInputKeys).flatMap(
-        ([visualizerAlias, inputKeys]) => {
-          return inputKeys
-            .filter((inputKey) => lastNodeOutputKeys.includes(inputKey))
-            .map((inputKey) => {
-              return {
-                fromKey: lastNode,
-                fromSlot: inputKey,
-                toKey: visualizerAlias,
-                toSlot: inputKey,
-              };
-            });
+      const visualizerConnections = Object.keys(visualizerInputKeys).map(
+        (visualizerAlias) => {
+          return {
+            fromKey: lastNode,
+            fromSlot: '.',
+            toKey: visualizerAlias,
+            toSlot: '.',
+          };
         },
       );
 

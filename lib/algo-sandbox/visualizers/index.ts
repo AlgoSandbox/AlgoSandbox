@@ -1,2 +1,3 @@
 import * as graphs from './graphs';
-export { graphs };
+import * as primitives from './primitives';
+export { graphs, primitives };

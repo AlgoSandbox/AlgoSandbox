@@ -5,6 +5,7 @@ import BoxManagerProvider, {
   useBox,
   useBoxManager,
 } from '@app/BoxManager';
+import { unwrapErrorOr } from '@app/errors/ErrorContext';
 import { BoxContextProvider } from '@components/box-page';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import TabManagerProvider from '@components/tab-manager/TabManager';
@@ -22,8 +23,8 @@ function LayoutImpl({
 }) {
   const { updateBox, getBox } = useBoxManager();
   const router = useRouter();
-  const box = useBox('box');
-  const originalBox = useBox(boxKey);
+  const box = unwrapErrorOr(useBox('box'));
+  const originalBox = unwrapErrorOr(useBox(boxKey));
 
   useEffect(() => {
     if (box === null) {
@@ -116,12 +117,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return flattenedOptions.find((box) => box.key === boxKey);
   }, [builtInBoxOptions, boxKey]);
 
-  const box = useMemo(() => {
+  const boxFromUrl = useMemo(() => {
     if (!savedBox) {
       return null;
     }
 
-    const { objectEvaled: evaledBox } = evalSavedObject<'box'>(savedBox.value);
+    const evaledBox = unwrapErrorOr(evalSavedObject<'box'>(savedBox.value));
     if (evaledBox === null) {
       // TODO: display error
       return null;
@@ -129,39 +130,39 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return evaledBox;
   }, [savedBox]);
 
-  const boxFromUrl = useMemo(() => {
-    if (box === null) {
+  const boxFromUrlCustomized = useMemo(() => {
+    if (boxFromUrl === null) {
       return null;
     }
 
     return {
-      ...box,
-      problem: params.get('problem') ?? box.problem,
+      ...boxFromUrl,
+      problem: params.get('problem') ?? boxFromUrl.problem,
       problemAlgorithm:
         params.get('problemAlgorithm') !== null
           ? JSON.parse(params.get('problemAlgorithm')!) ?? undefined
-          : box.problemAlgorithm,
-      algorithm: params.get('algorithm') ?? box.algorithm,
+          : boxFromUrl.problemAlgorithm,
+      algorithm: params.get('algorithm') ?? boxFromUrl.algorithm,
       visualizers:
         params.get('visualizers') !== null
           ? JSON.parse(params.get('visualizers')!) ?? undefined
-          : box.visualizers,
+          : boxFromUrl.visualizers,
       algorithmVisualizers:
         params.get('algorithmVisualizers') !== null
           ? JSON.parse(params.get('algorithmVisualizers')!) ?? undefined
-          : box.algorithmVisualizers,
+          : boxFromUrl.algorithmVisualizers,
     };
-  }, [box, params]);
+  }, [boxFromUrl, params]);
 
   const defaultBoxes: Record<string, SandboxBoxNamed> = useMemo(() => {
     if (boxFromUrl) {
-      return { box: { ...boxFromUrl, name: '' } } as Record<
+      return { box: { ...boxFromUrlCustomized, name: '' } } as Record<
         string,
         SandboxBoxNamed
       >;
     }
     return {};
-  }, [boxFromUrl]);
+  }, [boxFromUrl, boxFromUrlCustomized]);
 
   return (
     <BoxManagerProvider defaultBoxes={defaultBoxes}>

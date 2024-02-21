@@ -1,12 +1,13 @@
-import { SandboxStateType } from '@algo-sandbox/core';
+import { SandboxEvaluated, SandboxStateType } from '@algo-sandbox/core';
+import { ErrorOr, unwrapErrorOr } from '@app/errors/ErrorContext';
 import { Button, MaterialSymbol, Popover } from '@components/ui';
 import {
   CatalogGroup,
   CatalogOption,
   CatalogOptions,
 } from '@constants/catalog';
+import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
-import { DbObjectEvaluation } from '@utils/evalSavedObject';
 import clsx from 'clsx';
 import _, { isEqual } from 'lodash';
 import { Fragment, ReactElement, useMemo } from 'react';
@@ -20,7 +21,10 @@ export type AdapterListPopoverProps = {
   fromType: SandboxStateType | null;
   toType: SandboxStateType | null;
   value: Array<CatalogOption<DbAdapterSaved>>;
-  valueEvaluated: Record<string, DbObjectEvaluation<'adapter'> | undefined>;
+  evaluated: Record<
+    string,
+    SandboxEvaluated<ErrorOr<SandboxAnyAdapter>> | undefined
+  >;
   onChange: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
   options: CatalogOptions<DbAdapterSaved>;
   children: ReactElement;
@@ -50,7 +54,7 @@ export default function AdapterListPopover({
   fromType,
   toType,
   value,
-  valueEvaluated: evaluated,
+  evaluated,
   onChange,
   options,
   children,
@@ -80,7 +84,7 @@ export default function AdapterListPopover({
         return i;
       }
 
-      const { objectEvaled: adapter } = adapterEvaluation;
+      const adapter = unwrapErrorOr(adapterEvaluation.value);
 
       if (adapter === null) {
         return i;
@@ -100,16 +104,21 @@ export default function AdapterListPopover({
     return null;
   })();
 
-  const isLastAdapterFaulty =
-    valueEvaluated.length > 0 &&
-    (valueEvaluated[valueEvaluated.length - 1]?.objectEvaled === null ||
-      !isEqual(
-        Object.keys(
-          valueEvaluated[valueEvaluated.length - 1]?.objectEvaled?.outputs.shape
-            .shape ?? {},
-        ),
-        Object.keys(toType?.shape.shape ?? {}),
-      ));
+  const isLastAdapterFaulty = (() => {
+    if (valueEvaluated.length === 0) {
+      return false;
+    }
+    const evaluation = valueEvaluated[valueEvaluated.length - 1];
+    if (evaluation === undefined) {
+      return true;
+    }
+    const adapter = unwrapErrorOr(evaluation.value);
+
+    return !isEqual(
+      Object.keys(adapter?.outputs.shape.shape ?? {}),
+      Object.keys(toType?.shape.shape ?? {}),
+    );
+  })();
 
   const isFaulty =
     faultyAdapterIndex !== null ||
@@ -171,7 +180,9 @@ export default function AdapterListPopover({
                       >
                         <MaterialSymbol icon="keyboard_double_arrow_down" />
                         <span className="flex-1 overflow-ellipsis overflow-hidden">
-                          {valueEvaluated[index]?.objectEvaled?.accepts.name}
+                          {valueEvaluated[index]?.value
+                            .map((adapter) => adapter.accepts.name)
+                            .unwrapOr('')}
                         </span>
                         <Button
                           label="Insert adapter"
@@ -227,7 +238,9 @@ export default function AdapterListPopover({
                   >
                     <MaterialSymbol icon="keyboard_double_arrow_down" />
                     <span className="flex-1 overflow-ellipsis overflow-hidden">
-                      {valueEvaluated[index]?.objectEvaled?.outputs.name}
+                      {valueEvaluated[index]?.value
+                        .map((adapter) => adapter.outputs.name)
+                        .unwrapOr('')}
                     </span>
                     <Button
                       label="Insert adapter"

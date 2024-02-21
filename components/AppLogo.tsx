@@ -16,18 +16,18 @@ export default function AppLogo({ className }: { className?: string }) {
         cy="10"
         r="8"
         className="stroke-black dark:stroke-accent fill-surface"
-        stroke-width="4"
+        strokeWidth="4"
       />
       <circle
         cx="50"
         cy="39"
         r="6"
         className="stroke-black dark:stroke-accent fill-accent"
-        stroke-width="4"
+        strokeWidth="4"
       />
       <path
         className="stroke-black dark:stroke-accent"
-        stroke-width="4"
+        strokeWidth="4"
         d="m49.618 37.555 23-22m25.799 24.668-17-22"
       />
     </svg>

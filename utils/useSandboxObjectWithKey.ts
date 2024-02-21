@@ -3,6 +3,7 @@ import {
   SandboxKey,
   SandboxObjectType,
 } from '@algo-sandbox/components/SandboxKey';
+import { ErrorOr } from '@app/errors/ErrorContext';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useMemo } from 'react';
 
@@ -14,7 +15,7 @@ export default function useSandboxObjectWithKey<T extends SandboxObjectType>({
 }: {
   type: T;
   key: SandboxKey<T>;
-}): SandboxComponent<T> | null {
+}): ErrorOr<SandboxComponent<T>> {
   const builtInComponents = useBuiltInComponents();
 
   return useMemo(

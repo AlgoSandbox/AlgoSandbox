@@ -10,8 +10,8 @@ import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, ResizeHandle, Tooltip } from '@components/ui';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
-import { evalSavedObject } from '@utils/evalSavedObject';
 import clsx from 'clsx';
+import { compact } from 'lodash';
 import React, {
   forwardRef,
   useCallback,
@@ -111,6 +111,167 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       return getConnectedEdges([node], edges);
     }, [edges, nodeId, nodeInternals]);
 
+    const isUsingInputMainSlot = connectedEdges.some(
+      (edge) => edge.sourceHandle === '.',
+    );
+
+    function createLeftSlot({
+      id,
+      error,
+      label,
+      hasValue,
+    }: {
+      id: string;
+      label: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      error: ZodError<any> | null;
+      hasValue: boolean;
+    }) {
+      const isMainSlot = id === '.';
+      const isConnected = connectedEdges.some(
+        (edge) => edge.target === nodeId && edge.targetHandle === id,
+      );
+      const hasError = error !== null;
+      const shouldHighlight = hasValue && (isMainSlot || !isUsingInputMainSlot);
+      const isShadowedByMainSlot = !isMainSlot && isUsingInputMainSlot;
+
+      return (
+        <div
+          key={id}
+          className={clsx(
+            'flex items-center gap-2',
+            isMainSlot ? 'gap-2' : 'gap-3',
+          )}
+        >
+          <Handle
+            className={clsx(
+              isMainSlot ? '!w-6 !h-6 -ms-3' : '!w-4 !h-4 -ms-2',
+              hasError && '!bg-danger',
+              !hasError && [
+                isConnected && [
+                  shouldHighlight ? '!bg-accent' : '!bg-surface-high',
+                ],
+                !isConnected && '!bg-surface',
+              ],
+            )}
+            type="target"
+            position={Position.Left}
+            id={id}
+            isConnectable={!isConnected}
+          />
+          <span
+            className={clsx(
+              'font-mono',
+              hasError && 'text-danger',
+              !hasError && [shouldHighlight ? 'text-on-surface' : 'text-muted'],
+            )}
+          >
+            {label}
+          </span>
+          {hasError && (
+            <Tooltip
+              content={
+                <ul>
+                  {error.issues.map(({ path, message }) => (
+                    <li key={path.join('.')}>{message}</li>
+                  ))}
+                </ul>
+              }
+            >
+              <MaterialSymbol icon="error" className="text-danger" />
+            </Tooltip>
+          )}
+          {isShadowedByMainSlot && (
+            <Tooltip
+              content={
+                <ul>
+                  <li>This input is shadowed by the main input slot</li>
+                </ul>
+              }
+            >
+              <MaterialSymbol icon="info" className="text-label" />
+            </Tooltip>
+          )}
+          {isMainSlot && (
+            <Tooltip
+              content={
+                <ul>
+                  <li>
+                    This slot represents the entire input.
+                    <br />
+                    Use this to conveniently fulfill the entire input with
+                    another node&apos;s output.
+                  </li>
+                </ul>
+              }
+            >
+              <MaterialSymbol icon="info" className="text-label" />
+            </Tooltip>
+          )}
+        </div>
+      );
+    }
+
+    function createRightSlot({
+      id,
+      label,
+      hasValue,
+    }: {
+      id: string;
+      label: string;
+      hasValue: boolean;
+    }) {
+      const isMainSlot = id === '.';
+      const isConnected = connectedEdges.some(
+        (edge) => edge.source === nodeId && edge.sourceHandle === id,
+      );
+
+      return (
+        <div
+          key={id}
+          className={clsx('flex items-center', isMainSlot ? 'gap-2' : 'gap-3')}
+        >
+          {isMainSlot && (
+            <Tooltip
+              content={
+                <ul>
+                  <li>
+                    This slot represents the entire output.
+                    <br />
+                    Use this to conveniently pass the entire output to another
+                    node.
+                  </li>
+                </ul>
+              }
+            >
+              <MaterialSymbol icon="info" className="text-label" />
+            </Tooltip>
+          )}
+          <span
+            className={clsx(
+              'font-mono',
+              hasValue ? 'text-on-surface' : 'text-muted',
+            )}
+          >
+            {label}
+          </span>
+          <Handle
+            className={clsx(
+              isMainSlot ? '!w-6 !h-6 -me-3' : '!w-4 !h-4 -me-2',
+              isConnected && [hasValue ? '!bg-accent' : '!bg-surface-high'],
+              !isConnected && '!bg-surface',
+            )}
+            type="source"
+            position={Position.Right}
+            id={id}
+          />
+        </div>
+      );
+    }
+
+    const mainInputSlot = inputs.find(({ id }) => id === '.');
+    const mainOutputSlot = outputs.find(({ id }) => id === '.');
+
     return (
       <div
         className={clsx(
@@ -118,89 +279,25 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
         )}
         ref={ref}
       >
-        <div className="flex justify-center text-lg font-semibold border-b py-2">
+        <div className="flex justify-between items-center text-lg font-semibold border-b py-2">
+          {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
           {label}
+          {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
         </div>
         <div className="flex justify-between py-2">
-          <div className="flex flex-col gap-2 absolute -start-2">
-            {inputs.map(({ id, label, hasValue, error }) => {
-              const isConnected = connectedEdges.some(
-                (edge) => edge.targetHandle === id,
-              );
-              const hasError = error !== null;
-              return (
-                <div key={id} className="flex items-center gap-2">
-                  <Handle
-                    className={clsx(
-                      hasError && '!bg-danger',
-                      !hasError && [
-                        isConnected && [
-                          hasValue ? '!bg-accent' : '!bg-surface',
-                        ],
-                        !isConnected && '!bg-surface-high',
-                      ],
-                    )}
-                    type="target"
-                    position={Position.Left}
-                    id={id}
-                    isConnectable={!isConnected}
-                  />
-                  <span
-                    className={clsx(
-                      'font-mono',
-                      hasError && 'text-danger',
-                      !hasError && [
-                        hasValue ? 'text-on-surface' : 'text-muted',
-                      ],
-                    )}
-                  >
-                    {label}
-                  </span>
-                  {hasError && (
-                    <Tooltip
-                      content={
-                        <ul>
-                          {error.issues.map(({ path, message }) => (
-                            <li key={path.join('.')}>{message}</li>
-                          ))}
-                        </ul>
-                      }
-                    >
-                      <MaterialSymbol icon="error" className="text-danger" />
-                    </Tooltip>
-                  )}
-                </div>
-              );
-            })}
+          <div className="flex flex-col gap-2 absolute start-0">
+            {inputs
+              .filter(({ id }) => id !== '.')
+              .map(({ id, label, hasValue, error }) => {
+                return createLeftSlot({ id, error, hasValue, label });
+              })}
           </div>
-          <div className="flex flex-col items-end gap-2 absolute -end-2">
-            {outputs.map(({ id, label, hasValue }) => {
-              const isConnected = connectedEdges.some(
-                (edge) => edge.sourceHandle === id,
-              );
-
-              return (
-                <div key={id} className="flex items-center gap-2">
-                  <span
-                    className={clsx(
-                      'font-mono',
-                      hasValue ? 'text-on-surface' : 'text-muted',
-                    )}
-                  >
-                    {label}
-                  </span>
-                  <Handle
-                    className={clsx(
-                      isConnected && [hasValue ? '!bg-accent' : '!bg-surface'],
-                      !isConnected && '!bg-surface-high',
-                    )}
-                    type="source"
-                    position={Position.Right}
-                    id={id}
-                  />
-                </div>
-              );
-            })}
+          <div className="flex flex-col items-end gap-2 absolute end-0">
+            {outputs
+              .filter(({ id }) => id !== '.')
+              .map(({ id, label, hasValue }) => {
+                return createRightSlot({ id, label, hasValue });
+              })}
           </div>
         </div>
       </div>
@@ -243,15 +340,6 @@ const getLayoutedElements = (
 
 const proOptions = { hideAttribution: true };
 
-// const adapterConfiguration = buildAdapterConfiguration({
-//   algorithm: 'algorithm.search.bfs',
-//   'adapter-0': 'adapter.example.searchGraphToCounter',
-//   'adapter-1': 'adapter.example.counterToSearchGraph',
-//   'visualizer-0': 'visualizer.graphs.searchGraph',
-// })
-//   .tree()
-//   .build();
-
 export default function AlgorithmVisualizerFlowchart({
   tabId,
 }: {
@@ -275,18 +363,7 @@ export default function AlgorithmVisualizerFlowchart({
   const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
 
   const visualizers = useBoxContext('visualizers');
-
-  const selectedVisualizers = useMemo(() => {
-    const flattenedOptions = visualizerOptions.flatMap((item) =>
-      'options' in item ? item.options : item,
-    );
-    return visualizers.order.map(
-      (key) =>
-        flattenedOptions.find(
-          (option) => option.key === visualizers.aliases[key],
-        )!,
-    );
-  }, [visualizerOptions, visualizers.aliases, visualizers.order]);
+  const visualizerInstances = useBoxContext('visualizers.instances');
 
   const selectedAdapters = useMemo(() => {
     const flattenedOptions = adapterOptions.flatMap((item) =>
@@ -303,26 +380,6 @@ export default function AlgorithmVisualizerFlowchart({
   }, [adapterOptions, algorithmVisualizersTree.adapters]);
 
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
-
-  const visualizerInstances = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(visualizers.aliases).map(([id, visualizerKey]) => {
-        const savedVisualizer = selectedVisualizers.find(
-          (visualizer) => visualizer.key === visualizerKey,
-        )!.value;
-        const name = savedVisualizer?.name ?? 'Untitled visualizer';
-        const { objectEvaled: visualizer } =
-          evalSavedObject<'visualizer'>(savedVisualizer);
-
-        const instance =
-          visualizer !== null && 'parameters' in visualizer
-            ? visualizer.create()
-            : visualizer;
-
-        return [id, { instance, name }];
-      }),
-    );
-  }, [selectedVisualizers, visualizers.aliases]);
 
   useEffect(() => {
     const newTabName = 'Config';
@@ -353,20 +410,56 @@ export default function AlgorithmVisualizerFlowchart({
               height: 100,
               data: {
                 label: name,
-                inputs: Object.keys(adapter.accepts.shape.shape).map(
-                  (param) => ({
-                    id: param,
-                    label: param,
-                    hasValue: Object.hasOwn(inputs[alias] ?? {}, param),
-                    error: inputErrors[alias]?.[param] ?? null,
-                  }),
+                inputs: ['.', ...Object.keys(adapter.accepts.shape.shape)].map(
+                  (param) => {
+                    const label = (() => {
+                      if (param === '.') {
+                        return 'input';
+                      }
+
+                      return param;
+                    })();
+
+                    const hasValue = (() => {
+                      if (param === '.') {
+                        return inputs[alias] !== undefined;
+                      }
+
+                      return Object.hasOwn(inputs[alias] ?? {}, param);
+                    })();
+
+                    return {
+                      id: param,
+                      label,
+                      hasValue,
+                      error: inputErrors[alias]?.[param] ?? null,
+                    };
+                  },
                 ),
-                outputs: Object.keys(adapter.outputs.shape.shape).map(
-                  (param) => ({
-                    id: param,
-                    label: param,
-                    hasValue: Object.hasOwn(outputs[alias] ?? {}, param),
-                  }),
+                outputs: ['.', ...Object.keys(adapter.outputs.shape.shape)].map(
+                  (param) => {
+                    const label = (() => {
+                      if (param === '.') {
+                        return 'output';
+                      }
+
+                      return param;
+                    })();
+
+                    const hasValue = (() => {
+                      if (param === '.') {
+                        return outputs[alias] !== undefined;
+                      }
+
+                      return Object.hasOwn(outputs[alias] ?? {}, param);
+                    })();
+
+                    return {
+                      id: param,
+                      label,
+                      hasValue,
+                    };
+                  },
                 ),
               },
             }) satisfies Omit<FlowNode, 'position'>,
@@ -375,8 +468,13 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   const initialVisualizerNodes = useMemo(() => {
-    return Object.entries(visualizerInstances).map(
-      ([alias, { name, instance }]) => {
+    return compact(
+      Object.entries(visualizerInstances).map(([alias, evaluation]) => {
+        if (evaluation === undefined) {
+          return null;
+        }
+
+        const { value: instance, name } = evaluation;
         const visualizerInputs = instance?.accepts.shape.shape ?? {};
 
         return {
@@ -386,15 +484,33 @@ export default function AlgorithmVisualizerFlowchart({
           height: 200,
           data: {
             label: name,
-            inputs: Object.keys(visualizerInputs).map((param) => ({
-              id: param,
-              label: param,
-              hasValue: Object.hasOwn(inputs[alias] ?? {}, param),
-              error: inputErrors[alias]?.[param] ?? null,
-            })),
+            inputs: ['.', ...Object.keys(visualizerInputs)].map((param) => {
+              const hasValue = (() => {
+                if (param === '.') {
+                  return inputs[alias] !== undefined;
+                }
+
+                return Object.hasOwn(inputs[alias] ?? {}, param);
+              })();
+
+              const label = (() => {
+                if (param === '.') {
+                  return 'input';
+                }
+
+                return param;
+              })();
+
+              return {
+                id: param,
+                label,
+                hasValue,
+                error: inputErrors[alias]?.[param] ?? null,
+              };
+            }),
           },
         } satisfies Omit<FlowNode, 'position'>;
-      },
+      }),
     );
   }, [inputErrors, inputs, visualizerInstances]);
 
@@ -408,12 +524,29 @@ export default function AlgorithmVisualizerFlowchart({
           height: 200,
           data: {
             label: algorithmName,
-            outputs: Object.keys(algorithmOutputs).map((param) => ({
-              id: param,
-              label: param,
-              // TODO: Determine if algo is valid
-              hasValue: Object.hasOwn(outputs['algorithm'] ?? {}, param),
-            })),
+            outputs: ['.', ...Object.keys(algorithmOutputs)].map((param) => {
+              const hasValue = (() => {
+                if (param === '.') {
+                  return outputs['algorithm'] !== undefined;
+                }
+                return Object.hasOwn(outputs['algorithm'] ?? {}, param);
+              })();
+
+              const label = (() => {
+                if (param === '.') {
+                  return 'output';
+                }
+
+                return param;
+              })();
+
+              return {
+                id: param,
+                label,
+                // TODO: Determine if algo is valid
+                hasValue,
+              };
+            }),
           },
         },
         ...initialAdapterNodes,
@@ -429,9 +562,24 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   const initialEdges = useMemo(() => {
+    const nodesUsingInputMainSlot =
+      algorithmVisualizersEvaluated.composition.connections
+        .filter(({ toSlot }) => toSlot === '.')
+        .map(({ toKey }) => toKey);
+
     return algorithmVisualizersEvaluated.composition.connections.map(
       ({ fromKey, fromSlot, toKey, toSlot }) => {
-        const hasValue = Object.hasOwn(outputs[fromKey] ?? {}, fromSlot);
+        const hasValue = (() => {
+          if (fromSlot === '.') {
+            return true;
+          }
+          return Object.hasOwn(outputs[fromKey] ?? {}, fromSlot);
+        })();
+
+        const isShadowedByMainSlot =
+          toSlot !== '.' && nodesUsingInputMainSlot.includes(toKey);
+        const isActive = hasValue && !isShadowedByMainSlot;
+
         return {
           id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
           source: fromKey,
@@ -439,13 +587,16 @@ export default function AlgorithmVisualizerFlowchart({
           target: toKey,
           targetHandle: toSlot,
           className: clsx([
+            // Using String.raw to avoid escaping behaviour when using \_\_
+            // See: https://github.com/tailwindlabs/tailwindcss/issues/8881
+            String.raw`[&_.react-flow\_\_edge-path]:transition-colors`,
             String.raw`[&_.react-flow\_\_edge-path]:stroke-2 [&_.react-flow\_\_edge-path]:hover:!stroke-[4px]`,
-            hasValue && String.raw`[&>.react-flow\_\_edge-path]:!stroke-label`,
-            !hasValue &&
+            isActive && String.raw`[&>.react-flow\_\_edge-path]:!stroke-label`,
+            !isActive &&
               String.raw`[&>.react-flow\_\_edge-path]:!stroke-border`,
             String.raw`[&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-accent [&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-[4px]`,
           ]),
-          animated: hasValue,
+          animated: isActive,
         };
       },
     ) as Array<Edge>;
@@ -734,7 +885,6 @@ export default function AlgorithmVisualizerFlowchart({
             String.raw`[&_.react-flow\_\_handle]:border-2`,
             String.raw`[&_.react-flow\_\_handle]:border-border [&_.react-flow\_\_handle]:relative`,
             String.raw`[&_.react-flow\_\_handle:hover]:bg-accent`,
-            String.raw`[&_.react-flow\_\_handle]:w-4 [&_.react-flow\_\_handle]:h-4`,
             String.raw`[&_.react-flow\_\_handle]:translate-x-0 [&_.react-flow\_\_handle]:translate-y-0`,
             String.raw`[&_.react-flow\_\_handle]:inset-0`,
           )}

@@ -3,12 +3,15 @@ import {
   AdapterConfigurationFlat,
   SandboxAdapter,
   SandboxCompositeAdapter,
+  SandboxEvaluated,
   SandboxStateType,
   tryCompose,
 } from '@algo-sandbox/core';
+import { ErrorOr } from '@app/errors/ErrorContext';
 import { CatalogGroup, CatalogOption } from '@constants/catalog';
+import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
-import { DbObjectEvaluation, evalSavedObject } from '@utils/evalSavedObject';
+import { evalSavedObject } from '@utils/evalSavedObject';
 import { useMemo } from 'react';
 
 export type BoxContextAdapters = {
@@ -19,11 +22,7 @@ export type BoxContextAdapters = {
   > | null;
   config: AdapterConfiguration;
   value: Array<CatalogOption<DbAdapterSaved>>;
-  evaluated: Array<{
-    evaluation: DbObjectEvaluation<'adapter'>;
-    key: string;
-    label: string;
-  }>;
+  evaluated: Array<SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>>;
   setValue: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
   options: Array<CatalogGroup<DbAdapterSaved>>;
 };
@@ -60,26 +59,25 @@ export function useBoxContextAdapters({
     });
   }, [adapterConfiguration, builtInOptions]);
 
-  const evaluated = useMemo(() => {
-    return selectedAdapters.map(({ label, key, value: object }) => ({
-      evaluation: evalSavedObject<'adapter'>(object),
-      label,
-      key,
-    }));
-  }, [selectedAdapters]);
+  const evaluated: Array<SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>> =
+    useMemo(() => {
+      return selectedAdapters.map(({ label, key, value: object }) => ({
+        value: evalSavedObject<'adapter'>(object),
+        name: label,
+        key,
+      }));
+    }, [selectedAdapters]);
 
   const composedAdapter = useMemo(() => {
     if (evaluated.length === 0) {
       return null;
     }
 
-    if (evaluated.some((adapter) => adapter.evaluation.objectEvaled === null)) {
+    if (evaluated.some((adapter) => adapter.value.isLeft())) {
       return null;
     }
 
-    return tryCompose(
-      ...evaluated.map(({ evaluation: { objectEvaled } }) => objectEvaled!),
-    );
+    return tryCompose(...evaluated.map(({ value }) => value.unwrap()));
   }, [evaluated]);
 
   const adapters = useMemo(() => {

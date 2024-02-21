@@ -23,7 +23,7 @@ export default function ProblemSelect() {
     setValue: setParameters,
     value: parameters = {},
   } = useBoxContext('problem.parameters');
-  const errorMessage = useBoxContext('problem.errorMessage');
+  const errors = useBoxContext('problem.errors');
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
 
@@ -46,7 +46,7 @@ export default function ProblemSelect() {
       <CatalogSelect
         label="Problem"
         options={options}
-        errorMessage={errorMessage}
+        errorMessage={errors.map((error) => error.message).join('\n')}
         value={selectedOption ?? undefined}
         onChange={(value) => {
           setSelectedOption(value as typeof selectedOption);

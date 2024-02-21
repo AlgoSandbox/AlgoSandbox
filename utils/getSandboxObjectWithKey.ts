@@ -3,6 +3,7 @@ import {
   SandboxKey,
   SandboxObjectType,
 } from '@algo-sandbox/components/SandboxKey';
+import { error, ErrorOr } from '@app/errors/ErrorContext';
 import { DbObjectSaved } from '@components/box-page/box-context/sandbox-object';
 import { BuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { CatalogGroup } from '@constants/catalog';
@@ -20,7 +21,7 @@ export default function getSandboxObjectWithKey<T extends SandboxObjectType>({
   key: SandboxKey<T>;
   files: Record<string, string>;
   builtInComponents: BuiltInComponents;
-}): SandboxComponent<T> | null {
+}): ErrorOr<SandboxComponent<T>> {
   const {
     builtInAdapterOptions,
     builtInAlgorithmOptions,
@@ -30,11 +31,11 @@ export default function getSandboxObjectWithKey<T extends SandboxObjectType>({
 
   if (key === '.') {
     if (!('index.ts' in files)) {
-      throw new Error(
-        'No index.ts file found for component which uses "." key',
-      );
+      return error('No index.ts file found for component which uses "." key');
     }
-    return evalWithAlgoSandbox(files['index.ts']) as SandboxComponent<T>;
+    return evalWithAlgoSandbox(files['index.ts']) as ErrorOr<
+      SandboxComponent<T>
+    >;
   }
 
   const builtInOptions = (() => {
@@ -55,7 +56,9 @@ export default function getSandboxObjectWithKey<T extends SandboxObjectType>({
       .flatMap((group) => group.options)
       .find((option) => option.key === key)?.value ?? null;
 
-  const { objectEvaled } = evalSavedObject<T>(savedObject);
+  if (savedObject === null) {
+    return error(`Evaluation error: No saved object found for key ${key}`);
+  }
 
-  return objectEvaled as SandboxComponent<T>;
+  return evalSavedObject<T>(savedObject) as ErrorOr<SandboxComponent<T>>;
 }

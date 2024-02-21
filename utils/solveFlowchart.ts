@@ -91,9 +91,16 @@ export default function solveFlowchart({
   const inputs: Record<string, Record<string, unknown>> = {};
   const inputErrors: Record<string, Record<string, ZodError>> = {};
 
+  // Keep track of which nodes are using the "all" input
+  const isUsingAllInput: Record<string, boolean> = {};
+
   while (nodesToExplore.length > 0) {
     const node = nodesToExplore.shift()!;
     const neighbors = graph[node] ?? {};
+
+    if (isUsingAllInput[node]) {
+      inputs[node] = inputs[node]['.'] as Record<string, unknown>;
+    }
 
     // Try to calculate the state of the node from intermediates
     if (outputs[node] === undefined) {
@@ -105,16 +112,21 @@ export default function solveFlowchart({
 
         if (!result.success) {
           inputErrors[node] = {};
-          Object.entries(adapter.accepts.shape.shape).forEach(
-            ([inputSlot, inputSlotShape]) => {
-              const parseResult = inputSlotShape.safeParse(
-                inputs[node]?.[inputSlot],
-              );
-              if (!parseResult.success) {
-                inputErrors[node][inputSlot] = parseResult.error;
-              }
-            },
-          );
+
+          if (isUsingAllInput[node]) {
+            inputErrors[node]['.'] = result.error;
+          } else {
+            Object.entries(adapter.accepts.shape.shape).forEach(
+              ([inputSlot, inputSlotShape]) => {
+                const parseResult = inputSlotShape.safeParse(
+                  inputs[node]?.[inputSlot],
+                );
+                if (!parseResult.success) {
+                  inputErrors[node][inputSlot] = parseResult.error;
+                }
+              },
+            );
+          }
           continue;
         }
         const output = adapter.transform(result.data);
@@ -125,23 +137,30 @@ export default function solveFlowchart({
           | undefined;
 
         if (visualizer === undefined) {
-          throw new Error(`No adapter or visualizer for node ${node}`);
+          // TODO: Display error when node cannot be evaluated
+          // throw new Error(`No adapter or visualizer for node ${node}`);
+          continue;
         }
 
         const result = visualizer.accepts.shape.safeParse(inputs[node]);
 
         if (!result.success) {
           inputErrors[node] = {};
-          Object.entries(visualizer.accepts.shape.shape).forEach(
-            ([inputSlot, inputSlotShape]) => {
-              const parseResult = inputSlotShape.safeParse(
-                inputs[node]?.[inputSlot],
-              );
-              if (!parseResult.success) {
-                inputErrors[node][inputSlot] = parseResult.error;
-              }
-            },
-          );
+
+          if (isUsingAllInput[node]) {
+            inputErrors[node]['.'] = result.error;
+          } else {
+            Object.entries(visualizer.accepts.shape.shape).forEach(
+              ([inputSlot, inputSlotShape]) => {
+                const parseResult = inputSlotShape.safeParse(
+                  inputs[node]?.[inputSlot],
+                );
+                if (!parseResult.success) {
+                  inputErrors[node][inputSlot] = parseResult.error;
+                }
+              },
+            );
+          }
           continue;
         }
       }
@@ -151,10 +170,15 @@ export default function solveFlowchart({
       connections.forEach(({ fromSlot, toSlot }) => {
         inputs[neighbor] = {
           ...inputs[neighbor],
-          [toSlot]: outputs[node][fromSlot],
+          [toSlot]: fromSlot !== '.' ? outputs[node][fromSlot] : outputs[node],
         };
       });
+
+      if (connections.some(({ toSlot }) => toSlot === '.')) {
+        isUsingAllInput[neighbor] = true;
+      }
     }
   }
+
   return { inputs, outputs, inputErrors };
 }

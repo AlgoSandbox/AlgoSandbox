@@ -2,12 +2,6 @@
 
 import 'react-mosaic-component/react-mosaic-component.css';
 
-import {
-  AlgorithmVisualizersTree,
-  SandboxAdapter,
-  SandboxProblem,
-  SandboxStateType,
-} from '@algo-sandbox/core';
 import { VisualizerRenderer } from '@algo-sandbox/react-components';
 import {
   AppBar,
@@ -18,131 +12,13 @@ import {
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { MaterialSymbol, Tooltip } from '@components/ui';
 import clsx from 'clsx';
-import { mapValues } from 'lodash';
 import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDragDropManager } from 'react-dnd';
-import { chromeDark } from 'react-inspector';
-import { ObjectInspector } from 'react-inspector';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
 import { toast } from 'sonner';
 
-import { useScene } from './BoxPage';
-
-const customChromeDark = {
-  ...chromeDark,
-  BASE_BACKGROUND_COLOR: 'transparent',
-};
-
-function topologicalSort(graph: Record<string, Array<string>>) {
-  const visited = new Set<string>();
-  const result: Array<string> = [];
-
-  function dfs(node: string) {
-    if (visited.has(node)) {
-      return;
-    }
-
-    visited.add(node);
-
-    for (const neighbor of graph[node] ?? []) {
-      dfs(neighbor);
-    }
-
-    result.push(node);
-  }
-
-  for (const node of Object.keys(graph)) {
-    dfs(node);
-  }
-
-  return result.reverse();
-}
-
-function buildGraphFromAdapterConfiguration(
-  adapterConfiguration: AlgorithmVisualizersTree,
-) {
-  const graph: Record<
-    string,
-    Record<string, Array<{ fromSlot: string; toSlot: string }>>
-  > = {};
-
-  adapterConfiguration.composition.connections.forEach(
-    ({ fromKey, fromSlot, toKey, toSlot }) => {
-      if (graph[fromKey] === undefined) {
-        graph[fromKey] = {};
-      }
-
-      if (graph[fromKey][toKey] === undefined) {
-        graph[fromKey][toKey] = [];
-      }
-
-      graph[fromKey][toKey].push({ fromSlot, toSlot });
-    },
-  );
-
-  return graph;
-}
-
-function solve({
-  adapterConfiguration,
-  problem,
-  algorithmState,
-  adapters,
-}: {
-  adapterConfiguration: AlgorithmVisualizersTree;
-  problem: SandboxProblem<SandboxStateType>;
-  algorithmState: Record<string, unknown> | undefined;
-  adapters: Record<
-    string,
-    SandboxAdapter<SandboxStateType, SandboxStateType> | undefined
-  >;
-}) {
-  const graph = buildGraphFromAdapterConfiguration(adapterConfiguration);
-  const nodesToExplore = topologicalSort(
-    Object.fromEntries(
-      Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
-    ),
-  );
-
-  const outputs: Record<string, Record<string, unknown>> = {
-    problem: problem.getInitialState(),
-    algorithm: algorithmState ?? {},
-  };
-
-  const inputs: Record<string, Record<string, unknown>> = {};
-
-  while (nodesToExplore.length > 0) {
-    const node = nodesToExplore.shift()!;
-    const neighbors = graph[node] ?? {};
-
-    // Try to calculate the state of the node from intermediates
-    if (outputs[node] === undefined && node in adapters) {
-      // Node should be an adapter
-      const adapter = adapters[node];
-      if (adapter === undefined) {
-        continue;
-      }
-      // Inputs should be full
-      const result = adapter.accepts.shape.safeParse(inputs[node]);
-      if (!result.success) {
-        continue;
-      }
-      const output = adapter.transform(result.data);
-      outputs[node] = output;
-    }
-
-    for (const [neighbor, connections] of Object.entries(neighbors)) {
-      connections.forEach(({ fromSlot, toSlot }) => {
-        inputs[neighbor] = {
-          ...inputs[neighbor],
-          [toSlot]: outputs[node][fromSlot],
-        };
-      });
-    }
-  }
-  return { inputs, outputs };
-}
+import { useFlowchartCalculations, useScene } from './BoxPage';
 
 export default function BoxExecutionPage() {
   const { resolvedTheme } = useTheme();
@@ -156,38 +32,10 @@ export default function BoxExecutionPage() {
   const executionStep = scene?.executionTrace?.[currentStepIndex];
   const pseudocode = algorithmInstance?.pseudocode ?? '';
 
-  const problemInstance = useBoxContext('problem.instance');
-  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
-  const algorithmVisualizersAdapters = useBoxContext(
-    'algorithmVisualizers.evaluated.adapters',
-  );
-  const algorithmState = executionStep?.state;
   const visualizerOrder = useBoxContext('visualizers.order');
   const visualizerInstances = useBoxContext('visualizers.instances');
 
-  const { inputs } = useMemo(() => {
-    if (problemInstance === null || algorithmInstance === undefined) {
-      return {};
-    }
-
-    const { inputs, outputs } = solve({
-      adapterConfiguration: algorithmVisualizersTree,
-      problem: problemInstance,
-      algorithmState: algorithmState,
-      adapters: mapValues(
-        algorithmVisualizersAdapters ?? {},
-        (val) => val?.value,
-      ),
-    });
-
-    return { inputs, outputs };
-  }, [
-    problemInstance,
-    algorithmInstance,
-    algorithmVisualizersTree,
-    algorithmState,
-    algorithmVisualizersAdapters,
-  ]);
+  const { inputs } = useFlowchartCalculations();
 
   const visualizations = useMemo(() => {
     return visualizerOrder.map((alias) => {
@@ -278,24 +126,6 @@ export default function BoxExecutionPage() {
           />
         );
       }
-      if (id === 'state-inspector') {
-        if (executionStep === undefined) {
-          return <div className="text-label">Error in execution</div>;
-        }
-        return (
-          <div className="font-mono w-full h-full text-xs px-2 pt-2 overflow-y-auto">
-            <ObjectInspector
-              theme={
-                (resolvedTheme === 'dark'
-                  ? customChromeDark
-                  : 'chromeLight') as string
-              }
-              data={executionStep.state}
-              expandLevel={5}
-            />
-          </div>
-        );
-      }
 
       const alias = id;
 
@@ -332,7 +162,6 @@ export default function BoxExecutionPage() {
 
     return {
       pseudocode: 'Pseudocode',
-      'state-inspector': 'Algorithm state',
       ...Object.fromEntries(
         visualizerOrder.map((alias) => [alias, getVisualizerName(alias)]),
       ),
@@ -410,21 +239,21 @@ export default function BoxExecutionPage() {
               renderToolbar={() => (
                 <div className="flex w-full">
                   <Tooltip content={windowTitles[alias]}>
-                    <div className="text-label px-2 font-medium truncate flex items-center justify-between flex-1">
-                      {windowTitles[alias]}
-                      <div className="flex gap-2 items-center">
-                        <button
-                          className="text-muted hover:text-on-surface transition flex items-center"
-                          aria-label="Hide visualizer"
-                          onClick={() => {
-                            setHiddenVisualizerAliases((prev) => {
-                              return new Set(prev).add(alias);
-                            });
-                          }}
-                        >
-                          <MaterialSymbol icon="close" />
-                        </button>
-                      </div>
+                    <div className="text-label px-2 font-medium flex items-center justify-between flex-1">
+                      <span className="truncate flex-1 w-0">
+                        {windowTitles[alias]}
+                      </span>
+                      <button
+                        className="text-muted hover:text-on-surface transition flex items-center shrink-0"
+                        aria-label="Hide visualizer"
+                        onClick={() => {
+                          setHiddenVisualizerAliases((prev) => {
+                            return new Set(prev).add(alias);
+                          });
+                        }}
+                      >
+                        <MaterialSymbol icon="close" />
+                      </button>
                     </div>
                   </Tooltip>
                 </div>

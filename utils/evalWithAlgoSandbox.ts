@@ -4,9 +4,20 @@ import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
 import * as states from '@algo-sandbox/states';
 import * as visualizers from '@algo-sandbox/visualizers';
+import {
+  error,
+  ErrorEntry,
+  errorEntrySchema,
+  ErrorOr,
+  success,
+} from '@app/errors/ErrorContext';
 import * as d3 from 'd3';
 import _, * as lodash from 'lodash';
+import * as lunaObjectViewer from 'luna-object-viewer';
 import path from 'path';
+import * as react from 'react';
+import * as reactDomClient from 'react-dom/client';
+import * as reactInspector from 'react-inspector';
 import { ModuleKind, ScriptTarget, transpile } from 'typescript';
 import * as zod from 'zod';
 
@@ -38,7 +49,8 @@ export default function evalWithAlgoSandbox(
     currentFilePath: string;
   },
   asModule = false,
-) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): ErrorOr<any> {
   const libraryToValue = {
     '@algo-sandbox/adapters': adapters,
     '@algo-sandbox/algorithms': algorithms,
@@ -46,8 +58,12 @@ export default function evalWithAlgoSandbox(
     '@algo-sandbox/problems': problems,
     '@algo-sandbox/states': states,
     '@algo-sandbox/visualizers': visualizers,
+    react: react,
+    'react-dom/client': reactDomClient,
+    'react-inspector': reactInspector,
     d3: d3,
     lodash: lodash,
+    'luna-object-viewer': lunaObjectViewer,
     zod: zod,
   };
 
@@ -65,7 +81,11 @@ export default function evalWithAlgoSandbox(
               (library.length === key.length || library[key.length] === '/'),
           );
           if (matchingLibraryPrefixes.length === 0) {
-            return undefined;
+            const errorEntry: ErrorEntry = {
+              message: `Unable to import ${library}`,
+            };
+
+            throw errorEntry;
           }
           const bestMatchingLibraryPrefix = matchingLibraryPrefixes.toSorted(
             (a, b) => b.length - a.length,
@@ -120,7 +140,12 @@ export default function evalWithAlgoSandbox(
             }
           }
         }
-        return undefined;
+
+        const errorEntry: ErrorEntry = {
+          message: `Unable to import ${library}`,
+        };
+
+        throw errorEntry;
       }
     },
   };
@@ -134,7 +159,17 @@ export default function evalWithAlgoSandbox(
     asModule ? 'exports' : 'exports.default'
   }; } )()`;
 
-  const generatedObject = evalWithContext(toEval, context);
+  try {
+    const generatedObject = evalWithContext(toEval, context);
 
-  return generatedObject;
+    return success(generatedObject);
+  } catch (e) {
+    const errorEntry = errorEntrySchema.safeParse(e);
+
+    if (errorEntry.success) {
+      return error(errorEntry.data.message);
+    }
+
+    return error('Unknown error occurred while evaluating the code');
+  }
 }

@@ -95,7 +95,10 @@ export default function useBoxContextVisualizers({
   const evaluations = useMemo(() => {
     return Object.fromEntries(
       Object.entries(selectedVisualizers).map(([alias, option]) => {
-        const value = evalSavedObject<'visualizer'>(option.value).objectEvaled;
+        const visualizerEvaluation = evalSavedObject<'visualizer'>(
+          option.value,
+        );
+        const value = visualizerEvaluation.mapLeft(() => null).value;
 
         return [
           alias,

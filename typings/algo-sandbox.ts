@@ -6,6 +6,7 @@ import {
   SandboxParameterizedProblem,
   SandboxParameterizedVisualizer,
   SandboxProblem,
+  SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 
@@ -21,4 +22,7 @@ export type SandboxAnyVisualizer =
   | SandboxVisualizer<any, any>
   | SandboxParameterizedVisualizer<any, any, any>;
 
-export type SandboxAnyAdapter = SandboxAdapter<any, any>;
+export type SandboxAnyAdapter = SandboxAdapter<
+  SandboxStateType,
+  SandboxStateType
+>;

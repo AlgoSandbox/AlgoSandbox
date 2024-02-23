@@ -29,6 +29,12 @@ const box: SandboxBox = {
           toKey: 'visualizer-0',
           toSlot: '.',
         },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: '.',
+          toKey: 'visualizer-1',
+          toSlot: 'object',
+        },
       ],
     },
   },

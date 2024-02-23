@@ -1,10 +1,11 @@
 import { createState } from '@algo-sandbox/core';
 import { z } from 'zod';
 
-export const graphEdge = z.union([
-  z.tuple([z.string(), z.string()]),
-  z.tuple([z.number(), z.number()]),
-]);
+export const graphEdge = z.object({
+  source: z.string(),
+  target: z.string(),
+  label: z.string().optional(),
+});
 
 export const graphNode = z.object({
   id: z.string(),
@@ -44,7 +45,7 @@ export const searchGraph = createState(
 export const graphSearchAlgorithmState = createState(
   'Graph search algorithm state',
   z.object({
-    graph: searchGraph.shape,
+    graph: nodeGraph.shape,
     toVisit: z.array(z.string()),
     visited: z.set(z.string()),
     currentNodeId: z.string().nullable(),

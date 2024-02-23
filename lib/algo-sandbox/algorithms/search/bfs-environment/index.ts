@@ -1,6 +1,8 @@
 import { createAlgorithm } from '@algo-sandbox/core';
-import { sandboxEnvironmentState } from '@algo-sandbox/states';
-import { z } from 'zod';
+import {
+  sandboxEnvironmentSearchState,
+  sandboxEnvironmentState,
+} from '@algo-sandbox/states';
 
 const pseudocode = `BFS(G, start):
   Create an empty queue toVisit
@@ -22,28 +24,17 @@ const pseudocode = `BFS(G, start):
 const breadthFirstSearch = createAlgorithm({
   name: 'Breadth-first search (env)',
   accepts: sandboxEnvironmentState,
-  outputs: {
-    name: 'Intermediate state',
-    shape: z.object({
-      currentState:
-        sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
-      actions: sandboxEnvironmentState.shape.shape.actions.returnType(),
-      visited: z.set(
-        sandboxEnvironmentState.shape.shape.getStateKey.returnType(),
-      ),
-      toVisit: z.array(
-        sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
-      ),
-    }),
-  },
+  outputs: sandboxEnvironmentSearchState,
   pseudocode,
   createInitialState: (problem) => {
     const initialState = problem.getInitialState();
     return {
       currentState: initialState,
-      visited: new Set<string | number | symbol>(),
+      visited: new Set<string>(),
       toVisit: [],
       actions: problem.actions(initialState),
+      getStateKey: problem.getStateKey,
+      searchTree: [],
     };
   },
   *runAlgorithm({ line, state, problemState }) {
@@ -77,6 +68,15 @@ const breadthFirstSearch = createAlgorithm({
         }
 
         const neighborKey = problemState.getStateKey(nextState);
+        const currentKey = problemState.getStateKey(state.currentState);
+        state.searchTree = [
+          ...state.searchTree,
+          {
+            source: currentKey,
+            action,
+            result: neighborKey,
+          },
+        ];
 
         if (!state.visited.has(neighborKey)) {
           state.toVisit.push(nextState);

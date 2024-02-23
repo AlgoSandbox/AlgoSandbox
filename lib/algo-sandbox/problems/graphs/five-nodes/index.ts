@@ -7,11 +7,11 @@ type UndirectedGraph = z.infer<typeof undirectedGraph.shape>;
 const fiveNodesGraph = {
   nodes: [{ id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' }, { id: 'E' }],
   edges: [
-    ['A', 'B'],
-    ['B', 'C'],
-    ['B', 'D'],
-    ['D', 'E'],
-    ['A', 'E'],
+    { source: 'A', target: 'B' },
+    { source: 'B', target: 'C' },
+    { source: 'B', target: 'D' },
+    { source: 'D', target: 'E' },
+    { source: 'A', target: 'E' },
   ],
   directed: false,
 } satisfies UndirectedGraph;

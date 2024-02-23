@@ -5,7 +5,7 @@ import {
   SandboxParameterizedVisualizer,
   SandboxParameters,
 } from '@algo-sandbox/core';
-import { graphNode, nodeGraph } from '@algo-sandbox/states';
+import { graphEdge, graphNode, nodeGraph } from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
 import _, { isEqual } from 'lodash';
@@ -48,10 +48,7 @@ type NodeGraphVisualizationParameters = SandboxParameters<{
 export type NodeGraphVisualizerState = {
   graph: NodeGraph;
   nodes: Array<GraphNode>;
-  links: Array<{
-    source: string | number;
-    target: string | number;
-  }>;
+  links: Array<z.infer<typeof graphEdge>>;
   simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   width: number;
   height: number;
@@ -60,21 +57,15 @@ export type NodeGraphVisualizerState = {
 const getVisualizerState = (
   graph: NodeGraph,
   oldNodes: Array<GraphNode>,
-  oldLinks: Array<{
-    source: string | number;
-    target: string | number;
-  }>,
-) => {
+  oldLinks: Array<z.infer<typeof graphEdge>>,
+): Pick<NodeGraphVisualizerState, 'nodes' | 'links' | 'simulation'> => {
   const { nodes: newNodes, edges } = _.cloneDeep(graph);
   const nodes = newNodes.map((node) => {
     const oldNode = oldNodes.find(({ id: oldId }) => node.id === oldId);
     return oldNode ? { ...oldNode } : node;
   });
 
-  const newLinks = edges.map(([source, target]) => ({
-    source,
-    target,
-  }));
+  const newLinks = [...edges];
   const links = newLinks.map((link) => {
     const oldLink = oldLinks.find(({ source, target }) => {
       if (typeof source === 'string' && typeof target === 'string') {
@@ -96,7 +87,7 @@ const getVisualizerState = (
   // Create a force simulation to spread the nodes
   const simulation = d3
     .forceSimulation(nodes as d3.SimulationNodeDatum[])
-    .force('charge', d3.forceManyBody().strength(-300))
+    .force('charge', d3.forceManyBody().strength(-500))
     .force(
       'link',
       d3
@@ -105,7 +96,7 @@ const getVisualizerState = (
           d3.SimulationLinkDatum<d3.SimulationNodeDatum & GraphNode>
         >(links)
         .id((d) => d.id)
-        .distance(40)
+        .distance(100)
         .strength(1),
     )
     .force('x', d3.forceX())
@@ -114,7 +105,6 @@ const getVisualizerState = (
   return {
     simulation,
     nodes,
-    edges,
     links,
   };
 };
@@ -175,15 +165,40 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             }
           }
 
+          const markerBoxWidth = 4;
+          const markerBoxHeight = 4;
+          const refX = markerBoxWidth / 2;
+          const refY = markerBoxHeight / 2;
+          const arrowPoints: [number, number][] = [
+            [0, 0],
+            [0, markerBoxHeight],
+            [markerBoxWidth, markerBoxHeight / 2],
+          ];
+          svg
+            .append('defs')
+            .append('marker')
+            .attr('id', 'arrow')
+            .attr('viewBox', [0, 0, markerBoxWidth, markerBoxHeight])
+            .attr('refX', refX)
+            .attr('refY', refY)
+            .attr('markerWidth', markerBoxWidth)
+            .attr('markerHeight', markerBoxHeight)
+            .attr('orient', 'auto-start-reverse')
+            .append('path')
+            .attr('d', d3.line()(arrowPoints))
+            .attr('fill', 'rgb(var(--color-border))');
+
           // Create links
           svg
             .selectAll('.link')
             .data(links)
             .enter()
-            .append('line')
+            .append('path')
             .attr('class', 'link')
             .attr('stroke', 'rgb(var(--color-border))')
-            .attr('stroke-width', 2);
+            .attr('stroke-width', 2)
+            .attr('fill', 'none')
+            .attr('marker-end', 'url(#arrow)');
 
           // Create nodes
           const node = svg
@@ -257,15 +272,71 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('dy', 15 / 2)
             .attr('style', 'pointer-events: none');
 
+          // Add labels to links
+          svg
+            .selectAll('.link-label')
+            .data(links)
+            // .filter((d) => d.label !== undefined)
+            .enter()
+            .append('text')
+            .attr('class', 'link-label')
+            .attr('fill', 'rgb(var(--color-label))')
+            .attr('text-anchor', 'middle')
+            .text((d) => d.label ?? '')
+            .attr('style', 'pointer-events: none')
+            .attr('font-size', 10);
+
           const updateValues = () => {
             // Update the positions of nodes, links, and labels here
+            function getTargetNodeCircumferencePoint(d: any) {
+              const [midPointX, midPointY] = getMidPoint(d);
+              const t_radius = 20;
+              const dx = d.target.x - midPointX;
+              const dy = d.target.y - midPointY;
+              const gamma = Math.atan2(dy, dx); // Math.atan2 returns the angle in the correct quadrant as opposed to Math.atan
+              const tx = d.target.x - Math.cos(gamma) * t_radius;
+              const ty = d.target.y - Math.sin(gamma) * t_radius;
+
+              return [tx, ty];
+            }
+
+            function getMidPoint(d: any) {
+              const sourceX = d.source.x;
+              const sourceY = d.source.y;
+              const targetX = d.target.x;
+              const targetY = d.target.y;
+
+              const dx = targetX - sourceX;
+              const dy = targetY - sourceY;
+
+              const tangentAngle = Math.atan2(-dx, dy);
+              const offsetX = Math.cos(tangentAngle) * 20;
+              const offsetY = Math.sin(tangentAngle) * 20;
+
+              const midPointX = (d.source.x + d.target.x) / 2 + offsetX;
+              const midPointY = (d.source.y + d.target.y) / 2 + offsetY;
+
+              return [midPointX, midPointY] as const;
+            }
+
             svg
               .selectAll('.link')
               .data(links)
-              .attr('x1', (d: any) => d.source.x)
-              .attr('y1', (d: any) => d.source.y)
-              .attr('x2', (d: any) => d.target.x)
-              .attr('y2', (d: any) => d.target.y);
+              .attr('d', (d: any) => {
+                const [midPointX, midPointY] = getMidPoint(d);
+
+                const path = d3.path();
+                path.moveTo(d.source.x, d.source.y);
+                path.quadraticCurveTo(
+                  midPointX,
+                  midPointY,
+                  getTargetNodeCircumferencePoint(d)[0],
+                  getTargetNodeCircumferencePoint(d)[1],
+                );
+                return path.toString();
+              })
+              .filter(() => graph.directed);
+            // .attr('marker-end', 'url(#arrow)');
 
             const svgNodes = svg.selectAll('.node').data(nodes);
             svgNodes
@@ -307,6 +378,25 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               .data(nodes)
               .attr('x', (d: any) => d.x)
               .attr('y', (d: any) => d.y);
+
+            svg
+              .selectAll('.link-label')
+              .data(links)
+              // .filter((d) => d.label !== undefined)
+              .attr('x', (d: any) => getMidPoint(d)[0])
+              .attr('y', (d: any) => getMidPoint(d)[1])
+              .attr('transform', (d: any) => {
+                const [midPointX, midPointY] = getMidPoint(d);
+                let angle =
+                  Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) *
+                  (180 / Math.PI);
+
+                if (angle > 90 || angle < -90) {
+                  angle = angle - 180;
+                }
+
+                return `rotate(${angle}, ${midPointX}, ${midPointY})`;
+              });
           };
 
           simulation.on('tick', updateValues);

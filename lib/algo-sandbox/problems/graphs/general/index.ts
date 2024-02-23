@@ -20,13 +20,30 @@ const general = createParameterizedProblem({
     goal_node: SandboxParam.string('Goal Node', 'C'),
   },
   getInitialState: (parameters) => {
-    const edges = parameters.edges.split(',').map((edge) => {
-      return edge.replace(/ /g, '').split('-');
-    });
+    const edgesSchema = z
+      .string()
+      .refine((value) => {
+        return value
+          .trim()
+          .split(',')
+          .every((edge) => edge.split('-').length === 2);
+      })
+      .transform((value) => {
+        return value
+          .trim()
+          .split(',')
+          .map((edge) => {
+            const [source, target] = edge.split('-');
+            return {
+              source,
+              target,
+            };
+          });
+      });
+    const edges = edgesSchema.parse(parameters.edges);
+
     const nodes = Array.from(
-      new Set(
-        edges.reduce((accumulator, value) => accumulator.concat(value), []),
-      ),
+      new Set(edges.flatMap(({ source, target }) => [source, target])),
     ).map(function (node) {
       return { id: node };
     });

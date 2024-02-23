@@ -9,10 +9,7 @@ export const sandboxEnvironmentState = createState(
   'Environment',
   z.object({
     getInitialState: z.function().returns(z.record(z.any())),
-    getStateKey: z
-      .function()
-      .args(z.record(z.any()))
-      .returns(z.union([z.string(), z.symbol(), z.number()])),
+    getStateKey: z.function().args(z.record(z.any())).returns(z.string()),
     step: z.function(z.tuple([z.unknown(), z.string()])).returns(
       z.object({
         nextState: z.record(z.any()),
@@ -27,4 +24,30 @@ export const sandboxEnvironmentState = createState(
   }) satisfies ZodType<
     ReturnType<SandboxEnvironment<SandboxStateType, string>['getInitialState']>
   >,
+);
+
+export const sandboxEnvironmentSearchState = createState(
+  'Sandbox environment search state',
+  z.object({
+    currentState:
+      sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+    actions: sandboxEnvironmentState.shape.shape.actions.returnType(),
+    visited: z.set(
+      sandboxEnvironmentState.shape.shape.getStateKey.returnType(),
+    ),
+    toVisit: z.array(
+      sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+    ),
+    getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,
+    searchTree: z.array(
+      z.object({
+        source: sandboxEnvironmentState.shape.shape.getStateKey.returnType(),
+        action:
+          sandboxEnvironmentState.shape.shape.actions.returnType().element,
+        result: sandboxEnvironmentState.shape.shape.getStateKey
+          .returnType()
+          .optional(),
+      }),
+    ),
+  }),
 );

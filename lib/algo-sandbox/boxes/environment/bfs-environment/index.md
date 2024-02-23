@@ -1,1 +1,1 @@
-# Breadth-first search (counter)
+# Breadth-first search (environment)

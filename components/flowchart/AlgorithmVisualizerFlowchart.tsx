@@ -273,7 +273,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
     return (
       <div
         className={clsx(
-          'border relative h-[200px] w-[500px] flex flex-col items-stretch rounded bg-surface-high',
+          'border relative w-[500px] flex flex-col items-stretch rounded bg-surface-high',
         )}
         ref={ref}
       >
@@ -283,14 +283,14 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
         </div>
         <div className="flex justify-between py-2">
-          <div className="flex flex-col gap-2 absolute start-0">
+          <div className="flex flex-col gap-2">
             {inputs
               .filter(({ id }) => id !== '.')
               .map(({ id, label, hasValue, error }) => {
                 return createLeftSlot({ id, error, hasValue, label });
               })}
           </div>
-          <div className="flex flex-col items-end gap-2 absolute end-0">
+          <div className="flex flex-col items-end gap-2">
             {outputs
               .filter(({ id }) => id !== '.')
               .map(({ id, label, hasValue }) => {
@@ -412,7 +412,13 @@ export default function AlgorithmVisualizerFlowchart({
               id: alias,
               type: 'customFlow',
               width: 500,
-              height: 100,
+              height:
+                76 +
+                Math.max(
+                  Object.keys(adapter.accepts.shape.shape).length,
+                  Object.keys(adapter.outputs.shape.shape).length,
+                ) *
+                  32,
               data: {
                 label: name,
                 inputs: ['.', ...Object.keys(adapter.accepts.shape.shape)].map(
@@ -486,7 +492,7 @@ export default function AlgorithmVisualizerFlowchart({
           id: alias,
           type: 'customFlow',
           width: 500,
-          height: 200,
+          height: 76 + Object.keys(visualizerInputs).length * 32,
           data: {
             label: name,
             inputs: ['.', ...Object.keys(visualizerInputs)].map((param) => {
@@ -526,7 +532,7 @@ export default function AlgorithmVisualizerFlowchart({
           id: 'algorithm',
           type: 'customFlow',
           width: 500,
-          height: 200,
+          height: 64 + Math.max(Object.keys(algorithmOutputs).length, 1) * 32,
           data: {
             label: algorithmName,
             outputs: ['.', ...Object.keys(algorithmOutputs)].map((param) => {
@@ -558,7 +564,7 @@ export default function AlgorithmVisualizerFlowchart({
           id: 'problem',
           type: 'customFlow',
           width: 500,
-          height: 200,
+          height: 76 + Math.max(Object.keys(problemOutputs).length, 1) * 32,
           data: {
             label: problemName,
             outputs: ['.', ...Object.keys(problemOutputs)].map((param) => {

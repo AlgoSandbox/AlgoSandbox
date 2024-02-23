@@ -49,7 +49,7 @@ export function createParameterizedEnvironment<
   getStateKey: (
     state: SandboxState<T>,
     parameters: ParsedParameters<P>,
-  ) => string | symbol | number;
+  ) => string;
   getInitialState: (parameters: ParsedParameters<P>) => SandboxState<T>;
   step: (
     state: SandboxState<T>,

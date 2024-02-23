@@ -6,7 +6,7 @@ const counterEnvironment = createEnvironment({
   name: 'Counter (environment)',
   initialStateType: counterState,
   actionsType: z.enum(['increment', 'decrement']),
-  getStateKey: (state) => state.counter,
+  getStateKey: (state) => state.counter.toString(),
   getInitialState: () => ({
     counter: 1,
   }),

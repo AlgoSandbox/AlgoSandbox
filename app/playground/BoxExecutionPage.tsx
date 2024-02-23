@@ -12,7 +12,6 @@ import {
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { MaterialSymbol, Tooltip } from '@components/ui';
 import clsx from 'clsx';
-import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDragDropManager } from 'react-dnd';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
@@ -21,7 +20,6 @@ import { toast } from 'sonner';
 import { useFlowchartCalculations, useScene } from './BoxPage';
 
 export default function BoxExecutionPage() {
-  const { resolvedTheme } = useTheme();
   const { isBoxComponentsShown, maxExecutionStepCount } = useUserPreferences();
 
   const scene = useScene();
@@ -56,7 +54,7 @@ export default function BoxExecutionPage() {
   }, [visualizerOrder, visualizerInstances, inputs]);
 
   const allVisualizerOrder = useMemo(() => {
-    return ['pseudocode', ...visualizerOrder, 'state-inspector'];
+    return ['pseudocode', ...visualizerOrder];
   }, [visualizerOrder]);
 
   const [hiddenVisualizerAliases, setHiddenVisualizerAliases] = useState<
@@ -148,7 +146,7 @@ export default function BoxExecutionPage() {
         </div>
       );
     },
-    [visualizations, pseudocode, executionStep, resolvedTheme],
+    [visualizations, pseudocode, executionStep],
   );
 
   const windowTitles = useMemo(() => {

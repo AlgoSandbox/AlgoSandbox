@@ -40,7 +40,6 @@ export type BoxContextAlgorithmVisualizers = {
 
 export default function useBoxContextAlgorithmVisualizers({
   builtInAdapterOptions,
-  algorithmOutputKeys,
   visualizerInputKeys,
   value,
   onChange,
@@ -132,7 +131,7 @@ export default function useBoxContextAlgorithmVisualizers({
       };
       return convertedConfiguration;
     }
-  }, [adapterEvaluations, algorithmOutputKeys, value, visualizerInputKeys]);
+  }, [value, visualizerInputKeys]);
 
   const algorithmVisualizers = useMemo(() => {
     return {

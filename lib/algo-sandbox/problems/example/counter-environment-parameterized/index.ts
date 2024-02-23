@@ -14,7 +14,7 @@ const counterEnvironmentParameterized = createParameterizedEnvironment({
     increment: SandboxParam.integer('Increment value', 1),
     decrement: SandboxParam.integer('Decrement value', 1),
   },
-  getStateKey: (state) => state.counter,
+  getStateKey: (state) => state.counter.toString(),
   getInitialState: ({ initialCounterValue }) => ({
     counter: initialCounterValue,
   }),

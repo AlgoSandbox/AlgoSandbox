@@ -14,12 +14,10 @@ const counterToSearchGraph: SandboxAdapter<
         nodes: Array.from({ length: nodeCount }, (_, i) => ({
           id: i.toString(),
         })),
-        edges: Array.from({ length: nodeCount }, (_, i) => [
-          i.toString(),
-          ((i + 1) % nodeCount).toString(),
-        ]),
-        startId: '',
-        endId: '',
+        edges: Array.from({ length: nodeCount }, (_, i) => ({
+          source: i.toString(),
+          target: ((i + 1) % nodeCount).toString(),
+        })),
         directed: false,
       },
       visited: new Set(

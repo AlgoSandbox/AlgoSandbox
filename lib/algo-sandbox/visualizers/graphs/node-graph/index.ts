@@ -1,17 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   createParameterizedVisualizer,
+  createState,
   SandboxParam,
   SandboxParameterizedVisualizer,
   SandboxParameters,
+  SandboxState,
 } from '@algo-sandbox/core';
-import { graphEdge, graphNode, nodeGraph } from '@algo-sandbox/states';
+import { graphEdge, graphNode } from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
 import _, { isEqual } from 'lodash';
 import { z } from 'zod';
 
-type NodeGraph = z.infer<typeof nodeGraph.shape>;
+const nodeGraphVisualizerEdge = graphEdge.extend({
+  isArrow: z.boolean().optional(),
+});
+
+const nodeGraphVisualizerInput = createState(
+  'Node graph visualizer input',
+  z.object({
+    nodes: z.array(graphNode),
+    edges: z.array(nodeGraphVisualizerEdge),
+  }),
+);
+
+type NodeGraph = SandboxState<typeof nodeGraphVisualizerInput>;
 type GraphNode = z.infer<typeof graphNode>;
 
 type RawRenderFunction = (
@@ -43,7 +57,7 @@ type NodeGraphVisualizationParameters = SandboxParameters<{
 export type NodeGraphVisualizerState = {
   graph: NodeGraph;
   nodes: Array<GraphNode>;
-  links: Array<z.infer<typeof graphEdge>>;
+  links: Array<z.infer<typeof nodeGraphVisualizerEdge>>;
   simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   width: number;
   height: number;
@@ -53,7 +67,7 @@ export type NodeGraphVisualizerState = {
 const getVisualizerState = (
   graph: NodeGraph,
   oldNodes: Array<GraphNode>,
-  oldLinks: Array<z.infer<typeof graphEdge>>,
+  oldLinks: Array<z.infer<typeof nodeGraphVisualizerEdge>>,
 ): Pick<NodeGraphVisualizerState, 'nodes' | 'links' | 'simulation'> => {
   const { nodes: newNodes, edges } = _.cloneDeep(graph);
   const nodes = newNodes.map((node) => {
@@ -106,7 +120,7 @@ const getVisualizerState = (
 };
 
 const nodeGraphVisualizer: SandboxParameterizedVisualizer<
-  typeof nodeGraph,
+  typeof nodeGraphVisualizerInput,
   NodeGraphVisualizerState,
   NodeGraphVisualizationParameters
 > = (() => {
@@ -114,7 +128,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
     (() => {
       return {
         name: 'Node graph',
-        accepts: nodeGraph,
+        accepts: nodeGraphVisualizerInput,
         parameters: {
           renderNode: SandboxParam.callback<(node: NodeGraphSVGNode) => void>(
             'Node render function',
@@ -208,7 +222,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('stroke', 'rgb(var(--color-border))')
             .attr('stroke-width', 2)
             .attr('fill', 'none')
-            .filter(() => graph.directed)
+            .filter((d) => d.isArrow ?? false)
             .attr('marker-end', 'url(#arrow)');
 
           // Create nodes

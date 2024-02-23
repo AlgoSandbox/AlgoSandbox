@@ -46,6 +46,10 @@ const searchGraphVisualizer: SandboxVisualizer<
         })
         .visualize({
           ...searchGraph.graph,
+          edges: searchGraph.graph.edges.map((edge) => ({
+            ...edge,
+            isArrow: searchGraph.graph.directed,
+          })),
         });
     },
   };

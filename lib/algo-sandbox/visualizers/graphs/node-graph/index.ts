@@ -15,12 +15,7 @@ type NodeGraph = z.infer<typeof nodeGraph.shape>;
 type GraphNode = z.infer<typeof graphNode>;
 
 type RawRenderFunction = (
-  selection: d3.Selection<
-    d3.BaseType,
-    GraphNode,
-    SVGSVGElement | null,
-    unknown
-  >,
+  selection: d3.Selection<d3.BaseType, GraphNode, SVGElement | null, unknown>,
 ) => void;
 
 type NodeGraphSVGNodeInternal<OmittedKeys extends string = ''> = Omit<
@@ -52,6 +47,7 @@ export type NodeGraphVisualizerState = {
   simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   width: number;
   height: number;
+  zoomTransform: d3.ZoomTransform;
 };
 
 const getVisualizerState = (
@@ -133,11 +129,16 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           state: graph,
           previousVisualizerState,
         }) => {
-          d3.select(element).selectChildren().remove();
+          d3.select(element).selectAll('svg').data([0]).enter().append('svg');
+
           const svg = d3
             .select(element)
-            .append('svg')
+            .select('svg')
             .attr('viewBox', [-width / 2, -height / 2, width, height]);
+          svg.selectAll('g').data([0]).enter().append('g');
+
+          const g = svg.select('g');
+          g.selectChildren().remove();
 
           const visualizerState = (() => {
             if (
@@ -165,6 +166,16 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             }
           }
 
+          svg.call(d3.zoom().on('zoom', zoomed) as any);
+
+          function zoomed({
+            transform,
+          }: d3.D3ZoomEvent<SVGSVGElement, unknown>) {
+            g.attr('transform', transform as any);
+          }
+
+          const zoomTransform = d3.zoomTransform(g.node() as any);
+
           const markerBoxWidth = 4;
           const markerBoxHeight = 4;
           const refX = markerBoxWidth / 2;
@@ -189,8 +200,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('fill', 'rgb(var(--color-border))');
 
           // Create links
-          svg
-            .selectAll('.link')
+          g.selectAll('.link')
             .data(links)
             .enter()
             .append('path')
@@ -198,10 +208,11 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('stroke', 'rgb(var(--color-border))')
             .attr('stroke-width', 2)
             .attr('fill', 'none')
+            .filter(() => graph.directed)
             .attr('marker-end', 'url(#arrow)');
 
           // Create nodes
-          const node = svg
+          const node = g
             .selectAll('.node')
             .data(nodes)
             .enter()
@@ -260,8 +271,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           }
 
           // Add labels to nodes
-          svg
-            .selectAll('.label')
+          g.selectAll('.label')
             .data(nodes)
             .enter()
             .append('text')
@@ -273,8 +283,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('style', 'pointer-events: none');
 
           // Add labels to links
-          svg
-            .selectAll('.link-label')
+          g.selectAll('.link-label')
             .data(links)
             // .filter((d) => d.label !== undefined)
             .enter()
@@ -286,8 +295,8 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('style', 'pointer-events: none')
             .attr('font-size', 10);
 
+          // Update the positions of nodes, links, and labels here
           const updateValues = () => {
-            // Update the positions of nodes, links, and labels here
             function getTargetNodeCircumferencePoint(d: any) {
               const [midPointX, midPointY] = getMidPoint(d);
               const t_radius = 20;
@@ -319,8 +328,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               return [midPointX, midPointY] as const;
             }
 
-            svg
-              .selectAll('.link')
+            g.selectAll('.link')
               .data(links)
               .attr('d', (d: any) => {
                 const [midPointX, midPointY] = getMidPoint(d);
@@ -334,11 +342,9 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
                   getTargetNodeCircumferencePoint(d)[1],
                 );
                 return path.toString();
-              })
-              .filter(() => graph.directed);
-            // .attr('marker-end', 'url(#arrow)');
+              });
 
-            const svgNodes = svg.selectAll('.node').data(nodes);
+            const svgNodes = g.selectAll('.node').data(nodes);
             svgNodes
               .attr('fill', 'white')
               .attr('cx', (d: any) => d.x)
@@ -352,8 +358,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
                 return node;
               },
               textColor: (getTextColor) => {
-                svg
-                  .selectAll('.label')
+                g.selectAll('.label')
                   .data(nodes)
                   .attr('fill', (node) => getTextColor(node) ?? null);
                 return node;
@@ -373,14 +378,14 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             // Call raw render function if applicable
             rawNodeRender?.(svgNodes);
 
-            svg
-              .selectAll('.label')
+            // Update labels
+            g.selectAll('.label')
               .data(nodes)
               .attr('x', (d: any) => d.x)
               .attr('y', (d: any) => d.y);
 
-            svg
-              .selectAll('.link-label')
+            // Update link labels
+            g.selectAll('.link-label')
               .data(links)
               // .filter((d) => d.label !== undefined)
               .attr('x', (d: any) => getMidPoint(d)[0])
@@ -409,6 +414,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             simulation,
             width,
             height,
+            zoomTransform,
           };
         },
       };

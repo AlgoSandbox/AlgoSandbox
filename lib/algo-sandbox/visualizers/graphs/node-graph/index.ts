@@ -15,7 +15,7 @@ type NodeGraph = z.infer<typeof nodeGraph.shape>;
 type GraphNode = z.infer<typeof graphNode>;
 
 type RawRenderFunction = (
-  selection: d3.Selection<d3.BaseType, GraphNode, SVGElement | null, unknown>,
+  selection: d3.Selection<d3.BaseType, GraphNode, d3.BaseType, unknown>,
 ) => void;
 
 type NodeGraphSVGNodeInternal<OmittedKeys extends string = ''> = Omit<

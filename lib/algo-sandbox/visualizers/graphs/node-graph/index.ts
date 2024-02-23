@@ -180,7 +180,9 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             }
           }
 
-          svg.call(d3.zoom().on('zoom', zoomed) as any);
+          svg
+            .attr('style', 'cursor: grab')
+            .call(d3.zoom().on('zoom', zoomed) as any);
 
           function zoomed({
             transform,
@@ -200,6 +202,9 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             [markerBoxWidth, markerBoxHeight / 2],
           ];
           svg
+            .selectAll('#arrow')
+            .data([0])
+            .enter()
             .append('defs')
             .append('marker')
             .attr('id', 'arrow')
@@ -345,6 +350,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             g.selectAll('.link')
               .data(links)
               .attr('d', (d: any) => {
+                const isArrow = d.isArrow ?? false;
                 const [midPointX, midPointY] = getMidPoint(d);
 
                 const path = d3.path();
@@ -352,8 +358,8 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
                 path.quadraticCurveTo(
                   midPointX,
                   midPointY,
-                  getTargetNodeCircumferencePoint(d)[0],
-                  getTargetNodeCircumferencePoint(d)[1],
+                  isArrow ? getTargetNodeCircumferencePoint(d)[0] : d.target.x,
+                  isArrow ? getTargetNodeCircumferencePoint(d)[1] : d.target.y,
                 );
                 return path.toString();
               });

@@ -13,10 +13,11 @@ const pseudocode = `BFS(G, start):
   Set visited[start] to true
 
   while toVisit is not empty:
-      Dequeue a vertex v from toVisit
-      if v is the end node, terminate
+      Dequeue a state s from toVisit
+      if s is a goal state, terminate
 
-      for each neighbor u of v:
+      for each action in actions(s):
+          let u be the neighbor of s that is reached by action
           if u is not visited:
               Enqueue u into toVisit
               Set visited[u] to true`;
@@ -84,7 +85,7 @@ const breadthFirstSearch = createAlgorithm({
         }
       }
 
-      yield line(13, 16);
+      yield line(13, 17);
     }
 
     return true;

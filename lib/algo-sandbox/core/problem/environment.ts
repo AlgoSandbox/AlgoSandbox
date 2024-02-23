@@ -50,7 +50,7 @@ export function createEnvironment<
 }: {
   name: string;
   initialStateType: T;
-  actionsType: z.ZodEnum<Actions>;
+  actionsType: z.ZodEnum<Actions> | z.ZodString;
   getInitialState: () => SandboxState<T>;
   getStateKey: (state: SandboxState<T>) => string;
   step: (

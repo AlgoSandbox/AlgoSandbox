@@ -1,6 +1,6 @@
 'use client';
 
-import { SandboxStateType } from '@algo-sandbox/core';
+import { SandboxProblem, SandboxStateType } from '@algo-sandbox/core';
 import AppNavBar from '@components/AppNavBar';
 import {
   BoxControlsContextProvider,
@@ -38,6 +38,7 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
   const problemInstance = useBoxContext('problem.instance');
+  const problemAdapter = useBoxContext('problemAlgorithm.adapters.composed');
   const algorithmInstance = useBoxContext('algorithm.instance');
   const { maxExecutionStepCount: maxExecutionStepCount } = useUserPreferences();
 
@@ -48,9 +49,19 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
       problemInstance !== null
     ) {
       try {
+        const initialProblemState = problemInstance.getInitialState();
+        const adaptedProblemState =
+          problemAdapter?.transform(initialProblemState) ?? initialProblemState;
+
+        const adaptedProblem: SandboxProblem<SandboxStateType> = {
+          name: problemInstance.name,
+          type: problemAdapter?.outputs ?? problemInstance.type,
+          getInitialState: () => adaptedProblemState,
+        };
+
         const scene = createScene({
           algorithm: algorithmInstance,
-          problem: problemInstance,
+          problem: adaptedProblem,
           maxExecutionStepCount,
         });
 
@@ -65,6 +76,7 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
     areAlgorithmProblemCompatible,
     algorithmInstance,
     problemInstance,
+    problemAdapter,
     maxExecutionStepCount,
   ]);
   const [scene, setScene] = useState(initialScene);
@@ -118,6 +130,7 @@ function SceneProvider({
   const executionStep = scene?.executionTrace?.[currentStepIndex];
 
   const problemInstance = useBoxContext('problem.instance');
+  const problemAdapterCompatible = useBoxContext('problemAlgorithm.compatible');
   const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
   const algorithmVisualizersAdapters = useBoxContext(
     'algorithmVisualizers.evaluated.adapters',
@@ -131,10 +144,16 @@ function SceneProvider({
       return {};
     }
 
+    if (!problemAdapterCompatible) {
+      return {};
+    }
+
+    const problemState = problemInstance.getInitialState();
+
     const { inputs, outputs, inputErrors } = solveFlowchart({
       adapterConfiguration: algorithmVisualizersTree,
-      problem: problemInstance,
-      algorithmState: algorithmState,
+      problemState,
+      algorithmState,
       adapters: mapValues(
         algorithmVisualizersAdapters ?? {},
         (val) => val?.value,
@@ -146,6 +165,7 @@ function SceneProvider({
   }, [
     problemInstance,
     algorithmInstance,
+    problemAdapterCompatible,
     algorithmVisualizersTree,
     algorithmState,
     algorithmVisualizersAdapters,

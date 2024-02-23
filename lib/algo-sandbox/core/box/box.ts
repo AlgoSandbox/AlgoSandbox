@@ -56,7 +56,9 @@ export type SandboxAliases<
   V extends SandboxAnyAdapter | SandboxKey = SandboxKey,
 > = Record<Alias, V>;
 
-export type AdapterConfigurationRaw<Aliases extends SandboxAliases> = {
+export type AdapterConfigurationRaw<
+  Aliases extends SandboxAliases<string, SandboxAdapterKey>,
+> = {
   aliases: Aliases;
   composition: AdapterComposition<Aliases>;
 };
@@ -142,7 +144,9 @@ type VisualizersEvaluated = {
 
 export type SandboxBox = Readonly<{
   problem: SandboxProblemKey;
-  problemAlgorithm?: AdapterConfigurationFlat;
+  problemAlgorithm?: AdapterConfigurationFlat<
+    SandboxAliases<string, SandboxAdapterKey>
+  >;
   algorithm: SandboxAlgorithmKey;
   algorithmVisualizers?: AlgorithmVisualizers;
   visualizers: Visualizers;

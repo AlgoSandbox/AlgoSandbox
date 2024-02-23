@@ -1,4 +1,4 @@
-import * as environments from './environment';
+import * as environment from './environment';
 import * as example from './example';
 
-export { environments, example };
+export { environment, example };

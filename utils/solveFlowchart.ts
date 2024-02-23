@@ -1,7 +1,6 @@
 import {
   AlgorithmVisualizersTree,
   SandboxAdapter,
-  SandboxProblem,
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
@@ -59,13 +58,13 @@ function buildGraphFromAdapterConfiguration(
 
 export default function solveFlowchart({
   adapterConfiguration,
-  problem,
+  problemState,
   algorithmState,
   adapters,
   visualizers,
 }: {
   adapterConfiguration: AlgorithmVisualizersTree;
-  problem: SandboxProblem<SandboxStateType>;
+  problemState: Record<string, unknown> | undefined;
   algorithmState: Record<string, unknown> | undefined;
   adapters: Record<
     string,
@@ -84,7 +83,7 @@ export default function solveFlowchart({
   );
 
   const outputs: Record<string, Record<string, unknown>> = {
-    problem: problem.getInitialState(),
+    problem: problemState ?? {},
     algorithm: algorithmState ?? {},
   };
 

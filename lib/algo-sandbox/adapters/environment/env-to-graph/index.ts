@@ -54,7 +54,7 @@ const envToGraph: SandboxAdapter<
       nodeDepths,
       currentNodeId: value.getStateKey(value.currentState),
       initialNodeId: value.getStateKey(value.initialState),
-      toVisit: value.toVisit.map(value.getStateKey),
+      toVisit: value.toVisit.map(({ state }) => value.getStateKey(state)),
       visited: value.visited,
     };
   },

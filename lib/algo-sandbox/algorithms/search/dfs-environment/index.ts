@@ -4,26 +4,26 @@ import {
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
 
-const pseudocode = `BFS(G, start):
-  Create an empty queue toVisit
+const pseudocode = `DFS(G, start):
+  Create an empty stack toVisit
   Create a boolean array visited of size |V| (where V is the set of vertices)
   Initialize all elements of visited to false
 
-  Enqueue start into toVisit
+  Push start into toVisit
   Set visited[start] to true
 
   while toVisit is not empty:
-      Dequeue a state s from toVisit
-      if s is a goal state, terminate
+    Pop a state s from toVisit
+    if s is a goal state, terminate
 
-      for each action in actions(s):
-          let u be the neighbor of s that is reached by action
-          if u is not visited:
-              Enqueue u into toVisit
-              Set visited[u] to true`;
+    for each action in actions(s):
+      let u be the neighbor of s that is reached by action
+      if u is not visited:
+        Push u onto toVisit
+        Set visited[u] to true`;
 
-const breadthFirstSearch = createAlgorithm({
-  name: 'Breadth-first search (env)',
+const depthFirstSearch = createAlgorithm({
+  name: 'Depth-first search (env)',
   accepts: sandboxEnvironmentState,
   outputs: sandboxEnvironmentSearchState,
   pseudocode,
@@ -41,7 +41,7 @@ const breadthFirstSearch = createAlgorithm({
   },
   *runAlgorithm({ line, state, problemState }) {
     yield line(2, 4);
-    // Enqueue start into Q
+    // Push start onto S
     state.toVisit.push({ state: state.currentState, isGoal: false });
     yield line(6);
 
@@ -49,12 +49,9 @@ const breadthFirstSearch = createAlgorithm({
     state.visited.add(problemState.getStateKey(state.currentState));
     yield line(7);
 
-    while (true) {
+    while (state.toVisit.length > 0) {
       yield line(9);
-      if (state.toVisit.length === 0) {
-        break;
-      }
-      const { state: visitedState, isGoal } = state.toVisit.splice(0, 1)[0];
+      const { state: visitedState, isGoal } = state.toVisit.pop()!;
       state.currentState = visitedState;
       state.actions = problemState.actions(state.currentState);
       yield line(10, 11);
@@ -94,4 +91,4 @@ const breadthFirstSearch = createAlgorithm({
   },
 });
 
-export default breadthFirstSearch;
+export default depthFirstSearch;

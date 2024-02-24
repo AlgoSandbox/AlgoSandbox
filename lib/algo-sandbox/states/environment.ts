@@ -38,7 +38,10 @@ export const sandboxEnvironmentSearchState = createState(
       sandboxEnvironmentState.shape.shape.getStateKey.returnType(),
     ),
     toVisit: z.array(
-      sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+      z.object({
+        state: sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+        isGoal: z.boolean(),
+      }),
     ),
     getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,
     searchTree: z.array(

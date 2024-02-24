@@ -42,7 +42,7 @@ const breadthFirstSearch = createAlgorithm({
   *runAlgorithm({ line, state, problemState }) {
     yield line(2, 4);
     // Enqueue start into Q
-    state.toVisit.push({ state: state.currentState, isGoal: false });
+    state.toVisit.push({ state: state.currentState, isGoal: false, cost: 0 });
     yield line(6);
 
     // Set visited[start] to true
@@ -54,7 +54,11 @@ const breadthFirstSearch = createAlgorithm({
       if (state.toVisit.length === 0) {
         break;
       }
-      const { state: visitedState, isGoal } = state.toVisit.splice(0, 1)[0];
+      const {
+        state: visitedState,
+        isGoal,
+        cost,
+      } = state.toVisit.splice(0, 1)[0];
       state.currentState = visitedState;
       state.actions = problemState.actions(state.currentState);
       yield line(10, 11);
@@ -74,7 +78,11 @@ const breadthFirstSearch = createAlgorithm({
         const currentKey = problemState.getStateKey(state.currentState);
 
         if (!state.visited.has(neighborKey)) {
-          state.toVisit.push({ state: nextState, isGoal: terminated });
+          state.toVisit.push({
+            state: nextState,
+            isGoal: terminated,
+            cost: cost + 1,
+          });
           state.visited.add(neighborKey);
           state.searchTree = [
             ...state.searchTree,

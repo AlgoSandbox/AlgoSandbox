@@ -42,7 +42,7 @@ const depthFirstSearch = createAlgorithm({
   *runAlgorithm({ line, state, problemState }) {
     yield line(2, 4);
     // Push start onto S
-    state.toVisit.push({ state: state.currentState, isGoal: false });
+    state.toVisit.push({ state: state.currentState, isGoal: false, cost: 0 });
     yield line(6);
 
     // Set visited[start] to true
@@ -51,7 +51,7 @@ const depthFirstSearch = createAlgorithm({
 
     while (state.toVisit.length > 0) {
       yield line(9);
-      const { state: visitedState, isGoal } = state.toVisit.pop()!;
+      const { state: visitedState, isGoal, cost } = state.toVisit.pop()!;
       state.currentState = visitedState;
       state.actions = problemState.actions(state.currentState);
       yield line(10, 11);
@@ -71,7 +71,11 @@ const depthFirstSearch = createAlgorithm({
         const currentKey = problemState.getStateKey(state.currentState);
 
         if (!state.visited.has(neighborKey)) {
-          state.toVisit.push({ state: nextState, isGoal: terminated });
+          state.toVisit.push({
+            state: nextState,
+            isGoal: terminated,
+            cost: cost + 1,
+          });
           state.visited.add(neighborKey);
           state.searchTree = [
             ...state.searchTree,

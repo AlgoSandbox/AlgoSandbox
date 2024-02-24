@@ -113,7 +113,7 @@ const getVisualizerState = (
           d3.SimulationLinkDatum<d3.SimulationNodeDatum & GraphNode>
         >(links)
         .id((d) => d.id)
-        .distance(isTree ? 100 : 60)
+        .distance(100)
         .strength(1),
     )
     .force('x', d3.forceX())

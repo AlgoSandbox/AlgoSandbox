@@ -40,6 +40,7 @@ export const sandboxEnvironmentSearchState = createState(
     toVisit: z.array(
       z.object({
         state: sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+        cost: z.number(),
         isGoal: z.boolean(),
       }),
     ),

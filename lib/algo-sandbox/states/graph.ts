@@ -5,6 +5,7 @@ export const graphEdge = z.object({
   source: z.string(),
   target: z.string(),
   label: z.string().optional(),
+  weight: z.number().optional(),
 });
 
 export const graphNode = z.object({

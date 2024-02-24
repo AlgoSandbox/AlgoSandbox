@@ -13,7 +13,6 @@ import {
 } from '@app/errors/ErrorContext';
 import * as d3 from 'd3';
 import _, * as lodash from 'lodash';
-import * as lunaObjectViewer from 'luna-object-viewer';
 import path from 'path';
 import * as react from 'react';
 import * as reactDomClient from 'react-dom/client';
@@ -63,7 +62,6 @@ export default function evalWithAlgoSandbox(
     'react-inspector': reactInspector,
     d3: d3,
     lodash: lodash,
-    'luna-object-viewer': lunaObjectViewer,
     zod: zod,
   };
 

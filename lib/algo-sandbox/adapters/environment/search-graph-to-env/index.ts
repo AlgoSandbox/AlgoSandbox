@@ -25,12 +25,18 @@ const searchGraphToEnv: SandboxAdapter<
           .map((edge) => edge.target);
       },
       step: (state, action) => {
+        const edge = (state as State).edges.find(
+          (edge) =>
+            edge.source === (state as State).currentNodeId &&
+            edge.target === action,
+        )!;
+
         return {
           nextState: {
             ...(state as State),
             currentNodeId: action,
           },
-          reward: 1,
+          reward: -(edge.weight ?? 1),
           terminated: action === value.endId,
           truncated: false,
           info: {},

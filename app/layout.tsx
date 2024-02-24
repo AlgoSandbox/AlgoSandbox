@@ -99,6 +99,7 @@ const algorithmGroupToFolderGlob = {
 
 const problemGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/problems/graphs',
+  'Weighted graphs': 'lib/algo-sandbox/problems/weighted-graphs',
   Example: 'lib/algo-sandbox/problems/example',
 };
 
@@ -219,10 +220,6 @@ export default async function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap"
           rel="stylesheet"
-        />
-        <link
-          rel="stylesheet"
-          href="//cdn.jsdelivr.net/npm/luna-object-viewer/luna-object-viewer.css"
         />
       </head>
       <body className={clsx(inter.className, 'bg-canvas')}>

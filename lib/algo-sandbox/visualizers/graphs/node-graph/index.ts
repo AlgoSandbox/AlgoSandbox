@@ -131,7 +131,7 @@ const getVisualizerState = (
       'tree',
       d3
         .forceY((d: any) => {
-          return normalizeDepth(nodeDepths[d.id] ?? 0) * 200;
+          return normalizeDepth(nodeDepths[d.id] ?? 0) * 400;
         })
         .strength((d) => (nodeDepths[d.id] !== undefined ? 1 : 0)),
     );

@@ -48,6 +48,8 @@ export const graphSearchAlgorithmState = createState(
     graph: nodeGraph.shape,
     toVisit: z.array(z.string()),
     visited: z.set(z.string()),
+    initialNodeId: z.string(),
     currentNodeId: z.string().nullable(),
+    nodeDepths: z.record(z.number()).optional(),
   }),
 );

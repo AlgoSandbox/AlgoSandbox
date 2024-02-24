@@ -25,6 +25,7 @@ const counterToSearchGraph: SandboxAdapter<
       ),
       toVisit: [],
       currentNodeId: (nodeCount - 1).toString(),
+      initialNodeId: '0',
     };
   },
 };

@@ -45,11 +45,13 @@ export default function BoxExecutionPage() {
 
       const input = inputs?.[alias] ?? {};
 
-      if (instance.accepts.shape.safeParse(input).success === false) {
+      const parseResult = instance.accepts.shape.safeParse(input);
+
+      if (parseResult.success === false) {
         return { alias, visualization: null };
       }
 
-      return { alias, visualization: instance.visualize(input) };
+      return { alias, visualization: instance.visualize(parseResult.data) };
     });
   }, [visualizerOrder, visualizerInstances, inputs]);
 

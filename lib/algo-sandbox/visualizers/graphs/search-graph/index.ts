@@ -45,7 +45,8 @@ const searchGraphVisualizer: SandboxVisualizer<
           },
         })
         .visualize({
-          ...searchGraph.graph,
+          nodes: searchGraph.graph.nodes,
+          nodeDepths: searchGraph.nodeDepths,
           edges: searchGraph.graph.edges.map((edge) => ({
             ...edge,
             isArrow: searchGraph.graph.directed,

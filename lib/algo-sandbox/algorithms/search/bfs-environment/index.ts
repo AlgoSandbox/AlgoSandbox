@@ -31,6 +31,7 @@ const breadthFirstSearch = createAlgorithm({
     const initialState = problem.getInitialState();
     return {
       currentState: initialState,
+      initialState,
       visited: new Set<string>(),
       toVisit: [],
       actions: problem.actions(initialState),
@@ -70,18 +71,18 @@ const breadthFirstSearch = createAlgorithm({
 
         const neighborKey = problemState.getStateKey(nextState);
         const currentKey = problemState.getStateKey(state.currentState);
-        state.searchTree = [
-          ...state.searchTree,
-          {
-            source: currentKey,
-            action,
-            result: neighborKey,
-          },
-        ];
 
         if (!state.visited.has(neighborKey)) {
           state.toVisit.push(nextState);
           state.visited.add(neighborKey);
+          state.searchTree = [
+            ...state.searchTree,
+            {
+              source: currentKey,
+              action,
+              result: neighborKey,
+            },
+          ];
         }
       }
 

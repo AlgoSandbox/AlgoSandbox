@@ -17,16 +17,20 @@ const nodeGraphVisualizerEdge = graphEdge.extend({
   isArrow: z.boolean().optional(),
 });
 
+const nodeGraphVisualizerNode = graphNode;
+
 const nodeGraphVisualizerInput = createState(
   'Node graph visualizer input',
   z.object({
-    nodes: z.array(graphNode),
+    nodes: z.array(nodeGraphVisualizerNode),
     edges: z.array(nodeGraphVisualizerEdge),
+    nodeDepths: z.record(z.number()).optional(),
   }),
 );
 
 type NodeGraph = SandboxState<typeof nodeGraphVisualizerInput>;
-type GraphNode = z.infer<typeof graphNode>;
+type GraphNode = z.infer<typeof nodeGraphVisualizerNode>;
+type GraphEdge = z.infer<typeof nodeGraphVisualizerEdge>;
 
 type RawRenderFunction = (
   selection: d3.Selection<d3.BaseType, GraphNode, d3.BaseType, unknown>,
@@ -57,7 +61,7 @@ type NodeGraphVisualizationParameters = SandboxParameters<{
 export type NodeGraphVisualizerState = {
   graph: NodeGraph;
   nodes: Array<GraphNode>;
-  links: Array<z.infer<typeof nodeGraphVisualizerEdge>>;
+  links: Array<GraphEdge>;
   simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   width: number;
   height: number;
@@ -95,9 +99,12 @@ const getVisualizerState = (
   });
 
   // Create a force simulation to spread the nodes
-  const simulation = d3
+  const { nodeDepths } = graph;
+  const isTree = nodeDepths !== undefined;
+
+  let simulation = d3
     .forceSimulation(nodes as d3.SimulationNodeDatum[])
-    .force('charge', d3.forceManyBody().strength(-500))
+    .force('charge', d3.forceManyBody().strength(isTree ? -300 : -700))
     .force(
       'link',
       d3
@@ -106,11 +113,29 @@ const getVisualizerState = (
           d3.SimulationLinkDatum<d3.SimulationNodeDatum & GraphNode>
         >(links)
         .id((d) => d.id)
-        .distance(100)
+        .distance(isTree ? 100 : 60)
         .strength(1),
     )
     .force('x', d3.forceX())
     .force('y', d3.forceY());
+
+  if (nodeDepths) {
+    const maxDepth = Math.max(...Object.values(nodeDepths));
+    const minDepth = Math.min(...Object.values(nodeDepths));
+
+    const normalizeDepth = (depth: number) => {
+      return (depth - minDepth) / (maxDepth - minDepth) - 0.5;
+    };
+
+    simulation = simulation.force(
+      'tree',
+      d3
+        .forceY((d: any) => {
+          return normalizeDepth(nodeDepths[d.id] ?? 0) * 200;
+        })
+        .strength((d) => (nodeDepths[d.id] !== undefined ? 1 : 0)),
+    );
+  }
 
   return {
     simulation,

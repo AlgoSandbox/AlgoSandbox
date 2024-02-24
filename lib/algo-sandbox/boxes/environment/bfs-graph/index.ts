@@ -69,6 +69,12 @@ const box: SandboxBox = {
           toKey: 'visualizer-2',
           toSlot: 'currentNodeId',
         },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'initialNodeId',
+          toKey: 'visualizer-2',
+          toSlot: 'initialNodeId',
+        },
       ],
     },
   },

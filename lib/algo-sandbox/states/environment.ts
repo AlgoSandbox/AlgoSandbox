@@ -31,6 +31,8 @@ export const sandboxEnvironmentSearchState = createState(
   z.object({
     currentState:
       sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+    initialState:
+      sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
     actions: sandboxEnvironmentState.shape.shape.actions.returnType(),
     visited: z.set(
       sandboxEnvironmentState.shape.shape.getStateKey.returnType(),

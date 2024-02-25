@@ -1,9 +1,11 @@
 import 'reactflow/dist/style.css';
 
+import { ErrorEntry } from '@app/errors/ErrorContext';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import AlgorithmSelect from '@components/box-page/app-bar/AlgorithmSelect';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
+import ErrorDisplay from '@components/common/ErrorDisplay';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
@@ -59,6 +61,7 @@ type FlowNodeData = {
   label: string;
   type: 'algorithm' | 'problem' | 'visualizer' | 'adapter';
   onDelete: () => void;
+  evaluationError: Array<ErrorEntry> | null;
 };
 
 type FlowNodeProps = NodeProps<FlowNodeData>;
@@ -71,7 +74,17 @@ function getNodeHeight({ slotCount }: { slotCount: number }) {
 
 const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
   (
-    { data: { inputs = [], outputs = [], type, alias, onDelete }, selected },
+    {
+      data: {
+        inputs = [],
+        outputs = [],
+        type,
+        alias,
+        onDelete,
+        evaluationError,
+      },
+      selected,
+    },
     ref,
   ) => {
     const deletable = type !== 'algorithm' && type !== 'problem';
@@ -296,20 +309,23 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
         </NodeToolbar>
         <div
           className={clsx(
-            'border-2 relative min-w-[500px] flex flex-col items-stretch rounded bg-surface-high',
-            String.raw`[.react-flow\_\_node.selected>&]:border-accent`,
+            'border-2 relative min-w-[500px] flex flex-col items-stretch rounded bg-surface',
+            evaluationError === null &&
+              String.raw`[.react-flow\_\_node.selected>&]:border-accent`,
+            evaluationError !== null &&
+              String.raw`[.react-flow\_\_node>&]:border-danger`,
             'transition-colors',
           )}
           ref={ref}
         >
           <div className="absolute -top-1 -translate-y-full text-label text-lg">
-            {alias}
+            <span>{alias}</span>
           </div>
           <div className="p-2 border-b">
             {type === 'problem' && (
-              <ProblemSelect hideLabel className="flex-1" />
+              <ProblemSelect hideErrors hideLabel className="flex-1" />
             )}
-            {type === 'algorithm' && <AlgorithmSelect hideLabel />}
+            {type === 'algorithm' && <AlgorithmSelect hideErrors hideLabel />}
             {type === 'visualizer' && (
               <FlowchartVisualizerSelect alias={alias} />
             )}
@@ -321,9 +337,11 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
               />
             )}
           </div>
+          {evaluationError !== null && (
+            <ErrorDisplay errors={evaluationError} />
+          )}
           <div className="flex justify-between items-center text-lg font-semibold py-2">
             {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
-
             {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
           </div>
           <div className="flex justify-between py-2">
@@ -407,8 +425,8 @@ export default function AlgorithmVisualizerFlowchart({
   const visualizers = useBoxContext('visualizers');
   const visualizerInstances = useBoxContext('visualizers.instances');
 
-  const algorithmName = algorithm?.name ?? 'Untitled algorithm';
-  const problemName = problem?.name ?? 'Untitled algorithm';
+  const algorithmName = algorithm.unwrapOr(null)?.name ?? 'Untitled algorithm';
+  const problemName = problem.unwrapOr(null)?.name ?? 'Untitled problem';
 
   useEffect(() => {
     const newTabName = 'Config';
@@ -418,12 +436,12 @@ export default function AlgorithmVisualizerFlowchart({
   }, [boxName, renameTab, tabId, tabName]);
 
   const algorithmOutputs = useMemo(
-    () => algorithm?.outputs.shape.shape ?? {},
+    () => algorithm.unwrapOr(null)?.outputs.shape.shape ?? {},
     [algorithm],
   );
 
   const problemOutputs = useMemo(
-    () => problem?.type.shape.shape ?? {},
+    () => problem.unwrapOr(null)?.type.shape.shape ?? {},
     [problem],
   );
 
@@ -468,85 +486,81 @@ export default function AlgorithmVisualizerFlowchart({
 
   const initialAdapterNodes = useMemo(
     () =>
-      Object.entries(algorithmVisualizersEvaluated.adapters ?? {})
-        .filter(([, evaluated]) => evaluated !== undefined)
-        .map(([alias, evaluated]) => ({
-          alias,
-          evaluated: evaluated!,
-        }))
-        .map(
-          ({ alias, evaluated: { name, value: adapter } }) =>
-            ({
-              id: alias,
-              type: 'customFlow',
-              width: 500,
-              height: getNodeHeight({
-                slotCount: Math.max(
-                  Object.keys(adapter.accepts.shape.shape).length,
-                  Object.keys(adapter.outputs.shape.shape).length,
-                ),
-              }),
-              data: {
-                alias,
-                type: 'adapter',
-                label: name,
-                onDelete: () => {
-                  onNodeDelete('adapter', alias);
-                },
-                inputs: ['.', ...Object.keys(adapter.accepts.shape.shape)].map(
-                  (param) => {
-                    const label = (() => {
-                      if (param === '.') {
-                        return '';
-                      }
+      Object.entries(algorithmVisualizersEvaluated.adapters ?? {}).map(
+        ([alias, evaluation]) => {
+          const { value: adapter, name } =
+            evaluation.mapLeft(() => null).value ?? {};
+          const evaluationError = evaluation.mapRight(() => null).value;
+          const inputSlots = Object.keys(adapter?.accepts.shape.shape ?? {});
+          const outputSlots = Object.keys(adapter?.outputs.shape.shape ?? {});
+          const slotCount = Math.max(inputSlots.length, outputSlots.length);
 
-                      return param;
-                    })();
-
-                    const hasValue = (() => {
-                      if (param === '.') {
-                        return inputs[alias] !== undefined;
-                      }
-
-                      return Object.hasOwn(inputs[alias] ?? {}, param);
-                    })();
-
-                    return {
-                      id: param,
-                      label,
-                      hasValue,
-                      error: inputErrors[alias]?.[param] ?? null,
-                    };
-                  },
-                ),
-                outputs: ['.', ...Object.keys(adapter.outputs.shape.shape)].map(
-                  (param) => {
-                    const label = (() => {
-                      if (param === '.') {
-                        return '';
-                      }
-
-                      return param;
-                    })();
-
-                    const hasValue = (() => {
-                      if (param === '.') {
-                        return outputs[alias] !== undefined;
-                      }
-
-                      return Object.hasOwn(outputs[alias] ?? {}, param);
-                    })();
-
-                    return {
-                      id: param,
-                      label,
-                      hasValue,
-                    };
-                  },
-                ),
+          return {
+            id: alias,
+            type: 'customFlow',
+            width: 500,
+            height: getNodeHeight({
+              slotCount,
+            }),
+            data: {
+              alias,
+              type: 'adapter',
+              label: name ?? alias,
+              onDelete: () => {
+                onNodeDelete('adapter', alias);
               },
-            }) satisfies Omit<FlowNode, 'position'>,
-        ),
+              evaluationError,
+              inputs: ['.', ...inputSlots].map((param) => {
+                const label = (() => {
+                  if (param === '.') {
+                    return '';
+                  }
+
+                  return param;
+                })();
+
+                const hasValue = (() => {
+                  if (param === '.') {
+                    return inputs[alias] !== undefined;
+                  }
+
+                  return Object.hasOwn(inputs[alias] ?? {}, param);
+                })();
+
+                return {
+                  id: param,
+                  label,
+                  hasValue,
+                  error: inputErrors[alias]?.[param] ?? null,
+                };
+              }),
+              outputs: ['.', ...outputSlots].map((param) => {
+                const label = (() => {
+                  if (param === '.') {
+                    return '';
+                  }
+
+                  return param;
+                })();
+
+                const hasValue = (() => {
+                  if (param === '.') {
+                    return outputs[alias] !== undefined;
+                  }
+
+                  return Object.hasOwn(outputs[alias] ?? {}, param);
+                })();
+
+                return {
+                  id: param,
+                  label,
+                  hasValue,
+                };
+              }),
+            },
+          } satisfies Omit<FlowNode, 'position'>;
+        },
+      ),
     [
       algorithmVisualizersEvaluated.adapters,
       inputErrors,
@@ -559,28 +573,28 @@ export default function AlgorithmVisualizerFlowchart({
   const initialVisualizerNodes = useMemo(() => {
     return compact(
       Object.entries(visualizerInstances).map(([alias, evaluation]) => {
-        if (evaluation === undefined) {
-          return null;
-        }
-
-        const { value: instance, name } = evaluation;
+        const { value: instance, name } =
+          evaluation.mapLeft(() => null).value ?? {};
+        const evaluationError = evaluation.mapRight(() => null).value;
         const visualizerInputs = instance?.accepts.shape.shape ?? {};
+        const inputSlots = Object.keys(visualizerInputs);
 
         return {
           id: alias,
           type: 'customFlow',
           width: 500,
           height: getNodeHeight({
-            slotCount: Object.keys(visualizerInputs).length,
+            slotCount: inputSlots.length,
           }),
           data: {
             type: 'visualizer',
             alias,
-            label: name,
+            label: name ?? alias,
             onDelete: () => {
               onNodeDelete('visualizer', alias);
             },
-            inputs: ['.', ...Object.keys(visualizerInputs)].map((param) => {
+            evaluationError,
+            inputs: ['.', ...inputSlots].map((param) => {
               const hasValue = (() => {
                 if (param === '.') {
                   return inputs[alias] !== undefined;
@@ -626,6 +640,7 @@ export default function AlgorithmVisualizerFlowchart({
             alias: 'algorithm',
             label: algorithmName,
             onDelete: () => {},
+            evaluationError: algorithm.mapRight(() => null).value,
             outputs: ['.', ...Object.keys(algorithmOutputs)].map((param) => {
               const hasValue = (() => {
                 if (param === '.') {
@@ -664,6 +679,7 @@ export default function AlgorithmVisualizerFlowchart({
             alias: 'problem',
             label: problemName,
             onDelete: () => {},
+            evaluationError: problem.mapRight(() => null).value,
             outputs: ['.', ...Object.keys(problemOutputs)].map((param) => {
               const hasValue = (() => {
                 if (param === '.') {
@@ -693,11 +709,13 @@ export default function AlgorithmVisualizerFlowchart({
         ...initialVisualizerNodes,
       ] satisfies Array<Omit<FlowNode, 'position'>>,
     [
+      algorithm,
       algorithmName,
       algorithmOutputs,
       initialAdapterNodes,
       initialVisualizerNodes,
       outputs,
+      problem,
       problemName,
       problemOutputs,
     ],
@@ -872,7 +890,7 @@ export default function AlgorithmVisualizerFlowchart({
         proOptions={proOptions}
         fitView={true}
       >
-        <Background className="bg-surface" />
+        <Background className="bg-canvas" />
       </ReactFlow>
       <div className="absolute top-2 left-0 right-0 mx-auto flex gap-2 items-end justify-center">
         <CatalogSelect
@@ -928,38 +946,3 @@ export default function AlgorithmVisualizerFlowchart({
     </div>
   );
 }
-
-// function FlowchartVisualizerNodePreview({
-//   instance,
-// }: {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   instance: SandboxVisualizer<any>;
-// }) {
-//   const inputs = useMemo(() => {
-//     if (instance === null) {
-//       return [];
-//     }
-
-//     const accepts = instance.accepts as SandboxStateType;
-
-//     return Object.keys(accepts.shape.shape).map((param) => ({
-//       id: param,
-//       label: param,
-//     }));
-//   }, [instance]);
-
-//   const [, drag] = useDrag(
-//     () => ({
-//       type: 'flowchart-node',
-//       item: { visualizer: instance, id },
-//       collect: (monitor) => ({
-//         opacity: monitor.isDragging() ? 0.5 : 1,
-//       }),
-//     }),
-//     [],
-//   );
-
-//   return (
-//     <FlowNodePreview ref={drag} data={{ label: visualizerName, inputs }} />
-//   );
-// }

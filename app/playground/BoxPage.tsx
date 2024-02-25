@@ -37,12 +37,14 @@ const themeOptions = [
 function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
-  const problemInstance = useBoxContext('problem.instance');
+  const problemInstanceEvaluation = useBoxContext('problem.instance');
   const problemAdapter = useBoxContext('problemAlgorithm.adapters.composed');
-  const algorithmInstance = useBoxContext('algorithm.instance');
+  const algorithmInstanceEvaluation = useBoxContext('algorithm.instance');
   const { maxExecutionStepCount: maxExecutionStepCount } = useUserPreferences();
 
   const initialScene = useMemo(() => {
+    const problemInstance = problemInstanceEvaluation.unwrapOr(null);
+    const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
     if (
       areAlgorithmProblemCompatible &&
       algorithmInstance !== null &&
@@ -73,9 +75,9 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
     }
     return null;
   }, [
+    problemInstanceEvaluation,
+    algorithmInstanceEvaluation,
     areAlgorithmProblemCompatible,
-    algorithmInstance,
-    problemInstance,
     problemAdapter,
     maxExecutionStepCount,
   ]);
@@ -125,11 +127,11 @@ function SceneProvider({
 }) {
   const { currentStepIndex } = useBoxControlsContext();
 
-  const algorithmInstance = useBoxContext('algorithm.instance');
+  const algorithmInstanceEvaluation = useBoxContext('algorithm.instance');
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
 
-  const problemInstance = useBoxContext('problem.instance');
+  const problemInstanceEvaluation = useBoxContext('problem.instance');
   const problemAdapterCompatible = useBoxContext('problemAlgorithm.compatible');
   const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
   const algorithmVisualizersAdapters = useBoxContext(
@@ -140,7 +142,10 @@ function SceneProvider({
   const visualizerInstances = useBoxContext('visualizers.instances');
 
   const { inputs, outputs, inputErrors } = useMemo(() => {
-    if (problemInstance === null || algorithmInstance === undefined) {
+    const problemInstance = problemInstanceEvaluation.unwrapOr(null);
+    const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
+
+    if (problemInstance === null || algorithmInstance === null) {
       return {};
     }
 
@@ -156,15 +161,19 @@ function SceneProvider({
       algorithmState,
       adapters: mapValues(
         algorithmVisualizersAdapters ?? {},
-        (val) => val?.value,
+        (val) => val?.mapLeft(() => undefined).value?.value,
       ),
-      visualizers: mapValues(visualizerInstances, (val) => val?.value),
+      visualizers: mapValues(
+        visualizerInstances,
+        (evaluation) =>
+          evaluation.map((val) => val.value).mapLeft(() => undefined).value,
+      ),
     });
 
     return { inputs, outputs, inputErrors };
   }, [
-    problemInstance,
-    algorithmInstance,
+    problemInstanceEvaluation,
+    algorithmInstanceEvaluation,
     problemAdapterCompatible,
     algorithmVisualizersTree,
     algorithmState,

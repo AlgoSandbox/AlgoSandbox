@@ -4,7 +4,7 @@ import { useSandboxComponents } from '@components/playground/SandboxComponentsPr
 import { useTabManager } from '@components/tab-manager/TabManager';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
 import { Get, RecursivePath } from '@utils/RecursivePath';
-import _, { isEqual } from 'lodash';
+import _, { isEqual, mapValues } from 'lodash';
 import {
   createContext,
   ReactNode,
@@ -210,16 +210,13 @@ export default function BoxContextProvider({
   });
 
   const visualizerInputKeys = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(visualizers.instances).map(([alias, instance]) => {
-        if (instance === undefined) {
-          return [alias, []];
-        }
-
-        const inputKeys = Object.keys(instance.value.accepts.shape.shape);
-        return [alias, inputKeys];
-      }),
-    );
+    return mapValues(visualizers.instances, (instance) => {
+      return instance
+        .map(({ value }) => {
+          return Object.keys(value.accepts.shape.shape);
+        })
+        .unwrapOr([]);
+    });
   }, [visualizers.instances]);
 
   const algorithmVisualizers = useBoxContextAlgorithmVisualizers({
@@ -228,9 +225,11 @@ export default function BoxContextProvider({
       composition: { type: 'flat', order: [] },
       adapters: {},
     },
-    problemOutputKeys: Object.keys(problem.instance?.type.shape.shape ?? {}),
+    problemOutputKeys: Object.keys(
+      problem.instance.unwrapOr(null)?.type.shape.shape ?? {},
+    ),
     algorithmOutputKeys: Object.keys(
-      algorithm.instance?.outputs.shape.shape ?? {},
+      algorithm.instance.unwrapOr(null)?.outputs.shape.shape ?? {},
     ),
     visualizerInputKeys,
     onChange: (newValue) => {

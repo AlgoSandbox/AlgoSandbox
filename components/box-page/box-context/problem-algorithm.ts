@@ -43,27 +43,30 @@ export default function useBoxContextProblemAlgorithm({
   const { composed: composedAdapter, value: adapterList } = adapters;
   const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
 
+  const problemInstance = problem.instance.mapLeft(() => null).value;
+  const algorithmInstance = algorithm.instance.mapLeft(() => null).value;
+
   const problemAlgorithm = useMemo(() => {
     return {
       compatible:
         (composedAdapter === null &&
-          algorithm.instance !== null &&
-          problem.instance !== null &&
+          algorithmInstance !== null &&
+          problemInstance !== null &&
           isEqual(
-            Object.keys(problem.instance.type.shape.shape),
-            Object.keys(algorithm.instance.accepts.shape.shape),
+            Object.keys(problemInstance.type.shape.shape),
+            Object.keys(algorithmInstance.accepts.shape.shape),
           )) ||
         (!hasInvalidAdapter &&
-          algorithm.instance !== null &&
-          problem.instance !== null &&
+          algorithmInstance !== null &&
+          problemInstance !== null &&
           composedAdapter !== null &&
           isEqual(
-            Object.keys(problem.instance.type.shape.shape),
+            Object.keys(problemInstance.type.shape.shape),
             Object.keys(composedAdapter.accepts.shape.shape),
           ) &&
           isEqual(
             Object.keys(composedAdapter.outputs.shape.shape),
-            Object.keys(algorithm.instance.accepts.shape.shape),
+            Object.keys(algorithmInstance.accepts.shape.shape),
           )),
       adapters,
     } satisfies BoxContextProblemAlgorithm;

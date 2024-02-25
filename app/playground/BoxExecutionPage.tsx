@@ -2,13 +2,16 @@
 
 import 'react-mosaic-component/react-mosaic-component.css';
 
+import { SandboxVisualization } from '@algo-sandbox/core';
 import { VisualizerRenderer } from '@algo-sandbox/react-components';
+import { error, ErrorOr, success } from '@app/errors/ErrorContext';
 import {
   AppBar,
   Pseudocode,
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
+import ErrorDisplay from '@components/common/ErrorDisplay';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { MaterialSymbol, Tooltip } from '@components/ui';
 import clsx from 'clsx';
@@ -28,7 +31,7 @@ export default function BoxExecutionPage() {
   const algorithmInstance = useBoxContext('algorithm.instance');
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
-  const pseudocode = algorithmInstance?.pseudocode ?? '';
+  const pseudocode = algorithmInstance.unwrapOr(null)?.pseudocode ?? '';
 
   const visualizerOrder = useBoxContext('visualizers.order');
   const visualizerInstances = useBoxContext('visualizers.instances');
@@ -37,21 +40,22 @@ export default function BoxExecutionPage() {
 
   const visualizations = useMemo(() => {
     return visualizerOrder.map((alias) => {
-      const instance = visualizerInstances[alias]?.value;
+      const visualization: ErrorOr<SandboxVisualization<unknown>> =
+        visualizerInstances[alias].chain(({ value: instance }) => {
+          const input = inputs?.[alias] ?? {};
 
-      if (instance === undefined) {
-        return { alias, visualization: null };
-      }
+          const parseResult = instance.accepts.shape.safeParse(input);
 
-      const input = inputs?.[alias] ?? {};
+          if (parseResult.success === false) {
+            return error(
+              `Visualizer input error:\n${parseResult.error.message}`,
+            );
+          }
 
-      const parseResult = instance.accepts.shape.safeParse(input);
+          return success(instance.visualize(parseResult.data));
+        });
 
-      if (parseResult.success === false) {
-        return { alias, visualization: null };
-      }
-
-      return { alias, visualization: instance.visualize(parseResult.data) };
+      return { alias, value: visualization };
     });
   }, [visualizerOrder, visualizerInstances, inputs]);
 
@@ -129,23 +133,23 @@ export default function BoxExecutionPage() {
 
       const alias = id;
 
-      const visualization = visualizations.find((v) => v.alias === alias)
-        ?.visualization;
+      const visualization = visualizations.find((v) => v.alias === alias);
 
-      if (visualization) {
-        return (
+      if (visualization === undefined) {
+        throw new Error(`Visualization not found for alias: ${alias}`);
+      }
+
+      return visualization.value.fold(
+        (errorEntries) => {
+          return <ErrorDisplay key={alias} errors={errorEntries} />;
+        },
+        (value) => (
           <VisualizerRenderer
             key={alias}
             className="w-full h-full"
-            visualization={visualization}
+            visualization={value}
           />
-        );
-      }
-
-      return (
-        <div className="w-full flex items-center h-full" key={alias}>
-          Error in visualization: {alias}
-        </div>
+        ),
       );
     },
     [visualizations, pseudocode, executionStep],
@@ -157,7 +161,10 @@ export default function BoxExecutionPage() {
       if (visualizer === undefined) {
         return alias;
       }
-      return `${visualizer.name} (${alias})`;
+
+      return visualizer
+        .map(({ value }) => `${value.name} (${alias})`)
+        .unwrapOr(alias);
     };
 
     return {

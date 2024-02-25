@@ -13,9 +13,11 @@ import CatalogSelect from './CatalogSelect';
 export default function AlgorithmSelect({
   className,
   hideLabel,
+  hideErrors,
 }: {
   className?: string;
   hideLabel?: boolean;
+  hideErrors?: boolean;
 }) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
@@ -24,7 +26,7 @@ export default function AlgorithmSelect({
     setValue: setSelectedOption,
     options,
   } = useBoxContext('algorithm.select');
-  const algorithm = useBoxContext('algorithm.value');
+  const algorithmEvaluation = useBoxContext('algorithm.value');
   const {
     default: defaultParameters,
     setValue: setParameters,
@@ -32,6 +34,11 @@ export default function AlgorithmSelect({
   } = useBoxContext('algorithm.parameters');
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
+
+  const algorithm = useMemo(
+    () => algorithmEvaluation.mapLeft(() => null).value,
+    [algorithmEvaluation],
+  );
 
   const changedParameterCount = useMemo(() => {
     if (parameters === null || defaultParameters === null) {
@@ -42,6 +49,17 @@ export default function AlgorithmSelect({
       (key) => parameters[key] !== defaultParameters[key],
     ).length;
   }, [parameters, defaultParameters]);
+
+  const errorMessage = useMemo(() => {
+    if (hideErrors) {
+      return null;
+    }
+
+    return algorithmEvaluation
+      .mapRight(() => [])
+      .value.map((error) => error.message)
+      .join('\n');
+  }, [algorithmEvaluation, hideErrors]);
 
   useEffect(() => {
     methods.reset(defaultParameters ?? {});
@@ -56,6 +74,7 @@ export default function AlgorithmSelect({
         options={options}
         value={selectedOption ?? undefined}
         onChange={setSelectedOption}
+        errorMessage={errorMessage}
       />
       {algorithm !== null && isParameterizedAlgorithm(algorithm) && (
         <Popover

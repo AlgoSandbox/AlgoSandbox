@@ -1,13 +1,19 @@
 import {
+  AdapterCompositionTree,
   AlgorithmVisualizers,
-  AlgorithmVisualizersEvaluated,
   AlgorithmVisualizersTree,
+  SandboxEvaluated,
 } from '@algo-sandbox/core';
-import { unwrapErrorOr } from '@app/errors/ErrorContext';
-import { CatalogGroup } from '@constants/catalog';
+import {
+  error,
+  ErrorOr,
+  success,
+} from '@app/errors/ErrorContext';
+import { CatalogGroup, CatalogOption } from '@constants/catalog';
+import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
-import { compact } from 'lodash';
+import { compact, mapValues } from 'lodash';
 import { useMemo } from 'react';
 
 export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizers =
@@ -30,10 +36,9 @@ export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizer
 export type BoxContextAlgorithmVisualizers = {
   raw: AlgorithmVisualizers;
   tree: AlgorithmVisualizersTree;
-  evaluated: AlgorithmVisualizersEvaluated & {
-    composition: {
-      type: 'tree';
-    };
+  evaluated:  {
+    adapters: Record<string, ErrorOr<SandboxEvaluated<SandboxAnyAdapter>>>;
+    composition: AdapterCompositionTree
   };
   set: (value: AlgorithmVisualizersTree) => void;
 };
@@ -51,39 +56,38 @@ export default function useBoxContextAlgorithmVisualizers({
   value: AlgorithmVisualizers;
   onChange: (value: AlgorithmVisualizers) => void;
 }) {
-  const selectedAdapterOptions = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(value?.adapters ?? {}).map(([alias, adapterKey]) => [
-        alias,
-        adapterOptions
-          .flatMap((group) => group.options)
-          .find((option) => option.value.key === adapterKey),
-      ]),
-    );
+  const selectedAdapters: Record<
+    string,
+    ErrorOr<CatalogOption<DbAdapterSaved>>
+  > = useMemo(() => {
+    return mapValues(value?.adapters ?? {}, (key) => {
+      const option = adapterOptions
+        .flatMap((group) => group.options)
+        .find((option) => option.value.key === key);
+
+      if (option === undefined) {
+        return error(`Adapter ${key} not found`) as ErrorOr<
+          CatalogOption<DbAdapterSaved>
+        >;
+      }
+
+      return success(option);
+    });
   }, [value?.adapters, adapterOptions]);
 
   const adapterEvaluations = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(selectedAdapterOptions).map(([alias, option]) => {
-        if (option === undefined) {
-          throw new Error(`Adapter ${alias} not found`);
-        }
+    return mapValues(selectedAdapters, (option) => {
+      return option.chain((adapter) => {
+        const adapterEvaluation = evalSavedObject<'adapter'>(adapter.value);
 
-        const value = unwrapErrorOr(evalSavedObject<'adapter'>(option.value));
-
-        return [
-          alias,
-          value
-            ? {
-                value,
-                name: option.label,
-                key: alias,
-              }
-            : undefined,
-        ];
-      }),
-    );
-  }, [selectedAdapterOptions]);
+        return adapterEvaluation.map((value) => ({
+          value,
+          name: adapter.label,
+          key: adapter.value.key,
+        }));
+      });
+    });
+  }, [selectedAdapters]);
 
   const treeConfiguration = useMemo(() => {
     const type = value.composition.type;

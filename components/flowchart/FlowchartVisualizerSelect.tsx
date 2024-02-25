@@ -62,7 +62,8 @@ export default function FlowchartVisualizerSelect({
     options,
   } = visualizerObject.select;
 
-  const visualizer = visualizerObject.value;
+  const visualizerEvaluation = visualizerObject.value;
+  const visualizer = visualizerEvaluation.mapLeft(() => null).value;
 
   const {
     default: defaultAll,

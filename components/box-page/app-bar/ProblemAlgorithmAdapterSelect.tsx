@@ -4,8 +4,8 @@ import clsx from 'clsx';
 import { useMemo } from 'react';
 
 export default function ProblemAlgorithmAdapterSelect() {
-  const { instance: problemInstance } = useBoxContext('problem');
-  const { instance: algorithmInstance } = useBoxContext('algorithm');
+  const { instance: problemEvaluation } = useBoxContext('problem');
+  const { instance: algorithmEvaluation } = useBoxContext('algorithm');
   const {
     compatible,
     adapters: { options, value, setValue, evaluated },
@@ -16,6 +16,9 @@ export default function ProblemAlgorithmAdapterSelect() {
       evaluated.map((evaluation) => [evaluation.key, evaluation]),
     );
   }, [evaluated]);
+
+  const problemInstance = problemEvaluation.mapLeft(() => null).value;
+  const algorithmInstance = algorithmEvaluation.mapLeft(() => null).value;
 
   return (
     <AdapterListPopover

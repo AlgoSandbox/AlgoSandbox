@@ -16,13 +16,6 @@ export function error<T>(message: string): ErrorOr<T> {
   return left([{ message }]);
 }
 
-export function unwrapErrorOr<T>(errorOr: ErrorOr<T>): T | null {
-  if (errorOr.isRight()) {
-    return errorOr.value;
-  }
-  return null;
-}
-
 export const errorEntrySchema = z.object({
   message: z.string(),
 });

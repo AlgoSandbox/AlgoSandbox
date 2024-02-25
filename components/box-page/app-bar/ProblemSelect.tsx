@@ -12,9 +12,11 @@ import CatalogSelect from './CatalogSelect';
 
 export default function ProblemSelect({
   hideLabel,
+  hideErrors,
   className,
 }: {
   hideLabel?: boolean;
+  hideErrors?: boolean;
   className?: string;
 }) {
   const { addOrFocusTab } = useTabManager();
@@ -24,15 +26,19 @@ export default function ProblemSelect({
     setValue: setSelectedOption,
     options,
   } = useBoxContext('problem.select');
-  const problem = useBoxContext('problem.value');
+  const problemEvaluation = useBoxContext('problem.value');
   const {
     default: defaultParameters,
     setValue: setParameters,
     value: parameters = {},
   } = useBoxContext('problem.parameters');
-  const errors = useBoxContext('problem.errors');
 
   const methods = useForm({ defaultValues: defaultParameters ?? {} });
+
+  const problem = useMemo(
+    () => problemEvaluation.mapLeft(() => null).value,
+    [problemEvaluation],
+  );
 
   const changedParameterCount = useMemo(() => {
     if (parameters === null || defaultParameters === null) {
@@ -43,6 +49,17 @@ export default function ProblemSelect({
       (key) => parameters[key] !== defaultParameters[key],
     ).length;
   }, [parameters, defaultParameters]);
+
+  const errorMessage = useMemo(() => {
+    if (hideErrors) {
+      return null;
+    }
+
+    return problemEvaluation
+      .mapRight(() => [])
+      .value.map((error) => error.message)
+      .join('\n');
+  }, [hideErrors, problemEvaluation]);
 
   useEffect(() => {
     methods.reset(defaultParameters ?? {});
@@ -55,7 +72,7 @@ export default function ProblemSelect({
         hideLabel={hideLabel}
         containerClassName="flex-1"
         options={options}
-        errorMessage={errors.map((error) => error.message).join('\n')}
+        errorMessage={errorMessage}
         value={selectedOption ?? undefined}
         onChange={(value) => {
           setSelectedOption(value as typeof selectedOption);

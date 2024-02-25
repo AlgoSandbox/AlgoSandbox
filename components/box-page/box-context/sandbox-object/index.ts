@@ -136,9 +136,8 @@ function isParameterized<T extends keyof SandboxObjectTypeMap>(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
   custom: defaultBoxContextCustomObjects,
-  errors: [],
-  instance: null,
-  value: null,
+  instance: success(null),
+  value: success(null),
   parameters: {
     default: {},
     value: {},
@@ -154,9 +153,8 @@ export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
 
 export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
   custom: BoxContextCustomObjects<T>;
-  errors: Array<ErrorEntry>;
-  instance: Instance<T> | null;
-  value: Value<T> | null;
+  instance: ErrorOr<Instance<T> | null>;
+  value: ErrorOr<Value<T> | null>;
   parameters: {
     default: ParsedParameters<SandboxParameters> | null;
     value: ParsedParameters<SandboxParameters> | null;
@@ -292,8 +290,6 @@ export function useBoxContextSandboxObject<
     return evalSavedObject(object);
   }, [selectedOptionObject]);
 
-  const errorMessagesEvaluation = evaluation.mapRight(() => null).value;
-
   const objectInstancerEvaluation: ErrorOr<Parameterized<
     Instance<T>,
     Record<string, any>
@@ -331,19 +327,18 @@ export function useBoxContextSandboxObject<
     });
   }, [evaluation, type]);
 
-  const objectInstancer = objectInstancerEvaluation.mapLeft(() => null).value;
-  const errorMessagesInstancer = objectInstancerEvaluation.mapRight(
-    () => null,
-  ).value;
-
   const defaultParameters = useMemo(() => {
-    if (objectInstancer === null) {
-      return null;
-    }
-    return getDefaultParameters(
-      objectInstancer.parameters,
-    ) as ParsedParameters<SandboxParameters>;
-  }, [objectInstancer]);
+    return objectInstancerEvaluation
+      .map((objectInstancer) => {
+        if (objectInstancer === null) {
+          return null;
+        }
+        return getDefaultParameters(
+          objectInstancer.parameters,
+        ) as ParsedParameters<SandboxParameters>;
+      })
+      .mapLeft(() => null).value;
+  }, [objectInstancerEvaluation]);
 
   const [objectParameters, setObjectParameters] = useState(defaultParameters);
 
@@ -351,32 +346,38 @@ export function useBoxContextSandboxObject<
     setObjectParameters(defaultParameters);
   }, [defaultParameters]);
 
-  const objectInstance = useMemo(() => {
-    if (
-      objectInstancer !== null &&
-      objectParameters !== null &&
-      Object.keys(objectInstancer.parameters).every(
-        (k) => k in objectParameters,
-      )
-    ) {
-      return objectInstancer.create(objectParameters);
-    }
-    return null;
-  }, [objectInstancer, objectParameters]);
+  const objectInstance: ErrorOr<Instance<T> | null> = useMemo(() => {
+    return objectInstancerEvaluation.chain((objectInstancer) => {
+      return fromTry(() => {
+        try {
+          if (objectInstancer === null || objectParameters === null) {
+            return null;
+          }
 
-  const errors = useMemo(() => {
-    return [
-      ...(errorMessagesEvaluation ?? []),
-      ...(errorMessagesInstancer ?? []),
-    ];
-  }, [errorMessagesEvaluation, errorMessagesInstancer]);
+          if (
+            Object.keys(objectInstancer.parameters).every(
+              (k) => k in objectParameters,
+            )
+          ) {
+            return objectInstancer.create(objectParameters);
+          }
+          return null;
+        } catch (e) {
+          throw [
+            {
+              message: `Failed to create with parameters:\n\n${e}`,
+            },
+          ] satisfies Array<ErrorEntry>;
+        }
+      });
+    });
+  }, [objectInstancerEvaluation, objectParameters]);
 
   const object = useMemo(() => {
     return {
       custom,
-      errors,
       instance: objectInstance,
-      value: evaluation.mapLeft(() => null).value,
+      value: evaluation,
       parameters: {
         default: defaultParameters,
         value: objectParameters,
@@ -398,7 +399,6 @@ export function useBoxContextSandboxObject<
     } satisfies BoxContextSandboxObject<T>;
   }, [
     custom,
-    errors,
     objectInstance,
     evaluation,
     defaultParameters,

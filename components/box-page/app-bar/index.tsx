@@ -21,11 +21,11 @@ export default function AppBar({
   const visualizerInstances = useBoxContext('visualizers.instances');
 
   const getVisualizerName = (alias: string) => {
-    const visualizer = visualizerInstances[alias];
-    if (visualizer === undefined) {
-      return alias;
-    }
-    return `${visualizer.name} (${alias})`;
+    return (
+      visualizerInstances[alias]
+        ?.map(({ value: visualizer }) => `${visualizer.name} (${alias})`)
+        .unwrapOr(alias) ?? alias
+    );
   };
 
   return (

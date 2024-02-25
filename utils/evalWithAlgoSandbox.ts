@@ -165,7 +165,7 @@ export default function evalWithAlgoSandbox(
     const errorEntry = errorEntrySchema.safeParse(e);
 
     if (errorEntry.success) {
-      return error(errorEntry.data.message);
+      return error(`Error in code:\n${errorEntry.data.message}`);
     }
 
     return error('Unknown error occurred while evaluating the code');

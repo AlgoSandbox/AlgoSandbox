@@ -5,7 +5,6 @@ import BoxManagerProvider, {
   useBox,
   useBoxManager,
 } from '@app/BoxManager';
-import { unwrapErrorOr } from '@app/errors/ErrorContext';
 import { BoxContextProvider } from '@components/box-page';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import TabManagerProvider from '@components/tab-manager/TabManager';
@@ -23,8 +22,8 @@ function LayoutImpl({
 }) {
   const { updateBox, getBox } = useBoxManager();
   const router = useRouter();
-  const box = unwrapErrorOr(useBox('box'));
-  const originalBox = unwrapErrorOr(useBox(boxKey));
+  const box = useBox('box').mapLeft(() => null).value;
+  const originalBox = useBox(boxKey).mapLeft(() => null).value;
 
   useEffect(() => {
     if (box === null) {
@@ -119,7 +118,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       return null;
     }
 
-    const evaledBox = unwrapErrorOr(evalSavedObject<'box'>(savedBox.value));
+    const evaledBox = evalSavedObject<'box'>(savedBox.value).mapLeft(
+      () => null,
+    ).value;
     if (evaledBox === null) {
       // TODO: display error
       return null;

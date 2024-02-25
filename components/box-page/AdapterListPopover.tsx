@@ -1,5 +1,5 @@
 import { SandboxEvaluated, SandboxStateType } from '@algo-sandbox/core';
-import { ErrorOr, unwrapErrorOr } from '@app/errors/ErrorContext';
+import { ErrorOr } from '@app/errors/ErrorContext';
 import { Button, MaterialSymbol, Popover } from '@components/ui';
 import {
   CatalogGroup,
@@ -21,10 +21,7 @@ export type AdapterListPopoverProps = {
   fromType: SandboxStateType | null;
   toType: SandboxStateType | null;
   value: Array<CatalogOption<DbAdapterSaved>>;
-  evaluated: Record<
-    string,
-    SandboxEvaluated<ErrorOr<SandboxAnyAdapter>> | undefined
-  >;
+  evaluated: Record<string, SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>>;
   onChange: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
   options: CatalogOptions<DbAdapterSaved>;
   children: ReactElement;
@@ -84,11 +81,11 @@ export default function AdapterListPopover({
         return i;
       }
 
-      const adapter = unwrapErrorOr(adapterEvaluation.value);
-
-      if (adapter === null) {
+      if (adapterEvaluation.value.isLeft()) {
         return i;
       }
+
+      const adapter = adapterEvaluation.value.unwrap();
 
       if (
         !isEqual(
@@ -109,13 +106,19 @@ export default function AdapterListPopover({
       return false;
     }
     const evaluation = valueEvaluated[valueEvaluated.length - 1];
+
     if (evaluation === undefined) {
       return true;
     }
-    const adapter = unwrapErrorOr(evaluation.value);
+
+    if (evaluation.value.isLeft()) {
+      return true;
+    }
+
+    const adapter = evaluation.value.unwrap();
 
     return !isEqual(
-      Object.keys(adapter?.outputs.shape.shape ?? {}),
+      Object.keys(adapter.outputs.shape.shape ?? {}),
       Object.keys(toType?.shape.shape ?? {}),
     );
   })();

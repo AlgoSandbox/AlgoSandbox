@@ -7,9 +7,11 @@ import {
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
-import { CatalogGroup } from '@constants/catalog';
+import { error, ErrorOr, success } from '@app/errors/ErrorContext';
+import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { DbVisualizerSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
+import { mapValues } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export type BoxContextVisualizers = {
@@ -28,7 +30,7 @@ export type BoxContextVisualizers = {
   removeAlias: (alias: string) => void;
   instances: Record<
     string,
-    SandboxEvaluated<SandboxVisualizer<SandboxStateType, unknown>> | undefined
+    ErrorOr<SandboxEvaluated<SandboxVisualizer<SandboxStateType, unknown>>>
   >;
   reset: () => void;
 };
@@ -76,82 +78,66 @@ export default function useBoxContextVisualizers({
     [onAliasesChange],
   );
 
-  const selectedVisualizers = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(aliases).map(([alias, key]) => {
+  const selectedVisualizers: Record<
+    string,
+    ErrorOr<CatalogOption<DbVisualizerSaved>>
+  > = useMemo(() => {
+    return mapValues(
+      aliases, (key) => {
         const option = options
           .flatMap((group) => group.options)
           .find((option) => option.value.key === key);
 
         if (option === undefined) {
-          throw new Error(`Visualizer ${key} not found`);
+          return error(`Visualizer ${key} not found`) as ErrorOr<CatalogOption<DbVisualizerSaved>>;
         }
 
-        return [alias, option];
-      }),
-    );
+        return success(option);
+      })
   }, [aliases, options]);
 
   const evaluations = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(selectedVisualizers).map(([alias, option]) => {
+    return mapValues(selectedVisualizers, (option) => {
+      return option.chain((visualizer) => {
         const visualizerEvaluation = evalSavedObject<'visualizer'>(
-          option.value,
+          visualizer.value,
         );
-        const value = visualizerEvaluation.mapLeft(() => null).value;
 
-        return [
-          alias,
-          value
-            ? {
-                value,
-                name: option.label,
-                key: option.value.key,
-              }
-            : undefined,
-        ];
-      }),
-    );
+        return visualizerEvaluation.map((value) => ({
+          value,
+          name: visualizer.label,
+          key: visualizer.value.key,
+        }));
+      });
+    });
   }, [selectedVisualizers]);
 
   const defaultParameters = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(evaluations).map(([alias, evaluation]) => {
-        const visualizer = evaluation?.value;
-        if (visualizer === undefined) {
-          return [alias, null];
-        }
-
+    return mapValues(evaluations, (evaluation) => {
+      return evaluation.map(({ value: visualizer }) => {
         const defaultParams =
           'parameters' in visualizer
             ? getDefaultParameters(visualizer.parameters)
             : null;
 
-        return [alias, defaultParams];
-      }),
-    );
+        return defaultParams;
+      });
+    });
   }, [evaluations]);
 
   const instances = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(evaluations).map(([alias, evaluation]) => {
-        if (evaluation === undefined) {
-          return [alias, undefined];
-        }
+    return mapValues(evaluations, (evaluation, alias) => {
+      return evaluation.chain(({ value: visualizer, name, key }) => {
+        return defaultParameters[alias].map((parameters) => {
+          const instance =
+            'parameters' in visualizer
+              ? visualizer.create(parameters ?? {})
+              : visualizer;
 
-        const visualizer = evaluation.value;
-        const parameters = defaultParameters[alias];
-        const instance =
-          'parameters' in visualizer
-            ? visualizer.create(parameters ?? {})
-            : visualizer;
-
-        return [
-          alias,
-          { value: instance, name: evaluation.name, key: evaluation.key },
-        ];
-      }),
-    );
+          return { value: instance, name, key };
+        });
+      });
+    });
   }, [defaultParameters, evaluations]);
 
   return useMemo(

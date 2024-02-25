@@ -7,7 +7,7 @@ import BoxManagerProvider, {
 } from '@app/BoxManager';
 import { unwrapErrorOr } from '@app/errors/ErrorContext';
 import { BoxContextProvider } from '@components/box-page';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import TabManagerProvider from '@components/tab-manager/TabManager';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import { isEqual } from 'lodash';
@@ -105,17 +105,14 @@ function LayoutImpl({
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { builtInBoxOptions } = useBuiltInComponents();
+  const { boxOptions } = useSandboxComponents();
   const params = useSearchParams();
   const boxKey = params.get('box') ?? '';
 
-  // TODO: Allow using custom boxes
   const savedBox = useMemo(() => {
-    const flattenedOptions = builtInBoxOptions.flatMap(
-      (group) => group.options,
-    );
+    const flattenedOptions = boxOptions.flatMap((group) => group.options);
     return flattenedOptions.find((box) => box.key === boxKey);
-  }, [builtInBoxOptions, boxKey]);
+  }, [boxOptions, boxKey]);
 
   const boxFromUrl = useMemo(() => {
     if (!savedBox) {

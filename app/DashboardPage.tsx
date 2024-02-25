@@ -1,4 +1,4 @@
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { MaterialSymbol } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import { DbSandboxObjectSaved, useSavedAlgorithmsQuery } from '@utils/db';
@@ -46,13 +46,13 @@ export default function DashboardPage() {
   const { data: algorithms } = useSavedAlgorithmsQuery();
   const { data: problems } = useSavedProblemsQuery();
   const { data: visualizers } = useSavedVisualizersQuery();
-  const { builtInBoxOptions } = useBuiltInComponents();
+  const { boxOptions } = useSandboxComponents();
 
   return (
     <div className="flex flex-col max-w-4xl px-4 gap-8 mx-auto py-6">
       <div className="flex flex-col gap-4">
         <Heading variant="h2">Explore boxes</Heading>
-        {builtInBoxOptions.map((group) => (
+        {boxOptions.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
             <Heading variant="h3">{group.label}</Heading>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -1,28 +1,28 @@
 import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
-import { BuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
 
 import getSandboxObjectWithKey from './getSandboxObjectWithKey';
 
 export default function evalBox({
   box,
-  builtInComponents,
+  sandboxComponents,
   files,
 }: {
   box: SandboxBox;
   currentFilePath: string;
   files: Record<string, string>;
-  builtInComponents: BuiltInComponents;
+  sandboxComponents: SandboxComponents;
 }): SandboxBoxEvaluated {
   const algorithm = getSandboxObjectWithKey({
     type: 'algorithm',
     key: box.algorithm,
-    builtInComponents,
+    sandboxComponents,
     files,
   }).mapLeft(() => undefined).value;
   const problem = getSandboxObjectWithKey({
     type: 'problem',
     key: box.problem,
-    builtInComponents,
+    sandboxComponents,
     files,
   }).mapLeft(() => undefined).value;
   const visualizer = getSandboxObjectWithKey({
@@ -31,7 +31,7 @@ export default function evalBox({
     key:
       box.visualizers.aliases['visualizer-0'] ??
       'visualizer.graphs.searchGraph',
-    builtInComponents,
+    sandboxComponents,
     files,
   }).mapLeft(() => undefined).value;
 

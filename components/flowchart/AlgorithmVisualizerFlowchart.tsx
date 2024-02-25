@@ -4,7 +4,7 @@ import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import AlgorithmSelect from '@components/box-page/app-bar/AlgorithmSelect';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
@@ -118,6 +118,10 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       const isShadowedByMainSlot =
         !isMainSlot && isConnected && isUsingInputMainSlot;
 
+      if (error !== null) {
+        console.log(error);
+      }
+
       return (
         <div
           key={id}
@@ -151,11 +155,34 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           {hasError && (
             <Tooltip
               content={
-                <ul>
-                  {error.issues.map(({ path, message }) => (
-                    <li key={path.join('.')}>{message}</li>
-                  ))}
-                </ul>
+                <div>
+                  <span className="text-lg">Errors:</span>
+                  <ul className="list-disc list-inside">
+                    {error
+                      .flatten((issue) => ({
+                        message: issue.message,
+                        path: issue.path,
+                      }))
+                      .formErrors.map(({ path, message }) => (
+                        <li key={path.join('.')}>{message}</li>
+                      ))}
+                    {Object.entries(
+                      error.flatten((issue) => ({
+                        message: issue.message,
+                        path: issue.path,
+                      })).fieldErrors,
+                    ).map(([field, fieldErrors]) => (
+                      <li key={field}>
+                        <span className="font-mono">{field}:</span>
+                        <ul className="list-disc list-inside ps-4">
+                          {fieldErrors?.map(({ path, message }) => (
+                            <li key={path.join('.')}>{message}</li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               }
             >
               <MaterialSymbol icon="error" className="text-danger" />
@@ -368,10 +395,7 @@ export default function AlgorithmVisualizerFlowchart({
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
   const problem = useBoxContext('problem.instance');
-  const {
-    builtInVisualizerOptions: visualizerOptions,
-    builtInAdapterOptions: adapterOptions,
-  } = useBuiltInComponents();
+  const { visualizerOptions, adapterOptions } = useSandboxComponents();
 
   const algorithmVisualizersEvaluated = useBoxContext(
     'algorithmVisualizers.evaluated',

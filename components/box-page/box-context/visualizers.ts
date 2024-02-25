@@ -38,9 +38,9 @@ export default function useBoxContextVisualizers({
   defaultOrder,
   onOrderChange,
   onAliasesChange,
-  builtInOptions,
+  options,
 }: {
-  builtInOptions: Array<CatalogGroup<DbVisualizerSaved>>;
+  options: Array<CatalogGroup<DbVisualizerSaved>>;
   defaultOrder: Array<string>;
   defaultAliases: Record<string, SandboxKey<'visualizer'>>;
   onOrderChange: (order: Array<string>) => void;
@@ -79,7 +79,7 @@ export default function useBoxContextVisualizers({
   const selectedVisualizers = useMemo(() => {
     return Object.fromEntries(
       Object.entries(aliases).map(([alias, key]) => {
-        const option = builtInOptions
+        const option = options
           .flatMap((group) => group.options)
           .find((option) => option.value.key === key);
 
@@ -90,7 +90,7 @@ export default function useBoxContextVisualizers({
         return [alias, option];
       }),
     );
-  }, [aliases, builtInOptions]);
+  }, [aliases, options]);
 
   const evaluations = useMemo(() => {
     return Object.fromEntries(

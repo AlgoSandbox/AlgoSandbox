@@ -1,6 +1,6 @@
 import { SandboxBox } from '@algo-sandbox/core';
 import { defaultBoxContextProblem } from '@components/box-page/box-context/sandbox-object/problem';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import {
   createContext,
@@ -38,11 +38,11 @@ export function useBoxManager() {
 
 export function useBox(key: string) {
   const { getBox } = useContext(BoxManagerContext);
-  const { builtInBoxOptions } = useBuiltInComponents();
+  const { boxOptions } = useSandboxComponents();
 
   const allBoxes = useMemo(() => {
-    return builtInBoxOptions.flatMap((box) => box.options);
-  }, [builtInBoxOptions]);
+    return boxOptions.flatMap((box) => box.options);
+  }, [boxOptions]);
 
   const box: ErrorOr<SandboxBoxNamed> = useMemo(() => {
     const localBox = getBox(key);

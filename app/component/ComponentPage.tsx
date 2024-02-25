@@ -3,7 +3,7 @@
 import SandboxObjectEditorPage from '@app/SandboxObjectEditorPage';
 import AppNavBar from '@components/AppNavBar';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { CatalogGroup } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useSaveObjectMutation } from '@utils/db/objects';
@@ -21,7 +21,7 @@ export default function ComponentPage({
     algorithmOptions,
     problemOptions,
     visualizerOptions,
-  } = useBuiltInComponents();
+  } = useSandboxComponents();
 
   const { mutateAsync: saveObject } = useSaveObjectMutation();
 

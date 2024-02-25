@@ -37,17 +37,17 @@ export const defaultBoxContextAdapters: BoxContextAdapters = {
 };
 
 export function useBoxContextAdapters({
-  builtInOptions,
+  options,
   adapterConfiguration,
   onAdapterConfigurationChange,
 }: {
-  builtInOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  options: Array<CatalogGroup<DbAdapterSaved>>;
   adapterConfiguration: AdapterConfigurationFlat;
   onAdapterConfigurationChange: (config: AdapterConfigurationFlat) => void;
 }) {
   const selectedAdapters = useMemo(() => {
     return Object.values(adapterConfiguration.aliases).map((key) => {
-      const option = builtInOptions
+      const option = options
         .flatMap((group) => group.options)
         .find((option) => option.value.key === key);
 
@@ -57,7 +57,7 @@ export function useBoxContextAdapters({
 
       return option;
     });
-  }, [adapterConfiguration, builtInOptions]);
+  }, [adapterConfiguration, options]);
 
   const evaluated: Array<SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>> =
     useMemo(() => {
@@ -96,7 +96,7 @@ export function useBoxContextAdapters({
         });
       },
       value: selectedAdapters,
-      options: builtInOptions,
+      options,
       evaluated,
     };
 
@@ -105,7 +105,7 @@ export function useBoxContextAdapters({
     composedAdapter,
     adapterConfiguration,
     selectedAdapters,
-    builtInOptions,
+    options,
     evaluated,
     onAdapterConfigurationChange,
   ]);

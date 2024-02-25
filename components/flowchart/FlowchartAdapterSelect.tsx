@@ -1,6 +1,6 @@
 import { useBoxContext } from '@components/box-page';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { Button, MaterialSymbol } from '@components/ui';
@@ -16,7 +16,7 @@ export default function FlowchartAdapterSelect({
   alias: string;
   className?: string;
 }) {
-  const { builtInAdapterOptions: options } = useBuiltInComponents();
+  const { adapterOptions: options } = useSandboxComponents();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const { addOrFocusTab } = useTabManager();
   const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');

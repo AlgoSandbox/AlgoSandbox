@@ -1,7 +1,7 @@
 'use client';
 
 import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandboxEditorFilesContextProvider';
-import BuiltInComponentsProvider from '@components/playground/BuiltInComponentsProvider';
+import SandboxComponentsProvider from '@components/playground/SandboxComponentsProvider';
 import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
 import { HeadingContextProvider } from '@components/ui/Heading';
 import { CatalogGroup } from '@constants/catalog';
@@ -50,7 +50,7 @@ export default function Providers({
             typeDeclarations={typeDeclarations}
           >
             <DndProvider backend={HTML5Backend}>
-              <BuiltInComponentsProvider
+              <SandboxComponentsProvider
                 builtInAdapterOptions={builtInAdapterOptions}
                 builtInAlgorithmOptions={builtInAlgorithmOptions}
                 builtInBoxOptions={builtInBoxOptions}
@@ -58,7 +58,7 @@ export default function Providers({
                 builtInVisualizerOptions={builtInVisualizerOptions}
               >
                 {children}
-              </BuiltInComponentsProvider>
+              </SandboxComponentsProvider>
             </DndProvider>
           </AlgoSandboxEditorFilesContextProvider>
         </HeadingContextProvider>

@@ -1,6 +1,6 @@
 import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { SandboxBoxNamed } from '@app/BoxManager';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import getCustomDbObjectName from '@utils/getCustomDbObjectName';
 import { Get, RecursivePath } from '@utils/RecursivePath';
@@ -114,13 +114,13 @@ export default function BoxContextProvider({
   children,
 }: BoxContextProviderProps) {
   const { addOrFocusTab } = useTabManager();
-  const builtInComponents = useBuiltInComponents();
+  const sandboxComponents = useSandboxComponents();
   const {
-    builtInAdapterOptions,
-    builtInAlgorithmOptions,
-    builtInProblemOptions,
-    builtInVisualizerOptions,
-  } = builtInComponents;
+    adapterOptions,
+    algorithmOptions,
+    problemOptions,
+    visualizerOptions,
+  } = sandboxComponents;
 
   const boxName = box?.name ?? 'Untitled box';
 
@@ -139,7 +139,7 @@ export default function BoxContextProvider({
   }, [box]);
 
   const problem = useBoxContextProblem({
-    builtInProblemOptions,
+    options: problemOptions,
     defaultKey: problemKey,
     onKeyChange: (key) => {
       onBoxUpdate?.((box) => ({
@@ -150,7 +150,7 @@ export default function BoxContextProvider({
   });
 
   const algorithm = useBoxContextAlgorithm({
-    builtInAlgorithmOptions,
+    options: algorithmOptions,
     defaultKey: algorithmKey,
     onKeyChange: (key) => {
       onBoxUpdate?.((box) => ({
@@ -163,7 +163,7 @@ export default function BoxContextProvider({
   const boxVisualizers = box?.visualizers;
 
   const visualizers = useBoxContextVisualizers({
-    builtInOptions: builtInVisualizerOptions,
+    options: visualizerOptions,
     defaultAliases: boxVisualizers?.aliases ?? {},
     defaultOrder: boxVisualizers?.order ?? [],
     onAliasesChange: (aliases) => {
@@ -198,7 +198,7 @@ export default function BoxContextProvider({
 
   const problemAlgorithm = useBoxContextProblemAlgorithm({
     algorithm,
-    builtInAdapterOptions,
+    adapterOptions,
     problem,
     adapterConfiguration: problemAlgorithmConfig,
     onAdapterConfigurationChange: (config) => {
@@ -223,7 +223,7 @@ export default function BoxContextProvider({
   }, [visualizers.instances]);
 
   const algorithmVisualizers = useBoxContextAlgorithmVisualizers({
-    builtInAdapterOptions,
+    adapterOptions,
     value: box?.algorithmVisualizers ?? {
       composition: { type: 'flat', order: [] },
       adapters: {},

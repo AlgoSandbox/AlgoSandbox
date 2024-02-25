@@ -13,7 +13,7 @@ import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
 import { createContext, useContext, useMemo } from 'react';
 
-export type BuiltInComponents = {
+export type SandboxComponents = {
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
   builtInBoxOptions: Array<CatalogGroup<DbBoxSaved>>;
@@ -26,7 +26,7 @@ export type BuiltInComponents = {
   visualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
 };
 
-const BuiltInComponentsContext = createContext<BuiltInComponents>({
+const BuiltInComponentsContext = createContext<SandboxComponents>({
   builtInAdapterOptions: [],
   builtInAlgorithmOptions: [],
   builtInBoxOptions: [],
@@ -39,11 +39,11 @@ const BuiltInComponentsContext = createContext<BuiltInComponents>({
   visualizerOptions: [],
 });
 
-export function useBuiltInComponents() {
+export function useSandboxComponents() {
   return useContext(BuiltInComponentsContext);
 }
 
-type BuiltInComponentsProviderProps = {
+type SandboxComponentsProviderProps = {
   children: React.ReactNode;
   builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
@@ -52,14 +52,14 @@ type BuiltInComponentsProviderProps = {
   builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
 };
 
-export default function BuiltInComponentsProvider({
+export default function SandboxComponentsProvider({
   children,
   builtInAdapterOptions,
   builtInAlgorithmOptions,
   builtInBoxOptions,
   builtInProblemOptions,
   builtInVisualizerOptions,
-}: BuiltInComponentsProviderProps) {
+}: SandboxComponentsProviderProps) {
   const { data: savedAdapterOptions } = useSavedAdaptersQuery();
   const { data: savedAlgorithmOptions } = useSavedAlgorithmsQuery();
   const { data: savedBoxOptions } = useSavedBoxesQuery();
@@ -177,7 +177,7 @@ export default function BuiltInComponentsProvider({
         boxOptions,
         problemOptions,
         visualizerOptions,
-      }) satisfies BuiltInComponents,
+      }) satisfies SandboxComponents,
     [
       adapterOptions,
       algorithmOptions,

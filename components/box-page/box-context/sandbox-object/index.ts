@@ -173,18 +173,17 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
 export function useBoxContextSandboxObject<
   T extends keyof SandboxObjectTypeMap,
 >({
-  builtInOptions,
+  options,
   addSavedObjectMutation,
   setSavedObjectMutation,
   removeSavedObjectMutation,
-  savedObjects,
   type,
   defaultKey,
   onSelect,
 }: {
   type: T;
   defaultKey: SandboxKey<T> | undefined;
-  builtInOptions: Array<CatalogGroup<DbObjectSaved<T>>>;
+  options: Array<CatalogGroup<DbObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
     DbObject<T>,
@@ -195,24 +194,6 @@ export function useBoxContextSandboxObject<
   savedObjects: Array<DbObjectSaved<T>> | undefined;
   onSelect?: (option: CatalogOption<DbObjectSaved<T>>) => void;
 }) {
-  const objectOptions = useMemo(
-    () =>
-      [
-        ...builtInOptions,
-        {
-          key: 'custom',
-          label: 'Custom',
-          options: (savedObjects ?? []).map((object) => ({
-            key: object.key,
-            label: object.name,
-            value: object,
-            type: 'custom',
-          })),
-        },
-      ] as Array<CatalogGroup<DbObjectSaved<T>>>,
-    [builtInOptions, savedObjects],
-  );
-
   const [selectedOptionKey, setSelectedOptionKey] = useState<string | null>(
     defaultKey ?? null,
   );
@@ -226,24 +207,24 @@ export function useBoxContextSandboxObject<
       return null;
     }
 
-    const flattenedOptions = objectOptions.flatMap((group) => group.options);
+    const flattenedOptions = options.flatMap((group) => group.options);
     return (
       flattenedOptions.find((option) => option.key === selectedOptionKey) ??
       null
     );
-  }, [objectOptions, selectedOptionKey]);
+  }, [options, selectedOptionKey]);
 
   useEffect(() => {
     if (selectedOptionKey !== null) {
       return;
     }
-    const option = objectOptions.at(0)?.options.at(0);
+    const option = options.at(0)?.options.at(0);
     if (option === undefined) {
       return;
     }
 
     setSelectedOptionKey(option.key);
-  }, [objectOptions, selectedOptionKey]);
+  }, [options, selectedOptionKey]);
 
   const {
     mutate: addSavedObject,
@@ -289,7 +270,7 @@ export function useBoxContextSandboxObject<
   ]);
 
   useEffect(() => {
-    const flattenedOptions = objectOptions.flatMap((group) => group.options);
+    const flattenedOptions = options.flatMap((group) => group.options);
     if (latestNewObject?.key !== undefined) {
       const newSelectedOption = flattenedOptions.find(
         (option) => option.key === latestNewObject.key,
@@ -299,7 +280,7 @@ export function useBoxContextSandboxObject<
       }
       resetAddObjectMutation();
     }
-  }, [latestNewObject?.key, objectOptions, resetAddObjectMutation]);
+  }, [latestNewObject?.key, options, resetAddObjectMutation]);
 
   const evaluation = useMemo(() => {
     if (selectedOptionObject === null) {
@@ -409,7 +390,7 @@ export function useBoxContextSandboxObject<
             onSelect?.(option);
           }
         },
-        options: objectOptions,
+        options: options,
         reset: () => {
           setSelectedOptionKey(defaultKey ?? null);
         },
@@ -423,7 +404,7 @@ export function useBoxContextSandboxObject<
     defaultParameters,
     objectParameters,
     selectedOptionObject,
-    objectOptions,
+    options,
     onSelect,
     defaultKey,
   ]);

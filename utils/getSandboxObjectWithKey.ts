@@ -5,7 +5,7 @@ import {
 } from '@algo-sandbox/components/SandboxKey';
 import { error, ErrorOr } from '@app/errors/ErrorContext';
 import { DbObjectSaved } from '@components/box-page/box-context/sandbox-object';
-import { BuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { CatalogGroup } from '@constants/catalog';
 
 import { evalSavedObject } from './evalSavedObject';
@@ -14,20 +14,20 @@ import evalWithAlgoSandbox from './evalWithAlgoSandbox';
 export default function getSandboxObjectWithKey<T extends SandboxObjectType>({
   type,
   key,
-  builtInComponents,
+  sandboxComponents,
   files,
 }: {
   type: T;
   key: SandboxKey<T>;
   files: Record<string, string>;
-  builtInComponents: BuiltInComponents;
+  sandboxComponents: SandboxComponents;
 }): ErrorOr<SandboxComponent<T>> {
   const {
-    builtInAdapterOptions,
-    builtInAlgorithmOptions,
-    builtInProblemOptions,
-    builtInVisualizerOptions,
-  } = builtInComponents;
+    adapterOptions,
+    algorithmOptions,
+    problemOptions,
+    visualizerOptions,
+  } = sandboxComponents;
 
   if (key === '.') {
     if (!('index.ts' in files)) {
@@ -38,21 +38,21 @@ export default function getSandboxObjectWithKey<T extends SandboxObjectType>({
     >;
   }
 
-  const builtInOptions = (() => {
+  const options = (() => {
     switch (type) {
       case 'algorithm':
-        return builtInAlgorithmOptions;
+        return algorithmOptions;
       case 'problem':
-        return builtInProblemOptions;
+        return problemOptions;
       case 'visualizer':
-        return builtInVisualizerOptions;
+        return visualizerOptions;
       case 'adapter':
-        return builtInAdapterOptions;
+        return adapterOptions;
     }
   })() as CatalogGroup<DbObjectSaved<T>>[];
 
   const savedObject =
-    builtInOptions
+    options
       .flatMap((group) => group.options)
       .find((option) => option.key === key)?.value ?? null;
 

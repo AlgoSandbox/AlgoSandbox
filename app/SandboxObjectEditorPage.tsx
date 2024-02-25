@@ -1,6 +1,7 @@
 import { DirectoryExplorer } from '@components/box-environment-page';
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
 import { Button, Input, MaterialSymbol, ResizeHandle } from '@components/ui';
+import Heading from '@components/ui/Heading';
 import { DbSandboxObject, DbSandboxObjectSaved } from '@utils/db';
 import { useSavedObjectQuery, useSaveObjectMutation } from '@utils/db/objects';
 import {
@@ -74,6 +75,9 @@ export default function SandboxObjectEditorPage({
     >
       <PanelGroup className="flex-1" direction="horizontal">
         <Panel key="explorer" defaultSize={30}>
+          <Heading className="px-4 py-2 mt-2 capitalize" variant="h3">
+            {object.type}
+          </Heading>
           {mode === 'edit' && !isViewOnly && (
             <div className="px-4 py-2 flex gap-2 items-end">
               <Input

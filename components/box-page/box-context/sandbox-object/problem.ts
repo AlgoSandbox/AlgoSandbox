@@ -20,17 +20,17 @@ export const defaultBoxContextProblem =
   defaultBoxContextSandboxObject as BoxContextProblem;
 
 export default function useBoxContextProblem({
-  builtInProblemOptions,
+  options,
   defaultKey,
   onKeyChange,
 }: {
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
+  options: Array<CatalogGroup<DbProblemSaved>>;
   defaultKey: SandboxKey<'problem'> | undefined;
   onKeyChange: (key: SandboxKey<'problem'>) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'problem',
-    builtInOptions: builtInProblemOptions,
+    options,
     addSavedObjectMutation: useAddSavedProblemMutation(),
     setSavedObjectMutation: useSetSavedProblemMutation(),
     removeSavedObjectMutation: useRemoveSavedProblemMutation(),

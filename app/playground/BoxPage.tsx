@@ -10,7 +10,7 @@ import {
   useBoxControlsContext,
 } from '@components/box-page';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
@@ -212,14 +212,12 @@ function BoxPageImpl() {
     setMaxExecutionStepCount,
   } = useUserPreferences();
   const { isDraft, reset } = useBoxContext();
-  const { builtInBoxOptions } = useBuiltInComponents();
+  const { boxOptions } = useSandboxComponents();
 
   const selectedOption = useMemo(() => {
-    const flattenedOptions = builtInBoxOptions.flatMap(
-      (group) => group.options,
-    );
+    const flattenedOptions = boxOptions.flatMap((group) => group.options);
     return flattenedOptions.find((option) => option.key === boxKey);
-  }, [builtInBoxOptions, boxKey]);
+  }, [boxOptions, boxKey]);
 
   const {
     selectedTabId,
@@ -258,7 +256,7 @@ function BoxPageImpl() {
           <div className="flex items-center gap-2 pe-4 py-2">
             <CatalogSelect
               containerClassName="shrink"
-              options={builtInBoxOptions}
+              options={boxOptions}
               label="Select box"
               hideLabel={true}
               variant="primary"

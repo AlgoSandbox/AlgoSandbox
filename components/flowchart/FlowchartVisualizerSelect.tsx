@@ -2,7 +2,7 @@ import { useBoxContext } from '@components/box-page';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import { useBoxContextSandboxObject } from '@components/box-page/box-context/sandbox-object';
 import VisualizerDetails from '@components/box-page/VisualizerDetails';
-import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
@@ -26,7 +26,7 @@ export default function FlowchartVisualizerSelect({
 }) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
-  const { builtInVisualizerOptions } = useBuiltInComponents();
+  const { visualizerOptions } = useSandboxComponents();
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
   const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
@@ -36,7 +36,7 @@ export default function FlowchartVisualizerSelect({
 
   const visualizerObject = useBoxContextSandboxObject({
     type: 'visualizer',
-    builtInOptions: builtInVisualizerOptions,
+    options: visualizerOptions,
     addSavedObjectMutation: useAddSavedVisualizerMutation(),
     setSavedObjectMutation: useSetSavedVisualizerMutation(),
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),

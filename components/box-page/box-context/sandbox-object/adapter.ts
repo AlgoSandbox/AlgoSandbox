@@ -20,15 +20,15 @@ export const defaultBoxContextAdapter =
   defaultBoxContextSandboxObject as BoxContextAdapter;
 
 export default function useBoxContextAdapter({
-  builtInAdapterOptions,
+  options,
   defaultKey,
 }: {
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  options: Array<CatalogGroup<DbAdapterSaved>>;
   defaultKey: SandboxKey<'adapter'> | undefined;
 }) {
   return useBoxContextSandboxObject({
     type: 'adapter',
-    builtInOptions: builtInAdapterOptions,
+    options,
     addSavedObjectMutation: useAddSavedAdapterMutation(),
     setSavedObjectMutation: useSetSavedAdapterMutation(),
     removeSavedObjectMutation: useRemoveSavedAdapterMutation(),

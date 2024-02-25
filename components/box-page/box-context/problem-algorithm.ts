@@ -24,19 +24,19 @@ export const defaultBoxContextProblemAlgorithm: BoxContextProblemAlgorithm = {
 
 export default function useBoxContextProblemAlgorithm({
   algorithm,
-  builtInAdapterOptions,
+  adapterOptions,
   problem,
   adapterConfiguration,
   onAdapterConfigurationChange,
 }: {
   algorithm: BoxContextAlgorithm;
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  adapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   problem: BoxContextProblem;
   adapterConfiguration: AdapterConfigurationFlat;
   onAdapterConfigurationChange: (config: AdapterConfigurationFlat) => void;
 }) {
   const adapters = useBoxContextAdapters({
-    builtInOptions: builtInAdapterOptions,
+    options: adapterOptions,
     adapterConfiguration,
     onAdapterConfigurationChange,
   });

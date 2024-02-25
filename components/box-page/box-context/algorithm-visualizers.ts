@@ -39,7 +39,7 @@ export type BoxContextAlgorithmVisualizers = {
 };
 
 export default function useBoxContextAlgorithmVisualizers({
-  builtInAdapterOptions,
+  adapterOptions,
   visualizerInputKeys,
   value,
   onChange,
@@ -47,7 +47,7 @@ export default function useBoxContextAlgorithmVisualizers({
   problemOutputKeys: Array<string>;
   algorithmOutputKeys: Array<string>;
   visualizerInputKeys: Record<string, Array<string>>;
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  adapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
   value: AlgorithmVisualizers;
   onChange: (value: AlgorithmVisualizers) => void;
 }) {
@@ -55,12 +55,12 @@ export default function useBoxContextAlgorithmVisualizers({
     return Object.fromEntries(
       Object.entries(value?.adapters ?? {}).map(([alias, adapterKey]) => [
         alias,
-        builtInAdapterOptions
+        adapterOptions
           .flatMap((group) => group.options)
           .find((option) => option.value.key === adapterKey),
       ]),
     );
-  }, [value?.adapters, builtInAdapterOptions]);
+  }, [value?.adapters, adapterOptions]);
 
   const adapterEvaluations = useMemo(() => {
     return Object.fromEntries(

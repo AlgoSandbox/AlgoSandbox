@@ -2,6 +2,7 @@ import { useUserPreferences } from '@components/preferences/UserPreferencesProvi
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedAlgorithm } from '@utils';
+import clsx from 'clsx';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -9,7 +10,13 @@ import { AlgorithmDetails } from '..';
 import { useBoxContext } from '../box-context';
 import CatalogSelect from './CatalogSelect';
 
-export default function AlgorithmSelect() {
+export default function AlgorithmSelect({
+  className,
+  hideLabel,
+}: {
+  className?: string;
+  hideLabel?: boolean;
+}) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const {
@@ -41,9 +48,11 @@ export default function AlgorithmSelect() {
   }, [defaultParameters, methods]);
 
   return (
-    <div className="flex items-end gap-2">
+    <div className={clsx('flex items-end gap-2', className)}>
       <CatalogSelect
         label="Algorithm"
+        hideLabel={hideLabel}
+        containerClassName="flex-1"
         options={options}
         value={selectedOption ?? undefined}
         onChange={setSelectedOption}

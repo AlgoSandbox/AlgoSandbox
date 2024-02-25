@@ -3,13 +3,20 @@ import { useUserPreferences } from '@components/preferences/UserPreferencesProvi
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import { isParameterizedProblem } from '@utils';
+import clsx from 'clsx';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import ProblemDetails from '../ProblemDetails';
 import CatalogSelect from './CatalogSelect';
 
-export default function ProblemSelect() {
+export default function ProblemSelect({
+  hideLabel,
+  className,
+}: {
+  hideLabel?: boolean;
+  className?: string;
+}) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const {
@@ -42,9 +49,11 @@ export default function ProblemSelect() {
   }, [defaultParameters, methods]);
 
   return (
-    <div className="flex items-end gap-2">
+    <div className={clsx('flex items-end gap-2', className)}>
       <CatalogSelect
         label="Problem"
+        hideLabel={hideLabel}
+        containerClassName="flex-1"
         options={options}
         errorMessage={errors.map((error) => error.message).join('\n')}
         value={selectedOption ?? undefined}

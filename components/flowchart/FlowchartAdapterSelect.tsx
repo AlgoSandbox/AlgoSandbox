@@ -1,36 +1,62 @@
+import { useBoxContext } from '@components/box-page';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { Button, MaterialSymbol } from '@components/ui';
-import { CatalogOption } from '@constants/catalog';
-import { DbAdapterSaved } from '@utils/db';
 import clsx from 'clsx';
+import { useMemo } from 'react';
 
-// TODO: Take all state ouf of this component
-export default function AdapterSelect({
-  value,
-  onChange,
+export default function FlowchartAdapterSelect({
   className,
   label,
+  alias,
 }: {
-  value?: CatalogOption<DbAdapterSaved>;
   label: string;
-  onChange?: (value: CatalogOption<DbAdapterSaved>) => void;
+  alias: string;
   className?: string;
 }) {
   const { builtInAdapterOptions: options } = useBuiltInComponents();
   const { isAdvancedModeEnabled } = useUserPreferences();
   const { addOrFocusTab } = useTabManager();
+  const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
+  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
+
+  const adapterKey = useMemo(
+    () => (algorithmVisualizersTree.adapters ?? {})[alias],
+    [algorithmVisualizersTree.adapters, alias],
+  );
+
+  const value = useMemo(() => {
+    const flattenedOptions = options.flatMap((item) =>
+      'options' in item ? item.options : item,
+    );
+    return flattenedOptions.find((option) => option.key === adapterKey)!;
+  }, [options, adapterKey]);
 
   return (
     <div className={clsx('flex items-end gap-2', className)}>
       <CatalogSelect
         containerClassName="flex-1"
+        hideLabel
         label={label}
         options={options}
         value={value}
-        onChange={onChange}
+        onChange={(value) => {
+          setAlgorithmVisualizers({
+            adapters: {
+              ...algorithmVisualizersTree.adapters,
+              [alias]: value.key,
+            },
+            composition: {
+              ...algorithmVisualizersTree.composition,
+              connections:
+                algorithmVisualizersTree.composition.connections.filter(
+                  ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+                ),
+            },
+          });
+        }}
       />
       {isAdvancedModeEnabled && value && (
         <Button

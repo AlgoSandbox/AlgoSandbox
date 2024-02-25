@@ -7,8 +7,7 @@ import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
 import { useBuiltInComponents } from '@components/playground/BuiltInComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
-import { Button, MaterialSymbol, ResizeHandle, Tooltip } from '@components/ui';
-import Heading, { HeadingContent } from '@components/ui/Heading';
+import { Button, MaterialSymbol, Tooltip } from '@components/ui';
 import Dagre from '@dagrejs/dagre';
 import clsx from 'clsx';
 import { compact } from 'lodash';
@@ -19,7 +18,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Panel, PanelGroup } from 'react-resizable-panels';
 import ReactFlow, {
   applyEdgeChanges,
   applyNodeChanges,
@@ -32,6 +30,8 @@ import ReactFlow, {
   Handle,
   Node,
   NodeChange,
+  NodeProps,
+  NodeToolbar,
   NodeTypes,
   Position,
   useNodeId,
@@ -40,59 +40,41 @@ import ReactFlow, {
 import { ZodError } from 'zod';
 
 import { useBoxContext } from '../box-page';
-import AdapterSelect from './AdapterSelect';
-import VisualizerSelect from './VisualizerSelect';
+import FlowchartAdapterSelect from './FlowchartAdapterSelect';
+import FlowchartVisualizerSelect from './FlowchartVisualizerSelect';
 
-type FlowNodeProps = {
-  data: {
-    inputs?: Array<{
-      id: string;
-      label: string;
-      hasValue: boolean;
-      error: ZodError | null;
-    }>;
-    outputs?: Array<{
-      id: string;
-      label: string;
-      hasValue: boolean;
-    }>;
+type FlowNodeData = {
+  inputs?: Array<{
+    id: string;
     label: string;
-  };
+    hasValue: boolean;
+    error: ZodError | null;
+  }>;
+  outputs?: Array<{
+    id: string;
+    label: string;
+    hasValue: boolean;
+  }>;
+  alias: string;
+  label: string;
+  type: 'algorithm' | 'problem' | 'visualizer' | 'adapter';
+  onDelete: () => void;
 };
 
-const FlowNodePreview = forwardRef<HTMLDivElement, FlowNodeProps>(
-  ({ data: { inputs = [], outputs = [], label } }, ref) => {
-    return (
-      <div ref={ref} className="px-4">
-        <div className="border py-4 relative gap-2 flex items-center justify-center rounded bg-surface-high">
-          <div className="flex flex-col">
-            {inputs.map(({ id, label }) => (
-              <div key={id} id={id} className="flex items-center gap-2 -ms-1">
-                <div className="rounded-full w-2 h-2 bg-surface border border-on-surface" />
-                <span className="text-sm font-mono">{label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex-1 text-lg">{label}</div>
-          <div className="flex flex-col">
-            {outputs.map(({ id, label }) => (
-              <div key={id} id={id}>
-                <span className="text-sm font-mono">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  },
-);
-
-FlowNodePreview.displayName = 'FlowNodePreview';
+type FlowNodeProps = NodeProps<FlowNodeData>;
 
 type FlowNode = Node<FlowNodeProps['data']>;
 
+function getNodeHeight({ slotCount }: { slotCount: number }) {
+  return 160 + slotCount * 32;
+}
+
 const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
-  ({ data: { inputs = [], outputs = [], label } }, ref) => {
+  (
+    { data: { inputs = [], outputs = [], type, alias, onDelete }, selected },
+    ref,
+  ) => {
+    const deletable = type !== 'algorithm' && type !== 'problem';
     const { nodeInternals, edges } = useStore(({ nodeInternals, edges }) => ({
       nodeInternals,
       edges,
@@ -271,34 +253,70 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
     const mainOutputSlot = outputs.find(({ id }) => id === '.');
 
     return (
-      <div
-        className={clsx(
-          'border relative w-[500px] flex flex-col items-stretch rounded bg-surface-high',
-        )}
-        ref={ref}
-      >
-        <div className="flex justify-between items-center text-lg font-semibold border-b py-2">
-          {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
-          {label}
-          {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
-        </div>
-        <div className="flex justify-between py-2">
-          <div className="flex flex-col gap-2">
-            {inputs
-              .filter(({ id }) => id !== '.')
-              .map(({ id, label, hasValue, error }) => {
-                return createLeftSlot({ id, error, hasValue, label });
-              })}
+      <>
+        <NodeToolbar
+          isVisible={selected && deletable}
+          position={Position.Top}
+          align="end"
+        >
+          <Button
+            icon={<MaterialSymbol icon="delete" />}
+            label="Delete"
+            variant="filled"
+            size="sm"
+            onClick={onDelete}
+          />
+        </NodeToolbar>
+        <div
+          className={clsx(
+            'border-2 relative min-w-[500px] flex flex-col items-stretch rounded bg-surface-high',
+            String.raw`[.react-flow\_\_node.selected>&]:border-accent`,
+            'transition-colors',
+          )}
+          ref={ref}
+        >
+          <div className="absolute -top-1 -translate-y-full text-label text-lg">
+            {alias}
           </div>
-          <div className="flex flex-col items-end gap-2">
-            {outputs
-              .filter(({ id }) => id !== '.')
-              .map(({ id, label, hasValue }) => {
-                return createRightSlot({ id, label, hasValue });
-              })}
+          <div className="p-2 border-b">
+            {type === 'problem' && (
+              <ProblemSelect hideLabel className="flex-1" />
+            )}
+            {type === 'algorithm' && <AlgorithmSelect hideLabel />}
+            {type === 'visualizer' && (
+              <FlowchartVisualizerSelect alias={alias} />
+            )}
+            {type === 'adapter' && (
+              <FlowchartAdapterSelect
+                className="flex-1"
+                alias={alias}
+                label={alias}
+              />
+            )}
+          </div>
+          <div className="flex justify-between items-center text-lg font-semibold py-2">
+            {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
+
+            {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
+          </div>
+          <div className="flex justify-between py-2">
+            <div className="flex flex-col gap-2">
+              {inputs
+                .filter(({ id }) => id !== '.')
+                .map(({ id, label, hasValue, error }) => {
+                  return createLeftSlot({ id, error, hasValue, label });
+                })}
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              {outputs
+                .filter(({ id }) => id !== '.')
+                .map(({ id, label, hasValue }) => {
+                  return createRightSlot({ id, label, hasValue });
+                })}
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   },
 );
@@ -319,7 +337,8 @@ const getLayoutedElements = (
   nodes: Array<Omit<Node, 'position'>>,
   edges: Array<Edge>,
 ) => {
-  g.setGraph({ rankdir: 'LR' });
+  // nodesep = vertical distance, ranksep = horizontal distance
+  g.setGraph({ rankdir: 'LR', nodesep: 80, ranksep: 128 });
 
   edges.forEach((edge) => g.setEdge(edge.source, edge.target));
   nodes.forEach((node) => g.setNode(node.id, node as Dagre.Label));
@@ -364,20 +383,6 @@ export default function AlgorithmVisualizerFlowchart({
   const visualizers = useBoxContext('visualizers');
   const visualizerInstances = useBoxContext('visualizers.instances');
 
-  const selectedAdapters = useMemo(() => {
-    const flattenedOptions = adapterOptions.flatMap((item) =>
-      'options' in item ? item.options : item,
-    );
-    return Object.fromEntries(
-      Object.entries(algorithmVisualizersTree.adapters ?? {}).map(
-        ([alias, key]) => [
-          alias,
-          flattenedOptions.find((option) => option.key === key)!,
-        ],
-      ),
-    );
-  }, [adapterOptions, algorithmVisualizersTree.adapters]);
-
   const algorithmName = algorithm?.name ?? 'Untitled algorithm';
   const problemName = problem?.name ?? 'Untitled algorithm';
 
@@ -398,6 +403,45 @@ export default function AlgorithmVisualizerFlowchart({
     [problem],
   );
 
+  const onNodeDelete = useCallback(
+    (type: FlowNode['data']['type'], alias: string) => {
+      if (type === 'adapter') {
+        setAlgorithmVisualizers({
+          adapters: Object.fromEntries(
+            Object.entries(algorithmVisualizersTree.adapters ?? {}).filter(
+              ([key]) => key !== alias,
+            ),
+          ),
+          composition: {
+            ...algorithmVisualizersTree.composition,
+            connections:
+              algorithmVisualizersTree.composition.connections.filter(
+                ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+              ),
+          },
+        });
+      } else if (type === 'visualizer') {
+        visualizers.removeAlias(alias);
+        setAlgorithmVisualizers({
+          adapters: algorithmVisualizersTree.adapters,
+          composition: {
+            ...algorithmVisualizersTree.composition,
+            connections:
+              algorithmVisualizersTree.composition.connections.filter(
+                ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+              ),
+          },
+        });
+      }
+    },
+    [
+      algorithmVisualizersTree.adapters,
+      algorithmVisualizersTree.composition,
+      setAlgorithmVisualizers,
+      visualizers,
+    ],
+  );
+
   const initialAdapterNodes = useMemo(
     () =>
       Object.entries(algorithmVisualizersEvaluated.adapters ?? {})
@@ -412,15 +456,19 @@ export default function AlgorithmVisualizerFlowchart({
               id: alias,
               type: 'customFlow',
               width: 500,
-              height:
-                76 +
-                Math.max(
+              height: getNodeHeight({
+                slotCount: Math.max(
                   Object.keys(adapter.accepts.shape.shape).length,
                   Object.keys(adapter.outputs.shape.shape).length,
-                ) *
-                  32,
+                ),
+              }),
               data: {
+                alias,
+                type: 'adapter',
                 label: name,
+                onDelete: () => {
+                  onNodeDelete('adapter', alias);
+                },
                 inputs: ['.', ...Object.keys(adapter.accepts.shape.shape)].map(
                   (param) => {
                     const label = (() => {
@@ -475,7 +523,13 @@ export default function AlgorithmVisualizerFlowchart({
               },
             }) satisfies Omit<FlowNode, 'position'>,
         ),
-    [algorithmVisualizersEvaluated.adapters, inputErrors, inputs, outputs],
+    [
+      algorithmVisualizersEvaluated.adapters,
+      inputErrors,
+      inputs,
+      onNodeDelete,
+      outputs,
+    ],
   );
 
   const initialVisualizerNodes = useMemo(() => {
@@ -492,9 +546,16 @@ export default function AlgorithmVisualizerFlowchart({
           id: alias,
           type: 'customFlow',
           width: 500,
-          height: 76 + Object.keys(visualizerInputs).length * 32,
+          height: getNodeHeight({
+            slotCount: Object.keys(visualizerInputs).length,
+          }),
           data: {
+            type: 'visualizer',
+            alias,
             label: name,
+            onDelete: () => {
+              onNodeDelete('visualizer', alias);
+            },
             inputs: ['.', ...Object.keys(visualizerInputs)].map((param) => {
               const hasValue = (() => {
                 if (param === '.') {
@@ -523,7 +584,7 @@ export default function AlgorithmVisualizerFlowchart({
         } satisfies Omit<FlowNode, 'position'>;
       }),
     );
-  }, [inputErrors, inputs, visualizerInstances]);
+  }, [inputErrors, inputs, onNodeDelete, visualizerInstances]);
 
   const initialNodes = useMemo(
     () =>
@@ -532,9 +593,15 @@ export default function AlgorithmVisualizerFlowchart({
           id: 'algorithm',
           type: 'customFlow',
           width: 500,
-          height: 64 + Math.max(Object.keys(algorithmOutputs).length, 1) * 32,
+          height: getNodeHeight({
+            slotCount: Object.keys(algorithmOutputs).length,
+          }),
+          deletable: false,
           data: {
+            type: 'algorithm',
+            alias: 'algorithm',
             label: algorithmName,
+            onDelete: () => {},
             outputs: ['.', ...Object.keys(algorithmOutputs)].map((param) => {
               const hasValue = (() => {
                 if (param === '.') {
@@ -564,9 +631,15 @@ export default function AlgorithmVisualizerFlowchart({
           id: 'problem',
           type: 'customFlow',
           width: 500,
-          height: 76 + Math.max(Object.keys(problemOutputs).length, 1) * 32,
+          height: getNodeHeight({
+            slotCount: Object.keys(problemOutputs).length,
+          }),
+          deletable: false,
           data: {
+            type: 'problem',
+            alias: 'problem',
             label: problemName,
+            onDelete: () => {},
             outputs: ['.', ...Object.keys(problemOutputs)].map((param) => {
               const hasValue = (() => {
                 if (param === '.') {
@@ -691,6 +764,15 @@ export default function AlgorithmVisualizerFlowchart({
     return setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
+  const onNodesDelete = useCallback(
+    (nodesToDelete: Array<FlowNode>) => {
+      nodesToDelete.forEach(({ data: { alias, type } }) =>
+        onNodeDelete(type, alias),
+      );
+    },
+    [onNodeDelete],
+  );
+
   const onEdgesDelete = useCallback(
     (edgesToDelete: Array<Edge>) => {
       setAlgorithmVisualizers({
@@ -744,219 +826,82 @@ export default function AlgorithmVisualizerFlowchart({
     [algorithmVisualizersTree, setAlgorithmVisualizers],
   );
 
-  // const [, drop] = useDrop(() => {
-  //   return {
-  //     accept: 'flowchart-node',
-  //     drop: ({
-  //       visualizer,
-  //       id,
-  //     }: {
-  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //       visualizer: SandboxVisualizer<any, unknown> | null;
-  //       id: string;
-  //     }) => {
-  //       if (visualizer === null) {
-  //         return;
-  //       }
-
-  //       const visualizerInputs = visualizer?.accepts.shape.shape ?? [];
-
-  //       const newNode = {
-  //         id: `visualizer-${id}`,
-  //         type: 'customFlow',
-  //         data: {
-  //           label: visualizer.name,
-  //           inputs: Object.keys(visualizerInputs).map((param) => ({
-  //             id: param,
-  //             label: param,
-  //             hasValue: false,
-  //           })),
-  //         },
-  //       } satisfies FlowNode;
-
-  //       setNodes((nds) => [...nds, newNode]);
-  //     },
-  //   };
-  // });
-
   return (
-    <PanelGroup direction="horizontal">
-      <Panel defaultSize={20} className="p-4 flex flex-col items-stretch gap-2">
-        <Heading variant="h2">Configure box</Heading>
-        <ProblemSelect />
-        <AlgorithmSelect />
-        <Heading variant="h3">Visualizers</Heading>
-        <HeadingContent>
-          {visualizers.order.map((alias) => (
-            <div className="flex items-end gap-2" key={alias}>
-              <VisualizerSelect
-                className="flex-1"
-                alias={alias}
-                onChange={() => {
-                  setAlgorithmVisualizers({
-                    adapters: algorithmVisualizersTree.adapters,
-                    composition: {
-                      ...algorithmVisualizersTree.composition,
-                      connections:
-                        algorithmVisualizersTree.composition.connections.filter(
-                          ({ fromKey, toKey }) =>
-                            fromKey !== alias && toKey !== alias,
-                        ),
-                    },
-                  });
-                }}
-              />
-              <Button
-                label="Remove"
-                hideLabel
-                icon={<MaterialSymbol icon="delete" />}
-                onClick={() => {
-                  visualizers.removeAlias(alias);
-                  setAlgorithmVisualizers({
-                    adapters: algorithmVisualizersTree.adapters,
-                    composition: {
-                      ...algorithmVisualizersTree.composition,
-                      connections:
-                        algorithmVisualizersTree.composition.connections.filter(
-                          ({ fromKey, toKey }) =>
-                            fromKey !== alias && toKey !== alias,
-                        ),
-                    },
-                  });
-                }}
-              />
-            </div>
-          ))}
-          <CatalogSelect
-            label="Add visualizer"
-            options={visualizerOptions}
-            value={undefined}
-            onChange={(value) => {
-              const getKey = (index: number): string => {
-                const key = `visualizer-${index}`;
-                if (visualizers.order.includes(key)) {
-                  return getKey(index + 1);
-                }
-                return key;
-              };
-              const newKey = getKey(0);
-              visualizers.appendAlias(newKey, value.key);
-            }}
+    <div className="relative w-full h-full">
+      <ReactFlow
+        className={clsx(
+          String.raw`[&_.react-flow\_\_handle]:border-2`,
+          String.raw`[&_.react-flow\_\_handle]:border-border [&_.react-flow\_\_handle]:relative`,
+          String.raw`[&_.react-flow\_\_handle:hover]:bg-accent`,
+          String.raw`[&_.react-flow\_\_handle]:translate-x-0 [&_.react-flow\_\_handle]:translate-y-0`,
+          String.raw`[&_.react-flow\_\_handle]:inset-0`,
+        )}
+        nodeTypes={nodeTypes}
+        nodes={nodes.every((node) => node.position) ? nodes : []}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
+        onEdgesChange={onEdgesChange}
+        onEdgesDelete={onEdgesDelete}
+        onConnect={onConnect}
+        defaultEdgeOptions={defaultEdgeOptions}
+        proOptions={proOptions}
+        fitView={true}
+      >
+        <Background className="bg-surface" />
+      </ReactFlow>
+      <div className="absolute top-2 left-0 right-0 mx-auto flex gap-2 items-end justify-center">
+        <CatalogSelect
+          label="Add visualizer"
+          options={visualizerOptions}
+          value={undefined}
+          onChange={(value) => {
+            const getKey = (index: number): string => {
+              const key = `visualizer-${index}`;
+              if (visualizers.order.includes(key)) {
+                return getKey(index + 1);
+              }
+              return key;
+            };
+            const newKey = getKey(0);
+            visualizers.appendAlias(newKey, value.key);
+          }}
+        />
+        <CatalogSelect
+          label="Add adapter"
+          options={adapterOptions}
+          value={undefined}
+          onChange={(value) => {
+            const getKey = (index: number): string => {
+              const key = `adapter-${index}`;
+              if (
+                Object.keys(algorithmVisualizersTree.adapters ?? {}).includes(
+                  key,
+                )
+              ) {
+                return getKey(index + 1);
+              }
+              return key;
+            };
+            const newKey = getKey(0);
+            setAlgorithmVisualizers({
+              ...algorithmVisualizersTree,
+              adapters: {
+                ...algorithmVisualizersTree.adapters,
+                [newKey]: value.key,
+              },
+            });
+          }}
+        />
+        <div className="rounded-full bg-surface overflow-clip border">
+          <Button
+            label="Auto layout"
+            onClick={autoLayoutNodes}
+            icon={<MaterialSymbol icon="mitre" />}
           />
-        </HeadingContent>
-        <Heading className="mt-4" variant="h3">
-          Adapters
-        </Heading>
-        <HeadingContent>
-          {Object.entries(selectedAdapters).map(([alias, option]) => (
-            <div className="flex w-full items-end gap-2" key={alias}>
-              <AdapterSelect
-                className="flex-1"
-                label={alias}
-                value={option}
-                onChange={(value) => {
-                  setAlgorithmVisualizers({
-                    adapters: {
-                      ...algorithmVisualizersTree.adapters,
-                      [alias]: value.key,
-                    },
-                    composition: {
-                      ...algorithmVisualizersTree.composition,
-                      connections:
-                        algorithmVisualizersTree.composition.connections.filter(
-                          ({ fromKey, toKey }) =>
-                            fromKey !== alias && toKey !== alias,
-                        ),
-                    },
-                  });
-                }}
-              />
-              <Button
-                label="Remove"
-                hideLabel
-                icon={<MaterialSymbol icon="delete" />}
-                onClick={() => {
-                  setAlgorithmVisualizers({
-                    adapters: Object.fromEntries(
-                      Object.entries(
-                        algorithmVisualizersTree.adapters ?? {},
-                      ).filter(([key]) => key !== alias),
-                    ),
-                    composition: {
-                      ...algorithmVisualizersTree.composition,
-                      connections:
-                        algorithmVisualizersTree.composition.connections.filter(
-                          ({ fromKey, toKey }) =>
-                            fromKey !== alias && toKey !== alias,
-                        ),
-                    },
-                  });
-                }}
-              />
-            </div>
-          ))}
-          <CatalogSelect
-            label="Add adapter"
-            options={adapterOptions}
-            value={undefined}
-            onChange={(value) => {
-              const getKey = (index: number): string => {
-                const key = `adapter-${index}`;
-                if (
-                  Object.keys(algorithmVisualizersTree.adapters ?? {}).includes(
-                    key,
-                  )
-                ) {
-                  return getKey(index + 1);
-                }
-                return key;
-              };
-              const newKey = getKey(0);
-              setAlgorithmVisualizers({
-                ...algorithmVisualizersTree,
-                adapters: {
-                  ...algorithmVisualizersTree.adapters,
-                  [newKey]: value.key,
-                },
-              });
-            }}
-          />
-        </HeadingContent>
-      </Panel>
-      <ResizeHandle />
-      <Panel className="relative">
-        <ReactFlow
-          className={clsx(
-            String.raw`[&_.react-flow\_\_handle]:border-2`,
-            String.raw`[&_.react-flow\_\_handle]:border-border [&_.react-flow\_\_handle]:relative`,
-            String.raw`[&_.react-flow\_\_handle:hover]:bg-accent`,
-            String.raw`[&_.react-flow\_\_handle]:translate-x-0 [&_.react-flow\_\_handle]:translate-y-0`,
-            String.raw`[&_.react-flow\_\_handle]:inset-0`,
-          )}
-          nodeTypes={nodeTypes}
-          nodes={nodes.every((node) => node.position) ? nodes : []}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onEdgesDelete={onEdgesDelete}
-          onConnect={onConnect}
-          defaultEdgeOptions={defaultEdgeOptions}
-          proOptions={proOptions}
-          fitView={true}
-        >
-          <Background className="bg-surface" />
-        </ReactFlow>
-        <div className="absolute top-2 left-0 right-0 mx-auto flex justify-center">
-          <div className="rounded-full bg-surface overflow-clip border">
-            <Button
-              label="Auto layout"
-              onClick={autoLayoutNodes}
-              icon={<MaterialSymbol icon="mitre" />}
-            />
-          </div>
         </div>
-      </Panel>
-    </PanelGroup>
+      </div>
+    </div>
   );
 }
 

@@ -17,14 +17,11 @@ import clsx from 'clsx';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-// TODO: Take all state ouf of this component
-export default function VisualizerSelect({
+export default function FlowchartVisualizerSelect({
   alias,
-  onChange,
   className,
 }: {
   alias: string;
-  onChange: () => void;
   className?: string;
 }) {
   const { addOrFocusTab } = useTabManager();
@@ -32,6 +29,8 @@ export default function VisualizerSelect({
   const { builtInVisualizerOptions } = useBuiltInComponents();
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
+  const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
+  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
 
   const visualizerKey = aliases[alias];
 
@@ -45,7 +44,15 @@ export default function VisualizerSelect({
     defaultKey: visualizerKey,
     onSelect: ({ key }) => {
       setAlias(alias, key);
-      onChange();
+      setAlgorithmVisualizers({
+        adapters: algorithmVisualizersTree.adapters,
+        composition: {
+          ...algorithmVisualizersTree.composition,
+          connections: algorithmVisualizersTree.composition.connections.filter(
+            ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+          ),
+        },
+      });
     },
   });
 
@@ -88,6 +95,7 @@ export default function VisualizerSelect({
       <CatalogSelect
         containerClassName="flex-1"
         label={alias}
+        hideLabel
         options={options}
         value={selectedOption ?? undefined}
         onChange={(value) => {

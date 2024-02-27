@@ -1,4 +1,10 @@
-import { SandboxEvaluated, SandboxStateType } from '@algo-sandbox/core';
+import {
+  getDefaultParameters,
+  ParsedParameters,
+  SandboxEvaluated,
+  SandboxParameters,
+  SandboxStateType,
+} from '@algo-sandbox/core';
 import { ErrorOr } from '@app/errors/ErrorContext';
 import { Button, MaterialSymbol, Popover } from '@components/ui';
 import {
@@ -7,10 +13,11 @@ import {
   CatalogOptions,
 } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
+import areStateTypesCompatible from '@utils/areStateTypesCompatible';
 import { DbAdapterSaved } from '@utils/db';
 import clsx from 'clsx';
-import _, { isEqual } from 'lodash';
-import { Fragment, ReactElement, useMemo } from 'react';
+import _ from 'lodash';
+import { Fragment, ReactElement, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
 import CatalogSelect from './app-bar/CatalogSelect';
@@ -56,6 +63,11 @@ export default function AdapterListPopover({
   options,
   children,
 }: AdapterListPopoverProps) {
+  // TODO: Show parameters in problem-algorithm adapter select popover
+  const [parameters, setParameters] = useState<
+    Record<string, ParsedParameters<SandboxParameters> | null>
+  >({});
+
   const { control, watch, setValue } = useForm<AdapterFormValue>({
     values: {
       adapters: value,
@@ -69,29 +81,66 @@ export default function AdapterListPopover({
 
   const rawAdapters = watch('adapters');
 
-  const valueEvaluated = useMemo(() => {
+  const evaluations = useMemo(() => {
     return value.map(({ key }) => evaluated[key]);
   }, [evaluated, value]);
 
-  const faultyAdapterIndex = (() => {
+  const defaultParameters = useMemo(() => {
+    return Object.fromEntries(
+      evaluations.map((evaluation, index) => {
+        const id = fields[index].id;
+
+        return [
+          id,
+          evaluation.value.map((adapter) => {
+            const defaultParams =
+              'parameters' in adapter
+                ? getDefaultParameters(adapter.parameters)
+                : null;
+
+            return defaultParams;
+          }),
+        ];
+      }),
+    );
+  }, [fields, evaluations]);
+
+  const instances = useMemo(() => {
+    return evaluations.map(({ value: evaluation, key, name }, index) => {
+      const id = fields[index].id;
+
+      return evaluation.chain((adapter) => {
+        return defaultParameters[id].map((defaultParams) => {
+          const params = parameters[id] ?? defaultParams;
+          const instance =
+            'parameters' in adapter ? adapter.create(params ?? {}) : adapter;
+
+          return { value: instance, name, key };
+        });
+      });
+    });
+  }, [defaultParameters, evaluations, fields, parameters]);
+
+  const faultyAdapterIndex = useMemo(() => {
     let input = fromType;
-    for (let i = 0; i < valueEvaluated.length; i++) {
-      const adapterEvaluation = valueEvaluated[i];
-      if (adapterEvaluation === undefined) {
+    for (let i = 0; i < instances.length; i++) {
+      const adapterInstance = instances[i];
+
+      if (adapterInstance.isLeft()) {
         return i;
       }
 
-      if (adapterEvaluation.value.isLeft()) {
+      const { value: adapter } = adapterInstance.unwrap();
+
+      if (input === null) {
         return i;
       }
-
-      const adapter = adapterEvaluation.value.unwrap();
 
       if (
-        !isEqual(
-          Object.keys(adapter.accepts.shape.shape),
-          Object.keys(input?.shape.shape ?? {}),
-        )
+        !areStateTypesCompatible({
+          to: adapter.accepts,
+          from: input,
+        })
       ) {
         return i;
       }
@@ -99,34 +148,37 @@ export default function AdapterListPopover({
     }
 
     return null;
-  })();
+  }, [fromType, instances]);
 
-  const isLastAdapterFaulty = (() => {
-    if (valueEvaluated.length === 0) {
+  const isLastAdapterFaulty = useMemo(() => {
+    if (instances.length === 0) {
       return false;
     }
-    const evaluation = valueEvaluated[valueEvaluated.length - 1];
+    const evaluation = instances[instances.length - 1];
 
-    if (evaluation === undefined) {
+    if (evaluation.isLeft()) {
       return true;
     }
 
-    if (evaluation.value.isLeft()) {
+    if (toType === null) {
       return true;
     }
 
-    const adapter = evaluation.value.unwrap();
+    const { value: adapter } = evaluation.unwrap();
 
-    return !isEqual(
-      Object.keys(adapter.outputs.shape.shape ?? {}),
-      Object.keys(toType?.shape.shape ?? {}),
-    );
-  })();
+    return !areStateTypesCompatible({
+      to: toType,
+      from: adapter.outputs,
+    });
+  }, [instances, toType]);
 
   const isFaulty =
     faultyAdapterIndex !== null ||
     isLastAdapterFaulty ||
-    (valueEvaluated.length === 0 && fromType?.name !== toType?.name);
+    fromType === null ||
+    toType === null ||
+    (evaluations.length === 0 &&
+      !areStateTypesCompatible({ to: toType, from: fromType }));
 
   if (!_.isEqual(value, rawAdapters)) {
     onChange(rawAdapters);
@@ -145,7 +197,7 @@ export default function AdapterListPopover({
                 <span>{fromType?.name}</span>
               </div>
             </div>
-            {valueEvaluated.length === 0 && (
+            {evaluations.length === 0 && (
               <div
                 className={clsx(
                   fromType === toType ? 'border-primary' : 'border-border',
@@ -183,8 +235,8 @@ export default function AdapterListPopover({
                       >
                         <MaterialSymbol icon="keyboard_double_arrow_down" />
                         <span className="flex-1 overflow-ellipsis overflow-hidden">
-                          {valueEvaluated[index]?.value
-                            .map((adapter) => adapter.accepts.name)
+                          {instances[index]
+                            ?.map(({ value: adapter }) => adapter.accepts.name)
                             .unwrapOr('')}
                         </span>
                         <Button
@@ -241,8 +293,8 @@ export default function AdapterListPopover({
                   >
                     <MaterialSymbol icon="keyboard_double_arrow_down" />
                     <span className="flex-1 overflow-ellipsis overflow-hidden">
-                      {valueEvaluated[index]?.value
-                        .map((adapter) => adapter.outputs.name)
+                      {instances[index]
+                        ?.map(({ value: adapter }) => adapter.accepts.name)
                         .unwrapOr('')}
                     </span>
                     <Button
@@ -259,7 +311,7 @@ export default function AdapterListPopover({
               );
             })}
           </ol>
-          {valueEvaluated.length > 0 && (
+          {evaluations.length > 0 && (
             <div
               className={clsx(
                 isFaulty ? 'border-muted' : 'border-primary',

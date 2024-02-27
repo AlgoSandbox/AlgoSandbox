@@ -21,6 +21,7 @@ import {
 import { fromTry } from '@sweet-monads/either';
 import { UseMutationResult } from '@tanstack/react-query';
 import {
+  SandboxAnyAdapter,
   SandboxAnyAlgorithm,
   SandboxAnyProblem,
   SandboxAnyVisualizer,
@@ -65,7 +66,7 @@ import {
 type SandboxObjectTypeMap = {
   adapter: {
     instance: SandboxAdapter<SandboxStateType, SandboxStateType>;
-    value: SandboxAdapter<SandboxStateType, SandboxStateType>;
+    value: SandboxAnyAdapter;
     dbObject: DbAdapter;
     dbObjectSaved: DbAdapterSaved;
   };

@@ -82,18 +82,19 @@ export default function useBoxContextVisualizers({
     string,
     ErrorOr<CatalogOption<DbVisualizerSaved>>
   > = useMemo(() => {
-    return mapValues(
-      aliases, (key) => {
-        const option = options
-          .flatMap((group) => group.options)
-          .find((option) => option.value.key === key);
+    return mapValues(aliases, (key) => {
+      const option = options
+        .flatMap((group) => group.options)
+        .find((option) => option.value.key === key);
 
-        if (option === undefined) {
-          return error(`Visualizer ${key} not found`) as ErrorOr<CatalogOption<DbVisualizerSaved>>;
-        }
+      if (option === undefined) {
+        return error(`Visualizer ${key} not found`) as ErrorOr<
+          CatalogOption<DbVisualizerSaved>
+        >;
+      }
 
-        return success(option);
-      })
+      return success(option);
+    });
   }, [aliases, options]);
 
   const evaluations = useMemo(() => {
@@ -114,31 +115,32 @@ export default function useBoxContextVisualizers({
 
   const defaultParameters = useMemo(() => {
     return mapValues(evaluations, (evaluation) => {
-      return evaluation.map(({ value: visualizer }) => {
-        const defaultParams =
-          'parameters' in visualizer
-            ? getDefaultParameters(visualizer.parameters)
-            : null;
+      return evaluation
+        .map(({ value: visualizer }) => {
+          const defaultParams =
+            'parameters' in visualizer
+              ? getDefaultParameters(visualizer.parameters)
+              : null;
 
-        return defaultParams;
-      });
+          return defaultParams;
+        })
+        .mapLeft(() => null).value;
     });
   }, [evaluations]);
 
   const instances = useMemo(() => {
     return mapValues(evaluations, (evaluation, alias) => {
-      return evaluation.chain(({ value: visualizer, name, key }) => {
-        return defaultParameters[alias].map((parameters) => {
-          const instance =
-            'parameters' in visualizer
-              ? visualizer.create(parameters ?? {})
-              : visualizer;
+      return evaluation.map(({ value: visualizer, name, key }) => {
+        const params = parameters[alias] ?? defaultParameters[alias];
+        const instance =
+          'parameters' in visualizer
+            ? visualizer.create(params ?? {})
+            : visualizer;
 
-          return { value: instance, name, key };
-        });
+        return { value: instance, name, key };
       });
     });
-  }, [defaultParameters, evaluations]);
+  }, [defaultParameters, evaluations, parameters]);
 
   return useMemo(
     () =>
@@ -160,7 +162,7 @@ export default function useBoxContextVisualizers({
         },
         instances,
         parameters: {
-          default: parameters,
+          default: defaultParameters,
           value: parameters,
           setValue: (
             alias: string,
@@ -178,6 +180,7 @@ export default function useBoxContextVisualizers({
       aliases,
       order,
       instances,
+      defaultParameters,
       parameters,
       handleAliasesChange,
       handleOrderChange,

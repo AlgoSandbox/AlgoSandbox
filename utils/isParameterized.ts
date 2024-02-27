@@ -1,5 +1,7 @@
 import {
+  SandboxAdapter,
   SandboxAlgorithm,
+  SandboxParameterizedAdapter,
   SandboxParameterizedAlgorithm,
   SandboxParameterizedProblem,
   SandboxParameterizedVisualizer,
@@ -43,5 +45,17 @@ export function isParameterizedProblem<
 ): problem is SandboxParameterizedProblem<N, P> {
   return (
     (problem as SandboxParameterizedProblem<N, P>).parameters !== undefined
+  );
+}
+
+export function isParameterizedAdapter<
+  T extends SandboxStateType,
+  U extends SandboxStateType,
+  P extends SandboxParameters,
+>(
+  adapter: SandboxAdapter<T, U> | SandboxParameterizedAdapter<T, U, P>,
+): adapter is SandboxParameterizedAdapter<T, U, P> {
+  return (
+    (adapter as SandboxParameterizedAdapter<T, U, P>).parameters !== undefined
   );
 }

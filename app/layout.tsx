@@ -111,6 +111,7 @@ const visualizerGroupToFolderGlob = {
 const adapterGroupToFolderGlob = {
   Example: 'lib/algo-sandbox/adapters/example',
   Environment: 'lib/algo-sandbox/adapters/environment',
+  Tools: 'lib/algo-sandbox/adapters/utils',
 };
 
 const boxGroupToFolderGlob = {

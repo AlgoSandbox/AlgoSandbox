@@ -40,7 +40,10 @@ export function createParameterizedAlgorithm<
   accepts: N;
   outputs: M;
   parameters: P;
-  createInitialState: (problem: Readonly<SandboxState<N>>) => SandboxState<M>;
+  createInitialState: (
+    problem: Readonly<SandboxState<N>>,
+    parameters: ParsedParameters<P>,
+  ) => SandboxState<M>;
   getPseudocode: (parameters: ParsedParameters<P>) => string;
   runAlgorithm: (
     context: SandboxContextWithParameters<N, M, P>,
@@ -54,7 +57,8 @@ export function createParameterizedAlgorithm<
       accepts,
       outputs,
       pseudocode: getPseudocode(parsedParameters),
-      createInitialState,
+      createInitialState: (problem) =>
+        createInitialState(problem, parsedParameters),
       runAlgorithm(context) {
         return runAlgorithm({ ...context, parameters: parsedParameters });
       },

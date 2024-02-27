@@ -1,7 +1,7 @@
 import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { CatalogGroup } from '@constants/catalog';
+import areStateTypesCompatible from '@utils/areStateTypesCompatible';
 import { DbAdapterSaved } from '@utils/db';
-import { isEqual } from 'lodash';
 import { useMemo } from 'react';
 
 import {
@@ -40,43 +40,49 @@ export default function useBoxContextProblemAlgorithm({
     adapterConfiguration,
     onAdapterConfigurationChange,
   });
-  const { composed: composedAdapter, value: adapterList } = adapters;
-  const hasInvalidAdapter = adapterList.length > 0 && composedAdapter === null;
+  const { composed: composedAdapter } = adapters;
 
   const problemInstance = problem.instance.mapLeft(() => null).value;
   const algorithmInstance = algorithm.instance.mapLeft(() => null).value;
 
+  const compatible = useMemo(() => {
+    const isComposedAdapterInvalid = composedAdapter.isLeft();
+
+    if (isComposedAdapterInvalid) {
+      return false;
+    }
+
+    if (algorithmInstance === null || problemInstance === null) {
+      return false;
+    }
+
+    const composed = composedAdapter.unwrap();
+
+    if (composed === null) {
+      return areStateTypesCompatible({
+        to: algorithmInstance.accepts,
+        from: problemInstance.type,
+      });
+    }
+
+    return (
+      areStateTypesCompatible({
+        to: problemInstance.type,
+        from: composed.accepts,
+      }) &&
+      areStateTypesCompatible({
+        to: composed.outputs,
+        from: algorithmInstance.accepts,
+      })
+    );
+  }, [algorithmInstance, composedAdapter, problemInstance]);
+
   const problemAlgorithm = useMemo(() => {
     return {
-      compatible:
-        (composedAdapter === null &&
-          algorithmInstance !== null &&
-          problemInstance !== null &&
-          isEqual(
-            Object.keys(problemInstance.type.shape.shape),
-            Object.keys(algorithmInstance.accepts.shape.shape),
-          )) ||
-        (!hasInvalidAdapter &&
-          algorithmInstance !== null &&
-          problemInstance !== null &&
-          composedAdapter !== null &&
-          isEqual(
-            Object.keys(problemInstance.type.shape.shape),
-            Object.keys(composedAdapter.accepts.shape.shape),
-          ) &&
-          isEqual(
-            Object.keys(composedAdapter.outputs.shape.shape),
-            Object.keys(algorithmInstance.accepts.shape.shape),
-          )),
+      compatible,
       adapters,
     } satisfies BoxContextProblemAlgorithm;
-  }, [
-    adapters,
-    algorithm.instance,
-    composedAdapter,
-    hasInvalidAdapter,
-    problem.instance,
-  ]);
+  }, [adapters, compatible]);
 
   return problemAlgorithm;
 }

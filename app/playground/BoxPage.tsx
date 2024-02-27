@@ -38,13 +38,16 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
   const { compatible: areAlgorithmProblemCompatible } =
     useBoxContext('problemAlgorithm');
   const problemInstanceEvaluation = useBoxContext('problem.instance');
-  const problemAdapter = useBoxContext('problemAlgorithm.adapters.composed');
+  const composedProblemAdapter = useBoxContext(
+    'problemAlgorithm.adapters.composed',
+  );
   const algorithmInstanceEvaluation = useBoxContext('algorithm.instance');
   const { maxExecutionStepCount: maxExecutionStepCount } = useUserPreferences();
 
   const initialScene = useMemo(() => {
     const problemInstance = problemInstanceEvaluation.unwrapOr(null);
     const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
+    const problemAdapter = composedProblemAdapter.unwrapOr(null);
     if (
       areAlgorithmProblemCompatible &&
       algorithmInstance !== null &&
@@ -77,8 +80,8 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
   }, [
     problemInstanceEvaluation,
     algorithmInstanceEvaluation,
+    composedProblemAdapter,
     areAlgorithmProblemCompatible,
-    problemAdapter,
     maxExecutionStepCount,
   ]);
   const [scene, setScene] = useState(initialScene);
@@ -134,8 +137,8 @@ function SceneProvider({
   const problemInstanceEvaluation = useBoxContext('problem.instance');
   const problemAdapterCompatible = useBoxContext('problemAlgorithm.compatible');
   const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
-  const algorithmVisualizersAdapters = useBoxContext(
-    'algorithmVisualizers.evaluated.adapters',
+  const algorithmVisualizersAdapterInstances = useBoxContext(
+    'algorithmVisualizers.evaluated.adapterInstances',
   );
   const algorithmState = executionStep?.state;
 
@@ -160,7 +163,7 @@ function SceneProvider({
       problemState,
       algorithmState,
       adapters: mapValues(
-        algorithmVisualizersAdapters ?? {},
+        algorithmVisualizersAdapterInstances ?? {},
         (val) => val?.mapLeft(() => undefined).value?.value,
       ),
       visualizers: mapValues(
@@ -177,7 +180,7 @@ function SceneProvider({
     problemAdapterCompatible,
     algorithmVisualizersTree,
     algorithmState,
-    algorithmVisualizersAdapters,
+    algorithmVisualizersAdapterInstances,
     visualizerInstances,
   ]);
 

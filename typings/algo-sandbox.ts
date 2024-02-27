@@ -2,6 +2,7 @@
 import {
   SandboxAdapter,
   SandboxAlgorithm,
+  SandboxParameterizedAdapter,
   SandboxParameterizedAlgorithm,
   SandboxParameterizedProblem,
   SandboxParameterizedVisualizer,
@@ -22,7 +23,6 @@ export type SandboxAnyVisualizer =
   | SandboxVisualizer<any, any>
   | SandboxParameterizedVisualizer<any, any, any>;
 
-export type SandboxAnyAdapter = SandboxAdapter<
-  SandboxStateType,
-  SandboxStateType
->;
+export type SandboxAnyAdapter =
+  | SandboxAdapter<SandboxStateType, SandboxStateType>
+  | SandboxParameterizedAdapter<SandboxStateType, SandboxStateType, any>;

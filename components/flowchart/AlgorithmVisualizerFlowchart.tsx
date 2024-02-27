@@ -486,7 +486,7 @@ export default function AlgorithmVisualizerFlowchart({
 
   const initialAdapterNodes = useMemo(
     () =>
-      Object.entries(algorithmVisualizersEvaluated.adapters ?? {}).map(
+      Object.entries(algorithmVisualizersEvaluated.adapterInstances ?? {}).map(
         ([alias, evaluation]) => {
           const { value: adapter, name } =
             evaluation.mapLeft(() => null).value ?? {};
@@ -562,7 +562,7 @@ export default function AlgorithmVisualizerFlowchart({
         },
       ),
     [
-      algorithmVisualizersEvaluated.adapters,
+      algorithmVisualizersEvaluated.adapterInstances,
       inputErrors,
       inputs,
       onNodeDelete,

@@ -28,7 +28,7 @@ export default function useBoxContextAdapter({
 }: {
   options: Array<CatalogGroup<DbAdapterSaved>>;
   key: SandboxKey<'adapter'> | null;
-  onKeyChange: (key: SandboxKey<'adapter'>) => void;
+  onKeyChange: (key: SandboxKey<'adapter'> | null) => void;
   parameters: Record<string, unknown> | null;
   onParametersChange: (parameters: Record<string, unknown>) => void;
 }) {

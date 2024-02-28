@@ -1,3 +1,4 @@
+import { SandboxObjectType } from '@algo-sandbox/components';
 import {
   Button,
   FormLabel,
@@ -10,12 +11,12 @@ import {
 import { ButtonProps } from '@components/ui/Button';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
+import { useDeleteObjectMutation } from '@utils/db/objects';
 import clsx from 'clsx';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import Markdown, { Components } from 'react-markdown';
 
 // TODO: Restore preview
-// const MAX_EXECUTION_STEP_COUNT = 20;
 
 const markdownComponents: Components = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,14 +26,16 @@ const markdownComponents: Components = {
 };
 
 export type CatalogSelectProps<
-  T,
-  O extends CatalogOption<T> = CatalogOption<T>,
+  T extends SandboxObjectType,
+  O extends CatalogOption<DbSandboxObjectSaved<T>> = CatalogOption<
+    DbSandboxObjectSaved<T>
+  >,
 > = {
   className?: string;
   containerClassName?: string;
-  options: CatalogOptions<T>;
+  options: CatalogOptions<DbSandboxObjectSaved<T>>;
   value?: O;
-  onChange?: (value: O) => void;
+  onChange?: (value: O | null) => void;
   label: string;
   hideLabel?: boolean;
   variant?: ButtonProps['variant'];
@@ -65,7 +68,7 @@ function ListItem<T>({
   );
 }
 
-export default function CatalogSelect<T extends DbSandboxObjectSaved>({
+export default function CatalogSelect<T extends SandboxObjectType>({
   options,
   containerClassName,
   className,
@@ -76,16 +79,10 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
   onChange,
   errorMessage, // showPreview = true,
 }: CatalogSelectProps<T>) {
+  const { mutateAsync: deleteObject } = useDeleteObjectMutation<T>();
   // const builtInComponents = useBuiltInComponents();
-  const [selectedOption, setSelectedOption] = useState<CatalogOption<T> | null>(
-    value ?? null,
-  );
   const [query, setQuery] = useState('');
   // const [stepIndex, setStepIndex] = useState(0);
-
-  useEffect(() => {
-    setSelectedOption(value ?? null);
-  }, [value]);
 
   // const { executionTrace, visualizerInstance } =
   //   useMemo(() => {
@@ -266,12 +263,12 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                       </div>
                       {item.options.map((option) => (
                         <ListItem
-                          selected={option.key === selectedOption?.key}
+                          selected={option.key === value?.key}
                           active={option.key === value?.key}
                           key={option.key}
                           option={option}
                           onClick={() => {
-                            setSelectedOption(option);
+                            onChange?.(option);
                             // setStepIndex(0);
                           }}
                           onDoubleClick={() => {
@@ -285,12 +282,12 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 } else {
                   return (
                     <ListItem
-                      selected={item.key === selectedOption?.key}
+                      selected={item.key === value?.key}
                       active={item.key === value?.key}
                       key={item.key}
                       option={item}
                       onClick={() => {
-                        setSelectedOption(item);
+                        onChange?.(item);
                       }}
                       onDoubleClick={() => {
                         onChange?.(item);
@@ -301,7 +298,7 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
                 }
               })}
           </div>
-          {selectedOption !== null && (
+          {value !== undefined && (
             <div className="w-[250px] overflow-y-auto">
               {/* {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
@@ -321,16 +318,30 @@ export default function CatalogSelect<T extends DbSandboxObjectSaved>({
               )} */}
               <div className="p-4 flex-col flex gap-2 items-start">
                 <Markdown components={markdownComponents}>
-                  {selectedOption.value.writeup ?? `# ${selectedOption.label}`}
+                  {value.value.writeup ?? `# ${value.label}`}
                 </Markdown>
-                <Button
-                  variant="primary"
-                  label="Select"
-                  onClick={() => {
-                    onChange?.(selectedOption);
-                    setOpen(false);
-                  }}
-                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="primary"
+                    label="Select"
+                    onClick={() => {
+                      onChange?.(value);
+                      setOpen(false);
+                    }}
+                  />
+                  {value.type === 'custom' && (
+                    <Button
+                      variant="primary"
+                      label="Delete"
+                      onClick={async () => {
+                        await deleteObject(value.value);
+                        onChange?.(null);
+                        onChange?.(value);
+                        setOpen(false);
+                      }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -294,6 +294,11 @@ function BoxPageImpl() {
                 variant="primary"
                 value={selectedOption}
                 onChange={(option) => {
+                  if (option === null) {
+                    router.push('/playground');
+                    return;
+                  }
+
                   router.push(`/playground?box=${option.key}`);
                 }}
               />

@@ -37,6 +37,10 @@ export default function FlowchartVisualizerSelect({
     savedObjects: useSavedVisualizersQuery().data,
     key: visualizerKey,
     onKeyChange: (key) => {
+      if (key === null) {
+        return;
+      }
+
       setAlias(alias, key);
       setAlgorithmVisualizers({
         adapters: algorithmVisualizersTree.adapters,

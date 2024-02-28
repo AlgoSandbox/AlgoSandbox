@@ -15,13 +15,16 @@ export type SandboxBoxNamed = SandboxBox & { name: string };
 function LayoutImpl({
   children,
   box,
+  boxKey,
   onBoxChange,
+  onBoxReset,
 }: {
   children: React.ReactNode;
   box: SandboxBoxNamed | null;
-  onBoxChange: (box: SandboxBoxNamed | null) => void;
+  boxKey: string | null;
+  onBoxChange: (boxKey: string, box: SandboxBoxNamed | null) => void;
+  onBoxReset: () => void;
 }) {
-  const router = useRouter();
   const { mutateAsync: saveBox } = useAddSavedBoxMutation();
 
   return (
@@ -45,30 +48,29 @@ function LayoutImpl({
       <BoxContextProvider
         box={box}
         onBoxUpdate={(update) => {
-          if (box === null) {
+          if (box === null || boxKey == null) {
             return;
           }
           const newBox = update(box);
-          onBoxChange(newBox);
+          onBoxChange(boxKey, newBox);
         }}
-        onBoxReset={() => {}}
+        onBoxReset={onBoxReset}
         onBoxSaveAs={async (name) => {
           if (box === null) {
             return;
           }
-
-          const { key: newBoxKey } = await saveBox({
+          const newBox = {
             name: name,
             type: 'box',
             editable: true,
             files: {
               'index.ts': `const box = ${JSON.stringify(box)};
-
               export default box;
               `,
             },
-          });
-          router.replace(`/playground?box=${newBoxKey}`);
+          } as const;
+          const { key: newBoxKey } = await saveBox(newBox);
+          onBoxChange(newBoxKey, box);
         }}
       >
         {children}
@@ -78,14 +80,17 @@ function LayoutImpl({
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { boxOptions } = useSandboxComponents();
-  const params = useSearchParams();
-  const boxKey = params.get('box') ?? '';
   const router = useRouter();
+  const params = useSearchParams();
+  const { boxOptions } = useSandboxComponents();
+  const boxKey = params.get('box');
 
   const savedBox = useMemo(() => {
+    if (boxKey === null) {
+      return null;
+    }
     const flattenedOptions = boxOptions.flatMap((group) => group.options);
-    return flattenedOptions.find((box) => box.key === boxKey);
+    return flattenedOptions.find((box) => box.key === boxKey) ?? null;
   }, [boxOptions, boxKey]);
 
   const originalBox = useMemo(() => {
@@ -138,14 +143,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [originalBox, params, savedBox?.label]);
 
   const onBoxChange = useCallback(
-    (box: SandboxBox | null) => {
+    (newBoxKey: string, box: SandboxBox | null) => {
       if (box === null || originalBox === null) {
         return;
       }
+
       const searchParams = new URLSearchParams();
 
-      searchParams.set('box', boxKey);
-
+      searchParams.set('box', newBoxKey);
       if (box.problem !== originalBox?.problem) {
         searchParams.set('problem', JSON.stringify(box.problem));
       }
@@ -174,11 +179,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       router.replace(`/playground?${searchParams.toString()}`);
     },
-    [boxKey, originalBox, router],
+    [originalBox, router],
   );
 
+  const onBoxReset = useCallback(() => {
+    if (boxKey === null) {
+      return;
+    }
+    onBoxChange(boxKey, originalBox);
+  }, [boxKey, onBoxChange, originalBox]);
+
   return (
-    <LayoutImpl onBoxChange={onBoxChange} box={boxFromUrlCustomized}>
+    <LayoutImpl
+      boxKey={boxKey}
+      onBoxChange={onBoxChange}
+      onBoxReset={onBoxReset}
+      box={boxFromUrlCustomized}
+    >
       {children}
     </LayoutImpl>
   );

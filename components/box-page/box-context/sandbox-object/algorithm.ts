@@ -28,7 +28,7 @@ export default function useBoxContextAlgorithm({
 }: {
   options: Array<CatalogGroup<DbAlgorithmSaved>>;
   key: SandboxKey<'algorithm'> | null;
-  onKeyChange: (key: SandboxKey<'algorithm'>) => void;
+  onKeyChange: (key: SandboxKey<'algorithm'> | null) => void;
   parameters: Record<string, unknown> | null;
   onParametersChange: (parameters: Record<string, unknown>) => void;
 }) {

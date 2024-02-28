@@ -8,7 +8,7 @@ type CancelableInterval = {
 
 export default function useCancelableInterval(
   callback: () => boolean | void,
-  delay: number
+  delay: number,
 ): CancelableInterval {
   const intervalId = useRef<NodeJS.Timeout | null>(null);
   const callbackRef = useRef(callback);

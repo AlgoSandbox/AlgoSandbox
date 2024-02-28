@@ -59,6 +59,10 @@ export default function FlowchartAdapterSelect({
       hideErrors={true}
       value={value}
       onChange={(value) => {
+        if (value === null) {
+          return;
+        }
+
         setAlgorithmVisualizers({
           adapters: {
             ...algorithmVisualizersTree.adapters,

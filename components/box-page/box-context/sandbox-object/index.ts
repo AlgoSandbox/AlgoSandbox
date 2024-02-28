@@ -56,7 +56,7 @@ import {
   sandboxParameterizedVisualizer,
   sandboxVisualizer,
 } from '@utils/verifiers/visualizer';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 type SandboxObjectTypeMap = {
   adapter: {
@@ -155,7 +155,7 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
   };
   select: {
     value: CatalogOption<DbObjectSaved<T>> | null;
-    setValue: (value: CatalogOption<DbObjectSaved<T>>) => void;
+    setValue: (value: CatalogOption<DbObjectSaved<T>> | null) => void;
     options: CatalogOptions<DbObjectSaved<T>>;
   };
 };
@@ -183,7 +183,7 @@ export function useBoxContextSandboxObject<
   >;
   removeSavedObjectMutation: UseMutationResult<void, unknown, DbObjectSaved<T>>;
   savedObjects: Array<DbObjectSaved<T>> | undefined;
-  onKeyChange: (key: SandboxKey<T>) => void;
+  onKeyChange: (key: SandboxKey<T> | null) => void;
 }) {
   const selectedOptionObject = useMemo(() => {
     if (selectedOptionKey === null) {
@@ -196,18 +196,6 @@ export function useBoxContextSandboxObject<
       null
     );
   }, [options, selectedOptionKey]);
-
-  useEffect(() => {
-    if (selectedOptionKey !== null) {
-      return;
-    }
-    const option = options.at(0)?.options.at(0);
-    if (option === undefined) {
-      return;
-    }
-
-    onKeyChange(option.key as SandboxKey<T>);
-  }, [onKeyChange, options, selectedOptionKey]);
 
   const evaluation = useMemo(() => {
     if (selectedOptionObject === null) {
@@ -308,7 +296,7 @@ export function useBoxContextSandboxObject<
       select: {
         value: selectedOptionObject,
         setValue: (option) => {
-          onKeyChange(option.key as SandboxKey<T>);
+          onKeyChange((option?.key ?? null) as SandboxKey<T> | null);
         },
         options: options,
       },

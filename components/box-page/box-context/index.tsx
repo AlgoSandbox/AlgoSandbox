@@ -139,6 +139,10 @@ export default function BoxContextProvider({
     options: problemOptions,
     key: problemKey ?? null,
     onKeyChange: (key) => {
+      if (key === null) {
+        return;
+      }
+
       onBoxUpdate?.((box) => ({
         ...box,
         problem: problemParameters
@@ -162,18 +166,23 @@ export default function BoxContextProvider({
     },
   });
 
-  const { key: algorithmKey, parameters: algorithmParameters } = useMemo(() => {
-    if (algorithmKeyWithParameters === undefined) {
-      return { key: undefined, parameters: undefined };
-    }
+  const { key: algorithmKey = null, parameters: algorithmParameters = null } =
+    useMemo(() => {
+      if (algorithmKeyWithParameters === undefined) {
+        return { key: undefined, parameters: undefined };
+      }
 
-    return parseKeyWithParameters(algorithmKeyWithParameters);
-  }, [algorithmKeyWithParameters]);
+      return parseKeyWithParameters(algorithmKeyWithParameters);
+    }, [algorithmKeyWithParameters]);
 
   const algorithm = useBoxContextAlgorithm({
     options: algorithmOptions,
-    key: algorithmKey ?? null,
+    key: algorithmKey,
     onKeyChange: (key) => {
+      if (key === null) {
+        return;
+      }
+
       onBoxUpdate?.((box) => ({
         ...box,
         algorithm: algorithmParameters
@@ -181,28 +190,35 @@ export default function BoxContextProvider({
           : key,
       }));
     },
-    parameters: algorithmParameters ?? null,
+    parameters: algorithmParameters,
     onParametersChange: (parameters) => {
-      if (algorithmKey === undefined) {
+      if (algorithmKey === null) {
         return;
       }
 
       onBoxUpdate?.((box) => ({
         ...box,
         algorithm: {
-          key: algorithmKey ?? null,
+          key: algorithmKey,
           parameters,
         },
       }));
     },
   });
 
-  const boxVisualizers = box?.visualizers;
+  const defaultAliases = useMemo(
+    () => box?.visualizers?.aliases ?? {},
+    [box?.visualizers?.aliases],
+  );
+  const defaultOrder = useMemo(
+    () => box?.visualizers?.order ?? [],
+    [box?.visualizers?.order],
+  );
 
   const visualizers = useBoxContextVisualizers({
     options: visualizerOptions,
-    defaultAliases: boxVisualizers?.aliases ?? {},
-    defaultOrder: boxVisualizers?.order ?? [],
+    defaultAliases: defaultAliases,
+    defaultOrder: defaultOrder,
     onAliasesChange: (aliases) => {
       onBoxUpdate?.((box) => ({
         ...box,
@@ -305,7 +321,7 @@ export default function BoxContextProvider({
         onBoxSaveAs?.(name);
       },
       visualizers,
-    } satisfies BoxContextType;
+    } as BoxContextType;
   }, [
     algorithm,
     algorithmVisualizers,

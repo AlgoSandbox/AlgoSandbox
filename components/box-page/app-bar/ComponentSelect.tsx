@@ -32,7 +32,7 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   hideLabel?: boolean;
   hideErrors?: boolean;
   value: CatalogOption<DbObjectSaved<T>> | null;
-  onChange: (value: CatalogOption<DbObjectSaved<T>>) => void;
+  onChange: (value: CatalogOption<DbObjectSaved<T>> | null) => void;
   options: CatalogOptions<DbObjectSaved<T>>;
   evaluatedValue: ErrorOr<Value<T> | null>;
   defaultParameters: Readonly<Record<string, any>> | null;

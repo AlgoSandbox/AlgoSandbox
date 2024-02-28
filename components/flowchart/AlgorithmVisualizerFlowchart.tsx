@@ -898,6 +898,10 @@ export default function AlgorithmVisualizerFlowchart({
           options={visualizerOptions}
           value={undefined}
           onChange={(value) => {
+            if (value === null) {
+              return;
+            }
+
             const getKey = (index: number): string => {
               const key = `visualizer-${index}`;
               if (visualizers.order.includes(key)) {
@@ -914,6 +918,10 @@ export default function AlgorithmVisualizerFlowchart({
           options={adapterOptions}
           value={undefined}
           onChange={(value) => {
+            if (value === null) {
+              return;
+            }
+
             const getKey = (index: number): string => {
               const key = `adapter-${index}`;
               if (

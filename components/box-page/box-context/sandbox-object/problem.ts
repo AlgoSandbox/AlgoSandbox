@@ -28,7 +28,7 @@ export default function useBoxContextProblem({
 }: {
   options: Array<CatalogGroup<DbProblemSaved>>;
   key: SandboxKey<'problem'> | null;
-  onKeyChange: (key: SandboxKey<'problem'>) => void;
+  onKeyChange: (key: SandboxKey<'problem'> | null) => void;
   parameters: Record<string, unknown> | null;
   onParametersChange: (parameters: Record<string, unknown>) => void;
 }) {

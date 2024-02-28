@@ -70,6 +70,11 @@ export default function ComponentPage({
             hideLabel
             value={selectedOption}
             onChange={(option) => {
+              if (option === null) {
+                router.push('/component');
+                return;
+              }
+
               router.push(`/component?key=${option.key}`);
             }}
           />

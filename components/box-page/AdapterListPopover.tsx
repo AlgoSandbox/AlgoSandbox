@@ -297,6 +297,14 @@ export default function AdapterListPopover({
                           label="Adapter"
                           options={options}
                           onChange={(adapter) => {
+                            if (adapter === null) {
+                              setValue(`adapters.${index}` as const, {
+                                alias: value.alias,
+                                adapter: getFirstOption(options),
+                              });
+                              return;
+                            }
+
                             setValue(`adapters.${index}` as const, {
                               alias: value.alias,
                               adapter,

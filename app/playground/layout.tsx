@@ -105,6 +105,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       // TODO: display error
       return null;
     }
+
     return evaledBox;
   }, [savedBox]);
 
@@ -154,20 +155,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (box.problem !== originalBox?.problem) {
         searchParams.set('problem', JSON.stringify(box.problem));
       }
-      if (!isEqual(box.problemAlgorithm, originalBox?.problemAlgorithm)) {
+      if (!isEqual(box.problemAlgorithm, originalBox.problemAlgorithm)) {
         searchParams.set(
           'problemAlgorithm',
           box.problemAlgorithm ? JSON.stringify(box.problemAlgorithm) : 'null',
         );
       }
-      if (box.algorithm !== originalBox?.algorithm) {
+      if (box.algorithm !== originalBox.algorithm) {
         searchParams.set('algorithm', JSON.stringify(box.algorithm));
       }
-      if (!isEqual(box.visualizers, originalBox?.visualizers)) {
+      if (!isEqual(box.visualizers, originalBox.visualizers)) {
         searchParams.set('visualizers', JSON.stringify(box.visualizers));
       }
       if (
-        !isEqual(box.algorithmVisualizers, originalBox?.algorithmVisualizers)
+        !isEqual(box.algorithmVisualizers, originalBox.algorithmVisualizers)
       ) {
         searchParams.set(
           'algorithmVisualizers',

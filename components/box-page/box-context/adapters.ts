@@ -151,9 +151,7 @@ export function useBoxContextAdapters({
     const value: BoxContextAdapters = {
       composed: composedAdapter,
       config: adapterConfiguration,
-      setConfig: (config) => {
-        onAdapterConfigurationChange(config);
-      },
+      setConfig: onAdapterConfigurationChange,
       selectedOptions: selectedAdapters,
       options,
       evaluations,

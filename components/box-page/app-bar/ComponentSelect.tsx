@@ -43,7 +43,6 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   const { isAdvancedModeEnabled } = useUserPreferences();
 
   const methods = useForm({
-    // defaultValues: defaultParameters ?? {},
     values: parameters ?? {},
   });
 

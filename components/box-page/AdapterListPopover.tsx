@@ -15,8 +15,7 @@ import areStateTypesCompatible from '@utils/areStateTypesCompatible';
 import { DbAdapterSaved } from '@utils/db';
 import clsx from 'clsx';
 import _, { compact, mapValues } from 'lodash';
-import { Fragment, ReactElement, useMemo } from 'react';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { Fragment, ReactElement, useCallback, useMemo } from 'react';
 
 import ComponentSelect from './app-bar/ComponentSelect';
 
@@ -54,14 +53,6 @@ function getFirstOption<T>(options: CatalogOptions<T>): CatalogOption<T> {
   }
 }
 
-type AdapterFormValue = {
-  adapters: Array<{
-    alias: string;
-    adapter: CatalogOption<DbAdapterSaved>;
-    parameters?: Record<string, unknown> | undefined;
-  }>;
-};
-
 export default function AdapterListPopover({
   fromLabel,
   toLabel,
@@ -80,19 +71,6 @@ export default function AdapterListPopover({
       parameters: config.parameters[alias],
     }));
   }, [config]);
-
-  const { control, watch, setValue } = useForm<AdapterFormValue>({
-    values: {
-      adapters,
-    },
-  });
-
-  const { fields, insert, remove } = useFieldArray({
-    control,
-    name: 'adapters',
-  });
-
-  const rawAdapters = watch('adapters');
 
   const defaultParameters = useMemo(() => {
     return mapValues(evaluations, (evaluation) => {
@@ -188,17 +166,71 @@ export default function AdapterListPopover({
     (Object.keys(adapters).length === 0 &&
       !areStateTypesCompatible({ to: toType, from: fromType }));
 
-  if (!_.isEqual(adapters, rawAdapters)) {
-    onConfigChange({
-      adapters: Object.fromEntries(
-        rawAdapters.map(({ alias, adapter }) => [alias, adapter]),
-      ),
-      order: rawAdapters.map(({ alias }) => alias),
-      parameters: Object.fromEntries(
-        rawAdapters.map(({ alias, parameters }) => [alias, parameters]),
-      ),
-    });
-  }
+  const insertAdapter = useCallback(
+    (
+      index: number,
+      entry: {
+        alias: string;
+        adapter: CatalogOption<DbAdapterSaved>;
+        parameters?: Record<string, unknown> | undefined;
+      },
+    ) => {
+      const newOrder = config.order;
+      newOrder.splice(index, 0, entry.alias);
+      onConfigChange({
+        adapters: {
+          ...config.adapters,
+          [entry.alias]: entry.adapter,
+        },
+        order: newOrder,
+        parameters: {
+          ...config.parameters,
+          [entry.alias]: entry.parameters,
+        },
+      });
+    },
+    [config.adapters, config.order, config.parameters, onConfigChange],
+  );
+
+  const removeAdapter = useCallback(
+    (index: number) => {
+      const newOrder = config.order;
+      newOrder.splice(index, 1);
+      onConfigChange({
+        adapters: _.omit(config.adapters, adapters[index].alias),
+        order: newOrder,
+        parameters: _.omit(config.parameters, adapters[index].alias),
+      });
+    },
+    [
+      adapters,
+      config.adapters,
+      config.order,
+      config.parameters,
+      onConfigChange,
+    ],
+  );
+
+  const setAdapter = useCallback(
+    (entry: {
+      alias: string;
+      adapter: CatalogOption<DbAdapterSaved>;
+      parameters?: Record<string, unknown> | undefined;
+    }) => {
+      onConfigChange({
+        adapters: {
+          ...config.adapters,
+          [entry.alias]: entry.adapter,
+        },
+        order: config.order,
+        parameters: {
+          ...config.parameters,
+          [entry.alias]: entry.parameters,
+        },
+      });
+    },
+    [config.adapters, config.order, config.parameters, onConfigChange],
+  );
 
   const getKey = (index: number = 0): string => {
     const key = `adapter-${index}`;
@@ -233,7 +265,7 @@ export default function AdapterListPopover({
                   icon={<MaterialSymbol icon="add" />}
                   size="sm"
                   onClick={() => {
-                    insert(0, {
+                    insertAdapter(0, {
                       alias: getKey(),
                       adapter: getFirstOption(options),
                     });
@@ -241,11 +273,13 @@ export default function AdapterListPopover({
                 />
               </div>
             )}
-            {fields.map((adapter, index) => {
+            {config.order.map((alias, index) => {
+              const adapter = config.adapters[alias];
+              const parameters = config.parameters[alias];
               const isFaulty =
                 faultyAdapterIndex !== null && index >= faultyAdapterIndex;
               return (
-                <Fragment key={adapter.id}>
+                <Fragment key={alias}>
                   {index === 0 && (
                     <>
                       <div
@@ -271,7 +305,7 @@ export default function AdapterListPopover({
                           size="sm"
                           hideLabel
                           onClick={() => {
-                            insert(index + 1, {
+                            insertAdapter(index + 1, {
                               alias: getKey(),
                               adapter: getFirstOption(options),
                             });
@@ -287,45 +321,39 @@ export default function AdapterListPopover({
                       'flex gap-2 items-end ms-[11px] border-s-2 ps-[19px]',
                     )}
                   >
-                    <Controller
-                      control={control}
-                      name={`adapters.${index}`}
-                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      render={({ field: { onChange: _, value, ...field } }) => (
-                        <ComponentSelect<'adapter'>
-                          className="flex-1"
-                          label="Adapter"
-                          options={options}
-                          onChange={(adapter) => {
-                            if (adapter === null) {
-                              setValue(`adapters.${index}` as const, {
-                                alias: value.alias,
-                                adapter: getFirstOption(options),
-                              });
-                              return;
-                            }
+                    <ComponentSelect<'adapter'>
+                      className="flex-1"
+                      label="Adapter"
+                      options={options}
+                      onChange={(adapter) => {
+                        if (adapter === null) {
+                          setAdapter({
+                            alias,
+                            adapter: getFirstOption(options),
+                            parameters: undefined,
+                          });
+                          return;
+                        }
 
-                            setValue(`adapters.${index}` as const, {
-                              alias: value.alias,
-                              adapter,
-                            });
-                          }}
-                          value={value.adapter}
-                          defaultParameters={defaultParameters[value.alias]}
-                          parameters={value.parameters ?? null}
-                          setParameters={(parameters) => {
-                            setValue(`adapters.${index}` as const, {
-                              alias: value.alias,
-                              adapter: value.adapter,
-                              parameters,
-                            });
-                          }}
-                          evaluatedValue={
-                            evaluations[value.alias]?.value ?? success(null)
-                          }
-                          {...field}
-                        />
-                      )}
+                        setAdapter({
+                          alias,
+                          adapter,
+                          parameters: undefined,
+                        });
+                      }}
+                      value={adapter}
+                      defaultParameters={defaultParameters[alias]}
+                      parameters={parameters ?? null}
+                      setParameters={(parameters) => {
+                        setAdapter({
+                          alias,
+                          adapter,
+                          parameters,
+                        });
+                      }}
+                      evaluatedValue={
+                        evaluations[alias]?.value ?? success(null)
+                      }
                     />
                     <Button
                       className="mb-1.5"
@@ -334,7 +362,7 @@ export default function AdapterListPopover({
                       size="sm"
                       icon={<MaterialSymbol icon="delete" />}
                       onClick={() => {
-                        remove(index);
+                        removeAdapter(index);
                       }}
                     />
                   </li>
@@ -355,7 +383,7 @@ export default function AdapterListPopover({
                       hideLabel
                       size="sm"
                       onClick={() => {
-                        insert(index + 1, {
+                        insertAdapter(index + 1, {
                           alias: getKey(),
                           adapter: getFirstOption(options),
                         });

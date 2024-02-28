@@ -131,10 +131,6 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       const isShadowedByMainSlot =
         !isMainSlot && isConnected && isUsingInputMainSlot;
 
-      if (error !== null) {
-        console.log(error);
-      }
-
       return (
         <div
           key={id}

@@ -1,5 +1,4 @@
 import {
-  AdapterConfiguration,
   AdapterConfigurationFlat,
   getDefaultParameters,
   ParsedParameters,
@@ -14,15 +13,15 @@ import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
-import { mapValues } from 'lodash';
+import { compact, mapValues } from 'lodash';
 import { useMemo, useState } from 'react';
 
 export type BoxContextAdapters = {
   composed: ErrorOr<SandboxAdapter<SandboxStateType, SandboxStateType> | null>;
-  config: AdapterConfiguration;
-  value: Array<CatalogOption<DbAdapterSaved>>;
-  evaluated: Array<SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>>;
-  setValue: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
+  config: AdapterConfigurationFlat;
+  selectedOptions: Record<string, CatalogOption<DbAdapterSaved>>;
+  evaluations: Record<string, SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>>;
+  setConfig: (config: AdapterConfigurationFlat) => void;
   options: Array<CatalogGroup<DbAdapterSaved>>;
   parameters: {
     default: Record<string, ParsedParameters<SandboxParameters> | null>;
@@ -37,10 +36,10 @@ export type BoxContextAdapters = {
 export const defaultBoxContextAdapters: BoxContextAdapters = {
   composed: success(null),
   config: { aliases: {}, composition: { type: 'flat', order: [] } },
-  setValue: () => {},
-  value: [],
+  setConfig: () => {},
+  selectedOptions: {},
   options: [],
-  evaluated: [],
+  evaluations: {},
   parameters: {
     value: {},
     default: {},
@@ -131,8 +130,10 @@ export function useBoxContextAdapters({
       );
     }
 
-    const orderedInstances = adapterConfiguration.composition.order.map((key) =>
-      instances[key].unwrap(),
+    const orderedInstances = compact(
+      adapterConfiguration.composition.order.map(
+        (key) => instances[key]?.unwrap() ?? null,
+      ),
     );
 
     const composed = tryCompose(
@@ -150,24 +151,12 @@ export function useBoxContextAdapters({
     const value: BoxContextAdapters = {
       composed: composedAdapter,
       config: adapterConfiguration,
-      setValue: (adapters) => {
-        onAdapterConfigurationChange({
-          aliases: Object.fromEntries(
-            adapters.map(({ value }, index) => [`adapter-${index}`, value.key]),
-          ),
-          composition: {
-            type: 'flat',
-            order: adapters.map(({ key }) => key),
-          },
-        });
+      setConfig: (config) => {
+        onAdapterConfigurationChange(config);
       },
-      value: adapterConfiguration.composition.order.map(
-        (alias) => selectedAdapters[alias],
-      ),
+      selectedOptions: selectedAdapters,
       options,
-      evaluated: adapterConfiguration.composition.order.map(
-        (alias) => evaluations[alias],
-      ),
+      evaluations,
       parameters: {
         value: parameters,
         default: defaultParameters,

@@ -31,7 +31,9 @@ export type AdapterConnection<
 export type SandboxKeyFromAlias<
   Aliases extends SandboxAliases,
   Alias extends keyof Aliases,
-> = Aliases[Alias] extends SandboxKey ? Aliases[Alias] : SandboxAdapterKey;
+> = Aliases[Alias] extends SandboxKeyWithParameters<SandboxKey>
+  ? ExtractKey<Aliases[Alias]>
+  : SandboxAdapterKey;
 
 export type AdapterCompositionTree<
   Aliases extends SandboxAliases = SandboxAliases,
@@ -53,21 +55,25 @@ export type AdapterComposition<
 
 export type SandboxAliases<
   Alias extends string = string,
-  V extends SandboxAnyAdapter | SandboxKey = SandboxKey,
+  V extends
+    SandboxKeyWithParameters<SandboxKey> = SandboxKeyWithParameters<SandboxKey>,
 > = Record<Alias, V>;
 
 export type AdapterConfigurationRaw<
-  Aliases extends SandboxAliases<string, SandboxAdapterKey>,
+  Aliases extends SandboxAliases<
+    string,
+    SandboxKeyWithParameters<SandboxAdapterKey>
+  >,
 > = {
   aliases: Aliases;
   composition: AdapterComposition<Aliases>;
 };
 
 export type AdapterConfigurationFlat<
-  Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
+  Aliases extends SandboxAliases<
     string,
-    SandboxKey
-  >,
+    SandboxKeyWithParameters<SandboxKey>
+  > = SandboxAliases<string, SandboxKeyWithParameters<SandboxKey>>,
 > = AdapterConfigurationRaw<Aliases> & {
   composition: { type: 'flat' };
 };
@@ -82,14 +88,17 @@ export type AdapterConfigurationTree<
 };
 
 export type AdapterConfiguration<
-  Aliases extends SandboxAliases<string, SandboxKey> = SandboxAliases<
+  Aliases extends SandboxAliases<
     string,
-    SandboxKey
-  >,
+    SandboxKeyWithParameters<SandboxKey>
+  > = SandboxAliases<string, SandboxKeyWithParameters<SandboxKey>>,
 > = AdapterConfigurationRaw<Aliases>;
 
 export type AdapterConfigurationEvaluated = {
-  aliases: Record<string, SandboxEvaluated<SandboxAnyAdapter> | undefined>;
+  aliases: Record<
+    string,
+    SandboxEvaluated<ComponentWithParameters<SandboxAnyAdapter>> | undefined
+  >;
   composition: AdapterComposition<SandboxAliases<string, SandboxAdapterKey>>;
 };
 
@@ -102,12 +111,12 @@ export type SandboxEvaluated<T> = {
 export type AlgorithmVisualizers<
   AdapterAliases extends SandboxAliases<
     string,
-    SandboxAdapterKey
-  > = SandboxAliases<string, SandboxAdapterKey>,
+    SandboxKeyWithParameters<SandboxAdapterKey>
+  > = SandboxAliases<string, SandboxKeyWithParameters<SandboxAdapterKey>>,
   VisualizerAliases extends SandboxAliases<
     string,
-    SandboxVisualizerKey
-  > = SandboxAliases<string, SandboxVisualizerKey>,
+    SandboxKeyWithParameters<SandboxVisualizerKey>
+  > = SandboxAliases<string, SandboxKeyWithParameters<SandboxVisualizerKey>>,
 > = {
   adapters?: AdapterAliases;
   composition: AdapterComposition<AdapterAliases | VisualizerAliases>;
@@ -120,8 +129,10 @@ export type AlgorithmVisualizersTree = AlgorithmVisualizers & {
 };
 
 export type AlgorithmVisualizersEvaluated = {
-  adapters?: Record<string, SandboxEvaluated<SandboxAnyAdapter> | undefined>;
-
+  adapters?: Record<
+    string,
+    SandboxEvaluated<ComponentWithParameters<SandboxAnyAdapter>> | undefined
+  >;
   composition: AdapterComposition<
     SandboxAliases<string, SandboxVisualizerKey | SandboxAdapterKey>
   >;
@@ -130,32 +141,49 @@ export type AlgorithmVisualizersEvaluated = {
 type Visualizers<
   VisualizerAliases extends SandboxAliases<
     string,
-    SandboxVisualizerKey
-  > = SandboxAliases<string, SandboxVisualizerKey>,
+    SandboxKeyWithParameters<SandboxVisualizerKey>
+  > = SandboxAliases<string, SandboxKeyWithParameters<SandboxVisualizerKey>>,
 > = {
   aliases: VisualizerAliases;
   order: Array<keyof VisualizerAliases>;
 };
 
 type VisualizersEvaluated = {
-  aliases: Record<string, SandboxAnyVisualizer | undefined>;
+  aliases: Record<
+    string,
+    ComponentWithParameters<SandboxAnyVisualizer> | undefined
+  >;
   order: Array<string>;
 };
 
+export type SandboxKeyWithParameters<T extends SandboxKey> =
+  | T
+  | {
+      key: T;
+      parameters: Record<string, unknown>;
+    };
+
+type ExtractKey<K> = K extends { key: infer T } ? T : K;
+
 export type SandboxBox = Readonly<{
-  problem: SandboxProblemKey;
+  problem: SandboxKeyWithParameters<SandboxProblemKey>;
   problemAlgorithm?: AdapterConfigurationFlat<
-    SandboxAliases<string, SandboxAdapterKey>
+    SandboxAliases<string, SandboxKeyWithParameters<SandboxAdapterKey>>
   >;
-  algorithm: SandboxAlgorithmKey;
+  algorithm: SandboxKeyWithParameters<SandboxAlgorithmKey>;
   algorithmVisualizers?: AlgorithmVisualizers;
   visualizers: Visualizers;
 }>;
 
+type ComponentWithParameters<T> = {
+  component: T;
+  parameters: Record<string, unknown> | null;
+};
+
 export type SandboxBoxEvaluated = {
-  problem?: SandboxAnyProblem;
+  problem?: ComponentWithParameters<SandboxAnyProblem>;
   problemAlgorithm?: AdapterConfigurationEvaluated;
-  algorithm?: SandboxAnyAlgorithm;
+  algorithm?: ComponentWithParameters<SandboxAnyAlgorithm>;
   algorithmVisualizers?: AlgorithmVisualizersEvaluated;
   visualizers?: VisualizersEvaluated;
 };

@@ -2,9 +2,9 @@ import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { SandboxBoxNamed } from '@app/BoxManager';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
-import getCustomDbObjectName from '@utils/getCustomDbObjectName';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { Get, RecursivePath } from '@utils/RecursivePath';
-import _, { isEqual, mapValues } from 'lodash';
+import _, { mapValues } from 'lodash';
 import {
   createContext,
   ReactNode,
@@ -37,11 +37,6 @@ type BoxContextType = {
   algorithm: BoxContextAlgorithm;
   algorithmVisualizers: BoxContextAlgorithmVisualizers;
   visualizers: BoxContextVisualizers;
-  boxEnvironment: {
-    value: Record<string, string>;
-    setValue: (value: Record<string, string>) => void;
-  };
-  openBoxEditor: () => void;
   openFlowchart: () => void;
   reset: () => void;
   boxName: {
@@ -57,12 +52,7 @@ const BoxContext = createContext<BoxContextType>({
   problemAlgorithm: defaultBoxContextProblemAlgorithm,
   algorithmVisualizers: defaultBoxContextAlgorithmVisualizers,
   isDraft: true,
-  boxEnvironment: {
-    value: {},
-    setValue: () => {},
-  },
   reset: () => {},
-  openBoxEditor: () => {},
   openFlowchart: () => {},
   boxName: {
     value: '',
@@ -75,11 +65,7 @@ const BoxContext = createContext<BoxContextType>({
     appendAlias: () => {},
     setAlias: () => {},
     removeAlias: () => {},
-    parameters: {
-      value: {},
-      default: {},
-      setValue: () => {},
-    },
+    defaultParameters: {},
     reset: () => {},
   },
 });
@@ -124,38 +110,85 @@ export default function BoxContextProvider({
 
   const boxName = box?.name ?? 'Untitled box';
 
-  const { algorithmKey, problemKey } = useMemo(() => {
-    const {
-      algorithm: algorithmKey,
-      problem: problemKey,
-      algorithmVisualizers: visualizerKey,
-    } = box ?? {};
+  const { algorithmKeyWithParameters, problemKeyWithParameters } =
+    useMemo(() => {
+      const {
+        algorithm: algorithmKeyWithParameters,
+        problem: problemKeyWithParameters,
+      } = box ?? {};
 
-    return {
-      algorithmKey,
-      problemKey,
-      visualizerKey,
-    };
-  }, [box]);
+      return {
+        algorithmKeyWithParameters,
+        problemKeyWithParameters,
+      };
+    }, [box]);
+
+  const { key: problemKey, parameters: problemParameters } = useMemo(() => {
+    if (problemKeyWithParameters === undefined) {
+      return { key: undefined, parameters: undefined };
+    }
+
+    return parseKeyWithParameters(problemKeyWithParameters);
+  }, [problemKeyWithParameters]);
 
   const problem = useBoxContextProblem({
     options: problemOptions,
-    defaultKey: problemKey,
+    key: problemKey ?? null,
     onKeyChange: (key) => {
       onBoxUpdate?.((box) => ({
         ...box,
-        problem: key,
+        problem: problemParameters
+          ? { key, parameters: problemParameters }
+          : key,
+      }));
+    },
+    parameters: problemParameters ?? null,
+    onParametersChange: (parameters) => {
+      if (problemKey === undefined) {
+        return;
+      }
+
+      onBoxUpdate?.((box) => ({
+        ...box,
+        problem: {
+          key: problemKey ?? null,
+          parameters,
+        },
       }));
     },
   });
 
+  const { key: algorithmKey, parameters: algorithmParameters } = useMemo(() => {
+    if (algorithmKeyWithParameters === undefined) {
+      return { key: undefined, parameters: undefined };
+    }
+
+    return parseKeyWithParameters(algorithmKeyWithParameters);
+  }, [algorithmKeyWithParameters]);
+
   const algorithm = useBoxContextAlgorithm({
     options: algorithmOptions,
-    defaultKey: algorithmKey,
+    key: algorithmKey ?? null,
     onKeyChange: (key) => {
       onBoxUpdate?.((box) => ({
         ...box,
-        algorithm: key,
+        algorithm: algorithmParameters
+          ? { key, parameters: algorithmParameters }
+          : key,
+      }));
+    },
+    parameters: algorithmParameters ?? null,
+    onParametersChange: (parameters) => {
+      if (algorithmKey === undefined) {
+        return;
+      }
+
+      onBoxUpdate?.((box) => ({
+        ...box,
+        algorithm: {
+          key: algorithmKey ?? null,
+          parameters,
+        },
       }));
     },
   });
@@ -240,114 +273,6 @@ export default function BoxContextProvider({
     },
   });
 
-  const boxEnvironment = useMemo(() => {
-    const algorithmFiles = algorithm.select.value?.value.files;
-    const problemFiles = problem.select.value?.value.files;
-
-    const renameFiles = (
-      files: Record<string, string> | undefined,
-      newFolderName: string,
-    ) => {
-      if (files === undefined) {
-        return {};
-      }
-      return Object.fromEntries(
-        Object.entries(files ?? {}).map(([filePath, value]) => [
-          `${newFolderName}/${filePath.split('/').slice(-1)[0]}`,
-          value,
-        ]),
-      );
-    };
-
-    const algorithmFilesRenamed = renameFiles(algorithmFiles, 'algorithm');
-    const problemFilesRenamed = renameFiles(problemFiles, 'problem');
-
-    const boxEnvironment = {
-      ...algorithmFilesRenamed,
-      ...problemFilesRenamed,
-    };
-
-    return boxEnvironment;
-  }, [algorithm.select.value?.value.files, problem.select.value?.value.files]);
-
-  const setBoxEnvironment = useCallback(
-    (boxEnvironment: Record<string, string>) => {
-      // Get files matching folder name, then remap keys to remove folder names
-      const getFilesInFolder = (folderName: `${string}/`) => {
-        return Object.fromEntries(
-          Object.entries(boxEnvironment ?? {})
-            .filter(([filePath]) => filePath.startsWith(folderName))
-            .map(([filePath, value]) => [
-              filePath.substring(folderName.length),
-              value,
-            ]),
-        );
-      };
-
-      const algorithmFiles = getFilesInFolder('algorithm/');
-      const problemFiles = getFilesInFolder('problem/');
-      const algorithmOption = algorithm.select.value;
-      const problemOption = problem.select.value;
-
-      if (algorithmOption === null) {
-        throw new Error('Selected algorithm is null');
-      }
-
-      if (problemOption === null) {
-        throw new Error('Selected problem is null');
-      }
-
-      if (!isEqual(algorithmFiles, algorithmOption.value.files)) {
-        const isNew = algorithmOption.type === 'built-in';
-        if (isNew) {
-          algorithm.custom.add({
-            name: getCustomDbObjectName(algorithmOption.value),
-            files: algorithmFiles,
-            editable: true,
-            type: 'algorithm',
-          });
-        } else {
-          algorithm.custom.set({
-            ...algorithmOption.value,
-            key: algorithm.custom.selected!.key,
-            files: algorithmFiles,
-          });
-        }
-      }
-
-      if (!isEqual(problemFiles, problemOption.value.files)) {
-        const isNew = problemOption.type === 'built-in';
-        if (isNew) {
-          problem.custom.add({
-            name: getCustomDbObjectName(problemOption.value),
-            files: problemFiles,
-            editable: true,
-            type: 'problem',
-          });
-        } else {
-          problem.custom.set({
-            ...problemOption.value,
-            key: problem.custom.selected!.key,
-            files: problemFiles,
-          });
-        }
-      }
-    },
-    [
-      algorithm.custom,
-      algorithm.select.value,
-      problem.custom,
-      problem.select.value,
-    ],
-  );
-
-  const openBoxEditor = useCallback(() => {
-    addOrFocusTab({
-      type: 'box-editor',
-      label: `Edit: ${boxName}`,
-    });
-  }, [addOrFocusTab, boxName]);
-
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
       type: 'flowchart',
@@ -361,11 +286,6 @@ export default function BoxContextProvider({
       problemAlgorithm,
       algorithm,
       algorithmVisualizers: algorithmVisualizers,
-      boxEnvironment: {
-        value: boxEnvironment,
-        setValue: setBoxEnvironment,
-      },
-      openBoxEditor,
       openFlowchart,
       boxName: {
         value: boxName,
@@ -383,15 +303,12 @@ export default function BoxContextProvider({
     algorithm,
     algorithmVisualizers,
     box,
-    boxEnvironment,
     boxName,
     onBoxReset,
     onBoxUpdate,
-    openBoxEditor,
     openFlowchart,
     problem,
     problemAlgorithm,
-    setBoxEnvironment,
     visualizers,
   ]);
 

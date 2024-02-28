@@ -1,6 +1,8 @@
 import { AdapterListPopover, useBoxContext } from '@components/box-page';
 import { Button, MaterialSymbol } from '@components/ui';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import clsx from 'clsx';
+import { mapValues } from 'lodash';
 import { useMemo } from 'react';
 
 export default function ProblemAlgorithmAdapterSelect() {
@@ -8,17 +10,22 @@ export default function ProblemAlgorithmAdapterSelect() {
   const { instance: algorithmEvaluation } = useBoxContext('algorithm');
   const {
     compatible,
-    adapters: { options, value, setValue, evaluated },
+    adapters: { options, selectedOptions, config, setConfig, evaluations },
   } = useBoxContext('problemAlgorithm');
-
-  const valueEvaluated = useMemo(() => {
-    return Object.fromEntries(
-      evaluated.map((evaluation) => [evaluation.key, evaluation]),
-    );
-  }, [evaluated]);
 
   const problemInstance = problemEvaluation.mapLeft(() => null).value;
   const algorithmInstance = algorithmEvaluation.mapLeft(() => null).value;
+
+  const inputConfig = useMemo(() => {
+    return {
+      adapters: selectedOptions,
+      order: config.composition.order,
+      parameters: mapValues(config.aliases, (keyWithParameters) => {
+        const { parameters } = parseKeyWithParameters(keyWithParameters);
+        return parameters;
+      }),
+    };
+  }, [config.aliases, config.composition.order, selectedOptions]);
 
   return (
     <AdapterListPopover
@@ -26,9 +33,27 @@ export default function ProblemAlgorithmAdapterSelect() {
       toLabel="Algorithm"
       fromType={problemInstance?.type ?? null}
       toType={algorithmInstance?.accepts ?? null}
-      value={value}
-      evaluated={valueEvaluated}
-      onChange={setValue}
+      config={inputConfig}
+      evaluations={evaluations}
+      onConfigChange={(config) => {
+        setConfig({
+          aliases: mapValues(config.adapters, (adapter, alias) => {
+            const params = config.parameters[alias];
+            if (params !== undefined) {
+              return {
+                key: adapter.key,
+                parameters: params,
+              };
+            }
+
+            return adapter.key;
+          }),
+          composition: {
+            type: 'flat',
+            order: config.order,
+          },
+        });
+      }}
       options={options}
     >
       <Button

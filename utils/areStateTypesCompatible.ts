@@ -7,11 +7,11 @@ export default function areStateTypesCompatible({
   to: SandboxStateType;
   from: SandboxStateType;
 }) {
-  const inputKeys = Object.keys(to.shape.shape);
-  const outputKeys = Object.keys(from.shape.shape);
-  const isOutputKeysSubsetOfInputKeys = outputKeys.every((key) =>
-    inputKeys.includes(key),
+  const toKeys = Object.keys(to.shape.shape);
+  const fromKeys = Object.keys(from.shape.shape);
+  const isToKeysSubsetOfFromKeys = toKeys.every((key) =>
+    fromKeys.includes(key),
   );
 
-  return isOutputKeysSubsetOfInputKeys;
+  return isToKeysSubsetOfFromKeys;
 }

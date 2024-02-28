@@ -1,7 +1,9 @@
 import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { mapValues } from 'lodash';
 
 import getSandboxObjectWithKey from './getSandboxObjectWithKey';
+import parseKeyWithParameters from './parseKeyWithParameters';
 
 export default function evalBox({
   box,
@@ -13,24 +15,21 @@ export default function evalBox({
   files: Record<string, string>;
   sandboxComponents: SandboxComponents;
 }): SandboxBoxEvaluated {
-  const algorithm = getSandboxObjectWithKey({
-    type: 'algorithm',
-    key: box.algorithm,
-    sandboxComponents,
-    files,
-  }).mapLeft(() => undefined).value;
+  const { key: problemKey, parameters: problemParameters } =
+    parseKeyWithParameters(box.problem);
+  const { key: algorithmKey, parameters: algorithmParameters } =
+    parseKeyWithParameters(box.algorithm);
+
   const problem = getSandboxObjectWithKey({
     type: 'problem',
-    key: box.problem,
+    key: problemKey,
     sandboxComponents,
     files,
   }).mapLeft(() => undefined).value;
-  const visualizer = getSandboxObjectWithKey({
-    type: 'visualizer',
-    // TODO: change this
-    key:
-      box.visualizers.aliases['visualizer-0'] ??
-      'visualizer.graphs.searchGraph',
+
+  const algorithm = getSandboxObjectWithKey({
+    type: 'algorithm',
+    key: algorithmKey,
     sandboxComponents,
     files,
   }).mapLeft(() => undefined).value;
@@ -43,15 +42,42 @@ export default function evalBox({
   };
 
   const visualizers: SandboxBoxEvaluated['visualizers'] = {
-    aliases: {
-      'visualizer-0': visualizer,
-    },
+    aliases: mapValues(box.visualizers.aliases, (keyWithParameters) => {
+      const { key: visualizerKey, parameters } =
+        parseKeyWithParameters(keyWithParameters);
+
+      const visualizer = getSandboxObjectWithKey({
+        type: 'visualizer',
+        key: visualizerKey,
+        sandboxComponents,
+        files,
+      });
+
+      if (visualizer.isLeft()) {
+        return undefined;
+      }
+
+      return {
+        component: visualizer.unwrap(),
+        parameters: parameters ?? null,
+      };
+    }),
     order: box.visualizers.order,
   };
 
   return {
-    problem,
-    algorithm,
+    problem: problem
+      ? {
+          component: problem,
+          parameters: problemParameters ?? null,
+        }
+      : undefined,
+    algorithm: algorithm
+      ? {
+          component: algorithm,
+          parameters: algorithmParameters ?? null,
+        }
+      : undefined,
     algorithmVisualizers,
     visualizers,
   };

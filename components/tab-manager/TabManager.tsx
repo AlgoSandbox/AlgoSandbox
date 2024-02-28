@@ -9,20 +9,13 @@ import React, {
 
 import { boxTabConfig } from './BoxTab';
 import { newTabConfig } from './NewTab';
-import { sandboxEnvironmentEditorTabConfig } from './SandboxEnvironmentEditorTab';
 import { sandboxFlowchartTabConfig } from './SandboxFlowchartTab';
 import { sandboxObjectEditorTabConfig } from './SandboxObjectEditorTab';
 
-export type SandboxTabType =
-  | 'new-tab'
-  | 'box'
-  | 'box-editor'
-  | 'editor'
-  | 'flowchart';
+export type SandboxTabType = 'new-tab' | 'box' | 'editor' | 'flowchart';
 
 const tabConfigs = {
   box: boxTabConfig,
-  'box-editor': sandboxEnvironmentEditorTabConfig,
   editor: sandboxObjectEditorTabConfig,
   flowchart: sandboxFlowchartTabConfig,
   'new-tab': newTabConfig,

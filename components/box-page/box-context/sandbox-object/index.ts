@@ -56,12 +56,7 @@ import {
   sandboxParameterizedVisualizer,
   sandboxVisualizer,
 } from '@utils/verifiers/visualizer';
-import { useEffect, useMemo, useState } from 'react';
-
-import {
-  BoxContextCustomObjects,
-  defaultBoxContextCustomObjects,
-} from './custom';
+import { useEffect, useMemo } from 'react';
 
 type SandboxObjectTypeMap = {
   adapter: {
@@ -136,7 +131,6 @@ function isParameterized<T extends keyof SandboxObjectTypeMap>(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
-  custom: defaultBoxContextCustomObjects,
   instance: success(null),
   value: success(null),
   parameters: {
@@ -148,12 +142,10 @@ export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
     value: null,
     setValue: () => {},
     options: [],
-    reset: () => {},
   },
 };
 
 export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
-  custom: BoxContextCustomObjects<T>;
   instance: ErrorOr<Instance<T> | null>;
   value: ErrorOr<Value<T> | null>;
   parameters: {
@@ -163,9 +155,8 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
   };
   select: {
     value: CatalogOption<DbObjectSaved<T>> | null;
-    setValue: (value: CatalogOption<DbObjectSaved<T>> | null) => void;
+    setValue: (value: CatalogOption<DbObjectSaved<T>>) => void;
     options: CatalogOptions<DbObjectSaved<T>>;
-    reset: () => void;
   };
 };
 
@@ -173,15 +164,16 @@ export function useBoxContextSandboxObject<
   T extends keyof SandboxObjectTypeMap,
 >({
   options,
-  addSavedObjectMutation,
-  setSavedObjectMutation,
-  removeSavedObjectMutation,
   type,
-  defaultKey,
-  onSelect,
+  key: selectedOptionKey,
+  onKeyChange,
+  parameters,
+  onParametersChange,
 }: {
   type: T;
-  defaultKey: SandboxKey<T> | undefined;
+  key: SandboxKey<T> | null;
+  parameters: Record<string, unknown> | null;
+  onParametersChange: (parameters: Record<string, unknown>) => void;
   options: Array<CatalogGroup<DbObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
@@ -191,16 +183,8 @@ export function useBoxContextSandboxObject<
   >;
   removeSavedObjectMutation: UseMutationResult<void, unknown, DbObjectSaved<T>>;
   savedObjects: Array<DbObjectSaved<T>> | undefined;
-  onSelect?: (option: CatalogOption<DbObjectSaved<T>>) => void;
+  onKeyChange: (key: SandboxKey<T>) => void;
 }) {
-  const [selectedOptionKey, setSelectedOptionKey] = useState<string | null>(
-    defaultKey ?? null,
-  );
-
-  useEffect(() => {
-    setSelectedOptionKey(defaultKey ?? null);
-  }, [defaultKey]);
-
   const selectedOptionObject = useMemo(() => {
     if (selectedOptionKey === null) {
       return null;
@@ -222,64 +206,8 @@ export function useBoxContextSandboxObject<
       return;
     }
 
-    setSelectedOptionKey(option.key);
-  }, [options, selectedOptionKey]);
-
-  const {
-    mutate: addSavedObject,
-    data: latestNewObject,
-    reset: resetAddObjectMutation,
-  } = addSavedObjectMutation;
-  const { mutate: setSavedObject } = setSavedObjectMutation;
-  const { mutate: removeSavedObject } = removeSavedObjectMutation;
-
-  const selectedCustomObject = useMemo(() => {
-    if (
-      selectedOptionObject === null ||
-      selectedOptionObject.type === 'built-in'
-    ) {
-      return null;
-    }
-
-    return selectedOptionObject.value;
-  }, [selectedOptionObject]);
-
-  const custom = useMemo(() => {
-    return {
-      selected: selectedCustomObject,
-      add: (value) => {
-        return addSavedObject(value as DbObject<T>);
-      },
-      set: (value) => {
-        return setSavedObject(value as DbObjectSaved<T>);
-      },
-      remove: (value) => {
-        if (selectedOptionKey === value.key) {
-          setSelectedOptionKey(null);
-        }
-        return removeSavedObject(value as DbObjectSaved<T>);
-      },
-    } satisfies BoxContextSandboxObject<T>['custom'];
-  }, [
-    selectedCustomObject,
-    addSavedObject,
-    setSavedObject,
-    selectedOptionKey,
-    removeSavedObject,
-  ]);
-
-  useEffect(() => {
-    const flattenedOptions = options.flatMap((group) => group.options);
-    if (latestNewObject?.key !== undefined) {
-      const newSelectedOption = flattenedOptions.find(
-        (option) => option.key === latestNewObject.key,
-      );
-      if (newSelectedOption) {
-        setSelectedOptionKey(newSelectedOption.key);
-      }
-      resetAddObjectMutation();
-    }
-  }, [latestNewObject?.key, options, resetAddObjectMutation]);
+    onKeyChange(option.key as SandboxKey<T>);
+  }, [onKeyChange, options, selectedOptionKey]);
 
   const evaluation = useMemo(() => {
     if (selectedOptionObject === null) {
@@ -341,26 +269,20 @@ export function useBoxContextSandboxObject<
       .mapLeft(() => null).value;
   }, [objectInstancerEvaluation]);
 
-  const [objectParameters, setObjectParameters] = useState(defaultParameters);
-
-  useEffect(() => {
-    setObjectParameters(defaultParameters);
-  }, [defaultParameters]);
-
   const objectInstance: ErrorOr<Instance<T> | null> = useMemo(() => {
     return objectInstancerEvaluation.chain((objectInstancer) => {
       return fromTry(() => {
         try {
-          if (objectInstancer === null || objectParameters === null) {
+          if (objectInstancer === null) {
             return null;
           }
 
+          const params = parameters ?? defaultParameters ?? {};
+
           if (
-            Object.keys(objectInstancer.parameters).every(
-              (k) => k in objectParameters,
-            )
+            Object.keys(objectInstancer.parameters).every((k) => k in params)
           ) {
-            return objectInstancer.create(objectParameters);
+            return objectInstancer.create(params);
           }
           return null;
         } catch (e) {
@@ -372,42 +294,34 @@ export function useBoxContextSandboxObject<
         }
       });
     });
-  }, [objectInstancerEvaluation, objectParameters]);
+  }, [defaultParameters, objectInstancerEvaluation, parameters]);
 
   const object = useMemo(() => {
     return {
-      custom,
       instance: objectInstance,
       value: evaluation,
       parameters: {
         default: defaultParameters,
-        value: objectParameters,
-        setValue: setObjectParameters,
+        value: parameters,
+        setValue: onParametersChange,
       },
       select: {
         value: selectedOptionObject,
         setValue: (option) => {
-          setSelectedOptionKey(option?.key ?? null);
-          if (option !== null) {
-            onSelect?.(option);
-          }
+          onKeyChange(option.key as SandboxKey<T>);
         },
         options: options,
-        reset: () => {
-          setSelectedOptionKey(defaultKey ?? null);
-        },
       },
     } satisfies BoxContextSandboxObject<T>;
   }, [
-    custom,
     objectInstance,
     evaluation,
     defaultParameters,
-    objectParameters,
+    parameters,
+    onParametersChange,
     selectedOptionObject,
     options,
-    onSelect,
-    defaultKey,
+    onKeyChange,
   ]);
 
   return object;

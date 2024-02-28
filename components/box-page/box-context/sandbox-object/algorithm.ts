@@ -21,12 +21,16 @@ export const defaultBoxContextAlgorithm =
 
 export default function useBoxContextAlgorithm({
   options,
-  defaultKey,
+  key,
+  parameters,
+  onParametersChange,
   onKeyChange,
 }: {
   options: Array<CatalogGroup<DbAlgorithmSaved>>;
-  defaultKey: SandboxKey<'algorithm'> | undefined;
+  key: SandboxKey<'algorithm'> | null;
   onKeyChange: (key: SandboxKey<'algorithm'>) => void;
+  parameters: Record<string, unknown> | null;
+  onParametersChange: (parameters: Record<string, unknown>) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'algorithm',
@@ -35,9 +39,9 @@ export default function useBoxContextAlgorithm({
     setSavedObjectMutation: useSetSavedAlgorithmMutation(),
     removeSavedObjectMutation: useRemoveSavedAlgorithmMutation(),
     savedObjects: useSavedAlgorithmsQuery().data,
-    defaultKey,
-    onSelect: ({ key }) => {
-      onKeyChange(key);
-    },
+    key,
+    onKeyChange,
+    parameters,
+    onParametersChange,
   }) as BoxContextAlgorithm;
 }

@@ -29,13 +29,12 @@ function LayoutImpl({
     if (box === null) {
       return;
     }
-    // replace url with ?problem=<problemKey>&visualizer=<visualizerKey>...
     const searchParams = new URLSearchParams();
 
     searchParams.set('box', boxKey);
 
     if (box.problem !== originalBox?.problem) {
-      searchParams.set('problem', box.problem);
+      searchParams.set('problem', JSON.stringify(box.problem));
     }
     if (!isEqual(box.problemAlgorithm, originalBox?.problemAlgorithm)) {
       searchParams.set(
@@ -44,7 +43,7 @@ function LayoutImpl({
       );
     }
     if (box.algorithm !== originalBox?.algorithm) {
-      searchParams.set('algorithm', box.algorithm);
+      searchParams.set('algorithm', JSON.stringify(box.algorithm));
     }
     if (!isEqual(box.visualizers, originalBox?.visualizers)) {
       searchParams.set('visualizers', JSON.stringify(box.visualizers));
@@ -133,21 +132,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       return null;
     }
 
+    const parseFromJson = (json: string | null) => {
+      if (json === null) {
+        return undefined;
+      }
+
+      return JSON.parse(json);
+    };
+
     return {
       ...boxFromUrl,
-      problem: params.get('problem') ?? boxFromUrl.problem,
+      problem: parseFromJson(params.get('problem')) ?? boxFromUrl.problem,
       problemAlgorithm:
         params.get('problemAlgorithm') !== null
-          ? JSON.parse(params.get('problemAlgorithm')!) ?? undefined
+          ? parseFromJson(params.get('problemAlgorithm')) ?? undefined
           : boxFromUrl.problemAlgorithm,
-      algorithm: params.get('algorithm') ?? boxFromUrl.algorithm,
+      algorithm: parseFromJson(params.get('algorithm')) ?? boxFromUrl.algorithm,
       visualizers:
         params.get('visualizers') !== null
-          ? JSON.parse(params.get('visualizers')!) ?? undefined
+          ? parseFromJson(params.get('visualizers')) ?? undefined
           : boxFromUrl.visualizers,
       algorithmVisualizers:
         params.get('algorithmVisualizers') !== null
-          ? JSON.parse(params.get('algorithmVisualizers')!) ?? undefined
+          ? parseFromJson(params.get('algorithmVisualizers')) ?? undefined
           : boxFromUrl.algorithmVisualizers,
     };
   }, [boxFromUrl, params]);

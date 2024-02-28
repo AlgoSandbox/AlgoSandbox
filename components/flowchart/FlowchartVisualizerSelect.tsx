@@ -8,6 +8,7 @@ import {
   useSavedVisualizersQuery,
   useSetSavedVisualizerMutation,
 } from '@utils/db/visualizers';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { useMemo } from 'react';
 
 export default function FlowchartVisualizerSelect({
@@ -23,7 +24,9 @@ export default function FlowchartVisualizerSelect({
   const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
   const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
 
-  const visualizerKey = aliases[alias];
+  const { key: visualizerKey, parameters } = parseKeyWithParameters(
+    aliases[alias],
+  );
 
   const visualizerObject = useBoxContextSandboxObject({
     type: 'visualizer',
@@ -32,8 +35,8 @@ export default function FlowchartVisualizerSelect({
     setSavedObjectMutation: useSetSavedVisualizerMutation(),
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
     savedObjects: useSavedVisualizersQuery().data,
-    defaultKey: visualizerKey,
-    onSelect: ({ key }) => {
+    key: visualizerKey,
+    onKeyChange: (key) => {
       setAlias(alias, key);
       setAlgorithmVisualizers({
         adapters: algorithmVisualizersTree.adapters,
@@ -43,6 +46,13 @@ export default function FlowchartVisualizerSelect({
             ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
           ),
         },
+      });
+    },
+    parameters: parameters ?? null,
+    onParametersChange: (parameters) => {
+      setAlias(alias, {
+        key: visualizerKey,
+        parameters,
       });
     },
   });
@@ -55,21 +65,13 @@ export default function FlowchartVisualizerSelect({
 
   const visualizerEvaluation = visualizerObject.value;
 
-  const {
-    default: defaultAll,
-    setValue: setParameters,
-    value: parametersAll,
-  } = useBoxContext('visualizers.parameters');
+  const defaultAll = useBoxContext('visualizers.defaultParameters');
 
   const defaultParameters = useMemo(
     () => defaultAll[alias] ?? {},
     [alias, defaultAll],
   );
 
-  const parameters = useMemo(
-    () => parametersAll[alias] ?? {},
-    [alias, parametersAll],
-  );
   return (
     <ComponentSelect<'visualizer'>
       className={className}
@@ -82,9 +84,12 @@ export default function FlowchartVisualizerSelect({
       evaluatedValue={visualizerEvaluation}
       defaultParameters={defaultParameters}
       setParameters={(params) => {
-        setParameters(alias, params);
+        setAlias(alias, {
+          key: visualizerKey,
+          parameters: params,
+        });
       }}
-      parameters={parameters}
+      parameters={parameters ?? null}
     />
   );
 }

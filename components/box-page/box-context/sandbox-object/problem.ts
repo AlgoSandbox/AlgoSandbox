@@ -21,12 +21,16 @@ export const defaultBoxContextProblem =
 
 export default function useBoxContextProblem({
   options,
-  defaultKey,
+  key,
   onKeyChange,
+  parameters,
+  onParametersChange,
 }: {
   options: Array<CatalogGroup<DbProblemSaved>>;
-  defaultKey: SandboxKey<'problem'> | undefined;
+  key: SandboxKey<'problem'> | null;
   onKeyChange: (key: SandboxKey<'problem'>) => void;
+  parameters: Record<string, unknown> | null;
+  onParametersChange: (parameters: Record<string, unknown>) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'problem',
@@ -35,9 +39,9 @@ export default function useBoxContextProblem({
     setSavedObjectMutation: useSetSavedProblemMutation(),
     removeSavedObjectMutation: useRemoveSavedProblemMutation(),
     savedObjects: useSavedProblemsQuery().data,
-    defaultKey,
-    onSelect: ({ key }) => {
-      onKeyChange(key);
-    },
+    key,
+    onKeyChange,
+    parameters,
+    onParametersChange,
   }) as BoxContextProblem;
 }

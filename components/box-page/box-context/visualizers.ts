@@ -1,8 +1,9 @@
-import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
+import { SandboxVisualizerKey } from '@algo-sandbox/components/SandboxKey';
 import {
   getDefaultParameters,
   ParsedParameters,
   SandboxEvaluated,
+  SandboxKeyWithParameters,
   SandboxParameters,
   SandboxStateType,
   SandboxVisualizer,
@@ -11,22 +12,22 @@ import { error, ErrorOr, success } from '@app/errors/ErrorContext';
 import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { DbVisualizerSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { mapValues } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export type BoxContextVisualizers = {
-  aliases: Record<string, SandboxKey<'visualizer'>>;
+  aliases: Record<string, SandboxKeyWithParameters<SandboxVisualizerKey>>;
   order: Array<string>;
-  setAlias: (alias: string, key: SandboxKey<'visualizer'>) => void;
-  parameters: {
-    default: Record<string, ParsedParameters<SandboxParameters> | null>;
-    value: Record<string, ParsedParameters<SandboxParameters> | null>;
-    setValue: (
-      alias: string,
-      value: ParsedParameters<SandboxParameters>,
-    ) => void;
-  };
-  appendAlias: (alias: string, key: SandboxKey<'visualizer'>) => void;
+  setAlias: (
+    alias: string,
+    key: SandboxKeyWithParameters<SandboxVisualizerKey>,
+  ) => void;
+  defaultParameters: Record<string, ParsedParameters<SandboxParameters> | null>;
+  appendAlias: (
+    alias: string,
+    key: SandboxKeyWithParameters<SandboxVisualizerKey>,
+  ) => void;
   removeAlias: (alias: string) => void;
   instances: Record<
     string,
@@ -44,15 +45,17 @@ export default function useBoxContextVisualizers({
 }: {
   options: Array<CatalogGroup<DbVisualizerSaved>>;
   defaultOrder: Array<string>;
-  defaultAliases: Record<string, SandboxKey<'visualizer'>>;
+  defaultAliases: Record<
+    string,
+    SandboxKeyWithParameters<SandboxVisualizerKey>
+  >;
   onOrderChange: (order: Array<string>) => void;
-  onAliasesChange: (aliases: Record<string, SandboxKey<'visualizer'>>) => void;
+  onAliasesChange: (
+    aliases: Record<string, SandboxKeyWithParameters<SandboxVisualizerKey>>,
+  ) => void;
 }) {
   const [aliases, setAliases] = useState(defaultAliases);
   const [order, setOrder] = useState(defaultOrder);
-  const [parameters, setParameters] = useState<
-    Record<string, ParsedParameters<SandboxParameters> | null>
-  >({});
 
   useEffect(() => {
     setAliases(defaultAliases);
@@ -71,7 +74,12 @@ export default function useBoxContextVisualizers({
   );
 
   const handleAliasesChange = useCallback(
-    (newAliases: Record<string, SandboxKey<'visualizer'>>) => {
+    (
+      newAliases: Record<
+        string,
+        SandboxKeyWithParameters<SandboxVisualizerKey>
+      >,
+    ) => {
       setAliases(newAliases);
       onAliasesChange(newAliases);
     },
@@ -82,7 +90,8 @@ export default function useBoxContextVisualizers({
     string,
     ErrorOr<CatalogOption<DbVisualizerSaved>>
   > = useMemo(() => {
-    return mapValues(aliases, (key) => {
+    return mapValues(aliases, (keyWithParameters) => {
+      const { key } = parseKeyWithParameters(keyWithParameters);
       const option = options
         .flatMap((group) => group.options)
         .find((option) => option.value.key === key);
@@ -128,6 +137,14 @@ export default function useBoxContextVisualizers({
     });
   }, [evaluations]);
 
+  const parameters = useMemo(() => {
+    return mapValues(aliases, (keyWithParameters) => {
+      const { parameters } = parseKeyWithParameters(keyWithParameters);
+
+      return parameters;
+    });
+  }, [aliases]);
+
   const instances = useMemo(() => {
     return mapValues(evaluations, (evaluation, alias) => {
       return evaluation.map(({ value: visualizer, name, key }) => {
@@ -147,10 +164,16 @@ export default function useBoxContextVisualizers({
       ({
         aliases,
         order,
-        setAlias: (alias: string, key: SandboxKey<'visualizer'>) => {
+        setAlias: (
+          alias: string,
+          key: SandboxKeyWithParameters<SandboxVisualizerKey>,
+        ) => {
           handleAliasesChange({ ...aliases, [alias]: key });
         },
-        appendAlias: (alias: string, key: SandboxKey<'visualizer'>) => {
+        appendAlias: (
+          alias: string,
+          key: SandboxKeyWithParameters<SandboxVisualizerKey>,
+        ) => {
           handleAliasesChange({ ...aliases, [alias]: key });
           handleOrderChange([...order, alias]);
         },
@@ -161,16 +184,7 @@ export default function useBoxContextVisualizers({
           handleOrderChange(order.filter((o) => o !== alias));
         },
         instances,
-        parameters: {
-          default: defaultParameters,
-          value: parameters,
-          setValue: (
-            alias: string,
-            value: ParsedParameters<SandboxParameters>,
-          ) => {
-            setParameters({ ...parameters, [alias]: value });
-          },
-        },
+        defaultParameters,
         reset: () => {
           setAliases(defaultAliases);
           setOrder(defaultOrder);
@@ -181,7 +195,6 @@ export default function useBoxContextVisualizers({
       order,
       instances,
       defaultParameters,
-      parameters,
       handleAliasesChange,
       handleOrderChange,
       defaultAliases,

@@ -1,11 +1,9 @@
 import {
   getDefaultParameters,
-  ParsedParameters,
   SandboxEvaluated,
-  SandboxParameters,
   SandboxStateType,
 } from '@algo-sandbox/core';
-import { ErrorOr } from '@app/errors/ErrorContext';
+import { ErrorOr, success } from '@app/errors/ErrorContext';
 import { Button, MaterialSymbol, Popover } from '@components/ui';
 import {
   CatalogGroup,
@@ -16,20 +14,28 @@ import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import areStateTypesCompatible from '@utils/areStateTypesCompatible';
 import { DbAdapterSaved } from '@utils/db';
 import clsx from 'clsx';
-import _ from 'lodash';
-import { Fragment, ReactElement, useMemo, useState } from 'react';
+import _, { compact, mapValues } from 'lodash';
+import { Fragment, ReactElement, useEffect, useMemo } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
-import CatalogSelect from './app-bar/CatalogSelect';
+import ComponentSelect from './app-bar/ComponentSelect';
 
 export type AdapterListPopoverProps = {
   fromLabel: string;
   toLabel: string;
   fromType: SandboxStateType | null;
   toType: SandboxStateType | null;
-  value: Array<CatalogOption<DbAdapterSaved>>;
-  evaluated: Record<string, SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>>;
-  onChange: (value: Array<CatalogOption<DbAdapterSaved>>) => void;
+  config: {
+    adapters: Record<string, CatalogOption<DbAdapterSaved>>;
+    order: Array<string>;
+    parameters: Record<string, Record<string, unknown> | undefined>;
+  };
+  evaluations: Record<string, SandboxEvaluated<ErrorOr<SandboxAnyAdapter>>>;
+  onConfigChange: (value: {
+    adapters: Record<string, CatalogOption<DbAdapterSaved>>;
+    order: Array<string>;
+    parameters: Record<string, Record<string, unknown> | undefined>;
+  }) => void;
   options: CatalogOptions<DbAdapterSaved>;
   children: ReactElement;
 };
@@ -49,7 +55,11 @@ function getFirstOption<T>(options: CatalogOptions<T>): CatalogOption<T> {
 }
 
 type AdapterFormValue = {
-  adapters: AdapterListPopoverProps['value'];
+  adapters: Array<{
+    alias: string;
+    adapter: CatalogOption<DbAdapterSaved>;
+    parameters?: Record<string, unknown> | undefined;
+  }>;
 };
 
 export default function AdapterListPopover({
@@ -57,20 +67,23 @@ export default function AdapterListPopover({
   toLabel,
   fromType,
   toType,
-  value,
-  evaluated,
-  onChange,
+  evaluations,
+  config,
+  onConfigChange,
   options,
   children,
 }: AdapterListPopoverProps) {
-  // TODO: Show parameters in problem-algorithm adapter select popover
-  const [parameters, setParameters] = useState<
-    Record<string, ParsedParameters<SandboxParameters> | null>
-  >({});
+  const adapters = useMemo(() => {
+    return config.order.map((alias) => ({
+      alias,
+      adapter: config.adapters[alias],
+      parameters: config.parameters[alias],
+    }));
+  }, [config]);
 
   const { control, watch, setValue } = useForm<AdapterFormValue>({
     values: {
-      adapters: value,
+      adapters,
     },
   });
 
@@ -81,37 +94,24 @@ export default function AdapterListPopover({
 
   const rawAdapters = watch('adapters');
 
-  const evaluations = useMemo(() => {
-    return value.map(({ key }) => evaluated[key]);
-  }, [evaluated, value]);
-
   const defaultParameters = useMemo(() => {
-    return Object.fromEntries(
-      evaluations.map((evaluation, index) => {
-        const id = fields[index].id;
+    return mapValues(evaluations, (evaluation) => {
+      return evaluation.value.map((adapter) => {
+        const defaultParams =
+          'parameters' in adapter
+            ? getDefaultParameters(adapter.parameters)
+            : null;
 
-        return [
-          id,
-          evaluation.value.map((adapter) => {
-            const defaultParams =
-              'parameters' in adapter
-                ? getDefaultParameters(adapter.parameters)
-                : null;
-
-            return defaultParams;
-          }),
-        ];
-      }),
-    );
-  }, [fields, evaluations]);
+        return defaultParams;
+      });
+    });
+  }, [evaluations]);
 
   const instances = useMemo(() => {
-    return evaluations.map(({ value: evaluation, key, name }, index) => {
-      const id = fields[index].id;
-
+    return mapValues(evaluations, ({ value: evaluation, key, name }, alias) => {
       return evaluation.chain((adapter) => {
-        return defaultParameters[id].map((defaultParams) => {
-          const params = parameters[id] ?? defaultParams;
+        return defaultParameters[alias].map((defaultParams) => {
+          const params = config.parameters[alias] ?? defaultParams;
           const instance =
             'parameters' in adapter ? adapter.create(params ?? {}) : adapter;
 
@@ -119,12 +119,20 @@ export default function AdapterListPopover({
         });
       });
     });
-  }, [defaultParameters, evaluations, fields, parameters]);
+  }, [config.parameters, defaultParameters, evaluations]);
+
+  const orderedInstances = useMemo(() => {
+    return compact(
+      config.order.map((alias) => {
+        return instances[alias];
+      }),
+    );
+  }, [config.order, instances]);
 
   const faultyAdapterIndex = useMemo(() => {
     let input = fromType;
-    for (let i = 0; i < instances.length; i++) {
-      const adapterInstance = instances[i];
+    for (let i = 0; i < orderedInstances.length; i++) {
+      const adapterInstance = orderedInstances[i];
 
       if (adapterInstance.isLeft()) {
         return i;
@@ -148,13 +156,13 @@ export default function AdapterListPopover({
     }
 
     return null;
-  }, [fromType, instances]);
+  }, [fromType, orderedInstances]);
 
   const isLastAdapterFaulty = useMemo(() => {
-    if (instances.length === 0) {
+    if (orderedInstances.length === 0) {
       return false;
     }
-    const evaluation = instances[instances.length - 1];
+    const evaluation = orderedInstances[orderedInstances.length - 1];
 
     if (evaluation.isLeft()) {
       return true;
@@ -170,19 +178,35 @@ export default function AdapterListPopover({
       to: toType,
       from: adapter.outputs,
     });
-  }, [instances, toType]);
+  }, [orderedInstances, toType]);
 
   const isFaulty =
     faultyAdapterIndex !== null ||
     isLastAdapterFaulty ||
     fromType === null ||
     toType === null ||
-    (evaluations.length === 0 &&
+    (Object.keys(adapters).length === 0 &&
       !areStateTypesCompatible({ to: toType, from: fromType }));
 
-  if (!_.isEqual(value, rawAdapters)) {
-    onChange(rawAdapters);
+  if (!_.isEqual(adapters, rawAdapters)) {
+    onConfigChange({
+      adapters: Object.fromEntries(
+        rawAdapters.map(({ alias, adapter }) => [alias, adapter]),
+      ),
+      order: rawAdapters.map(({ alias }) => alias),
+      parameters: Object.fromEntries(
+        rawAdapters.map(({ alias, parameters }) => [alias, parameters]),
+      ),
+    });
   }
+
+  const getKey = (index: number = 0): string => {
+    const key = `adapter-${index}`;
+    if (config.order.includes(key)) {
+      return getKey(index + 1);
+    }
+    return key;
+  };
 
   return (
     <Popover
@@ -197,7 +221,7 @@ export default function AdapterListPopover({
                 <span>{fromType?.name}</span>
               </div>
             </div>
-            {evaluations.length === 0 && (
+            {Object.keys(evaluations).length === 0 && (
               <div
                 className={clsx(
                   fromType === toType ? 'border-primary' : 'border-border',
@@ -209,7 +233,10 @@ export default function AdapterListPopover({
                   icon={<MaterialSymbol icon="add" />}
                   size="sm"
                   onClick={() => {
-                    insert(0, getFirstOption(options));
+                    insert(0, {
+                      alias: getKey(),
+                      adapter: getFirstOption(options),
+                    });
                   }}
                 />
               </div>
@@ -244,7 +271,10 @@ export default function AdapterListPopover({
                           size="sm"
                           hideLabel
                           onClick={() => {
-                            insert(index + 1, getFirstOption(options));
+                            insert(index + 1, {
+                              alias: getKey(),
+                              adapter: getFirstOption(options),
+                            });
                           }}
                           icon={<MaterialSymbol icon="add" />}
                         />
@@ -261,15 +291,30 @@ export default function AdapterListPopover({
                       control={control}
                       name={`adapters.${index}`}
                       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      render={({ field: { onChange: _, ...field } }) => (
-                        <CatalogSelect
-                          containerClassName="flex-1"
+                      render={({ field: { onChange: _, value, ...field } }) => (
+                        <ComponentSelect<'adapter'>
+                          className="flex-1"
                           label="Adapter"
                           options={options}
-                          onChange={(value) => {
-                            setValue(`adapters.${index}` as const, value);
+                          onChange={(adapter) => {
+                            setValue(`adapters.${index}` as const, {
+                              alias: value.alias,
+                              adapter,
+                            });
                           }}
-                          showPreview={false}
+                          value={value.adapter}
+                          defaultParameters={defaultParameters[value.alias]}
+                          parameters={value.parameters ?? null}
+                          setParameters={(parameters) => {
+                            setValue(`adapters.${index}` as const, {
+                              alias: value.alias,
+                              adapter: value.adapter,
+                              parameters,
+                            });
+                          }}
+                          evaluatedValue={
+                            evaluations[value.alias]?.value ?? success(null)
+                          }
                           {...field}
                         />
                       )}
@@ -302,7 +347,10 @@ export default function AdapterListPopover({
                       hideLabel
                       size="sm"
                       onClick={() => {
-                        insert(index + 1, getFirstOption(options));
+                        insert(index + 1, {
+                          alias: getKey(),
+                          adapter: getFirstOption(options),
+                        });
                       }}
                       icon={<MaterialSymbol icon="add" />}
                     />
@@ -311,7 +359,7 @@ export default function AdapterListPopover({
               );
             })}
           </ol>
-          {evaluations.length > 0 && (
+          {Object.keys(evaluations).length > 0 && (
             <div
               className={clsx(
                 isFaulty ? 'border-muted' : 'border-primary',

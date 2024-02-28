@@ -64,8 +64,6 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build with Next.js
         run: bun next build
-      - name: Static HTML export with Next.js
-        run: bun next export
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:

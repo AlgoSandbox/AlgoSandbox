@@ -8,7 +8,7 @@ import { useAddSavedBoxMutation } from '@utils/db/boxes';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 
 export type SandboxBoxNamed = SandboxBox & { name: string };
 
@@ -79,7 +79,7 @@ function LayoutImpl({
   );
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useSearchParams();
   const { boxOptions } = useSandboxComponents();
@@ -199,5 +199,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     >
       {children}
     </LayoutImpl>
+  );
+}
+
+export default function LayoutWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense>
+      <Layout>{children}</Layout>
+    </Suspense>
   );
 }

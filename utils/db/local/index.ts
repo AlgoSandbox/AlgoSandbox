@@ -75,3 +75,14 @@ export function getSandboxObject<
 
   return JSON.parse(saved) as DbSandboxObjectSaved<T>;
 }
+
+export function deleteSandboxObject<
+  T extends DbSandboxObjectType = DbSandboxObjectType,
+>(object: DbSandboxObjectSaved<T>) {
+  const savedObjectsKey = getListKey(object);
+  const objectKeys = getSavedObjectKeys(savedObjectsKey);
+  const newObjectKeys = objectKeys.filter((k) => k !== object.key);
+  localStorage.setItem(savedObjectsKey, JSON.stringify(newObjectKeys));
+
+  localStorage.removeItem(object.key);
+}

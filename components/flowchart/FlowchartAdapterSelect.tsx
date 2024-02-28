@@ -1,3 +1,4 @@
+import { error } from '@app/errors/ErrorContext';
 import { useBoxContext } from '@components/box-page';
 import ComponentSelect from '@components/box-page/app-bar/ComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
@@ -39,7 +40,9 @@ export default function FlowchartAdapterSelect({
     [algorithmVisualizersTree.adapters, alias],
   );
 
-  const adapterEvaluation = evaluatedAdapters[alias].map(({ value }) => value);
+  const adapterEvaluation =
+    evaluatedAdapters[alias]?.map(({ value }) => value) ??
+    error('Adapter evaluation not found');
 
   const value = useMemo(() => {
     const flattenedOptions = options.flatMap((item) =>
@@ -52,7 +55,7 @@ export default function FlowchartAdapterSelect({
     <ComponentSelect<'adapter'>
       className={className}
       label={label}
-      hideLabel={false}
+      hideLabel={true}
       hideErrors={true}
       value={value}
       onChange={(value) => {

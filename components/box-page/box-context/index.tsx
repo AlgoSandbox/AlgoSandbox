@@ -1,5 +1,5 @@
 import { AdapterConfigurationFlat } from '@algo-sandbox/core';
-import { SandboxBoxNamed } from '@app/BoxManager';
+import { SandboxBoxNamed } from '@app/playground/layout';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
@@ -43,6 +43,7 @@ type BoxContextType = {
     value: string;
     setValue: (value: string) => void;
   };
+  saveAsNew: (name: string) => void;
   isDraft: boolean;
 };
 
@@ -58,6 +59,7 @@ const BoxContext = createContext<BoxContextType>({
     value: '',
     setValue: () => {},
   },
+  saveAsNew: () => {},
   visualizers: {
     aliases: {},
     instances: {},
@@ -90,12 +92,14 @@ export type BoxContextProviderProps = {
   box: SandboxBoxNamed | null;
   onBoxUpdate?: (update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => void;
   onBoxReset?: () => void;
+  onBoxSaveAs?: (name: string) => Promise<void>;
   children: ReactNode;
 };
 
 export default function BoxContextProvider({
   box,
   onBoxUpdate,
+  onBoxSaveAs,
   onBoxReset,
   children,
 }: BoxContextProviderProps) {
@@ -297,6 +301,9 @@ export default function BoxContextProvider({
       reset: () => {
         onBoxReset?.();
       },
+      saveAsNew: (name: string) => {
+        onBoxSaveAs?.(name);
+      },
       visualizers,
     } satisfies BoxContextType;
   }, [
@@ -305,6 +312,7 @@ export default function BoxContextProvider({
     box,
     boxName,
     onBoxReset,
+    onBoxSaveAs,
     onBoxUpdate,
     openFlowchart,
     problem,

@@ -133,11 +133,10 @@ export default function BoxExecutionPage() {
 
       const alias = id;
 
-      const visualization = visualizations.find((v) => v.alias === alias);
-
-      if (visualization === undefined) {
-        throw new Error(`Visualization not found for alias: ${alias}`);
-      }
+      const visualization = visualizations.find((v) => v.alias === alias) ?? {
+        alias,
+        value: error(`Visualization not found for alias: ${alias}`),
+      };
 
       return visualization.value.fold(
         (errorEntries) => {
@@ -158,9 +157,6 @@ export default function BoxExecutionPage() {
   const windowTitles = useMemo(() => {
     const getVisualizerName = (alias: string) => {
       const visualizer = visualizerInstances[alias];
-      if (visualizer === undefined) {
-        return alias;
-      }
 
       return visualizer
         .map(({ value }) => `${value.name} (${alias})`)
@@ -247,7 +243,10 @@ export default function BoxExecutionPage() {
                 <div className="flex w-full">
                   <Tooltip content={windowTitles[alias]}>
                     <div className="text-label px-2 font-medium flex items-center justify-between flex-1">
-                      <span className="truncate flex-1 w-0">
+                      <span
+                        suppressHydrationWarning
+                        className="truncate flex-1 w-0"
+                      >
                         {windowTitles[alias]}
                       </span>
                       <button

@@ -1,73 +1,28 @@
 'use client';
 
-import BoxManagerProvider, {
-  SandboxBoxNamed,
-  useBox,
-  useBoxManager,
-} from '@app/BoxManager';
+import { SandboxBox } from '@algo-sandbox/core';
 import { BoxContextProvider } from '@components/box-page';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import TabManagerProvider from '@components/tab-manager/TabManager';
+import { useAddSavedBoxMutation } from '@utils/db/boxes';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
+export type SandboxBoxNamed = SandboxBox & { name: string };
 
 function LayoutImpl({
   children,
-  boxKey,
+  box,
+  onBoxChange,
 }: {
   children: React.ReactNode;
-  boxKey: string;
+  box: SandboxBoxNamed | null;
+  onBoxChange: (box: SandboxBoxNamed | null) => void;
 }) {
-  const { updateBox, getBox } = useBoxManager();
   const router = useRouter();
-  const box = useBox('box').mapLeft(() => null).value;
-  const originalBox = useBox(boxKey).mapLeft(() => null).value;
-
-  useEffect(() => {
-    if (box === null) {
-      return;
-    }
-    const searchParams = new URLSearchParams();
-
-    searchParams.set('box', boxKey);
-
-    if (box.problem !== originalBox?.problem) {
-      searchParams.set('problem', JSON.stringify(box.problem));
-    }
-    if (!isEqual(box.problemAlgorithm, originalBox?.problemAlgorithm)) {
-      searchParams.set(
-        'problemAlgorithm',
-        box.problemAlgorithm ? JSON.stringify(box.problemAlgorithm) : 'null',
-      );
-    }
-    if (box.algorithm !== originalBox?.algorithm) {
-      searchParams.set('algorithm', JSON.stringify(box.algorithm));
-    }
-    if (!isEqual(box.visualizers, originalBox?.visualizers)) {
-      searchParams.set('visualizers', JSON.stringify(box.visualizers));
-    }
-    if (!isEqual(box.algorithmVisualizers, originalBox?.algorithmVisualizers)) {
-      searchParams.set(
-        'algorithmVisualizers',
-        box.algorithmVisualizers
-          ? JSON.stringify(box.algorithmVisualizers)
-          : 'null',
-      );
-    }
-    router.replace(`/playground?${searchParams.toString()}`);
-  }, [
-    box,
-    boxKey,
-    getBox,
-    originalBox?.algorithm,
-    originalBox?.algorithmVisualizers,
-    originalBox?.problem,
-    originalBox?.problemAlgorithm,
-    originalBox?.visualizers,
-    router,
-  ]);
+  const { mutateAsync: saveBox } = useAddSavedBoxMutation();
 
   return (
     <TabManagerProvider
@@ -90,10 +45,30 @@ function LayoutImpl({
       <BoxContextProvider
         box={box}
         onBoxUpdate={(update) => {
-          updateBox('box', update);
+          if (box === null) {
+            return;
+          }
+          const newBox = update(box);
+          onBoxChange(newBox);
         }}
-        onBoxReset={() => {
-          router.replace(`/playground?box=${boxKey}`);
+        onBoxReset={() => {}}
+        onBoxSaveAs={async (name) => {
+          if (box === null) {
+            return;
+          }
+
+          const { key: newBoxKey } = await saveBox({
+            name: name,
+            type: 'box',
+            editable: true,
+            files: {
+              'index.ts': `const box = ${JSON.stringify(box)};
+
+              export default box;
+              `,
+            },
+          });
+          router.replace(`/playground?box=${newBoxKey}`);
         }}
       >
         {children}
@@ -106,13 +81,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { boxOptions } = useSandboxComponents();
   const params = useSearchParams();
   const boxKey = params.get('box') ?? '';
+  const router = useRouter();
 
   const savedBox = useMemo(() => {
     const flattenedOptions = boxOptions.flatMap((group) => group.options);
     return flattenedOptions.find((box) => box.key === boxKey);
   }, [boxOptions, boxKey]);
 
-  const boxFromUrl = useMemo(() => {
+  const originalBox = useMemo(() => {
     if (!savedBox) {
       return null;
     }
@@ -128,7 +104,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [savedBox]);
 
   const boxFromUrlCustomized = useMemo(() => {
-    if (boxFromUrl === null) {
+    if (originalBox === null) {
       return null;
     }
 
@@ -141,37 +117,69 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     };
 
     return {
-      ...boxFromUrl,
-      problem: parseFromJson(params.get('problem')) ?? boxFromUrl.problem,
+      ...originalBox,
+      name: savedBox?.label ?? 'Untitled box',
+      problem: parseFromJson(params.get('problem')) ?? originalBox.problem,
       problemAlgorithm:
         params.get('problemAlgorithm') !== null
           ? parseFromJson(params.get('problemAlgorithm')) ?? undefined
-          : boxFromUrl.problemAlgorithm,
-      algorithm: parseFromJson(params.get('algorithm')) ?? boxFromUrl.algorithm,
+          : originalBox.problemAlgorithm,
+      algorithm:
+        parseFromJson(params.get('algorithm')) ?? originalBox.algorithm,
       visualizers:
         params.get('visualizers') !== null
           ? parseFromJson(params.get('visualizers')) ?? undefined
-          : boxFromUrl.visualizers,
+          : originalBox.visualizers,
       algorithmVisualizers:
         params.get('algorithmVisualizers') !== null
           ? parseFromJson(params.get('algorithmVisualizers')) ?? undefined
-          : boxFromUrl.algorithmVisualizers,
+          : originalBox.algorithmVisualizers,
     };
-  }, [boxFromUrl, params]);
+  }, [originalBox, params, savedBox?.label]);
 
-  const defaultBoxes: Record<string, SandboxBoxNamed> = useMemo(() => {
-    if (boxFromUrl) {
-      return { box: { ...boxFromUrlCustomized, name: '' } } as Record<
-        string,
-        SandboxBoxNamed
-      >;
-    }
-    return {};
-  }, [boxFromUrl, boxFromUrlCustomized]);
+  const onBoxChange = useCallback(
+    (box: SandboxBox | null) => {
+      if (box === null || originalBox === null) {
+        return;
+      }
+      const searchParams = new URLSearchParams();
+
+      searchParams.set('box', boxKey);
+
+      if (box.problem !== originalBox?.problem) {
+        searchParams.set('problem', JSON.stringify(box.problem));
+      }
+      if (!isEqual(box.problemAlgorithm, originalBox?.problemAlgorithm)) {
+        searchParams.set(
+          'problemAlgorithm',
+          box.problemAlgorithm ? JSON.stringify(box.problemAlgorithm) : 'null',
+        );
+      }
+      if (box.algorithm !== originalBox?.algorithm) {
+        searchParams.set('algorithm', JSON.stringify(box.algorithm));
+      }
+      if (!isEqual(box.visualizers, originalBox?.visualizers)) {
+        searchParams.set('visualizers', JSON.stringify(box.visualizers));
+      }
+      if (
+        !isEqual(box.algorithmVisualizers, originalBox?.algorithmVisualizers)
+      ) {
+        searchParams.set(
+          'algorithmVisualizers',
+          box.algorithmVisualizers
+            ? JSON.stringify(box.algorithmVisualizers)
+            : 'null',
+        );
+      }
+
+      router.replace(`/playground?${searchParams.toString()}`);
+    },
+    [boxKey, originalBox, router],
+  );
 
   return (
-    <BoxManagerProvider defaultBoxes={defaultBoxes}>
-      <LayoutImpl boxKey={boxKey}>{children}</LayoutImpl>
-    </BoxManagerProvider>
+    <LayoutImpl onBoxChange={onBoxChange} box={boxFromUrlCustomized}>
+      {children}
+    </LayoutImpl>
   );
 }

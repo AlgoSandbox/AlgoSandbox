@@ -188,9 +188,7 @@ export default function DirectoryExplorer({
       }}
     >
       <div className={clsx(className, 'flex flex-col')}>
-        <span className="font-mono text-label px-4 py-2 border-b">
-          File explorer
-        </span>
+        <span className="font-mono text-label px-4 py-2 border-b">Files</span>
         <DirectoryExplorerDirectory directory={directory} level={-1} />
       </div>
     </DirectoryExplorerContext.Provider>

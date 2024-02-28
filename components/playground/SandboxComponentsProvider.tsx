@@ -66,24 +66,6 @@ export default function SandboxComponentsProvider({
   const { data: savedProblemOptions } = useSavedProblemsQuery();
   const { data: savedVisualizerOptions } = useSavedVisualizersQuery();
 
-  // const objectOptions = useMemo(
-  //   () =>
-  //     [
-  //       ...builtInOptions,
-  //       {
-  //         key: 'custom',
-  //         label: 'Custom',
-  //         options: (savedObjects ?? []).map((object) => ({
-  //           key: object.key,
-  //           label: object.name,
-  //           value: object,
-  //           type: 'custom',
-  //         })),
-  //       },
-  //     ] as Array<CatalogGroup<DbObjectSaved<T>>>,
-  //   [builtInOptions, savedObjects],
-  // );
-
   const adapterOptions = useMemo(() => {
     return [
       ...builtInAdapterOptions,

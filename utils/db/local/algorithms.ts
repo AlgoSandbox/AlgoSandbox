@@ -23,18 +23,11 @@ export function getSavedAlgorithms() {
 }
 
 export function addSavedAlgorithm(algorithm: DbAlgorithm) {
-  const savedAlgorithm = saveSandboxObject(algorithm);
-  const algorithmKeys = getSavedAlgorithmKeys();
-  const newAlgorithmKeys = [...algorithmKeys, savedAlgorithm.key];
-  localStorage.setItem(savedListKey, JSON.stringify(newAlgorithmKeys));
-
-  return savedAlgorithm;
+  return saveSandboxObject(algorithm);
 }
 
 export function setSavedAlgorithm(algorithm: DbAlgorithmSaved) {
-  const savedAlgorithm = saveSandboxObject(algorithm);
-
-  return savedAlgorithm;
+  return saveSandboxObject(algorithm);
 }
 
 export function removeSavedAlgorithm(algorithm: DbAlgorithmSaved) {

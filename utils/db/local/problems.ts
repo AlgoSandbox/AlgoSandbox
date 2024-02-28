@@ -23,18 +23,11 @@ export function getSavedProblems() {
 }
 
 export function addSavedProblem(problem: DbProblem) {
-  const savedProblem = saveSandboxObject(problem);
-  const problemKeys = getSavedProblemKeys();
-  const newProblemKeys = [...problemKeys, savedProblem.key];
-  localStorage.setItem(savedListKey, JSON.stringify(newProblemKeys));
-
-  return savedProblem;
+  return saveSandboxObject(problem);
 }
 
 export function setSavedProblem(problem: DbProblemSaved) {
-  const savedProblem = saveSandboxObject(problem);
-
-  return savedProblem;
+  return saveSandboxObject(problem);
 }
 
 export function removeSavedProblem(problem: DbProblemSaved) {

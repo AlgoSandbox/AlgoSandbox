@@ -23,18 +23,11 @@ export function getSavedVisualizers() {
 }
 
 export function addSavedVisualizer(visualizer: DbVisualizer) {
-  const savedVisualizer = saveSandboxObject(visualizer);
-  const visualizerKeys = getSavedVisualizerKeys();
-  const newVisualizerKeys = [...visualizerKeys, savedVisualizer.key];
-  localStorage.setItem(savedListKey, JSON.stringify(newVisualizerKeys));
-
-  return savedVisualizer;
+  return saveSandboxObject(visualizer);
 }
 
 export function setSavedVisualizer(visualizer: DbVisualizerSaved) {
-  const savedVisualizer = saveSandboxObject(visualizer);
-
-  return savedVisualizer;
+  return saveSandboxObject(visualizer);
 }
 
 export function removeSavedVisualizer(visualizer: DbVisualizerSaved) {

@@ -1,5 +1,5 @@
 import { DbAdapter, DbAdapterSaved } from '..';
-import { saveSandboxObject } from '.';
+import { deleteSandboxObject, saveSandboxObject } from '.';
 
 const savedListKey = 'sandbox:adapters:custom';
 
@@ -23,24 +23,13 @@ export function getSavedAdapters() {
 }
 
 export function addSavedAdapter(adapter: DbAdapter) {
-  const savedAdapter = saveSandboxObject(adapter);
-  const adapterKeys = getSavedAdapterKeys();
-  const newAdapterKeys = [...adapterKeys, savedAdapter.key];
-  localStorage.setItem(savedListKey, JSON.stringify(newAdapterKeys));
-
-  return savedAdapter;
+  return saveSandboxObject(adapter);
 }
 
 export function setSavedAdapter(adapter: DbAdapterSaved) {
-  const savedAdapter = saveSandboxObject(adapter);
-
-  return savedAdapter;
+  return saveSandboxObject(adapter);
 }
 
 export function removeSavedAdapter(adapter: DbAdapterSaved) {
-  localStorage.removeItem(adapter.key);
-
-  const adapterKeys = getSavedAdapterKeys();
-  const newAdapterKeys = adapterKeys.filter((key) => key !== adapter.key);
-  localStorage.setItem(savedListKey, JSON.stringify(newAdapterKeys));
+  return deleteSandboxObject(adapter);
 }

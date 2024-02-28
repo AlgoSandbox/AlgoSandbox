@@ -223,10 +223,13 @@ export default function AdapterListPopover({
           [entry.alias]: entry.adapter,
         },
         order: config.order,
-        parameters: {
-          ...config.parameters,
-          [entry.alias]: entry.parameters,
-        },
+        parameters:
+          entry.parameters !== undefined
+            ? {
+                ...config.parameters,
+                [entry.alias]: entry.parameters,
+              }
+            : _.omit(config.parameters, entry.alias),
       });
     },
     [config.adapters, config.order, config.parameters, onConfigChange],
@@ -348,7 +351,7 @@ export default function AdapterListPopover({
                         setAdapter({
                           alias,
                           adapter,
-                          parameters,
+                          parameters: parameters ?? undefined,
                         });
                       }}
                       evaluatedValue={

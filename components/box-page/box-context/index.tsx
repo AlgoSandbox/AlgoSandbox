@@ -145,9 +145,7 @@ export default function BoxContextProvider({
 
       onBoxUpdate?.((box) => ({
         ...box,
-        problem: problemParameters
-          ? { key, parameters: problemParameters }
-          : key,
+        problem: key,
       }));
     },
     parameters: problemParameters ?? null,
@@ -158,10 +156,12 @@ export default function BoxContextProvider({
 
       onBoxUpdate?.((box) => ({
         ...box,
-        problem: {
-          key: problemKey ?? null,
-          parameters,
-        },
+        problem: parameters
+          ? {
+              key: problemKey ?? null,
+              parameters,
+            }
+          : problemKey,
       }));
     },
   });
@@ -185,9 +185,7 @@ export default function BoxContextProvider({
 
       onBoxUpdate?.((box) => ({
         ...box,
-        algorithm: algorithmParameters
-          ? { key, parameters: algorithmParameters }
-          : key,
+        algorithm: key,
       }));
     },
     parameters: algorithmParameters,
@@ -198,10 +196,12 @@ export default function BoxContextProvider({
 
       onBoxUpdate?.((box) => ({
         ...box,
-        algorithm: {
-          key: algorithmKey,
-          parameters,
-        },
+        algorithm: parameters
+          ? {
+              key: algorithmKey,
+              parameters,
+            }
+          : algorithmKey,
       }));
     },
   });
@@ -223,7 +223,7 @@ export default function BoxContextProvider({
       onBoxUpdate?.((box) => ({
         ...box,
         visualizers: {
-          order: box.visualizers?.order ?? [],
+          order: box?.visualizers?.order ?? [],
           aliases,
         },
       }));
@@ -232,7 +232,7 @@ export default function BoxContextProvider({
       onBoxUpdate?.((box) => ({
         ...box,
         visualizers: {
-          aliases: box.visualizers?.aliases ?? {},
+          aliases: box?.visualizers?.aliases ?? {},
           order,
         },
       }));

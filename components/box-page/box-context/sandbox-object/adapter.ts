@@ -30,7 +30,7 @@ export default function useBoxContextAdapter({
   key: SandboxKey<'adapter'> | null;
   onKeyChange: (key: SandboxKey<'adapter'> | null) => void;
   parameters: Record<string, unknown> | null;
-  onParametersChange: (parameters: Record<string, unknown>) => void;
+  onParametersChange: (parameters: Record<string, unknown> | null) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'adapter',

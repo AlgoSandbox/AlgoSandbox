@@ -151,7 +151,7 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
   parameters: {
     default: ParsedParameters<SandboxParameters> | null;
     value: ParsedParameters<SandboxParameters> | null;
-    setValue: (value: ParsedParameters<SandboxParameters>) => void;
+    setValue: (value: ParsedParameters<SandboxParameters> | null) => void;
   };
   select: {
     value: CatalogOption<DbObjectSaved<T>> | null;
@@ -173,7 +173,7 @@ export function useBoxContextSandboxObject<
   type: T;
   key: SandboxKey<T> | null;
   parameters: Record<string, unknown> | null;
-  onParametersChange: (parameters: Record<string, unknown>) => void;
+  onParametersChange: (parameters: Record<string, unknown> | null) => void;
   options: Array<CatalogGroup<DbObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<

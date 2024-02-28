@@ -30,7 +30,7 @@ export default function useBoxContextAlgorithm({
   key: SandboxKey<'algorithm'> | null;
   onKeyChange: (key: SandboxKey<'algorithm'> | null) => void;
   parameters: Record<string, unknown> | null;
-  onParametersChange: (parameters: Record<string, unknown>) => void;
+  onParametersChange: (parameters: Record<string, unknown> | null) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'algorithm',

@@ -54,10 +54,15 @@ export default function FlowchartVisualizerSelect({
     },
     parameters: parameters ?? null,
     onParametersChange: (parameters) => {
-      setAlias(alias, {
-        key: visualizerKey,
-        parameters,
-      });
+      setAlias(
+        alias,
+        parameters
+          ? {
+              key: visualizerKey,
+              parameters,
+            }
+          : visualizerKey,
+      );
     },
   });
 
@@ -88,10 +93,15 @@ export default function FlowchartVisualizerSelect({
       evaluatedValue={visualizerEvaluation}
       defaultParameters={defaultParameters}
       setParameters={(params) => {
-        setAlias(alias, {
-          key: visualizerKey,
-          parameters: params,
-        });
+        setAlias(
+          alias,
+          params
+            ? {
+                key: visualizerKey,
+                parameters: params,
+              }
+            : visualizerKey,
+        );
       }}
       parameters={parameters ?? null}
     />

@@ -30,7 +30,7 @@ export default function useBoxContextProblem({
   key: SandboxKey<'problem'> | null;
   onKeyChange: (key: SandboxKey<'problem'> | null) => void;
   parameters: Record<string, unknown> | null;
-  onParametersChange: (parameters: Record<string, unknown>) => void;
+  onParametersChange: (parameters: Record<string, unknown> | null) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'problem',

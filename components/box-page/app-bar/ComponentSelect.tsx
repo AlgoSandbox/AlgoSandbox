@@ -36,14 +36,14 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   options: CatalogOptions<DbObjectSaved<T>>;
   evaluatedValue: ErrorOr<Value<T> | null>;
   defaultParameters: Readonly<Record<string, any>> | null;
-  setParameters: (value: Record<string, any>) => void;
+  setParameters: (value: Record<string, any> | null) => void;
   parameters: Record<string, any> | null;
 }) {
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
 
   const methods = useForm({
-    values: parameters ?? {},
+    values: parameters ?? defaultParameters ?? {},
   });
 
   const component = useMemo(
@@ -73,8 +73,8 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   }, [evaluatedValue, hideErrors]);
 
   useEffect(() => {
-    methods.reset(parameters ?? {});
-  }, [parameters, methods]);
+    methods.reset(parameters ?? defaultParameters ?? {});
+  }, [parameters, methods, defaultParameters]);
 
   return (
     <div className={clsx('flex items-end gap-2', className)}>
@@ -84,7 +84,9 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
         containerClassName="flex-1"
         options={options}
         value={selectedOption ?? undefined}
-        onChange={setSelectedOption}
+        onChange={(value) => {
+          setSelectedOption(value);
+        }}
         errorMessage={errorMessage}
       />
       {component !== null && 'parameters' in component && (

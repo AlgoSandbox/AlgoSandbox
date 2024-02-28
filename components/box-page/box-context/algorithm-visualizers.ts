@@ -57,7 +57,7 @@ export type BoxContextAlgorithmVisualizers = {
       value: Record<string, ParsedParameters<SandboxParameters> | null>;
       setValue: (
         alias: string,
-        value: ParsedParameters<SandboxParameters>,
+        value: ParsedParameters<SandboxParameters> | null,
       ) => void;
     };
   };

@@ -42,7 +42,10 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   const { addOrFocusTab } = useTabManager();
   const { isAdvancedModeEnabled } = useUserPreferences();
 
-  const methods = useForm({ defaultValues: defaultParameters ?? {} });
+  const methods = useForm({
+    // defaultValues: defaultParameters ?? {},
+    values: parameters ?? {},
+  });
 
   const component = useMemo(
     () => evaluatedValue.mapLeft(() => null).value,
@@ -71,8 +74,8 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   }, [evaluatedValue, hideErrors]);
 
   useEffect(() => {
-    methods.reset(defaultParameters ?? {});
-  }, [defaultParameters, methods]);
+    methods.reset(parameters ?? {});
+  }, [parameters, methods]);
 
   return (
     <div className={clsx('flex items-end gap-2', className)}>

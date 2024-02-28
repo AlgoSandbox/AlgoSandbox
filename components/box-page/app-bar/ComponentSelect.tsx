@@ -84,9 +84,7 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
         containerClassName="flex-1"
         options={options}
         value={selectedOption ?? undefined}
-        onChange={(value) => {
-          setSelectedOption(value);
-        }}
+        onChange={setSelectedOption}
         errorMessage={errorMessage}
       />
       {component !== null && 'parameters' in component && (

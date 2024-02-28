@@ -13,7 +13,7 @@ import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useDeleteObjectMutation } from '@utils/db/objects';
 import clsx from 'clsx';
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Markdown, { Components } from 'react-markdown';
 
 // TODO: Restore preview
@@ -79,6 +79,12 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   onChange,
   errorMessage, // showPreview = true,
 }: CatalogSelectProps<T>) {
+  const [selectedOption, setSelectedOption] = useState(value);
+
+  useEffect(() => {
+    setSelectedOption(value);
+  }, [value]);
+
   const { mutateAsync: deleteObject } = useDeleteObjectMutation<T>();
   // const builtInComponents = useBuiltInComponents();
   const [query, setQuery] = useState('');
@@ -263,12 +269,12 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                       </div>
                       {item.options.map((option) => (
                         <ListItem
-                          selected={option.key === value?.key}
-                          active={option.key === value?.key}
+                          selected={option.key === selectedOption?.key}
+                          active={option.key === selectedOption?.key}
                           key={option.key}
                           option={option}
                           onClick={() => {
-                            onChange?.(option);
+                            setSelectedOption?.(option);
                             // setStepIndex(0);
                           }}
                           onDoubleClick={() => {
@@ -282,12 +288,12 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 } else {
                   return (
                     <ListItem
-                      selected={item.key === value?.key}
-                      active={item.key === value?.key}
+                      selected={item.key === selectedOption?.key}
+                      active={item.key === selectedOption?.key}
                       key={item.key}
                       option={item}
                       onClick={() => {
-                        onChange?.(item);
+                        setSelectedOption?.(item);
                       }}
                       onDoubleClick={() => {
                         onChange?.(item);
@@ -298,7 +304,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 }
               })}
           </div>
-          {value !== undefined && (
+          {selectedOption !== undefined && (
             <div className="w-[250px] overflow-y-auto">
               {/* {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
@@ -318,25 +324,24 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               )} */}
               <div className="p-4 flex-col flex gap-2 items-start">
                 <Markdown components={markdownComponents}>
-                  {value.value.writeup ?? `# ${value.label}`}
+                  {selectedOption.value.writeup ?? `# ${selectedOption.label}`}
                 </Markdown>
                 <div className="flex gap-2">
                   <Button
                     variant="primary"
                     label="Select"
                     onClick={() => {
-                      onChange?.(value);
+                      onChange?.(selectedOption);
                       setOpen(false);
                     }}
                   />
-                  {value.type === 'custom' && (
+                  {selectedOption.type === 'custom' && (
                     <Button
                       variant="primary"
                       label="Delete"
                       onClick={async () => {
-                        await deleteObject(value.value);
+                        await deleteObject(selectedOption.value);
                         onChange?.(null);
-                        onChange?.(value);
                         setOpen(false);
                       }}
                     />

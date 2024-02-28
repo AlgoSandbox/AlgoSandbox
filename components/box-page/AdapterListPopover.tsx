@@ -15,7 +15,7 @@ import areStateTypesCompatible from '@utils/areStateTypesCompatible';
 import { DbAdapterSaved } from '@utils/db';
 import clsx from 'clsx';
 import _, { compact, mapValues } from 'lodash';
-import { Fragment, ReactElement, useEffect, useMemo } from 'react';
+import { Fragment, ReactElement, useMemo } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
 import ComponentSelect from './app-bar/ComponentSelect';

@@ -37,22 +37,28 @@ type BoxContextType = {
     value: string;
     setValue: (value: string) => void;
   };
-  saveAsNew: (name: string) => void;
-  isDraft: boolean;
+  saveAsNew: (name: string) => Promise<void>;
+  save: () => Promise<void>;
+  delete: () => Promise<void>;
+  isBoxCustom: boolean;
+  isBoxDirty: boolean;
 };
 
 const BoxContext = createContext<BoxContextType>({
   algorithm: defaultBoxContextAlgorithm,
   problem: defaultBoxContextProblem,
   config: defaultBoxContextConfig,
-  isDraft: true,
+  isBoxCustom: false,
+  isBoxDirty: false,
   reset: () => {},
   openFlowchart: () => {},
   boxName: {
     value: '',
     setValue: () => {},
   },
-  saveAsNew: () => {},
+  saveAsNew: async () => {},
+  save: async () => {},
+  delete: async () => {},
   visualizers: {
     aliases: {},
     instances: {},
@@ -83,9 +89,13 @@ export function useBoxContext<P extends BoxContextPath | undefined = undefined>(
 
 export type BoxContextProviderProps = {
   box: SandboxBoxNamed | null;
-  onBoxUpdate?: (update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => void;
-  onBoxReset?: () => void;
-  onBoxSaveAs?: (name: string) => Promise<void>;
+  onBoxUpdate: (update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => void;
+  onBoxReset: () => void;
+  onBoxSaveAs: (name: string) => Promise<void>;
+  onBoxSave: () => Promise<void>;
+  onBoxDelete: () => Promise<void>;
+  isBoxCustom: boolean;
+  isBoxDirty: boolean;
   children: ReactNode;
 };
 
@@ -93,7 +103,11 @@ export default function BoxContextProvider({
   box,
   onBoxUpdate,
   onBoxSaveAs,
+  onBoxSave,
   onBoxReset,
+  onBoxDelete,
+  isBoxCustom,
+  isBoxDirty,
   children,
 }: BoxContextProviderProps) {
   const { addOrFocusTab } = useTabManager();
@@ -136,7 +150,7 @@ export default function BoxContextProvider({
         return;
       }
 
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         problem: key,
       }));
@@ -147,7 +161,7 @@ export default function BoxContextProvider({
         return;
       }
 
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         problem: parameters
           ? {
@@ -176,7 +190,7 @@ export default function BoxContextProvider({
         return;
       }
 
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         algorithm: key,
       }));
@@ -187,7 +201,7 @@ export default function BoxContextProvider({
         return;
       }
 
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         algorithm: parameters
           ? {
@@ -213,7 +227,7 @@ export default function BoxContextProvider({
     defaultAliases: defaultAliases,
     defaultOrder: defaultOrder,
     onAliasesChange: (aliases) => {
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         visualizers: {
           order: box?.visualizers?.order ?? [],
@@ -222,7 +236,7 @@ export default function BoxContextProvider({
       }));
     },
     onOrderChange: (order) => {
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         visualizers: {
           aliases: box?.visualizers?.aliases ?? {},
@@ -256,7 +270,7 @@ export default function BoxContextProvider({
     ),
     visualizerInputKeys,
     onChange: (newValue) => {
-      onBoxUpdate?.((box) => ({
+      onBoxUpdate((box) => ({
         ...box,
         config: newValue,
       }));
@@ -279,29 +293,33 @@ export default function BoxContextProvider({
       boxName: {
         value: boxName,
         setValue: (newName) => {
-          onBoxUpdate?.((box) => ({ ...box, name: newName }));
+          onBoxUpdate((box) => ({ ...box, name: newName }));
         },
       },
-      isDraft: box === undefined,
+      isBoxCustom,
+      isBoxDirty,
       reset: () => {
-        onBoxReset?.();
+        onBoxReset();
       },
-      saveAsNew: (name: string) => {
-        onBoxSaveAs?.(name);
-      },
+      saveAsNew: onBoxSaveAs,
+      save: onBoxSave,
+      delete: onBoxDelete,
       visualizers,
     } as BoxContextType;
   }, [
+    problem,
     algorithm,
     config,
-    box,
-    boxName,
-    onBoxReset,
-    onBoxSaveAs,
-    onBoxUpdate,
     openFlowchart,
-    problem,
+    boxName,
+    isBoxCustom,
+    isBoxDirty,
+    onBoxSaveAs,
+    onBoxSave,
+    onBoxDelete,
     visualizers,
+    onBoxUpdate,
+    onBoxReset,
   ]);
 
   return <BoxContext.Provider value={value}>{children}</BoxContext.Provider>;

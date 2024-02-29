@@ -241,7 +241,13 @@ function BoxPageImpl() {
     maxExecutionStepCount,
     setMaxExecutionStepCount,
   } = useUserPreferences();
-  const { isDraft, saveAsNew } = useBoxContext();
+  const {
+    isBoxCustom,
+    saveAsNew,
+    save,
+    isBoxDirty,
+    delete: deleteBox,
+  } = useBoxContext();
   const { boxOptions } = useSandboxComponents();
 
   const selectedOption = useMemo(() => {
@@ -292,9 +298,24 @@ function BoxPageImpl() {
 
   const handleSaveBox = async (newBoxName: string) => {
     setSaveBoxDialogOpen(false);
-    saveAsNew(newBoxName);
+    await saveAsNew(newBoxName);
     toast.success(`Saved as "${newBoxName}"`);
   };
+
+  const handleSaveClick = async () => {
+    const boxLabel = selectedOption?.label ?? '';
+    await save();
+    toast.success(`Saved changes to ${boxLabel}`);
+  };
+
+  const handleDeleteClick = async () => {
+    const boxLabel = selectedOption?.label ?? '';
+    await deleteBox();
+    toast.success(`Deleted "${boxLabel}"`);
+    router.push('/playground');
+  };
+
+  const hasBox = selectedOption !== undefined;
 
   return (
     <>
@@ -318,20 +339,37 @@ function BoxPageImpl() {
                   router.push(`/playground?box=${option.key}`);
                 }}
               />
-              <div className="flex gap-2 min-w-0">
-                {!isDraft && (
+              {hasBox && (
+                <div className="flex gap-2 min-w-0">
+                  {!isBoxCustom && (
+                    <Button
+                      label="Copy link"
+                      onClick={handleCopyLinkClick}
+                      icon={<MaterialSymbol icon="link" />}
+                    />
+                  )}
+                  {isBoxCustom && (
+                    <Button
+                      label="Save"
+                      disabled={!isBoxDirty}
+                      onClick={handleSaveClick}
+                      icon={<MaterialSymbol icon="save" />}
+                    />
+                  )}
                   <Button
-                    label="Copy link"
-                    onClick={handleCopyLinkClick}
-                    icon={<MaterialSymbol icon="link" />}
+                    label="Save as new"
+                    onClick={handleSaveAsNewClick}
+                    icon={<MaterialSymbol icon="save" />}
                   />
-                )}
-                <Button
-                  label="Save as new"
-                  onClick={handleSaveAsNewClick}
-                  icon={<MaterialSymbol icon="save" />}
-                />
-              </div>
+                  {isBoxCustom && (
+                    <Button
+                      label="Delete"
+                      onClick={handleDeleteClick}
+                      icon={<MaterialSymbol icon="delete" />}
+                    />
+                  )}
+                </div>
+              )}
             </div>
             <div className="hidden lg:flex items-center">
               <BoxExecutionControls />

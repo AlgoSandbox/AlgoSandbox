@@ -15,6 +15,7 @@ import { useDeleteObjectMutation } from '@utils/db/objects';
 import clsx from 'clsx';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import Markdown, { Components } from 'react-markdown';
+import { toast } from 'sonner';
 
 // TODO: Restore preview
 
@@ -341,6 +342,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                       label="Delete"
                       onClick={async () => {
                         await deleteObject(selectedOption.value);
+                        toast.success(`Deleted "${selectedOption.label}"`);
                         onChange?.(null);
                         setOpen(false);
                       }}

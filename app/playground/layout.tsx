@@ -4,7 +4,11 @@ import { SandboxBox } from '@algo-sandbox/core';
 import { BoxContextProvider } from '@components/box-page';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import TabManagerProvider from '@components/tab-manager/TabManager';
-import { useAddSavedBoxMutation } from '@utils/db/boxes';
+import {
+  useAddSavedBoxMutation,
+  useRemoveSavedBoxMutation,
+  useSetSavedBoxMutation,
+} from '@utils/db/boxes';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,15 +24,23 @@ type BoxState = {
 function LayoutImpl({
   children,
   box,
+  boxKey,
   onBoxChange,
   onBoxReset,
+  isBoxCustom,
+  isBoxDirty,
 }: {
   children: React.ReactNode;
   box: SandboxBoxNamed | null;
+  boxKey: string | null;
   onBoxChange: (update: (oldBox: BoxState) => BoxState) => void;
   onBoxReset: () => void;
+  isBoxCustom: boolean;
+  isBoxDirty: boolean;
 }) {
   const { mutateAsync: saveBox } = useAddSavedBoxMutation();
+  const { mutateAsync: setSavedBox } = useSetSavedBoxMutation();
+  const { mutateAsync: deleteSavedBox } = useRemoveSavedBoxMutation();
 
   return (
     <TabManagerProvider
@@ -50,6 +62,8 @@ function LayoutImpl({
     >
       <BoxContextProvider
         box={box}
+        isBoxCustom={isBoxCustom}
+        isBoxDirty={isBoxDirty}
         onBoxUpdate={(update) => {
           onBoxChange(({ boxKey, box }) => {
             if (box === null) {
@@ -85,6 +99,37 @@ function LayoutImpl({
             };
           });
         }}
+        onBoxSave={async () => {
+          if (box === null || boxKey === null) {
+            return;
+          }
+          const newBox = {
+            key: boxKey,
+            name: box.name,
+            type: 'box',
+            editable: true,
+            files: {
+              'index.ts': `const box = ${JSON.stringify(box)};
+              export default box;
+              `,
+            },
+          } as const;
+
+          await setSavedBox(newBox);
+        }}
+        onBoxDelete={async () => {
+          if (boxKey === null) {
+            return;
+          }
+
+          await deleteSavedBox({
+            key: boxKey,
+            type: 'box',
+            files: {},
+            name: '',
+            editable: false,
+          });
+        }}
       >
         {children}
       </BoxContextProvider>
@@ -105,6 +150,10 @@ function Layout({ children }: { children: React.ReactNode }) {
     const flattenedOptions = boxOptions.flatMap((group) => group.options);
     return flattenedOptions.find((box) => box.key === boxKey) ?? null;
   }, [boxOptions, boxKey]);
+
+  const isBoxCustom = useMemo(() => {
+    return savedBox?.type === 'custom';
+  }, [savedBox]);
 
   const originalBox = useMemo(() => {
     if (!savedBox) {
@@ -206,11 +255,31 @@ function Layout({ children }: { children: React.ReactNode }) {
     onBoxChange(boxKey, originalBox);
   }, [boxKey, onBoxChange, originalBox]);
 
+  const isBoxDirty = useMemo(() => {
+    if (params.get('problem') !== null) {
+      return true;
+    }
+    if (params.get('algorithm') !== null) {
+      return true;
+    }
+    if (params.get('visualizers') !== null) {
+      return true;
+    }
+    if (params.get('config') !== null) {
+      return true;
+    }
+
+    return false;
+  }, [params]);
+
   return (
     <LayoutImpl
       onBoxChange={setBoxState}
       onBoxReset={onBoxReset}
       box={boxState.box}
+      boxKey={boxState.boxKey}
+      isBoxCustom={isBoxCustom}
+      isBoxDirty={isBoxDirty}
     >
       {children}
     </LayoutImpl>

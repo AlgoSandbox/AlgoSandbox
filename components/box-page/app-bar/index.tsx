@@ -14,7 +14,7 @@ export default function AppBar({
     hiddenVisualizerAliases: Set<string>,
   ) => void;
 }) {
-  const { openFlowchart, isDraft, reset } = useBoxContext();
+  const { openFlowchart, reset, isBoxDirty } = useBoxContext();
   const visualizerInstances = useBoxContext('visualizers.instances');
 
   const getVisualizerName = (alias: string) => {
@@ -34,14 +34,13 @@ export default function AppBar({
           variant="filled"
           onClick={openFlowchart}
         />
-        {!isDraft && (
-          <Button
-            label="Reset box config"
-            variant="filled"
-            onClick={reset}
-            icon={<MaterialSymbol icon="settings_backup_restore" />}
-          />
-        )}
+        <Button
+          label="Reset box config"
+          variant="filled"
+          onClick={reset}
+          icon={<MaterialSymbol icon="settings_backup_restore" />}
+          disabled={!isBoxDirty}
+        />
       </div>
       <div className="flex gap-4">
         <Popover

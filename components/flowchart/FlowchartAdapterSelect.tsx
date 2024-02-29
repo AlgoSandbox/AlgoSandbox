@@ -15,16 +15,14 @@ export default function FlowchartAdapterSelect({
   className?: string;
 }) {
   const { adapterOptions: options } = useSandboxComponents();
-  const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
-  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
+  const setConfig = useBoxContext('config.set');
+  const configTree = useBoxContext('config.tree');
   const {
     default: defaultAll,
     setValue: setParameters,
     value: parametersAll,
-  } = useBoxContext('algorithmVisualizers.evaluated.parameters');
-  const evaluatedAdapters = useBoxContext(
-    'algorithmVisualizers.evaluated.adapters',
-  );
+  } = useBoxContext('config.evaluated.parameters');
+  const evaluatedAdapters = useBoxContext('config.evaluated.adapters');
 
   const defaultParameters = useMemo(
     () => defaultAll[alias] ?? {},
@@ -37,11 +35,11 @@ export default function FlowchartAdapterSelect({
   );
 
   const adapterKey = useMemo(() => {
-    const keyWithParameters = (algorithmVisualizersTree.adapters ?? {})[alias];
+    const keyWithParameters = (configTree.adapters ?? {})[alias];
     const { key } = parseKeyWithParameters(keyWithParameters);
 
     return key;
-  }, [algorithmVisualizersTree.adapters, alias]);
+  }, [configTree.adapters, alias]);
 
   const adapterEvaluation =
     evaluatedAdapters[alias]?.map(({ value }) => value) ??
@@ -66,17 +64,16 @@ export default function FlowchartAdapterSelect({
           return;
         }
 
-        setAlgorithmVisualizers({
+        setConfig({
           adapters: {
-            ...algorithmVisualizersTree.adapters,
+            ...configTree.adapters,
             [alias]: value.key,
           },
           composition: {
-            ...algorithmVisualizersTree.composition,
-            connections:
-              algorithmVisualizersTree.composition.connections.filter(
-                ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-              ),
+            ...configTree.composition,
+            connections: configTree.composition.connections.filter(
+              ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+            ),
           },
         });
       }}

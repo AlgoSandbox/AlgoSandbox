@@ -1,4 +1,3 @@
-import { AdapterConfigurationFlat } from '@algo-sandbox/core';
 import { SandboxBoxNamed } from '@app/playground/layout';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -13,14 +12,10 @@ import {
   useMemo,
 } from 'react';
 
-import useBoxContextAlgorithmVisualizers, {
-  BoxContextAlgorithmVisualizers,
-  defaultBoxContextAlgorithmVisualizer as defaultBoxContextAlgorithmVisualizers,
-} from './algorithm-visualizers';
-import useBoxContextProblemAlgorithm, {
-  BoxContextProblemAlgorithm,
-  defaultBoxContextProblemAlgorithm,
-} from './problem-algorithm';
+import useBoxContextConfig, {
+  BoxContextConfig,
+  defaultBoxContextConfig,
+} from './config';
 import useBoxContextAlgorithm, {
   BoxContextAlgorithm,
   defaultBoxContextAlgorithm,
@@ -33,10 +28,9 @@ import useBoxContextVisualizers, { BoxContextVisualizers } from './visualizers';
 
 type BoxContextType = {
   problem: BoxContextProblem;
-  problemAlgorithm: BoxContextProblemAlgorithm;
   algorithm: BoxContextAlgorithm;
-  algorithmVisualizers: BoxContextAlgorithmVisualizers;
   visualizers: BoxContextVisualizers;
+  config: BoxContextConfig;
   openFlowchart: () => void;
   reset: () => void;
   boxName: {
@@ -50,8 +44,7 @@ type BoxContextType = {
 const BoxContext = createContext<BoxContextType>({
   algorithm: defaultBoxContextAlgorithm,
   problem: defaultBoxContextProblem,
-  problemAlgorithm: defaultBoxContextProblemAlgorithm,
-  algorithmVisualizers: defaultBoxContextAlgorithmVisualizers,
+  config: defaultBoxContextConfig,
   isDraft: true,
   reset: () => {},
   openFlowchart: () => {},
@@ -239,29 +232,6 @@ export default function BoxContextProvider({
     },
   });
 
-  const problemAlgorithmConfig = useMemo(
-    () =>
-      box?.problemAlgorithm ??
-      ({
-        aliases: {},
-        composition: { type: 'flat', order: [] },
-      } as AdapterConfigurationFlat),
-    [box?.problemAlgorithm],
-  );
-
-  const problemAlgorithm = useBoxContextProblemAlgorithm({
-    algorithm,
-    adapterOptions,
-    problem,
-    adapterConfiguration: problemAlgorithmConfig,
-    onAdapterConfigurationChange: (config) => {
-      onBoxUpdate?.((box) => ({
-        ...box,
-        problemAlgorithm: config,
-      }));
-    },
-  });
-
   const visualizerInputKeys = useMemo(() => {
     return mapValues(visualizers.instances, (instance) => {
       return instance
@@ -272,9 +242,9 @@ export default function BoxContextProvider({
     });
   }, [visualizers.instances]);
 
-  const algorithmVisualizers = useBoxContextAlgorithmVisualizers({
+  const config = useBoxContextConfig({
     adapterOptions,
-    value: box?.algorithmVisualizers ?? {
+    value: box?.config ?? {
       composition: { type: 'flat', order: [] },
       adapters: {},
     },
@@ -288,7 +258,7 @@ export default function BoxContextProvider({
     onChange: (newValue) => {
       onBoxUpdate?.((box) => ({
         ...box,
-        algorithmVisualizers: newValue,
+        config: newValue,
       }));
     },
   });
@@ -303,9 +273,8 @@ export default function BoxContextProvider({
   const value = useMemo(() => {
     return {
       problem,
-      problemAlgorithm,
       algorithm,
-      algorithmVisualizers: algorithmVisualizers,
+      config,
       openFlowchart,
       boxName: {
         value: boxName,
@@ -324,7 +293,7 @@ export default function BoxContextProvider({
     } as BoxContextType;
   }, [
     algorithm,
-    algorithmVisualizers,
+    config,
     box,
     boxName,
     onBoxReset,
@@ -332,7 +301,6 @@ export default function BoxContextProvider({
     onBoxUpdate,
     openFlowchart,
     problem,
-    problemAlgorithm,
     visualizers,
   ]);
 

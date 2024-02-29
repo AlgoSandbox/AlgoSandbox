@@ -1,5 +1,5 @@
 import {
-  AlgorithmVisualizersTree,
+  BoxConfigTree,
   SandboxAdapter,
   SandboxStateType,
   SandboxVisualizer,
@@ -31,15 +31,13 @@ function topologicalSort(graph: Record<string, Array<string>>) {
   return result.reverse();
 }
 
-function buildGraphFromAdapterConfiguration(
-  adapterConfiguration: AlgorithmVisualizersTree,
-) {
+function buildGraphFromBoxConfig(boxConfig: BoxConfigTree) {
   const graph: Record<
     string,
     Record<string, Array<{ fromSlot: string; toSlot: string }>>
   > = {};
 
-  adapterConfiguration.composition.connections.forEach(
+  boxConfig.composition.connections.forEach(
     ({ fromKey, fromSlot, toKey, toSlot }) => {
       if (graph[fromKey] === undefined) {
         graph[fromKey] = {};
@@ -57,15 +55,15 @@ function buildGraphFromAdapterConfiguration(
 }
 
 export default function solveFlowchart({
-  adapterConfiguration,
+  config,
   problemState,
   algorithmState,
   adapters,
   visualizers,
 }: {
-  adapterConfiguration: AlgorithmVisualizersTree;
+  config: BoxConfigTree;
   problemState: Record<string, unknown> | undefined;
-  algorithmState: Record<string, unknown> | undefined;
+  algorithmState?: Record<string, unknown> | undefined;
   adapters: Record<
     string,
     SandboxAdapter<SandboxStateType, SandboxStateType> | undefined
@@ -75,7 +73,7 @@ export default function solveFlowchart({
     SandboxVisualizer<SandboxStateType, unknown> | undefined
   >;
 }) {
-  const graph = buildGraphFromAdapterConfiguration(adapterConfiguration);
+  const graph = buildGraphFromBoxConfig(config);
   const nodesToExplore = topologicalSort(
     Object.fromEntries(
       Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
@@ -105,6 +103,7 @@ export default function solveFlowchart({
     if (outputs[node] === undefined) {
       // Node should be an adapter
       const adapter = adapters[node];
+
       if (adapter !== undefined) {
         // Inputs should be full
         const result = adapter.accepts.shape.safeParse(inputs[node]);

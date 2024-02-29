@@ -10,7 +10,7 @@ const box: SandboxBox = {
     },
     order: ['visualizer-0', 'visualizer-1'],
   },
-  algorithmVisualizers: {
+  config: {
     adapters: {
       'adapter-0': 'adapter.environments.envToGraph',
     },

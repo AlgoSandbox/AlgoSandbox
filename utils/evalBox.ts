@@ -34,8 +34,8 @@ export default function evalBox({
     files,
   }).mapLeft(() => undefined).value;
 
-  const algorithmVisualizers: SandboxBoxEvaluated['algorithmVisualizers'] = {
-    composition: box.algorithmVisualizers?.composition ?? {
+  const config: SandboxBoxEvaluated['config'] = {
+    composition: box.config?.composition ?? {
       type: 'flat',
       order: [],
     },
@@ -78,7 +78,7 @@ export default function evalBox({
           parameters: algorithmParameters ?? null,
         }
       : undefined,
-    algorithmVisualizers,
+    config: config,
     visualizers,
   };
 }

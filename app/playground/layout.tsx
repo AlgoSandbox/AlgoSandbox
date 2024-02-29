@@ -139,20 +139,16 @@ function Layout({ children }: { children: React.ReactNode }) {
       ...originalBox,
       name: savedBox?.label ?? 'Untitled box',
       problem: parseFromJson(params.get('problem')) ?? originalBox.problem,
-      problemAlgorithm:
-        params.get('problemAlgorithm') !== null
-          ? parseFromJson(params.get('problemAlgorithm')) ?? undefined
-          : originalBox.problemAlgorithm,
       algorithm:
         parseFromJson(params.get('algorithm')) ?? originalBox.algorithm,
       visualizers:
         params.get('visualizers') !== null
           ? parseFromJson(params.get('visualizers')) ?? undefined
           : originalBox.visualizers,
-      algorithmVisualizers:
-        params.get('algorithmVisualizers') !== null
-          ? parseFromJson(params.get('algorithmVisualizers')) ?? undefined
-          : originalBox.algorithmVisualizers,
+      config:
+        params.get('config') !== null
+          ? parseFromJson(params.get('config')) ?? undefined
+          : originalBox.config,
     };
   }, [originalBox, params, savedBox?.label]);
 
@@ -181,26 +177,16 @@ function Layout({ children }: { children: React.ReactNode }) {
       if (box.problem !== originalBox?.problem) {
         searchParams.set('problem', JSON.stringify(box.problem));
       }
-      if (!isEqual(box.problemAlgorithm, originalBox.problemAlgorithm)) {
-        searchParams.set(
-          'problemAlgorithm',
-          box.problemAlgorithm ? JSON.stringify(box.problemAlgorithm) : 'null',
-        );
-      }
       if (box.algorithm !== originalBox.algorithm) {
         searchParams.set('algorithm', JSON.stringify(box.algorithm));
       }
       if (!isEqual(box.visualizers, originalBox.visualizers)) {
         searchParams.set('visualizers', JSON.stringify(box.visualizers));
       }
-      if (
-        !isEqual(box.algorithmVisualizers, originalBox.algorithmVisualizers)
-      ) {
+      if (!isEqual(box.config, originalBox.config)) {
         searchParams.set(
-          'algorithmVisualizers',
-          box.algorithmVisualizers
-            ? JSON.stringify(box.algorithmVisualizers)
-            : 'null',
+          'config',
+          box.config ? JSON.stringify(box.config) : 'null',
         );
       }
 

@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 import { useFlowchartCalculations, useScene } from './BoxPage';
 
 export default function BoxExecutionPage() {
-  const { isBoxComponentsShown, maxExecutionStepCount } = useUserPreferences();
+  const { maxExecutionStepCount } = useUserPreferences();
 
   const scene = useScene();
   const { currentStepIndex, hasNext, hasPrevious, next, previous } =
@@ -195,13 +195,11 @@ export default function BoxExecutionPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {isBoxComponentsShown && (
-        <AppBar
-          allVisualizerOrder={allVisualizerOrder}
-          hiddenVisualizerAliases={hiddenVisualizerAliases}
-          onHiddenVisualizerAliasesChange={setHiddenVisualizerAliases}
-        />
-      )}
+      <AppBar
+        allVisualizerOrder={allVisualizerOrder}
+        hiddenVisualizerAliases={hiddenVisualizerAliases}
+        onHiddenVisualizerAliasesChange={setHiddenVisualizerAliases}
+      />
       <main className="relative h-full flex flex-col z-0">
         <Mosaic<string>
           className={clsx(

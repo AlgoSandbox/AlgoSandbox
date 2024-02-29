@@ -411,12 +411,10 @@ export default function AlgorithmVisualizerFlowchart({
   const problem = useBoxContext('problem.instance');
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
 
-  const algorithmVisualizersEvaluated = useBoxContext(
-    'algorithmVisualizers.evaluated',
-  );
+  const configEvaluated = useBoxContext('config.evaluated');
 
-  const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
-  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
+  const setConfig = useBoxContext('config.set');
+  const configTree = useBoxContext('config.tree');
 
   const visualizers = useBoxContext('visualizers');
   const visualizerInstances = useBoxContext('visualizers.instances');
@@ -431,6 +429,11 @@ export default function AlgorithmVisualizerFlowchart({
     }
   }, [boxName, renameTab, tabId, tabName]);
 
+  const algorithmInputs = useMemo(
+    () => algorithm.unwrapOr(null)?.accepts.shape.shape ?? {},
+    [algorithm],
+  );
+
   const algorithmOutputs = useMemo(
     () => algorithm.unwrapOr(null)?.outputs.shape.shape ?? {},
     [algorithm],
@@ -444,45 +447,38 @@ export default function AlgorithmVisualizerFlowchart({
   const onNodeDelete = useCallback(
     (type: FlowNode['data']['type'], alias: string) => {
       if (type === 'adapter') {
-        setAlgorithmVisualizers({
+        setConfig({
           adapters: Object.fromEntries(
-            Object.entries(algorithmVisualizersTree.adapters ?? {}).filter(
+            Object.entries(configTree.adapters ?? {}).filter(
               ([key]) => key !== alias,
             ),
           ),
           composition: {
-            ...algorithmVisualizersTree.composition,
-            connections:
-              algorithmVisualizersTree.composition.connections.filter(
-                ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-              ),
+            ...configTree.composition,
+            connections: configTree.composition.connections.filter(
+              ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+            ),
           },
         });
       } else if (type === 'visualizer') {
         visualizers.removeAlias(alias);
-        setAlgorithmVisualizers({
-          adapters: algorithmVisualizersTree.adapters,
+        setConfig({
+          adapters: configTree.adapters,
           composition: {
-            ...algorithmVisualizersTree.composition,
-            connections:
-              algorithmVisualizersTree.composition.connections.filter(
-                ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-              ),
+            ...configTree.composition,
+            connections: configTree.composition.connections.filter(
+              ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
+            ),
           },
         });
       }
     },
-    [
-      algorithmVisualizersTree.adapters,
-      algorithmVisualizersTree.composition,
-      setAlgorithmVisualizers,
-      visualizers,
-    ],
+    [configTree.adapters, configTree.composition, setConfig, visualizers],
   );
 
   const initialAdapterNodes = useMemo(
     () =>
-      Object.entries(algorithmVisualizersEvaluated.adapterInstances ?? {}).map(
+      Object.entries(configEvaluated.adapterInstances ?? {}).map(
         ([alias, evaluation]) => {
           const { value: adapter, name } =
             evaluation.mapLeft(() => null).value ?? {};
@@ -558,7 +554,7 @@ export default function AlgorithmVisualizerFlowchart({
         },
       ),
     [
-      algorithmVisualizersEvaluated.adapterInstances,
+      configEvaluated.adapterInstances,
       inputErrors,
       inputs,
       onNodeDelete,
@@ -620,110 +616,143 @@ export default function AlgorithmVisualizerFlowchart({
     );
   }, [inputErrors, inputs, onNodeDelete, visualizerInstances]);
 
-  const initialNodes = useMemo(
-    () =>
-      [
-        {
-          id: 'algorithm',
-          type: 'customFlow',
-          width: 500,
-          height: getNodeHeight({
-            slotCount: Object.keys(algorithmOutputs).length,
+  const initialNodes = useMemo(() => {
+    const problemOutputSlots = Object.keys(problemOutputs);
+    const problemSlotCount = problemOutputSlots.length;
+
+    const algorithmInputSlots = Object.keys(algorithmInputs);
+    const algorithmOutputSlots = Object.keys(algorithmOutputs);
+    const algorithmSlotCount = Math.max(
+      algorithmInputSlots.length,
+      algorithmOutputSlots.length,
+    );
+
+    return [
+      {
+        id: 'algorithm',
+        type: 'customFlow',
+        width: 500,
+        height: getNodeHeight({
+          slotCount: algorithmSlotCount,
+        }),
+        deletable: false,
+        data: {
+          type: 'algorithm',
+          alias: 'algorithm',
+          label: algorithmName,
+          onDelete: () => {},
+          evaluationError: algorithm.mapRight(() => null).value,
+          inputs: ['.', ...algorithmInputSlots].map((param) => {
+            const hasValue = (() => {
+              if (param === '.') {
+                return inputs['algorithm'] !== undefined;
+              }
+              return Object.hasOwn(inputs['algorithm'] ?? {}, param);
+            })();
+
+            const label = (() => {
+              if (param === '.') {
+                return '';
+              }
+
+              return param;
+            })();
+
+            return {
+              id: param,
+              label,
+              hasValue,
+              error: inputErrors['algorithm']?.[param] ?? null,
+            };
           }),
-          deletable: false,
-          data: {
-            type: 'algorithm',
-            alias: 'algorithm',
-            label: algorithmName,
-            onDelete: () => {},
-            evaluationError: algorithm.mapRight(() => null).value,
-            outputs: ['.', ...Object.keys(algorithmOutputs)].map((param) => {
-              const hasValue = (() => {
-                if (param === '.') {
-                  return outputs['algorithm'] !== undefined;
-                }
-                return Object.hasOwn(outputs['algorithm'] ?? {}, param);
-              })();
+          outputs: ['.', ...algorithmOutputSlots].map((param) => {
+            const hasValue = (() => {
+              if (param === '.') {
+                return outputs['algorithm'] !== undefined;
+              }
+              return Object.hasOwn(outputs['algorithm'] ?? {}, param);
+            })();
 
-              const label = (() => {
-                if (param === '.') {
-                  return '';
-                }
+            const label = (() => {
+              if (param === '.') {
+                return '';
+              }
 
-                return param;
-              })();
+              return param;
+            })();
 
-              return {
-                id: param,
-                label,
-                // TODO: Determine if algo is valid
-                hasValue,
-              };
-            }),
-          },
-        },
-        {
-          id: 'problem',
-          type: 'customFlow',
-          width: 500,
-          height: getNodeHeight({
-            slotCount: Object.keys(problemOutputs).length,
+            return {
+              id: param,
+              label,
+              // TODO: Determine if algo is valid
+              hasValue,
+            };
           }),
-          deletable: false,
-          data: {
-            type: 'problem',
-            alias: 'problem',
-            label: problemName,
-            onDelete: () => {},
-            evaluationError: problem.mapRight(() => null).value,
-            outputs: ['.', ...Object.keys(problemOutputs)].map((param) => {
-              const hasValue = (() => {
-                if (param === '.') {
-                  return outputs['problem'] !== undefined;
-                }
-                return Object.hasOwn(outputs['problem'] ?? {}, param);
-              })();
-
-              const label = (() => {
-                if (param === '.') {
-                  return '';
-                }
-
-                return param;
-              })();
-
-              return {
-                id: param,
-                label,
-                // TODO: Determine if algo is valid
-                hasValue,
-              };
-            }),
-          },
         },
-        ...initialAdapterNodes,
-        ...initialVisualizerNodes,
-      ] satisfies Array<Omit<FlowNode, 'position'>>,
-    [
-      algorithm,
-      algorithmName,
-      algorithmOutputs,
-      initialAdapterNodes,
-      initialVisualizerNodes,
-      outputs,
-      problem,
-      problemName,
-      problemOutputs,
-    ],
-  );
+      },
+      {
+        id: 'problem',
+        type: 'customFlow',
+        width: 500,
+        height: getNodeHeight({
+          slotCount: problemSlotCount,
+        }),
+        deletable: false,
+        data: {
+          type: 'problem',
+          alias: 'problem',
+          label: problemName,
+          onDelete: () => {},
+          evaluationError: problem.mapRight(() => null).value,
+          outputs: ['.', ...problemOutputSlots].map((param) => {
+            const hasValue = (() => {
+              if (param === '.') {
+                return outputs['problem'] !== undefined;
+              }
+              return Object.hasOwn(outputs['problem'] ?? {}, param);
+            })();
+
+            const label = (() => {
+              if (param === '.') {
+                return '';
+              }
+
+              return param;
+            })();
+
+            return {
+              id: param,
+              label,
+              // TODO: Determine if algo is valid
+              hasValue,
+            };
+          }),
+        },
+      },
+      ...initialAdapterNodes,
+      ...initialVisualizerNodes,
+    ] satisfies Array<Omit<FlowNode, 'position'>>;
+  }, [
+    algorithm,
+    algorithmInputs,
+    algorithmName,
+    algorithmOutputs,
+    initialAdapterNodes,
+    initialVisualizerNodes,
+    inputErrors,
+    inputs,
+    outputs,
+    problem,
+    problemName,
+    problemOutputs,
+  ]);
 
   const initialEdges = useMemo(() => {
-    const nodesUsingInputMainSlot =
-      algorithmVisualizersEvaluated.composition.connections
-        .filter(({ toSlot }) => toSlot === '.')
-        .map(({ toKey }) => toKey);
+    const nodesUsingInputMainSlot = configEvaluated.composition.connections
+      .filter(({ toSlot }) => toSlot === '.')
+      .map(({ toKey }) => toKey);
 
-    return algorithmVisualizersEvaluated.composition.connections.map(
+    return configEvaluated.composition.connections.map(
       ({ fromKey, fromSlot, toKey, toSlot }) => {
         const hasValue = (() => {
           if (fromSlot === '.') {
@@ -756,7 +785,7 @@ export default function AlgorithmVisualizerFlowchart({
         };
       },
     ) as Array<Edge>;
-  }, [algorithmVisualizersEvaluated.composition.connections, outputs]);
+  }, [configEvaluated.composition.connections, outputs]);
 
   const [nodes, setNodes] = useState<Array<FlowNode>>(
     // TODO: Remove typecast
@@ -813,11 +842,11 @@ export default function AlgorithmVisualizerFlowchart({
 
   const onEdgesDelete = useCallback(
     (edgesToDelete: Array<Edge>) => {
-      setAlgorithmVisualizers({
-        ...algorithmVisualizersTree,
+      setConfig({
+        ...configTree,
         composition: {
-          ...algorithmVisualizersTree.composition,
-          connections: algorithmVisualizersTree.composition.connections.filter(
+          ...configTree.composition,
+          connections: configTree.composition.connections.filter(
             ({ fromKey, fromSlot, toKey, toSlot }) =>
               !edgesToDelete.some(
                 (edge) =>
@@ -830,7 +859,7 @@ export default function AlgorithmVisualizerFlowchart({
         },
       });
     },
-    [algorithmVisualizersTree, setAlgorithmVisualizers],
+    [configTree, setConfig],
   );
 
   const onConnect = useCallback(
@@ -850,18 +879,18 @@ export default function AlgorithmVisualizerFlowchart({
         return;
       }
 
-      setAlgorithmVisualizers({
-        ...algorithmVisualizersTree,
+      setConfig({
+        ...configTree,
         composition: {
-          ...algorithmVisualizersTree.composition,
+          ...configTree.composition,
           connections: [
-            ...algorithmVisualizersTree.composition.connections,
+            ...configTree.composition.connections,
             { fromKey, fromSlot, toKey, toSlot },
           ],
         },
       });
     },
-    [algorithmVisualizersTree, setAlgorithmVisualizers],
+    [configTree, setConfig],
   );
 
   return (
@@ -920,20 +949,16 @@ export default function AlgorithmVisualizerFlowchart({
 
             const getKey = (index: number): string => {
               const key = `adapter-${index}`;
-              if (
-                Object.keys(algorithmVisualizersTree.adapters ?? {}).includes(
-                  key,
-                )
-              ) {
+              if (Object.keys(configTree.adapters ?? {}).includes(key)) {
                 return getKey(index + 1);
               }
               return key;
             };
             const newKey = getKey(0);
-            setAlgorithmVisualizers({
-              ...algorithmVisualizersTree,
+            setConfig({
+              ...configTree,
               adapters: {
-                ...algorithmVisualizersTree.adapters,
+                ...configTree.adapters,
                 [newKey]: value.key,
               },
             });

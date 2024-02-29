@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { isBoolean } from 'lodash';
 
 import { SandboxAlgorithm } from '../algorithm/algorithm';
-import { SandboxProblem } from '../problem/problem';
 import { SandboxState, SandboxStateType } from '../state';
 
 export type SandboxExecutionStep<N extends SandboxStateType> = {
@@ -45,19 +44,20 @@ export class SandboxAlgorithmExecutor<
 > {
   executionTrace: SandboxExecutionTrace<M>;
   algorithm: SandboxAlgorithm<N, M>;
-  problem: SandboxProblem<N>;
+  algorithmInput: SandboxState<N>;
   isFullyExecuted: boolean;
   executionGenerator: Generator<SandboxExecutionStep<M>, boolean, void>;
 
-  constructor(algorithm: SandboxAlgorithm<N, M>, problem: SandboxProblem<N>) {
+  constructor(
+    algorithm: SandboxAlgorithm<N, M>,
+    algorithmInput: SandboxState<N>,
+  ) {
     this.algorithm = algorithm;
-    this.problem = problem;
+    this.algorithmInput = algorithmInput;
     this.executionTrace = [];
     this.isFullyExecuted = false;
 
-    const problemState = problem.getInitialState();
-
-    const initialData = algorithm.createInitialState(problemState);
+    const initialData = algorithm.createInitialState(algorithmInput);
     const state = new SandboxStateImpl<M>(initialData);
 
     // Either line(start, end, tooltip) or line(start, tooltip)
@@ -76,7 +76,7 @@ export class SandboxAlgorithmExecutor<
 
     this.executionGenerator = this.algorithm.runAlgorithm({
       state: state.data,
-      problemState,
+      problemState: this.algorithmInput,
       line,
     });
   }

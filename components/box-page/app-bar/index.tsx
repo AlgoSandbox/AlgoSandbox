@@ -2,9 +2,6 @@ import { Button, MaterialSymbol, Popover } from '@components/ui';
 import Checkbox from '@components/ui/Checkbox';
 
 import { useBoxContext } from '..';
-import AlgorithmSelect from './AlgorithmSelect';
-import ProblemAlgorithmAdapterSelect from './ProblemAlgorithmAdapterSelect';
-import ProblemSelect from './ProblemSelect';
 
 export default function AppBar({
   allVisualizerOrder,
@@ -17,7 +14,7 @@ export default function AppBar({
     hiddenVisualizerAliases: Set<string>,
   ) => void;
 }) {
-  const { openFlowchart } = useBoxContext();
+  const { openFlowchart, isDraft, reset } = useBoxContext();
   const visualizerInstances = useBoxContext('visualizers.instances');
 
   const getVisualizerName = (alias: string) => {
@@ -31,15 +28,20 @@ export default function AppBar({
   return (
     <header className="flex justify-between items-center px-4 border-b py-2 gap-8 bg-surface">
       <div className="flex flex-row items-end gap-2">
-        <ProblemSelect />
-        <ProblemAlgorithmAdapterSelect />
-        <AlgorithmSelect />
         <Button
-          icon={<MaterialSymbol icon="schema" />}
-          label="Visualizations"
+          icon={<MaterialSymbol icon="build" />}
+          label="Configure box"
+          variant="filled"
           onClick={openFlowchart}
-          variant="primary"
         />
+        {!isDraft && (
+          <Button
+            label="Reset box config"
+            variant="filled"
+            onClick={reset}
+            icon={<MaterialSymbol icon="settings_backup_restore" />}
+          />
+        )}
       </div>
       <div className="flex gap-4">
         <Popover

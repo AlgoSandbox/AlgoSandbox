@@ -8,7 +8,6 @@ import {
 } from 'react';
 
 const isAdvancedModeEnabledKey = 'sandbox:preferences:isAdvancedModeEnabled';
-const isBoxComponentsShownKey = 'sandbox:preferences:isBoxComponentsShown';
 const maxExecutionStepCountKey = 'sandbox:preferences:maxExecutionStepCount';
 
 const defaultMaxExecutionStepCount = 1000;
@@ -16,8 +15,6 @@ const defaultMaxExecutionStepCount = 1000;
 type UserPreferences = {
   isAdvancedModeEnabled: boolean;
   setAdvancedModeEnabled: (enabled: boolean) => void;
-  isBoxComponentsShown: boolean;
-  setBoxComponentsShown: (shown: boolean) => void;
   maxExecutionStepCount: number;
   setMaxExecutionStepCount: (steps: number) => void;
 };
@@ -29,8 +26,6 @@ type UserPreferencesProviderProps = {
 const UserPreferencesContext = createContext<UserPreferences>({
   isAdvancedModeEnabled: false,
   setAdvancedModeEnabled: () => {},
-  isBoxComponentsShown: true,
-  setBoxComponentsShown: () => {},
   maxExecutionStepCount: defaultMaxExecutionStepCount,
   setMaxExecutionStepCount: () => {},
 });
@@ -43,7 +38,6 @@ export default function UserPreferencesProvider({
   children,
 }: UserPreferencesProviderProps) {
   const [isAdvancedModeEnabled, setAdvancedModeEnabled] = useState(false);
-  const [isBoxComponentsShown, setBoxComponentsShown] = useState(true);
   const [maxExecutionStepCount, setMaxExecutionStepCount] = useState(
     defaultMaxExecutionStepCount,
   );
@@ -54,14 +48,6 @@ export default function UserPreferencesProvider({
       return;
     }
     setAdvancedModeEnabled(cachedEnabled === 'true');
-  }, []);
-
-  useEffect(() => {
-    const cachedShown = localStorage.getItem(isBoxComponentsShownKey);
-    if (cachedShown === null) {
-      return;
-    }
-    setBoxComponentsShown(cachedShown === 'true');
   }, []);
 
   useEffect(() => {
@@ -79,11 +65,6 @@ export default function UserPreferencesProvider({
     setAdvancedModeEnabled(enabled);
   }, []);
 
-  const handleBoxComponentsShownChange = useCallback((shown: boolean) => {
-    localStorage.setItem(isBoxComponentsShownKey, shown.toString());
-    setBoxComponentsShown(shown);
-  }, []);
-
   const handleMaxExecutionStepCountChange = useCallback((steps: number) => {
     localStorage.setItem(maxExecutionStepCountKey, steps.toString());
     setMaxExecutionStepCount(steps);
@@ -93,17 +74,13 @@ export default function UserPreferencesProvider({
     return {
       isAdvancedModeEnabled,
       setAdvancedModeEnabled: handleAdvancedModeEnabledChange,
-      isBoxComponentsShown,
-      setBoxComponentsShown: handleBoxComponentsShownChange,
       maxExecutionStepCount,
       setMaxExecutionStepCount: handleMaxExecutionStepCountChange,
     };
   }, [
     handleAdvancedModeEnabledChange,
-    handleBoxComponentsShownChange,
     handleMaxExecutionStepCountChange,
     isAdvancedModeEnabled,
-    isBoxComponentsShown,
     maxExecutionStepCount,
   ]);
 

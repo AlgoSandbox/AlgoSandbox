@@ -1,6 +1,6 @@
 'use client';
 
-import { SandboxProblem, SandboxStateType } from '@algo-sandbox/core';
+import { SandboxStateType } from '@algo-sandbox/core';
 import AppNavBar from '@components/AppNavBar';
 import {
   BoxControlsContextProvider,
@@ -37,38 +37,67 @@ const themeOptions = [
 ];
 
 function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
-  const { compatible: areAlgorithmProblemCompatible } =
-    useBoxContext('problemAlgorithm');
   const problemInstanceEvaluation = useBoxContext('problem.instance');
-  const composedProblemAdapter = useBoxContext(
-    'problemAlgorithm.adapters.composed',
-  );
   const algorithmInstanceEvaluation = useBoxContext('algorithm.instance');
   const { maxExecutionStepCount: maxExecutionStepCount } = useUserPreferences();
 
-  const initialScene = useMemo(() => {
+  const configTree = useBoxContext('config.tree');
+  const configAdapterInstances = useBoxContext(
+    'config.evaluated.adapterInstances',
+  );
+
+  const visualizerInstances = useBoxContext('visualizers.instances');
+
+  const { inputs } = useMemo(() => {
     const problemInstance = problemInstanceEvaluation.unwrapOr(null);
     const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
-    const problemAdapter = composedProblemAdapter.unwrapOr(null);
-    if (
-      areAlgorithmProblemCompatible &&
-      algorithmInstance !== null &&
-      problemInstance !== null
-    ) {
+
+    if (problemInstance === null || algorithmInstance === null) {
+      return {};
+    }
+
+    const problemState = problemInstance.getInitialState();
+
+    const { inputs, outputs, inputErrors } = solveFlowchart({
+      config: configTree,
+      problemState,
+      adapters: mapValues(
+        configAdapterInstances ?? {},
+        (val) => val?.mapLeft(() => undefined).value?.value,
+      ),
+      visualizers: mapValues(
+        visualizerInstances,
+        (evaluation) =>
+          evaluation.map((val) => val.value).mapLeft(() => undefined).value,
+      ),
+    });
+
+    return { inputs, outputs, inputErrors };
+  }, [
+    problemInstanceEvaluation,
+    algorithmInstanceEvaluation,
+    configTree,
+    configAdapterInstances,
+    visualizerInstances,
+  ]);
+
+  const initialScene = useMemo(() => {
+    const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
+    if (algorithmInstance !== null) {
       try {
-        const initialProblemState = problemInstance.getInitialState();
-        const adaptedProblemState =
-          problemAdapter?.transform(initialProblemState) ?? initialProblemState;
+        const algorithmInput = inputs?.['algorithm'];
 
-        const adaptedProblem: SandboxProblem<SandboxStateType> = {
-          name: problemInstance.name,
-          type: problemAdapter?.outputs ?? problemInstance.type,
-          getInitialState: () => adaptedProblemState,
-        };
+        const parseResult =
+          algorithmInstance.accepts.shape.safeParse(algorithmInput);
 
+        if (!parseResult.success) {
+          return null;
+        }
+
+        // TODO make intiial problem legit
         const scene = createScene({
           algorithm: algorithmInstance,
-          problem: adaptedProblem,
+          algorithmInput: parseResult.data,
           maxExecutionStepCount,
         });
 
@@ -79,13 +108,8 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
       }
     }
     return null;
-  }, [
-    problemInstanceEvaluation,
-    algorithmInstanceEvaluation,
-    composedProblemAdapter,
-    areAlgorithmProblemCompatible,
-    maxExecutionStepCount,
-  ]);
+  }, [algorithmInstanceEvaluation, inputs, maxExecutionStepCount]);
+
   const [scene, setScene] = useState(initialScene);
 
   useEffect(() => {
@@ -137,9 +161,9 @@ function SceneProvider({
   const executionStep = scene?.executionTrace?.[currentStepIndex];
 
   const problemInstanceEvaluation = useBoxContext('problem.instance');
-  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
-  const algorithmVisualizersAdapterInstances = useBoxContext(
-    'algorithmVisualizers.evaluated.adapterInstances',
+  const configTree = useBoxContext('config.tree');
+  const configAdapterInstances = useBoxContext(
+    'config.evaluated.adapterInstances',
   );
   const algorithmState = executionStep?.state;
 
@@ -156,11 +180,11 @@ function SceneProvider({
     const problemState = problemInstance.getInitialState();
 
     const { inputs, outputs, inputErrors } = solveFlowchart({
-      adapterConfiguration: algorithmVisualizersTree,
+      config: configTree,
       problemState,
       algorithmState,
       adapters: mapValues(
-        algorithmVisualizersAdapterInstances ?? {},
+        configAdapterInstances ?? {},
         (val) => val?.mapLeft(() => undefined).value?.value,
       ),
       visualizers: mapValues(
@@ -174,9 +198,9 @@ function SceneProvider({
   }, [
     problemInstanceEvaluation,
     algorithmInstanceEvaluation,
-    algorithmVisualizersTree,
+    configTree,
     algorithmState,
-    algorithmVisualizersAdapterInstances,
+    configAdapterInstances,
     visualizerInstances,
   ]);
 
@@ -214,12 +238,10 @@ function BoxPageImpl() {
   const {
     isAdvancedModeEnabled,
     setAdvancedModeEnabled,
-    isBoxComponentsShown,
-    setBoxComponentsShown,
     maxExecutionStepCount,
     setMaxExecutionStepCount,
   } = useUserPreferences();
-  const { isDraft, reset, saveAsNew } = useBoxContext();
+  const { isDraft, saveAsNew } = useBoxContext();
   const { boxOptions } = useSandboxComponents();
 
   const selectedOption = useMemo(() => {
@@ -297,39 +319,15 @@ function BoxPageImpl() {
                 }}
               />
               <div className="flex gap-2 min-w-0">
-                <Button
-                  label="Customize"
-                  className="min-w-0"
-                  variant="filled"
-                  selected={isBoxComponentsShown}
-                  role="checkbox"
-                  hideLabel={true}
-                  onClick={() => {
-                    setBoxComponentsShown(!isBoxComponentsShown);
-                  }}
-                  icon={<MaterialSymbol icon="tune" />}
-                />
-                {!isDraft && (
-                  <Button
-                    label="Reset box"
-                    hideLabel={true}
-                    variant="flat"
-                    onClick={reset}
-                    icon={<MaterialSymbol icon="settings_backup_restore" />}
-                  />
-                )}
-                <div className="border-l w-px self-stretch"></div>
                 {!isDraft && (
                   <Button
                     label="Copy link"
-                    variant="filled"
                     onClick={handleCopyLinkClick}
                     icon={<MaterialSymbol icon="link" />}
                   />
                 )}
                 <Button
                   label="Save as new"
-                  variant="filled"
                   onClick={handleSaveAsNewClick}
                   icon={<MaterialSymbol icon="save" />}
                 />

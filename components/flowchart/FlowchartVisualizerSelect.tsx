@@ -21,8 +21,8 @@ export default function FlowchartVisualizerSelect({
   const { visualizerOptions } = useSandboxComponents();
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
-  const setAlgorithmVisualizers = useBoxContext('algorithmVisualizers.set');
-  const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
+  const setConfig = useBoxContext('config.set');
+  const configTree = useBoxContext('config.tree');
 
   const { key: visualizerKey, parameters } = parseKeyWithParameters(
     aliases[alias],
@@ -42,11 +42,11 @@ export default function FlowchartVisualizerSelect({
       }
 
       setAlias(alias, key);
-      setAlgorithmVisualizers({
-        adapters: algorithmVisualizersTree.adapters,
+      setConfig({
+        adapters: configTree.adapters,
         composition: {
-          ...algorithmVisualizersTree.composition,
-          connections: algorithmVisualizersTree.composition.connections.filter(
+          ...configTree.composition,
+          connections: configTree.composition.connections.filter(
             ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
           ),
         },

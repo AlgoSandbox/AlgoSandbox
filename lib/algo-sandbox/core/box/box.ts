@@ -108,7 +108,7 @@ export type SandboxEvaluated<T> = {
   value: T;
 };
 
-export type AlgorithmVisualizers<
+export type BoxConfig<
   AdapterAliases extends SandboxAliases<
     string,
     SandboxKeyWithParameters<SandboxAdapterKey>
@@ -122,13 +122,13 @@ export type AlgorithmVisualizers<
   composition: AdapterComposition<AdapterAliases | VisualizerAliases>;
 };
 
-export type AlgorithmVisualizersTree = AlgorithmVisualizers & {
+export type BoxConfigTree = BoxConfig & {
   composition: {
     type: 'tree';
   };
 };
 
-export type AlgorithmVisualizersEvaluated = {
+export type BoxConfigEvaluated = {
   adapters?: Record<
     string,
     SandboxEvaluated<ComponentWithParameters<SandboxAnyAdapter>> | undefined
@@ -167,12 +167,9 @@ type ExtractKey<K> = K extends { key: infer T } ? T : K;
 
 export type SandboxBox = Readonly<{
   problem: SandboxKeyWithParameters<SandboxProblemKey>;
-  problemAlgorithm?: AdapterConfigurationFlat<
-    SandboxAliases<string, SandboxKeyWithParameters<SandboxAdapterKey>>
-  >;
   algorithm: SandboxKeyWithParameters<SandboxAlgorithmKey>;
-  algorithmVisualizers?: AlgorithmVisualizers;
   visualizers: Visualizers;
+  config?: BoxConfig;
 }>;
 
 type ComponentWithParameters<T> = {
@@ -182,8 +179,7 @@ type ComponentWithParameters<T> = {
 
 export type SandboxBoxEvaluated = {
   problem?: ComponentWithParameters<SandboxAnyProblem>;
-  problemAlgorithm?: AdapterConfigurationEvaluated;
   algorithm?: ComponentWithParameters<SandboxAnyAlgorithm>;
-  algorithmVisualizers?: AlgorithmVisualizersEvaluated;
   visualizers?: VisualizersEvaluated;
+  config?: BoxConfigEvaluated;
 };

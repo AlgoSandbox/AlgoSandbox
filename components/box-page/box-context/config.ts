@@ -1,7 +1,7 @@
 import {
   AdapterCompositionTree,
-  AlgorithmVisualizers,
-  AlgorithmVisualizersTree,
+  BoxConfig,
+  BoxConfigTree,
   getDefaultParameters,
   ParsedParameters,
   SandboxAdapter,
@@ -19,32 +19,31 @@ import _ from 'lodash';
 import { compact, mapValues } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
-export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizers =
-  {
-    raw: {
-      adapters: {},
-      composition: { type: 'tree', connections: [] },
+export const defaultBoxContextConfig: BoxContextConfig = {
+  raw: {
+    adapters: {},
+    composition: { type: 'tree', connections: [] },
+  },
+  tree: {
+    adapters: {},
+    composition: { type: 'tree', connections: [] },
+  },
+  evaluated: {
+    adapters: {},
+    adapterInstances: {},
+    composition: { type: 'tree', connections: [] },
+    parameters: {
+      default: {},
+      value: {},
+      setValue: () => {},
     },
-    tree: {
-      adapters: {},
-      composition: { type: 'tree', connections: [] },
-    },
-    evaluated: {
-      adapters: {},
-      adapterInstances: {},
-      composition: { type: 'tree', connections: [] },
-      parameters: {
-        default: {},
-        value: {},
-        setValue: () => {},
-      },
-    },
-    set: () => {},
-  };
+  },
+  set: () => {},
+};
 
-export type BoxContextAlgorithmVisualizers = {
-  raw: AlgorithmVisualizers;
-  tree: AlgorithmVisualizersTree;
+export type BoxContextConfig = {
+  raw: BoxConfig;
+  tree: BoxConfigTree;
   evaluated: {
     adapters: Record<string, ErrorOr<SandboxEvaluated<SandboxAnyAdapter>>>;
     adapterInstances: Record<
@@ -63,10 +62,10 @@ export type BoxContextAlgorithmVisualizers = {
       ) => void;
     };
   };
-  set: (value: AlgorithmVisualizersTree) => void;
+  set: (value: BoxConfigTree) => void;
 };
 
-export default function useBoxContextAlgorithmVisualizers({
+export default function useBoxContextConfig({
   adapterOptions,
   visualizerInputKeys,
   value,
@@ -76,8 +75,8 @@ export default function useBoxContextAlgorithmVisualizers({
   algorithmOutputKeys: Array<string>;
   visualizerInputKeys: Record<string, Array<string>>;
   adapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  value: AlgorithmVisualizers;
-  onChange: (value: AlgorithmVisualizers) => void;
+  value: BoxConfig;
+  onChange: (value: BoxConfig) => void;
 }) {
   // const [parameters, setParameters] = useState<
   //   Record<string, ParsedParameters<SandboxParameters> | null>
@@ -185,7 +184,7 @@ export default function useBoxContextAlgorithmVisualizers({
   const treeConfiguration = useMemo(() => {
     const type = value.composition.type;
     if (type === 'tree') {
-      return value as AlgorithmVisualizersTree;
+      return value as BoxConfigTree;
     } else {
       // Try to generate edges between algorithm -> adapter 1 -> adapter 2 -> visualizer/s
       const orderedAdapterAliases = value.composition.order;
@@ -219,7 +218,7 @@ export default function useBoxContextAlgorithmVisualizers({
         },
       );
 
-      const convertedConfiguration: AlgorithmVisualizersTree = {
+      const convertedConfiguration: BoxConfigTree = {
         adapters: value.adapters ?? {},
         composition: {
           type: 'tree',
@@ -230,7 +229,7 @@ export default function useBoxContextAlgorithmVisualizers({
     }
   }, [value, visualizerInputKeys]);
 
-  const algorithmVisualizers = useMemo(() => {
+  const config = useMemo(() => {
     return {
       raw: value,
       tree: treeConfiguration,
@@ -246,10 +245,10 @@ export default function useBoxContextAlgorithmVisualizers({
           },
         },
       },
-      set: (newValue: AlgorithmVisualizers) => {
+      set: (newValue: BoxConfig) => {
         onChange(newValue);
       },
-    } satisfies BoxContextAlgorithmVisualizers;
+    } satisfies BoxContextConfig;
   }, [
     value,
     treeConfiguration,
@@ -261,5 +260,5 @@ export default function useBoxContextAlgorithmVisualizers({
     onChange,
   ]);
 
-  return algorithmVisualizers;
+  return config;
 }

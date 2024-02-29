@@ -24,15 +24,10 @@ const flatComposition = z.object({
   order: z.array(z.string()),
 }) satisfies z.ZodType<AdapterCompositionFlat>;
 
-const problemAlgorithm = z.object({
-  aliases: z.record(z.string()),
-  composition: flatComposition,
-}) satisfies z.ZodType<Required<SandboxBox['problemAlgorithm']>>;
-
-const algorithmVisualizers = z.object({
+const config = z.object({
   adapters: z.record(z.string()),
   composition: z.union([treeComposition, flatComposition]),
-}) satisfies z.ZodType<Required<SandboxBox['algorithmVisualizers']>>;
+}) satisfies z.ZodType<Required<SandboxBox['config']>>;
 
 const visualizers = z.object({
   aliases: z.record(z.string()),
@@ -41,8 +36,7 @@ const visualizers = z.object({
 
 export const sandboxBox = z.object({
   problem: z.string(),
-  problemAlgorithm: problemAlgorithm.optional(),
   algorithm: z.string(),
-  algorithmVisualizers: algorithmVisualizers.optional(),
+  config: config.optional(),
   visualizers: visualizers,
 }) satisfies z.ZodType<SandboxBox>;

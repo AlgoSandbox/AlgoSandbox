@@ -2,7 +2,7 @@ import {
   SandboxAlgorithm,
   SandboxAlgorithmExecutor,
   SandboxExecutionTrace,
-  SandboxProblem,
+  SandboxState,
   SandboxStateType,
 } from '@algo-sandbox/core';
 
@@ -13,7 +13,7 @@ export type SandboxScene<
   copyWithExecution: (untilCount?: number) => SandboxScene<N, M>;
   executionTrace: Readonly<SandboxExecutionTrace<M>>;
   algorithm: Readonly<SandboxAlgorithm<N, M>>;
-  problem: Readonly<SandboxProblem<N>>;
+  algorithmInput: Readonly<SandboxState<N>>;
   isFullyExecuted: boolean;
   didReachExecutionLimit: boolean;
 };
@@ -23,21 +23,21 @@ export function createScene<
   M extends SandboxStateType,
 >({
   algorithm,
-  problem,
+  algorithmInput,
   maxExecutionStepCount,
 }: {
   algorithm: SandboxAlgorithm<N, M>;
-  problem: SandboxProblem<N>;
+  algorithmInput: SandboxState<N>;
   maxExecutionStepCount: number;
 }): SandboxScene<N, M> {
-  const executor = new SandboxAlgorithmExecutor(algorithm, problem);
+  const executor = new SandboxAlgorithmExecutor(algorithm, algorithmInput);
 
   const createSceneInternal = (
     didReachExecutionLimit: boolean,
   ): SandboxScene<N, M> => {
     return {
       algorithm: algorithm,
-      problem: problem,
+      algorithmInput: algorithmInput,
       isFullyExecuted: executor.isFullyExecuted,
       didReachExecutionLimit,
       executionTrace: [...executor.executionTrace],

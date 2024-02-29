@@ -7,9 +7,9 @@ import React, {
   useState,
 } from 'react';
 
+import { boxConfigFlowchartTabConfig } from './BoxConfigFlowchartTab';
 import { boxTabConfig } from './BoxTab';
 import { newTabConfig } from './NewTab';
-import { sandboxFlowchartTabConfig } from './SandboxFlowchartTab';
 import { sandboxObjectEditorTabConfig } from './SandboxObjectEditorTab';
 
 export type SandboxTabType = 'new-tab' | 'box' | 'editor' | 'flowchart';
@@ -17,7 +17,7 @@ export type SandboxTabType = 'new-tab' | 'box' | 'editor' | 'flowchart';
 const tabConfigs = {
   box: boxTabConfig,
   editor: sandboxObjectEditorTabConfig,
-  flowchart: sandboxFlowchartTabConfig,
+  flowchart: boxConfigFlowchartTabConfig,
   'new-tab': newTabConfig,
 } as const satisfies Record<SandboxTabType, unknown>;
 

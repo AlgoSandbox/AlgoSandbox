@@ -2,15 +2,6 @@ import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
   problem: 'problem.graphs.tenNodes',
-  problemAlgorithm: {
-    aliases: {
-      'adapter-0': 'adapter.environment.searchGraphToEnv',
-    },
-    composition: {
-      type: 'flat',
-      order: ['adapter-0'],
-    },
-  },
   algorithm: 'algorithm.search.bfsEnvironment',
   visualizers: {
     aliases: {
@@ -20,13 +11,26 @@ const box: SandboxBox = {
     },
     order: ['visualizer-0', 'visualizer-2', 'visualizer-1'],
   },
-  algorithmVisualizers: {
+  config: {
     adapters: {
       'adapter-0': 'adapter.environment.envToGraph',
+      'adapter-1': 'adapter.environment.searchGraphToEnv',
     },
     composition: {
       type: 'tree',
       connections: [
+        {
+          fromKey: 'problem',
+          fromSlot: '.',
+          toKey: 'adapter-1',
+          toSlot: '.',
+        },
+        {
+          fromKey: 'adapter-1',
+          fromSlot: '.',
+          toKey: 'algorithm',
+          toSlot: '.',
+        },
         {
           fromKey: 'algorithm',
           fromSlot: '.',

@@ -113,8 +113,8 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
 type SceneContextType = {
   scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
   flowchart: {
-    inputs: Record<string, Record<string, unknown>>;
-    outputs: Record<string, Record<string, unknown>>;
+    inputs: Record<string, Record<string, unknown> | undefined>;
+    outputs: Record<string, Record<string, unknown> | undefined>;
     inputErrors: Record<string, Record<string, ZodError>>;
   };
 };
@@ -137,7 +137,6 @@ function SceneProvider({
   const executionStep = scene?.executionTrace?.[currentStepIndex];
 
   const problemInstanceEvaluation = useBoxContext('problem.instance');
-  const problemAdapterCompatible = useBoxContext('problemAlgorithm.compatible');
   const algorithmVisualizersTree = useBoxContext('algorithmVisualizers.tree');
   const algorithmVisualizersAdapterInstances = useBoxContext(
     'algorithmVisualizers.evaluated.adapterInstances',
@@ -151,10 +150,6 @@ function SceneProvider({
     const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
 
     if (problemInstance === null || algorithmInstance === null) {
-      return {};
-    }
-
-    if (!problemAdapterCompatible) {
       return {};
     }
 
@@ -179,7 +174,6 @@ function SceneProvider({
   }, [
     problemInstanceEvaluation,
     algorithmInstanceEvaluation,
-    problemAdapterCompatible,
     algorithmVisualizersTree,
     algorithmState,
     algorithmVisualizersAdapterInstances,

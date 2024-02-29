@@ -41,7 +41,7 @@ export default function BoxExecutionPage() {
   const visualizations = useMemo(() => {
     return visualizerOrder.map((alias) => {
       const visualization: ErrorOr<SandboxVisualization<unknown>> =
-        visualizerInstances[alias].chain(({ value: instance }) => {
+        visualizerInstances[alias]?.chain(({ value: instance }) => {
           const input = inputs?.[alias] ?? {};
 
           const parseResult = instance.accepts.shape.safeParse(input);
@@ -53,7 +53,7 @@ export default function BoxExecutionPage() {
           }
 
           return success(instance.visualize(parseResult.data));
-        });
+        }) ?? error('Visualizer instance not found');
 
       return { alias, value: visualization };
     });
@@ -158,9 +158,11 @@ export default function BoxExecutionPage() {
     const getVisualizerName = (alias: string) => {
       const visualizer = visualizerInstances[alias];
 
-      return visualizer
-        .map(({ value }) => `${value.name} (${alias})`)
-        .unwrapOr(alias);
+      return (
+        visualizer
+          ?.map(({ value }) => `${value.name} (${alias})`)
+          .unwrapOr(alias) ?? alias
+      );
     };
 
     return {

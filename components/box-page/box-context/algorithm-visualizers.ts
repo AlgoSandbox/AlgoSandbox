@@ -14,8 +14,10 @@ import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
+import _ from 'lodash';
 import { compact, mapValues } from 'lodash';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export const defaultBoxContextAlgorithmVisualizer: BoxContextAlgorithmVisualizers =
   {
@@ -77,15 +79,54 @@ export default function useBoxContextAlgorithmVisualizers({
   value: AlgorithmVisualizers;
   onChange: (value: AlgorithmVisualizers) => void;
 }) {
-  const [parameters, setParameters] = useState<
-    Record<string, ParsedParameters<SandboxParameters> | null>
-  >({});
+  // const [parameters, setParameters] = useState<
+  //   Record<string, ParsedParameters<SandboxParameters> | null>
+  // >({});
+
+  const parameters = useMemo(() => {
+    return mapValues(value.adapters ?? {}, (keyWithParameters) => {
+      const { parameters } = parseKeyWithParameters(keyWithParameters);
+
+      return parameters ?? null;
+    });
+  }, [value.adapters]);
+
+  const setAliasParameter = useCallback(
+    (alias: string, parameters: Record<string, unknown> | null) => {
+      if (value.adapters === undefined) {
+        return;
+      }
+      const keyWithParameters = value.adapters[alias];
+      const { key } = parseKeyWithParameters(keyWithParameters);
+
+      if (parameters === null) {
+        onChange({
+          ...value,
+          adapters: _.omit(value.adapters, alias),
+        });
+        return;
+      }
+
+      onChange({
+        ...value,
+        adapters: {
+          ...value.adapters,
+          [alias]: {
+            key,
+            parameters,
+          },
+        },
+      });
+    },
+    [onChange, value],
+  );
 
   const selectedAdapters: Record<
     string,
     ErrorOr<CatalogOption<DbAdapterSaved>>
   > = useMemo(() => {
-    return mapValues(value?.adapters ?? {}, (key) => {
+    return mapValues(value?.adapters ?? {}, (keyWithParameters) => {
+      const { key } = parseKeyWithParameters(keyWithParameters);
       const option = adapterOptions
         .flatMap((group) => group.options)
         .find((option) => option.value.key === key);
@@ -201,7 +242,7 @@ export default function useBoxContextAlgorithmVisualizers({
           value: parameters,
           default: defaultParameters,
           setValue: (alias, value) => {
-            setParameters((prev) => ({ ...prev, [alias]: value }));
+            setAliasParameter(alias, value);
           },
         },
       },
@@ -216,6 +257,7 @@ export default function useBoxContextAlgorithmVisualizers({
     instances,
     parameters,
     defaultParameters,
+    setAliasParameter,
     onChange,
   ]);
 

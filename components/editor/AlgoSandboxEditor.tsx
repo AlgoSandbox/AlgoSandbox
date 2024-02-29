@@ -3,7 +3,7 @@ import { useQueries } from '@tanstack/react-query';
 import getImportNames from '@utils/npm-fetcher/getImportNames';
 import getTypeDefinitionsWithWorker from '@utils/npm-fetcher/getTypeDefinitionsWithWorker';
 import * as EsModuleLexer from 'es-module-lexer';
-import { debounce } from 'lodash';
+import { compact, debounce } from 'lodash';
 import { useTheme } from 'next-themes';
 import _path from 'path';
 import { useEffect, useMemo, useState } from 'react';
@@ -70,14 +70,16 @@ export default function AlgoSandboxEditor({
     }),
   });
 
+  const libDeclarationData = useMemo(() => {
+    return compact(libDeclarationQueries.map((query) => query.data));
+  }, [libDeclarationQueries]);
+
+  console.log('libDeclarationData', libDeclarationData);
+
   const libDeclarations = useMemo(() => {
     const flattenedTypeDefinitions: Record<string, string> = {};
 
-    for (const { data } of libDeclarationQueries) {
-      if (data === undefined) {
-        continue;
-      }
-
+    for (const data of libDeclarationData) {
       for (const [packageName, files] of Object.entries(data)) {
         for (const [filePath, contents] of Object.entries(files)) {
           flattenedTypeDefinitions[
@@ -88,7 +90,7 @@ export default function AlgoSandboxEditor({
     }
 
     return flattenedTypeDefinitions;
-  }, [libDeclarationQueries]);
+  }, [libDeclarationData]);
 
   const monaco = useMonaco();
 
@@ -103,6 +105,17 @@ export default function AlgoSandboxEditor({
         content,
       }),
     );
+
+    const oldExtraLibs =
+      monaco.languages.typescript.typescriptDefaults.getExtraLibs();
+
+    console.log('extraLibs', extraLibs);
+    console.log('oldExtraLibs', oldExtraLibs);
+
+    if (extraLibs.every(({ filePath }) => filePath in oldExtraLibs)) {
+      console.log('lolequal');
+      return;
+    }
 
     monaco.languages.typescript.typescriptDefaults.setExtraLibs(extraLibs);
   }, [libDeclarations, monaco]);

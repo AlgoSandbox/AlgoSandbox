@@ -8,21 +8,24 @@ import { useAddSavedBoxMutation } from '@utils/db/boxes';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 export type SandboxBoxNamed = SandboxBox & { name: string };
+
+type BoxState = {
+  boxKey: string | null;
+  box: SandboxBoxNamed | null;
+};
 
 function LayoutImpl({
   children,
   box,
-  boxKey,
   onBoxChange,
   onBoxReset,
 }: {
   children: React.ReactNode;
   box: SandboxBoxNamed | null;
-  boxKey: string | null;
-  onBoxChange: (boxKey: string, box: SandboxBoxNamed | null) => void;
+  onBoxChange: (update: (oldBox: BoxState) => BoxState) => void;
   onBoxReset: () => void;
 }) {
   const { mutateAsync: saveBox } = useAddSavedBoxMutation();
@@ -48,11 +51,16 @@ function LayoutImpl({
       <BoxContextProvider
         box={box}
         onBoxUpdate={(update) => {
-          if (box === null || boxKey == null) {
-            return;
-          }
-          const newBox = update(box);
-          onBoxChange(boxKey, newBox);
+          onBoxChange(({ boxKey, box }) => {
+            if (box === null) {
+              return { boxKey, box };
+            }
+            const newBox = update(box);
+            return {
+              boxKey,
+              box: newBox,
+            };
+          });
         }}
         onBoxReset={onBoxReset}
         onBoxSaveAs={async (name) => {
@@ -70,7 +78,12 @@ function LayoutImpl({
             },
           } as const;
           const { key: newBoxKey } = await saveBox(newBox);
-          onBoxChange(newBoxKey, box);
+          onBoxChange(({ box }) => {
+            return {
+              boxKey: newBoxKey,
+              box,
+            };
+          });
         }}
       >
         {children}
@@ -143,15 +156,28 @@ function Layout({ children }: { children: React.ReactNode }) {
     };
   }, [originalBox, params, savedBox?.label]);
 
+  const [boxState, setBoxState] = useState<BoxState>({
+    boxKey,
+    box: boxFromUrlCustomized,
+  });
+
+  useEffect(() => {
+    setBoxState(() => ({
+      boxKey,
+      box: boxFromUrlCustomized,
+    }));
+  }, [boxFromUrlCustomized, boxKey]);
+
   const onBoxChange = useCallback(
-    (newBoxKey: string, box: SandboxBox | null) => {
-      if (box === null || originalBox === null) {
+    (boxKey: string | null, box: SandboxBox | null) => {
+      if (box === null || originalBox === null || boxKey === null) {
+        router.replace('/playground');
         return;
       }
 
       const searchParams = new URLSearchParams();
 
-      searchParams.set('box', newBoxKey);
+      searchParams.set('box', boxKey);
       if (box.problem !== originalBox?.problem) {
         searchParams.set('problem', JSON.stringify(box.problem));
       }
@@ -183,6 +209,10 @@ function Layout({ children }: { children: React.ReactNode }) {
     [originalBox, router],
   );
 
+  useEffect(() => {
+    onBoxChange(boxState.boxKey, boxState.box);
+  }, [boxState, onBoxChange]);
+
   const onBoxReset = useCallback(() => {
     if (boxKey === null) {
       return;
@@ -192,10 +222,9 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <LayoutImpl
-      boxKey={boxKey}
-      onBoxChange={onBoxChange}
+      onBoxChange={setBoxState}
       onBoxReset={onBoxReset}
-      box={boxFromUrlCustomized}
+      box={boxState.box}
     >
       {children}
     </LayoutImpl>

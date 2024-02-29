@@ -2,6 +2,7 @@ import { error } from '@app/errors/ErrorContext';
 import { useBoxContext } from '@components/box-page';
 import ComponentSelect from '@components/box-page/app-bar/ComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { useMemo } from 'react';
 
 export default function FlowchartAdapterSelect({
@@ -35,10 +36,12 @@ export default function FlowchartAdapterSelect({
     [alias, parametersAll],
   );
 
-  const adapterKey = useMemo(
-    () => (algorithmVisualizersTree.adapters ?? {})[alias],
-    [algorithmVisualizersTree.adapters, alias],
-  );
+  const adapterKey = useMemo(() => {
+    const keyWithParameters = (algorithmVisualizersTree.adapters ?? {})[alias];
+    const { key } = parseKeyWithParameters(keyWithParameters);
+
+    return key;
+  }, [algorithmVisualizersTree.adapters, alias]);
 
   const adapterEvaluation =
     evaluatedAdapters[alias]?.map(({ value }) => value) ??

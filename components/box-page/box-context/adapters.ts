@@ -13,8 +13,9 @@ import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
-import { compact, mapValues } from 'lodash';
-import { useMemo, useState } from 'react';
+import parseKeyWithParameters from '@utils/parseKeyWithParameters';
+import _, { compact, mapValues } from 'lodash';
+import { useCallback, useMemo } from 'react';
 
 export type BoxContextAdapters = {
   composed: ErrorOr<SandboxAdapter<SandboxStateType, SandboxStateType> | null>;
@@ -56,12 +57,43 @@ export function useBoxContextAdapters({
   adapterConfiguration: AdapterConfigurationFlat;
   onAdapterConfigurationChange: (config: AdapterConfigurationFlat) => void;
 }) {
-  const [parameters, setParameters] = useState<
-    Record<string, ParsedParameters<SandboxParameters> | null>
-  >({});
+  const parameters = useMemo(() => {
+    return mapValues(adapterConfiguration.aliases, (keyWithParameters) => {
+      const { parameters } = parseKeyWithParameters(keyWithParameters);
+      return parameters ?? null;
+    });
+  }, [adapterConfiguration]);
+
+  const setAliasParameter = useCallback(
+    (alias: string, parameters: Record<string, unknown> | null) => {
+      const keyWithParameters = adapterConfiguration.aliases[alias];
+      const { key } = parseKeyWithParameters(keyWithParameters);
+
+      if (parameters === null) {
+        onAdapterConfigurationChange({
+          ...adapterConfiguration,
+          aliases: _.omit(adapterConfiguration.aliases, alias),
+        });
+        return;
+      }
+
+      onAdapterConfigurationChange({
+        ...adapterConfiguration,
+        aliases: {
+          ...adapterConfiguration.aliases,
+          [alias]: {
+            key,
+            parameters,
+          },
+        },
+      });
+    },
+    [adapterConfiguration, onAdapterConfigurationChange],
+  );
 
   const selectedAdapters = useMemo(() => {
-    return mapValues(adapterConfiguration.aliases, (key) => {
+    return mapValues(adapterConfiguration.aliases, (keyWithParameters) => {
+      const { key } = parseKeyWithParameters(keyWithParameters);
       const option = options
         .flatMap((group) => group.options)
         .find((option) => option.value.key === key);
@@ -159,7 +191,7 @@ export function useBoxContextAdapters({
         value: parameters,
         default: defaultParameters,
         setValue: (alias, value) => {
-          setParameters((prev) => ({ ...prev, [alias]: value }));
+          setAliasParameter(alias, value);
         },
       },
     };
@@ -168,12 +200,13 @@ export function useBoxContextAdapters({
   }, [
     composedAdapter,
     adapterConfiguration,
-    options,
-    parameters,
-    defaultParameters,
     onAdapterConfigurationChange,
     selectedAdapters,
+    options,
     evaluations,
+    parameters,
+    defaultParameters,
+    setAliasParameter,
   ]);
 
   return adapters;

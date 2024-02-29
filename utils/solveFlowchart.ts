@@ -82,9 +82,9 @@ export default function solveFlowchart({
     ),
   );
 
-  const outputs: Record<string, Record<string, unknown>> = {
-    problem: problemState ?? {},
-    algorithm: algorithmState ?? {},
+  const outputs: Record<string, Record<string, unknown> | undefined> = {
+    problem: problemState,
+    algorithm: algorithmState,
   };
 
   const inputs: Record<string, Record<string, unknown>> = {};
@@ -169,7 +169,8 @@ export default function solveFlowchart({
       connections.forEach(({ fromSlot, toSlot }) => {
         inputs[neighbor] = {
           ...inputs[neighbor],
-          [toSlot]: fromSlot !== '.' ? outputs[node][fromSlot] : outputs[node],
+          [toSlot]:
+            fromSlot !== '.' ? outputs[node]?.[fromSlot] : outputs[node],
         };
       });
 

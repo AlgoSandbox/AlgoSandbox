@@ -4,6 +4,7 @@ import clsx from 'clsx';
 export type TooltipProps = {
   content: React.ReactNode;
   children: React.ReactNode;
+  side?: 'top' | 'right' | 'bottom' | 'left';
   disabled?: boolean;
   open?: boolean;
 };
@@ -13,6 +14,7 @@ export default function Tooltip({
   children,
   disabled,
   open,
+  side = 'top',
 }: TooltipProps) {
   return disabled ? (
     children
@@ -21,6 +23,7 @@ export default function Tooltip({
       <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
       <RadixTooltip.Portal>
         <RadixTooltip.Content
+          side={side}
           hideWhenDetached
           className={clsx(
             'bg-surface rounded px-4 py-2 text-on-surface border z-30 max-w-md',

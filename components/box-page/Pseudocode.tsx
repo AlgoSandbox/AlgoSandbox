@@ -83,6 +83,7 @@ export default function Pseudocode({
         <div className="flex gap-1">
           {hasHighlight && (
             <Tooltip
+              side="right"
               open={tooltip !== undefined && showTooltip && isVisible}
               content={
                 <div className="space-y-4 py-2 w-[400px] flex flex-col">

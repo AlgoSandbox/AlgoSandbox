@@ -4,7 +4,7 @@ import {
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
 
-const pseudocode = `create frontier : stack
+const pseudocode = `create frontier
 create visited
 insert initial state to frontier and visited
 while frontier is not empty:

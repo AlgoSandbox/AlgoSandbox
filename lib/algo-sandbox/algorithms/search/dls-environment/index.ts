@@ -9,24 +9,24 @@ const depthLimitedSearch = createParameterizedAlgorithm({
   accepts: sandboxEnvironmentState,
   outputs: sandboxEnvironmentSearchState,
   parameters: {
-    maxDepth: SandboxParam.integer('Max depth', 10, (value) => {
+    depthLimit: SandboxParam.integer('Depth limit', 10, (value) => {
       if (value < 0) {
-        return 'Max depth must be greater than or equal 0';
+        return 'Depth limit must be greater than or equal 0';
       }
       if (value !== Math.floor(value)) {
-        return 'Max depth must be an integer';
+        return 'Depth limit must be an integer';
       }
 
       return true;
     }),
   },
-  getPseudocode: ({ maxDepth }) => `create frontier : stack
+  getPseudocode: ({ depthLimit }) => `create frontier : stack
 create visited
 insert (initial state, depth = 0) to frontier and visited
 while frontier is not empty:
   state, depth = frontier.pop()
   if state is goal: return solution
-  if depth >= maxDepth of ${maxDepth}: continue
+  if depth >= depthLimit of ${depthLimit}: continue
 
   for action in actions(state):
     next state = transition(state, action)
@@ -47,7 +47,7 @@ return failure`,
       searchTree: [],
     };
   },
-  *runAlgorithm({ line, state, problemState, parameters: { maxDepth } }) {
+  *runAlgorithm({ line, state, problemState, parameters: { depthLimit } }) {
     // create frontier
     // create visited
     yield line(
@@ -111,13 +111,13 @@ return failure`,
         );
       }
 
-      // if depth >= maxDepth: continue
-      if (depth >= maxDepth) {
+      // if depth >= depthLimit: continue
+      if (depth >= depthLimit) {
         yield line(
           7,
           `State ${problemState.getStateKey(
             state.currentState,
-          )} reached max depth of ${maxDepth}. Skip this node.`,
+          )} reached depth limit of ${depthLimit}. Skip this node.`,
         );
         continue;
       } else {
@@ -125,7 +125,7 @@ return failure`,
           7,
           `State ${problemState.getStateKey(
             state.currentState,
-          )} has not reached max depth of ${maxDepth}.`,
+          )} has not reached depth limit of ${depthLimit}.`,
         );
       }
 

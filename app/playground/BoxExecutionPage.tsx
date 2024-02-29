@@ -127,6 +127,7 @@ export default function BoxExecutionPage() {
             pseudocode={pseudocode}
             startLine={executionStep?.startLine}
             endLine={executionStep?.endLine}
+            tooltip={executionStep?.tooltip}
           />
         );
       }

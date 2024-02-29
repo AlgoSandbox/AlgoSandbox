@@ -1,9 +1,11 @@
+import { Tooltip } from '@components/ui';
 import clsx from 'clsx';
 
 export type PseudocodeProps = {
   pseudocode: string;
-  startLine?: number;
-  endLine?: number;
+  startLine: number | undefined;
+  endLine: number | undefined;
+  tooltip: string | undefined;
   className?: string;
 };
 
@@ -11,6 +13,7 @@ export default function Pseudocode({
   pseudocode,
   startLine,
   endLine,
+  tooltip,
   className,
 }: PseudocodeProps) {
   const hasHighlight = startLine !== undefined && endLine !== undefined;
@@ -21,13 +24,15 @@ export default function Pseudocode({
     >
       <div className="flex gap-1">
         {hasHighlight && (
-          <span
-            className="w-full bg-primary/30 absolute top-0 -z-10 transition-all rounded"
-            style={{
-              transform: `translateY(${startLine - 1}rem)`,
-              height: `${endLine - startLine + 1}rem`,
-            }}
-          />
+          <Tooltip content={tooltip} alwaysShow={tooltip !== undefined}>
+            <span
+              className="w-full bg-primary/30 absolute top-0 -z-10 transition-all rounded"
+              style={{
+                transform: `translateY(${startLine - 1}rem)`,
+                height: `${endLine - startLine + 1}rem`,
+              }}
+            />
+          </Tooltip>
         )}
         <div className="flex flex-col transition-colors text-on-surface/30 group-hover:text-on-surface/80 items-end">
           {Array.from({ length: pseudocode.split('\n').length }, (_, i) => (

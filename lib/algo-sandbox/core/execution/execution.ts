@@ -8,6 +8,7 @@ import { SandboxState, SandboxStateType } from '../state';
 export type SandboxExecutionStep<N extends SandboxStateType> = {
   startLine: number;
   endLine: number;
+  tooltip: string | undefined;
   state: SandboxState<N>;
 };
 
@@ -59,9 +60,18 @@ export class SandboxAlgorithmExecutor<
     const initialData = algorithm.createInitialState(problemState);
     const state = new SandboxStateImpl<M>(initialData);
 
-    const line = (start: number, end?: number) => {
+    // Either line(start, end, tooltip) or line(start, tooltip)
+    const line = (
+      start: number,
+      endOrTooltip?: number | string,
+      tooltip?: string,
+    ) => {
+      const end = typeof endOrTooltip === 'number' ? endOrTooltip : start;
+      const _tooltip =
+        typeof endOrTooltip === 'string' ? endOrTooltip : tooltip;
+
       // Sets the pseudocode to the current line
-      return this.makeExecutionStep(start, end ?? start, state);
+      return this.makeExecutionStep(start, end, _tooltip, state);
     };
 
     this.executionGenerator = this.algorithm.runAlgorithm({
@@ -118,11 +128,13 @@ export class SandboxAlgorithmExecutor<
   makeExecutionStep(
     startLine: number,
     endLine: number,
+    tooltip: string | undefined,
     state: SandboxExecutionState<M>,
-  ) {
+  ): SandboxExecutionStep<M> {
     return {
       startLine,
       endLine,
+      tooltip,
       state: state.clone().data,
     };
   }

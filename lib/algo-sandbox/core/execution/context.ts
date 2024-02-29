@@ -10,7 +10,9 @@ export type SandboxExecutionContext<
   line: SandboxLineFunction<M>;
 };
 
-type SandboxLineFunction<N extends SandboxStateType> = (
+type SandboxLineFunction<N extends SandboxStateType> = ((
   start: number,
-  end?: number,
-) => SandboxExecutionStep<N>;
+  end: number,
+  tooltip?: string,
+) => SandboxExecutionStep<N>) &
+  ((start: number, tooltip?: string) => SandboxExecutionStep<N>);

@@ -865,7 +865,7 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   return (
-    <div className="relative w-full h-full flex flex-col">
+    <div className="relative w-full h-full flex flex-col items-center">
       <ReactFlow
         className={clsx(
           String.raw`[&_.react-flow\_\_handle]:border-2`,

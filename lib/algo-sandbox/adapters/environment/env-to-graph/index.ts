@@ -3,6 +3,7 @@ import {
   graphSearchAlgorithmState,
   sandboxEnvironmentSearchState,
 } from '@algo-sandbox/states';
+import { compact } from 'lodash';
 
 const envToGraph: SandboxAdapter<
   typeof sandboxEnvironmentSearchState,
@@ -39,9 +40,16 @@ const envToGraph: SandboxAdapter<
     }
     const nodeDepths = getDepths();
 
+    const visitedNodes = Array.from(value.visited);
+    const searchTreeNodes = compact(
+      value.searchTree.flatMap(({ source, result }) => [source, result]),
+    );
+
     return {
       graph: {
-        nodes: Array.from(value.visited).map((node) => ({ id: node })),
+        nodes: Array.from(new Set([...visitedNodes, ...searchTreeNodes])).map(
+          (node) => ({ id: node }),
+        ),
         edges: value.searchTree.map(({ source, result, action }) => {
           return {
             source,

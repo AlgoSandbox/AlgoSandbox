@@ -10,11 +10,11 @@ insert initial state to frontier and visited
 while frontier is not empty:
   state = frontier.pop()
   for action in actions(state):
-    nextState = transition(state, action)
-    if nextState in visited: continue
-    if nextState is goal: return solution
-    frontier.add(nextState)
-    visited.add(nextState)
+    next state = transition(state, action)
+    if next state in visited: continue
+    if next state is goal: return solution
+    frontier.add(next state)
+    visited.add(next state)
 return failure`;
 
 const breadthFirstSearch = createAlgorithm({
@@ -70,7 +70,7 @@ const breadthFirstSearch = createAlgorithm({
         6,
         `Get actions for current state ${problemState.getStateKey(
           state.currentState,
-        )}`,
+        )}.`,
       );
 
       for (const action of state.actions) {
@@ -101,7 +101,7 @@ const breadthFirstSearch = createAlgorithm({
         if (terminated) {
           yield line(
             9,
-            '$Next state {nextStateKey} is the goal. Solution found.',
+            `Next state ${nextStateKey} is the goal. Solution found.`,
           );
           return true;
         }

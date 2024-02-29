@@ -4,13 +4,29 @@ import {
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
 
-const pseudocode = `create frontier : stack
+const depthLimitedSearch = createParameterizedAlgorithm({
+  name: 'Depth-first search',
+  accepts: sandboxEnvironmentState,
+  outputs: sandboxEnvironmentSearchState,
+  parameters: {
+    maxDepth: SandboxParam.integer('Max depth', 10, (value) => {
+      if (value < 0) {
+        return 'Max depth must be greater than or equal 0';
+      }
+      if (value !== Math.floor(value)) {
+        return 'Max depth must be an integer';
+      }
+
+      return true;
+    }),
+  },
+  getPseudocode: ({ maxDepth }) => `create frontier : stack
 create visited
 insert (initial state, depth = 0) to frontier and visited
 while frontier is not empty:
   state, depth = frontier.pop()
   if state is goal: return solution
-  if depth >= maxDepth: continue
+  if depth >= maxDepth of ${maxDepth}: continue
 
   for action in actions(state):
     next state = transition(state, action)
@@ -18,16 +34,7 @@ while frontier is not empty:
     if next state is goal: return solution
     frontier.push(next state, depth + 1)
     visited.add(next state)
-return failure`;
-
-const depthLimitedSearch = createParameterizedAlgorithm({
-  name: 'Depth-first search',
-  accepts: sandboxEnvironmentState,
-  outputs: sandboxEnvironmentSearchState,
-  parameters: {
-    maxDepth: SandboxParam.integer('Max depth', 10),
-  },
-  getPseudocode: () => pseudocode,
+return failure`,
   createInitialState: (problem) => {
     const initialState = problem.getInitialState();
     return {

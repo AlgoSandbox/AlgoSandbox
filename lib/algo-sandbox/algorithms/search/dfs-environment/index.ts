@@ -5,21 +5,21 @@ import {
 } from '@algo-sandbox/states';
 
 const pseudocode = `DFS(G, start):
-  Create an empty stack toVisit
+  Create an empty stack frontier
   Create a boolean array visited of size |V| (where V is the set of vertices)
   Initialize all elements of visited to false
 
-  Push start into toVisit
+  Push start into frontier
   Set visited[start] to true
 
-  while toVisit is not empty:
-    Pop a state s from toVisit
+  while frontier is not empty:
+    Pop a state s from frontier
     if s is a goal state, terminate
 
     for each action in actions(s):
       let u be the neighbor of s that is reached by action
       if u is not visited:
-        Push u onto toVisit
+        Push u onto frontier
         Set visited[u] to true`;
 
 const depthFirstSearch = createAlgorithm({
@@ -33,7 +33,7 @@ const depthFirstSearch = createAlgorithm({
       currentState: initialState,
       initialState,
       visited: new Set<string>(),
-      toVisit: [],
+      frontier: [],
       actions: problem.actions(initialState),
       getStateKey: problem.getStateKey,
       searchTree: [],
@@ -42,16 +42,16 @@ const depthFirstSearch = createAlgorithm({
   *runAlgorithm({ line, state, problemState }) {
     yield line(2, 4);
     // Push start onto S
-    state.toVisit.push({ state: state.currentState, isGoal: false, cost: 0 });
+    state.frontier.push({ state: state.currentState, isGoal: false, cost: 0 });
     yield line(6);
 
     // Set visited[start] to true
     state.visited.add(problemState.getStateKey(state.currentState));
     yield line(7);
 
-    while (state.toVisit.length > 0) {
+    while (state.frontier.length > 0) {
       yield line(9);
-      const { state: visitedState, isGoal, cost } = state.toVisit.pop()!;
+      const { state: visitedState, isGoal, cost } = state.frontier.pop()!;
       state.currentState = visitedState;
       state.actions = problemState.actions(state.currentState);
       yield line(10, 11);
@@ -71,7 +71,7 @@ const depthFirstSearch = createAlgorithm({
         const currentKey = problemState.getStateKey(state.currentState);
 
         if (!state.visited.has(neighborKey)) {
-          state.toVisit.push({
+          state.frontier.push({
             state: nextState,
             isGoal: terminated,
             cost: cost + 1,

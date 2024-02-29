@@ -53,9 +53,9 @@ const box: SandboxBox = {
         },
         {
           fromKey: 'adapter-0',
-          fromSlot: 'toVisit',
+          fromSlot: 'frontier',
           toKey: 'visualizer-2',
-          toSlot: 'toVisit',
+          toSlot: 'frontier',
         },
         {
           fromKey: 'adapter-0',

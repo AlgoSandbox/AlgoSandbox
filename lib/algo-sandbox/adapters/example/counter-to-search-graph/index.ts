@@ -23,7 +23,7 @@ const counterToSearchGraph: SandboxAdapter<
       visited: new Set(
         Array.from({ length: nodeCount - 1 }, (_, i) => i.toString()),
       ),
-      toVisit: [],
+      frontier: [],
       currentNodeId: (nodeCount - 1).toString(),
       initialNodeId: '0',
     };

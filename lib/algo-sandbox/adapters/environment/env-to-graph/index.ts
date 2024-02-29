@@ -16,10 +16,10 @@ const envToGraph: SandboxAdapter<
 
       const current = value.getStateKey(value.initialState);
       const visited = new Set();
-      const toVisit = [{ node: current, depth: 0 }];
+      const frontier = [{ node: current, depth: 0 }];
 
-      while (toVisit.length > 0) {
-        const popped = toVisit.shift();
+      while (frontier.length > 0) {
+        const popped = frontier.shift();
         if (popped === undefined) break;
 
         const { node: current, depth } = popped;
@@ -31,7 +31,7 @@ const envToGraph: SandboxAdapter<
             if (result === undefined) return;
             if (visited.has(result)) return;
             visited.add(result);
-            toVisit.push({ node: result, depth: depth + 1 });
+            frontier.push({ node: result, depth: depth + 1 });
           });
       }
 
@@ -54,7 +54,7 @@ const envToGraph: SandboxAdapter<
       nodeDepths,
       currentNodeId: value.getStateKey(value.currentState),
       initialNodeId: value.getStateKey(value.initialState),
-      toVisit: value.toVisit.map(({ state }) => value.getStateKey(state)),
+      frontier: value.frontier.map(({ state }) => value.getStateKey(state)),
       visited: value.visited,
     };
   },

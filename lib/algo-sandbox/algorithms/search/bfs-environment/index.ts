@@ -4,26 +4,21 @@ import {
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
 
-const pseudocode = `BFS(G, start):
-  Create an empty queue toVisit
-  Create a boolean array visited of size |V| (where V is the set of vertices)
-  Initialize all elements of visited to false
-
-  Enqueue start into toVisit
-  Set visited[start] to true
-
-  while toVisit is not empty:
-      Dequeue a state s from toVisit
-      if s is a goal state, terminate
-
-      for each action in actions(s):
-          let u be the neighbor of s that is reached by action
-          if u is not visited:
-              Enqueue u into toVisit
-              Set visited[u] to true`;
+const pseudocode = `create frontier
+create visited
+insert initial state to frontier and visited
+while frontier is not empty:
+  state = frontier.pop()
+  for action in actions(state):
+    nextState = transition(state, action)
+    if nextState in visited: continue
+    if nextState is goal: return solution
+    frontier.add(nextState)
+    visited.add(nextState)
+return failure`;
 
 const breadthFirstSearch = createAlgorithm({
-  name: 'Breadth-first search (env)',
+  name: 'Breadth-first search',
   accepts: sandboxEnvironmentState,
   outputs: sandboxEnvironmentSearchState,
   pseudocode,
@@ -33,70 +28,102 @@ const breadthFirstSearch = createAlgorithm({
       currentState: initialState,
       initialState,
       visited: new Set<string>(),
-      toVisit: [],
+      frontier: [],
       actions: problem.actions(initialState),
       getStateKey: problem.getStateKey,
       searchTree: [],
     };
   },
   *runAlgorithm({ line, state, problemState }) {
-    yield line(2, 4);
-    // Enqueue start into Q
-    state.toVisit.push({ state: state.currentState, isGoal: false, cost: 0 });
-    yield line(6);
+    // create frontier
+    // create visited
+    yield line(
+      1,
+      2,
+      'Create a frontier to keep track of the states to visit, and a visited set to keep track of visited states.',
+    );
 
-    // Set visited[start] to true
+    // insert initial state to frontier and visited
+    state.frontier.push({ state: state.currentState, cost: 0, isGoal: false });
     state.visited.add(problemState.getStateKey(state.currentState));
-    yield line(7);
+    yield line(3, 'Insert the initial state to frontier and visited set.');
 
+    // while frontier is not empty
     while (true) {
-      yield line(9);
-      if (state.toVisit.length === 0) {
+      // check if frontier is empty
+      if (state.frontier.length === 0) {
         break;
       }
-      const {
-        state: visitedState,
-        isGoal,
-        cost,
-      } = state.toVisit.splice(0, 1)[0];
+      yield line(4, 'Check if frontier is empty.');
+
+      // state = frontier.pop()
+      const { state: visitedState, cost } = state.frontier.shift()!;
       state.currentState = visitedState;
+      yield line(
+        5,
+        `Pop ${problemState.getStateKey(state.currentState)} from frontier.`,
+      );
+
+      // for action in actions(state):
       state.actions = problemState.actions(state.currentState);
-      yield line(10, 11);
+      yield line(
+        6,
+        `Get actions for current state ${problemState.getStateKey(
+          state.currentState,
+        )}`,
+      );
 
-      if (isGoal) {
-        return true;
-      }
-
-      // each neighbor of v
       for (const action of state.actions) {
         const { nextState, terminated } = problemState.step(
           state.currentState,
           action,
         );
-
-        const neighborKey = problemState.getStateKey(nextState);
+        const nextStateKey = problemState.getStateKey(nextState);
         const currentKey = problemState.getStateKey(state.currentState);
+        state.searchTree = [
+          ...state.searchTree,
+          {
+            source: currentKey,
+            action,
+            result: nextStateKey,
+          },
+        ];
+        yield line(7, `Next state: ${problemState.getStateKey(nextState)}`);
 
-        if (!state.visited.has(neighborKey)) {
-          state.toVisit.push({
-            state: nextState,
-            isGoal: terminated,
-            cost: cost + 1,
-          });
-          state.visited.add(neighborKey);
-          state.searchTree = [
-            ...state.searchTree,
-            {
-              source: currentKey,
-              action,
-              result: neighborKey,
-            },
-          ];
+        // if nextState in visited: continue
+        if (state.visited.has(nextStateKey)) {
+          yield line(8, `Next state ${nextStateKey} is already visited.`);
+          continue;
         }
-      }
+        yield line(8, `Next state ${nextStateKey} is not visited.`);
 
-      yield line(13, 17);
+        // if nextState is goal: return solution
+        if (terminated) {
+          yield line(
+            9,
+            '$Next state {nextStateKey} is the goal. Solution found.',
+          );
+          return true;
+        }
+        yield line(9, `Next state ${nextStateKey} is not the goal.`);
+
+        // frontier.add(nextState)
+        // visited.add(nextState)
+        state.frontier.push({
+          state: nextState,
+          cost: cost + 1,
+          isGoal: false,
+        });
+        state.visited.add(nextStateKey);
+        yield line(
+          10,
+          11,
+          `Add next state ${nextStateKey} to frontier and visited set.`,
+        );
+      }
     }
+
+    yield line(12, 'Frontier is empty. No solution found.');
 
     return true;
   },

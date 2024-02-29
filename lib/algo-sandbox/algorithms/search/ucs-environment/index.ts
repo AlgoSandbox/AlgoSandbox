@@ -35,7 +35,7 @@ const uniformCostSearch = createAlgorithm({
       currentState: initialState,
       initialState,
       visited: new Set<string>(),
-      toVisit: [],
+      frontier: [],
       actions: problem.actions(initialState),
       getStateKey: problem.getStateKey,
       searchTree: [],
@@ -45,14 +45,14 @@ const uniformCostSearch = createAlgorithm({
     yield line(2, 4);
 
     // Add start to frontier with cost 0
-    state.toVisit.push({ state: state.currentState, cost: 0, isGoal: false });
+    state.frontier.push({ state: state.currentState, cost: 0, isGoal: false });
 
     yield line(6);
 
-    while (state.toVisit.length > 0) {
+    while (state.frontier.length > 0) {
       yield line(9);
 
-      const { state: visitedState, cost, isGoal } = state.toVisit.shift()!;
+      const { state: visitedState, cost, isGoal } = state.frontier.shift()!;
       state.currentState = visitedState;
       state.actions = problemState.actions(state.currentState);
 
@@ -80,7 +80,7 @@ const uniformCostSearch = createAlgorithm({
         if (
           !state.visited.has(neighborKey) ||
           newCost <
-            state.toVisit.find((item) => problemState.getStateKey(item.state))!
+            state.frontier.find((item) => problemState.getStateKey(item.state))!
               .cost
         ) {
           // Insert into priority queue, where 0 is the highest priority
@@ -89,8 +89,8 @@ const uniformCostSearch = createAlgorithm({
             cost: newCost,
             isGoal: terminated,
           };
-          state.toVisit.splice(
-            sortedIndexBy(state.toVisit, valueToInsert, 'cost'),
+          state.frontier.splice(
+            sortedIndexBy(state.frontier, valueToInsert, 'cost'),
             0,
             valueToInsert,
           );

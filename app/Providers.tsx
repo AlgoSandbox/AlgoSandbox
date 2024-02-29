@@ -5,6 +5,7 @@ import SandboxComponentsProvider from '@components/playground/SandboxComponentsP
 import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
 import { HeadingContextProvider } from '@components/ui/Heading';
 import { CatalogGroup } from '@constants/catalog';
+import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   DbAdapterSaved,
@@ -44,24 +45,26 @@ export default function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       <UserPreferencesProvider>
-        <HeadingContextProvider>
-          <AlgoSandboxEditorFilesContextProvider
-            algoSandboxFiles={algoSandboxFiles}
-            typeDeclarations={typeDeclarations}
-          >
-            <DndProvider backend={HTML5Backend}>
-              <SandboxComponentsProvider
-                builtInAdapterOptions={builtInAdapterOptions}
-                builtInAlgorithmOptions={builtInAlgorithmOptions}
-                builtInBoxOptions={builtInBoxOptions}
-                builtInProblemOptions={builtInProblemOptions}
-                builtInVisualizerOptions={builtInVisualizerOptions}
-              >
-                {children}
-              </SandboxComponentsProvider>
-            </DndProvider>
-          </AlgoSandboxEditorFilesContextProvider>
-        </HeadingContextProvider>
+        <RadixTooltip.Provider delayDuration={500} skipDelayDuration={500}>
+          <HeadingContextProvider>
+            <AlgoSandboxEditorFilesContextProvider
+              algoSandboxFiles={algoSandboxFiles}
+              typeDeclarations={typeDeclarations}
+            >
+              <DndProvider backend={HTML5Backend}>
+                <SandboxComponentsProvider
+                  builtInAdapterOptions={builtInAdapterOptions}
+                  builtInAlgorithmOptions={builtInAlgorithmOptions}
+                  builtInBoxOptions={builtInBoxOptions}
+                  builtInProblemOptions={builtInProblemOptions}
+                  builtInVisualizerOptions={builtInVisualizerOptions}
+                >
+                  {children}
+                </SandboxComponentsProvider>
+              </DndProvider>
+            </AlgoSandboxEditorFilesContextProvider>
+          </HeadingContextProvider>
+        </RadixTooltip.Provider>
       </UserPreferencesProvider>
     </QueryClientProvider>
   );

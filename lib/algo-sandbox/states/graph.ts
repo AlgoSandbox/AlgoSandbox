@@ -47,7 +47,7 @@ export const graphSearchAlgorithmState = createState(
   'Graph search algorithm state',
   z.object({
     graph: nodeGraph.shape,
-    toVisit: z.array(z.string()),
+    frontier: z.array(z.string()),
     visited: z.set(z.string()),
     initialNodeId: z.string(),
     currentNodeId: z.string().nullable(),

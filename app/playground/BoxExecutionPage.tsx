@@ -26,7 +26,8 @@ export default function BoxExecutionPage() {
   const { isBoxComponentsShown, maxExecutionStepCount } = useUserPreferences();
 
   const scene = useScene();
-  const { currentStepIndex } = useBoxControlsContext();
+  const { currentStepIndex, hasNext, hasPrevious, next, previous } =
+    useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
 
@@ -128,6 +129,11 @@ export default function BoxExecutionPage() {
             startLine={executionStep?.startLine}
             endLine={executionStep?.endLine}
             tooltip={executionStep?.tooltip}
+            stepNumber={currentStepIndex + 1}
+            onNext={next}
+            onPrevious={previous}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
           />
         );
       }
@@ -152,7 +158,18 @@ export default function BoxExecutionPage() {
         ),
       );
     },
-    [visualizations, pseudocode, executionStep],
+    [
+      visualizations,
+      pseudocode,
+      executionStep?.startLine,
+      executionStep?.endLine,
+      executionStep?.tooltip,
+      currentStepIndex,
+      next,
+      previous,
+      hasNext,
+      hasPrevious,
+    ],
   );
 
   const windowTitles = useMemo(() => {

@@ -37,7 +37,7 @@ export const sandboxEnvironmentSearchState = createState(
     visited: z.set(
       sandboxEnvironmentState.shape.shape.getStateKey.returnType(),
     ),
-    toVisit: z.array(
+    frontier: z.array(
       z.object({
         state: sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
         cost: z.number(),

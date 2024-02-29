@@ -3,6 +3,10 @@ import {
   DbSandboxObjectSaved,
   sandboxObjectType,
 } from '@utils/db';
+import {
+  compressToEncodedURIComponent,
+  decompressFromEncodedURIComponent,
+} from 'lz-string';
 import { useSearchParams } from 'next/navigation';
 
 export function exportObjectToRelativeUrl(object: DbSandboxObject) {
@@ -11,8 +15,7 @@ export function exportObjectToRelativeUrl(object: DbSandboxObject) {
   searchParams.set('name', name);
   searchParams.set(
     'files',
-    // TODO: Compress files to smaller format
-    Buffer.from(JSON.stringify(files)).toString('base64'),
+    compressToEncodedURIComponent(JSON.stringify(files)),
   );
   searchParams.set('type', type);
   return `/import?${searchParams.toString()}`;
@@ -29,7 +32,7 @@ export function useObjectFromUrl(): DbSandboxObject {
     }
 
     try {
-      return JSON.parse(Buffer.from(filesString, 'base64').toString('utf-8'));
+      return JSON.parse(decompressFromEncodedURIComponent(filesString));
     } catch {
       return {};
     }

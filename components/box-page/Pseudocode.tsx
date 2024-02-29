@@ -1,7 +1,26 @@
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import clsx from 'clsx';
-import { useEffect, useState } from 'react';
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+
+function useOnScreen(ref: RefObject<HTMLElement>) {
+  const [isIntersecting, setIntersecting] = useState(false);
+
+  const observer = useMemo(
+    () =>
+      new IntersectionObserver(([entry]) =>
+        setIntersecting(entry.isIntersecting),
+      ),
+    [],
+  );
+
+  useEffect(() => {
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [observer, ref]);
+
+  return isIntersecting;
+}
 
 export type PseudocodeProps = {
   pseudocode: string;
@@ -28,6 +47,8 @@ export default function Pseudocode({
   onNext,
   className,
 }: PseudocodeProps) {
+  const root = useRef<HTMLDivElement>(null);
+  const isVisible = useOnScreen(root);
   const hasHighlight = startLine !== undefined && endLine !== undefined;
   const [showTooltip, setShowTooltip] = useState(true);
 
@@ -45,7 +66,7 @@ export default function Pseudocode({
   }, [stepNumber, tooltip]);
 
   return (
-    <div className={className}>
+    <div className={className} ref={root}>
       <div className="p-2">
         <Button
           icon={
@@ -62,6 +83,7 @@ export default function Pseudocode({
         <div className="flex gap-1">
           {hasHighlight && (
             <Tooltip
+              open={tooltip !== undefined && showTooltip && isVisible}
               content={
                 <div className="space-y-4 py-2 w-[400px] flex flex-col">
                   <div className="flex justify-between items-center mb-2">
@@ -105,7 +127,6 @@ export default function Pseudocode({
                   </div>
                 </div>
               }
-              open={tooltip !== undefined && showTooltip}
             >
               <span
                 className="w-full bg-primary/30 absolute top-0 -z-10 transition-all rounded"

@@ -865,7 +865,7 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full flex flex-col">
       <ReactFlow
         className={clsx(
           String.raw`[&_.react-flow\_\_handle]:border-2`,
@@ -888,7 +888,7 @@ export default function AlgorithmVisualizerFlowchart({
       >
         <Background className="bg-canvas" />
       </ReactFlow>
-      <div className="absolute top-2 left-0 right-0 mx-auto flex gap-2 items-end justify-center">
+      <div className="absolute top-2 mx-auto flex gap-2 items-end">
         <CatalogSelect
           label="Add visualizer"
           options={visualizerOptions}

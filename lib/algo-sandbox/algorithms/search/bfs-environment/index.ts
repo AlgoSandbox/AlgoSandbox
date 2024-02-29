@@ -52,13 +52,16 @@ const breadthFirstSearch = createAlgorithm({
     while (true) {
       // check if frontier is empty
       if (state.frontier.length === 0) {
+        yield line(4, 'Frontier is empty.');
         break;
       }
-      yield line(4, 'Check if frontier is empty.');
+      yield line(4, 'Frontier is not empty.');
 
       // state = frontier.pop()
       const { state: visitedState, cost } = state.frontier.shift()!;
       state.currentState = visitedState;
+      const currentKey = problemState.getStateKey(state.currentState);
+
       yield line(
         5,
         `Pop ${problemState.getStateKey(state.currentState)} from frontier.`,
@@ -68,9 +71,7 @@ const breadthFirstSearch = createAlgorithm({
       state.actions = problemState.actions(state.currentState);
       yield line(
         6,
-        `Get actions for current state ${problemState.getStateKey(
-          state.currentState,
-        )}.`,
+        `Actions(${currentKey}) = ${state.actions.map(String).join(', ')}`,
       );
 
       for (const action of state.actions) {
@@ -79,7 +80,6 @@ const breadthFirstSearch = createAlgorithm({
           action,
         );
         const nextStateKey = problemState.getStateKey(nextState);
-        const currentKey = problemState.getStateKey(state.currentState);
         state.searchTree = [
           ...state.searchTree,
           {
@@ -88,7 +88,7 @@ const breadthFirstSearch = createAlgorithm({
             result: nextStateKey,
           },
         ];
-        yield line(7, `Next state: ${problemState.getStateKey(nextState)}`);
+        yield line(7, `Next state = ${problemState.getStateKey(nextState)}`);
 
         // if nextState in visited: continue
         if (state.visited.has(nextStateKey)) {

@@ -42,6 +42,7 @@ export const sandboxEnvironmentSearchState = createState(
         state: sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
         cost: z.number(),
         isGoal: z.boolean(),
+        data: z.any().optional(),
       }),
     ),
     getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,

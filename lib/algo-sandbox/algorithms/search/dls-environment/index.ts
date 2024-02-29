@@ -1,4 +1,4 @@
-import { createAlgorithm } from '@algo-sandbox/core';
+import { createParameterizedAlgorithm, SandboxParam } from '@algo-sandbox/core';
 import {
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
@@ -6,22 +6,28 @@ import {
 
 const pseudocode = `create frontier : stack
 create visited
-insert initial state to frontier and visited
+insert (initial state, depth = 0) to frontier and visited
 while frontier is not empty:
-  state = frontier.pop()
+  state, depth = frontier.pop()
+  if state is goal: return solution
+  if depth >= maxDepth: continue
+
   for action in actions(state):
     next state = transition(state, action)
     if next state in visited: continue
     if next state is goal: return solution
-    frontier.push(next state)
+    frontier.push(next state, depth + 1)
     visited.add(next state)
 return failure`;
 
-const depthFirstSearch = createAlgorithm({
+const depthLimitedSearch = createParameterizedAlgorithm({
   name: 'Depth-first search',
   accepts: sandboxEnvironmentState,
   outputs: sandboxEnvironmentSearchState,
-  pseudocode,
+  parameters: {
+    maxDepth: SandboxParam.integer('Max depth', 10),
+  },
+  getPseudocode: () => pseudocode,
   createInitialState: (problem) => {
     const initialState = problem.getInitialState();
     return {
@@ -34,7 +40,7 @@ const depthFirstSearch = createAlgorithm({
       searchTree: [],
     };
   },
-  *runAlgorithm({ line, state, problemState }) {
+  *runAlgorithm({ line, state, problemState, parameters: { maxDepth } }) {
     // create frontier
     // create visited
     yield line(
@@ -44,7 +50,12 @@ const depthFirstSearch = createAlgorithm({
     );
 
     // insert initial state to queue and visited
-    state.frontier.push({ state: state.currentState, cost: 0, isGoal: false });
+    state.frontier.push({
+      state: state.currentState,
+      cost: 0,
+      isGoal: false,
+      data: { depth: 0 },
+    });
     state.visited.add(problemState.getStateKey(state.currentState));
     yield line(3, 'Insert the initial state to frontier and visited set.');
 
@@ -58,15 +69,63 @@ const depthFirstSearch = createAlgorithm({
       yield line(4, 'Frontier is not empty.');
 
       // state = frontier.pop()
-      const { state: visitedState, cost } = state.frontier.pop()!;
+      const {
+        state: visitedState,
+        cost,
+        isGoal,
+        data: { depth: depthRaw },
+      } = state.frontier.pop()!;
+      const depth = depthRaw as number;
       state.currentState = visitedState;
       const currentKey = problemState.getStateKey(state.currentState);
-      yield line(5, `Pop ${currentKey} from frontier.`);
+
+      yield line(
+        5,
+        `Pop ${problemState.getStateKey(
+          state.currentState,
+        )} of depth ${depth} from frontier.`,
+      );
+
+      // if state is goal: return solution
+      if (isGoal) {
+        yield line(
+          6,
+          `State ${problemState.getStateKey(
+            state.currentState,
+          )} is the goal. Solution found.`,
+        );
+        return true;
+      } else {
+        yield line(
+          6,
+          `State ${problemState.getStateKey(
+            state.currentState,
+          )} is not the goal.`,
+        );
+      }
+
+      // if depth >= maxDepth: continue
+      if (depth >= maxDepth) {
+        yield line(
+          7,
+          `State ${problemState.getStateKey(
+            state.currentState,
+          )} reached max depth of ${maxDepth}. Skip this node.`,
+        );
+        continue;
+      } else {
+        yield line(
+          7,
+          `State ${problemState.getStateKey(
+            state.currentState,
+          )} has not reached max depth of ${maxDepth}.`,
+        );
+      }
 
       // for action in actions(state):
       state.actions = problemState.actions(state.currentState);
       yield line(
-        6,
+        9,
         `Actions(${currentKey}) = ${state.actions.map(String).join(', ')}`,
       );
 
@@ -84,24 +143,24 @@ const depthFirstSearch = createAlgorithm({
             result: nextStateKey,
           },
         ];
-        yield line(7, `Next state = ${problemState.getStateKey(nextState)}`);
+        yield line(10, `Next state = ${problemState.getStateKey(nextState)}`);
 
         // if nextState in visited: continue
         if (state.visited.has(nextStateKey)) {
-          yield line(8, `Next state ${nextStateKey} is already visited.`);
+          yield line(11, `Next state ${nextStateKey} is already visited.`);
           continue;
         }
-        yield line(8, `Next state ${nextStateKey} is not visited.`);
+        yield line(11, `Next state ${nextStateKey} is not visited.`);
 
         // if nextState is goal: return solution
         if (terminated) {
           yield line(
-            9,
+            12,
             `Next state ${nextStateKey} is the goal. Solution found.`,
           );
           return true;
         }
-        yield line(9, `Next state ${nextStateKey} is not the goal.`);
+        yield line(12, `Next state ${nextStateKey} is not the goal.`);
 
         // frontier.push(next state)
         // visited.add(next state)
@@ -109,20 +168,25 @@ const depthFirstSearch = createAlgorithm({
           state: nextState,
           cost: cost + 1,
           isGoal: false,
+          data: {
+            depth: depth + 1,
+          },
         });
         state.visited.add(nextStateKey);
         yield line(
-          10,
-          11,
-          `Add next state ${nextStateKey} to frontier and visited set.`,
+          13,
+          14,
+          `Add next state ${nextStateKey}, depth = ${
+            depth + 1
+          } to frontier and visited set.`,
         );
       }
     }
 
-    yield line(12, 'Frontier is empty. No solution found.');
+    yield line(15, 'Frontier is empty. No solution found.');
 
     return true;
   },
 });
 
-export default depthFirstSearch;
+export default depthLimitedSearch;

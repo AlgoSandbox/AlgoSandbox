@@ -74,8 +74,6 @@ export default function AlgoSandboxEditor({
     return compact(libDeclarationQueries.map((query) => query.data));
   }, [libDeclarationQueries]);
 
-  console.log('libDeclarationData', libDeclarationData);
-
   const libDeclarations = useMemo(() => {
     const flattenedTypeDefinitions: Record<string, string> = {};
 
@@ -105,17 +103,6 @@ export default function AlgoSandboxEditor({
         content,
       }),
     );
-
-    const oldExtraLibs =
-      monaco.languages.typescript.typescriptDefaults.getExtraLibs();
-
-    console.log('extraLibs', extraLibs);
-    console.log('oldExtraLibs', oldExtraLibs);
-
-    if (extraLibs.every(({ filePath }) => filePath in oldExtraLibs)) {
-      console.log('lolequal');
-      return;
-    }
 
     monaco.languages.typescript.typescriptDefaults.setExtraLibs(extraLibs);
   }, [libDeclarations, monaco]);

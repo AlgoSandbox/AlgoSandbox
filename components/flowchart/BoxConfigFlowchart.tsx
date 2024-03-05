@@ -107,7 +107,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
     }, [edges, nodeId, nodeInternals]);
 
     const isUsingInputMainSlot = connectedEdges.some(
-      (edge) => edge.targetHandle === '.',
+      (edge) => edge.target === nodeId && edge.targetHandle === '.',
     );
 
     function createLeftSlot({
@@ -133,7 +133,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
 
       return (
         <div
-          key={id}
+          key={`input-${id}`}
           className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
         >
           <Handle
@@ -244,7 +244,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
 
       return (
         <div
-          key={id}
+          key={`output-${id}`}
           className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
         >
           {isMainSlot && (

@@ -5,7 +5,14 @@ export type SandboxStateType<T extends z.ZodType = z.SomeZodObject> = {
   shape: T;
 };
 
-export function createState<T extends z.SomeZodObject>(
+export type SandboxNullableStateType<
+  T extends z.ZodType = z.SomeZodObject | z.ZodUndefined,
+> = {
+  name: string;
+  shape: T;
+};
+
+export function createState<T extends z.SomeZodObject | z.ZodUndefined>(
   name: string,
   shape: T,
 ): SandboxStateType<T> {

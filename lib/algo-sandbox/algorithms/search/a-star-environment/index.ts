@@ -1,47 +1,57 @@
-import { createAlgorithm } from '@algo-sandbox/core';
+import { createAlgorithm, createState } from '@algo-sandbox/core';
 import {
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
 import { sortedIndexBy } from 'lodash';
+import { z } from 'zod';
 
 const pseudocode = `create frontier (priority queue based on cost)
 create visited
-insert (initial state, cost = 0) to frontier and visited
+insert (initial state, g(state) = 0, cost = h(state)) to frontier and visited
 while frontier is not empty:
-  state, state cost = frontier.pop() with lowest cost
+  state, g(state), f(state) = frontier.pop() with lowest f(state)
   if state is goal: return solution
 
   for action in actions(state):
     next state = transition(state, action)
-    new cost = state cost + cost(action)
+    g(next state) = g(state) + cost(action)
+    new cost = g(next state) + h(next state)
     if next state in visited:
       frontier cost = frontier.getCost(next state)
       if frontier cost is null: continue
       if frontier cost > new cost: continue
     else:
       visited.add(next state)
-    frontier.add(next state, new cost)
+    frontier.add(next state, g(next state), new cost)
 return failure`;
 
-const uniformCostSearch = createAlgorithm({
-  name: 'Uniform-cost search',
-  accepts: sandboxEnvironmentState,
+const aStarInputState = createState(
+  'A* input',
+  z.object({
+    environment: sandboxEnvironmentState.shape,
+    heuristic: z.function().returns(z.number()),
+  }),
+);
+
+const aStarSearch = createAlgorithm({
+  name: 'A* search',
+  accepts: aStarInputState,
   outputs: sandboxEnvironmentSearchState,
   pseudocode,
-  createInitialState: (problem) => {
-    const initialState = problem.getInitialState();
+  createInitialState: ({ environment }) => {
+    const initialState = environment.getInitialState();
     return {
       currentState: initialState,
       initialState,
       visited: new Set<string>(),
       frontier: [],
-      actions: problem.actions(initialState),
-      getStateKey: problem.getStateKey,
+      actions: environment.actions(initialState),
+      getStateKey: environment.getStateKey,
       searchTree: [],
     };
   },
-  *runAlgorithm({ line, state, problemState }) {
+  *runAlgorithm({ line, state, problemState: { environment, heuristic } }) {
     // create frontier (priority queue based on cost)
     // create visited
     yield line(
@@ -53,10 +63,13 @@ const uniformCostSearch = createAlgorithm({
     // insert initial state to frontier and visited
     state.frontier.push({
       state: state.currentState,
-      cost: 0,
+      cost: heuristic(state.currentState),
       isGoal: false,
+      data: {
+        g: 0,
+      },
     });
-    state.visited.add(problemState.getStateKey(state.currentState));
+    state.visited.add(environment.getStateKey(state.currentState));
     yield line(3, 'Insert the initial state to frontier and visited set.');
 
     // while frontier is not empty
@@ -68,9 +81,14 @@ const uniformCostSearch = createAlgorithm({
       yield line(4, 'Check if frontier is empty.');
 
       // state = frontier.pop() with lowest cost
-      const { state: visitedState, cost, isGoal } = state.frontier.shift()!;
+      const {
+        state: visitedState,
+        cost,
+        isGoal,
+        data,
+      } = state.frontier.shift()!;
       state.currentState = visitedState;
-      const currentKey = problemState.getStateKey(state.currentState);
+      const currentKey = environment.getStateKey(state.currentState);
       yield line(5, `Pop ${currentKey} with cost ${cost} from frontier.`);
 
       // if state is goal: return solution
@@ -82,15 +100,15 @@ const uniformCostSearch = createAlgorithm({
       }
 
       // for action in actions(state):
-      state.actions = problemState.actions(state.currentState);
+      state.actions = environment.actions(state.currentState);
       yield line(6, `Get actions for current state ${currentKey}.`);
 
       for (const action of state.actions) {
-        const { nextState, terminated, reward } = problemState.step(
+        const { nextState, terminated, reward } = environment.step(
           state.currentState,
           action,
         );
-        const nextStateKey = problemState.getStateKey(nextState);
+        const nextStateKey = environment.getStateKey(nextState);
         state.searchTree = [
           ...state.searchTree,
           {
@@ -101,14 +119,19 @@ const uniformCostSearch = createAlgorithm({
         ];
         yield line(9, `Next state: ${nextStateKey}`);
 
-        const newCost = cost - reward;
+        const g = data.g as number;
+        const h = heuristic(nextState);
+        const newG = g - reward;
+        const newCost = newG + h;
         const currentCost =
           state.frontier.find(
-            (f) => problemState.getStateKey(f.state) === nextStateKey,
+            (f) => environment.getStateKey(f.state) === nextStateKey,
           )?.cost ?? null;
         yield line(
           10,
-          `New cost: ${newCost}, Current cost: ${currentCost ?? 'Infinity'}`,
+          `New cost: ${newCost} (${cost - reward} + ${h}), Current cost: ${
+            currentCost ?? 'Infinity'
+          }`,
         );
 
         // if next state in visited:
@@ -119,31 +142,31 @@ const uniformCostSearch = createAlgorithm({
 
         // if nextState in visited: continue
         if (state.visited.has(nextStateKey)) {
-          yield line(11, `Next state ${nextStateKey} is already visited.`);
+          yield line(12, `Next state ${nextStateKey} is already visited.`);
 
           if (currentCost === null) {
             yield line(
-              13,
+              14,
               `${nextStateKey} has already been visited. Continue`,
             );
             continue;
           } else if (currentCost > newCost) {
             yield line(
-              14,
+              15,
               `Current cost ${currentCost} is greater than new cost ${newCost}.`,
             );
           } else {
             yield line(
-              14,
+              15,
               `Current cost ${currentCost} is less than new cost ${newCost}. Continue.`,
             );
             continue;
           }
         } else {
-          yield line(15, `Next state ${nextStateKey} is not visited.`);
+          yield line(16, `Next state ${nextStateKey} is not visited.`);
 
           state.visited.add(nextStateKey);
-          yield line(16, `Add next state ${nextStateKey} to visited set.`);
+          yield line(17, `Add next state ${nextStateKey} to visited set.`);
         }
 
         // Insert into priority queue, where 0 is the highest priority
@@ -151,6 +174,9 @@ const uniformCostSearch = createAlgorithm({
           state: nextState,
           cost: newCost,
           isGoal: terminated,
+          data: {
+            g: newG,
+          },
         };
         /// Insert to the correct position in the frontier
         state.frontier.splice(
@@ -160,7 +186,7 @@ const uniformCostSearch = createAlgorithm({
         );
 
         yield line(
-          17,
+          18,
           `Add next state ${nextStateKey} to frontier with cost ${newCost}.`,
         );
       }
@@ -172,4 +198,4 @@ const uniformCostSearch = createAlgorithm({
   },
 });
 
-export default uniformCostSearch;
+export default aStarSearch;

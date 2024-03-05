@@ -1,22 +1,27 @@
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
 import Heading from '@components/ui/Heading';
 import clsx from 'clsx';
-import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 
 function useOnScreen(ref: RefObject<HTMLElement>) {
   const [isIntersecting, setIntersecting] = useState(false);
-
-  const observer = useMemo(
-    () =>
-      new IntersectionObserver(([entry]) =>
-        setIntersecting(entry.isIntersecting),
-      ),
-    [],
-  );
+  const observer = useRef<IntersectionObserver>();
 
   useEffect(() => {
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    observer.current = new IntersectionObserver(([entry]) =>
+      setIntersecting(entry.isIntersecting),
+    );
+
+    return () => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (ref.current) observer.current?.observe(ref.current);
+    return () => observer.current?.disconnect();
   }, [observer, ref]);
 
   return isIntersecting;
@@ -83,7 +88,7 @@ export default function Pseudocode({
         <div className="flex gap-1">
           {hasHighlight && (
             <Tooltip
-              side="right"
+              side="bottom"
               open={tooltip !== undefined && showTooltip && isVisible}
               content={
                 <div className="space-y-4 py-2 w-[400px] flex flex-col">

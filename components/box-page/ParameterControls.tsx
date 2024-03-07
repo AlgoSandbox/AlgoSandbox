@@ -1,12 +1,42 @@
 import { SandboxParameter, SandboxParameters } from '@algo-sandbox/core';
-import { useFormContext } from 'react-hook-form';
+import { useState } from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 
 import { Button, Input, MaterialSymbol } from '../ui';
+import GraphEditorDialog from './GraphEditor';
 
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;
   parameter: P;
 };
+
+function GraphEditorDialogControl({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        label="Edit graph"
+        type="button"
+        variant="filled"
+        icon={<MaterialSymbol icon="edit" />}
+        onClick={() => setOpen(true)}
+      />
+      <GraphEditorDialog
+        open={open}
+        onOpenChange={setOpen}
+        value={value}
+        onChange={onChange}
+      />
+    </>
+  );
+}
 
 function ParameterControl<P extends SandboxParameter>({
   fieldName,
@@ -14,6 +44,7 @@ function ParameterControl<P extends SandboxParameter>({
 }: ParameterControlProps<P>) {
   const {
     register,
+    control,
     setValue,
     watch,
     formState: { errors },
@@ -77,6 +108,25 @@ function ParameterControl<P extends SandboxParameter>({
             error={errors[fieldName]?.message?.toString()}
             {...register(fieldName, { validate: parameter.validate })}
           />
+        );
+      case 'graph':
+        return (
+          <Controller
+            control={control}
+            name={fieldName}
+            render={({ field: { onChange, value } }) => (
+              <GraphEditorDialogControl
+                value={value}
+                onChange={(value) => {
+                  onChange({
+                    target: {
+                      value,
+                    },
+                  });
+                }}
+              />
+            )}
+          ></Controller>
         );
       default:
         parameter.type satisfies never;

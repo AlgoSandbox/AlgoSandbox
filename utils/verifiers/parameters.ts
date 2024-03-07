@@ -12,6 +12,7 @@ export const sandboxParameterType = z.union([
   z.literal('float'),
   z.literal('integer'),
   z.literal('string'),
+  z.literal('graph'),
 ]) satisfies z.ZodType<SandboxParameterType>;
 
 export const sandboxParameterValue = z.union([

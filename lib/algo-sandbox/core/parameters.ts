@@ -5,6 +5,7 @@ export type SandboxParameterTypeMap = {
   float: number;
   integer: number;
   string: string;
+  graph: string;
 };
 
 export type SandboxParameterType = keyof SandboxParameterTypeMap;
@@ -112,6 +113,19 @@ export function string(
   };
 }
 
+export function graph(
+  name: string,
+  defaultValue: string,
+  validate?: (value: string) => string | boolean,
+): SandboxParameter<'graph'> {
+  return {
+    name,
+    type: 'graph',
+    defaultValue,
+    validate,
+  };
+}
+
 export function getDefaultParameters<P extends SandboxParameters>(
   parameters: P,
 ): ParsedParameters<P> {
@@ -126,4 +140,5 @@ export const SandboxParam = {
   float,
   integer,
   string,
+  graph,
 };

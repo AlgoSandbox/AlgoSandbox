@@ -1,59 +1,107 @@
 import { createParameterizedProblem, SandboxParam } from '@algo-sandbox/core';
-import { searchGraph, undirectedGraph } from '@algo-sandbox/states';
+import { nodeGraph, searchGraph } from '@algo-sandbox/states';
 import { z } from 'zod';
 
-type UndirectedGraph = z.infer<typeof undirectedGraph.shape>;
+type NodeGraph = z.infer<typeof nodeGraph.shape>;
+
+const defaultGraph: NodeGraph = {
+  nodes: 'ABCDEFGH'.split('').map((id) => ({ id })),
+  edges: [
+    {
+      source: 'A',
+      target: 'B',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'B',
+      target: 'C',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'C',
+      target: 'D',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'D',
+      target: 'E',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'E',
+      target: 'F',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'F',
+      target: 'G',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'G',
+      target: 'H',
+      weight: 1,
+      label: '1',
+    },
+    {
+      source: 'A',
+      target: 'D',
+      weight: 5,
+      label: '5',
+    },
+    {
+      source: 'A',
+      target: 'H',
+      weight: 10,
+      label: '10',
+    },
+    {
+      source: 'D',
+      target: 'H',
+      weight: 5,
+      label: '5',
+    },
+  ],
+  directed: false,
+};
 
 const weightedGraphGenerator = createParameterizedProblem({
-  name: 'Weighted Search graph generator',
+  name: 'Weighted search graph',
   type: searchGraph,
   parameters: {
-    edges: SandboxParam.string(
-      'Weighted Edges',
-      'A-B-1,B-C-1,C-D-1,D-E-1,E-F-1,F-G-1,G-H-1,A-D-5,A-H-10,D-H-5',
-      (value) =>
-        value.split(',').every((edge) => edge.split('-').length === 3) ||
-        'Invalid format; expected input in the form of "Node-Node-Cost"',
+    graph: SandboxParam.graph(
+      'Graph',
+      JSON.stringify(defaultGraph),
+      (value) => {
+        try {
+          nodeGraph.shape.parse(JSON.parse(value));
+          return true;
+        } catch {
+          return false;
+        }
+      },
     ),
     startNode: SandboxParam.string('Start Node', 'A'),
     goalNode: SandboxParam.string('Goal Node', 'H'),
   },
   getInitialState: (parameters) => {
-    const edgesSchema = z
-      .string()
-      .refine((value) => {
-        return value
-          .trim()
-          .split(',')
-          .every((edge) => edge.split('-').length === 3);
-      })
-      .transform((value) => {
-        return value
-          .trim()
-          .split(',')
-          .map((edge) => {
-            const [source, target, weight] = edge.split('-');
-            return {
-              source,
-              target,
-              weight: parseFloat(weight),
-              label: weight.toString(),
-            };
-          });
-      });
-    const edges = edgesSchema.parse(parameters.edges);
-
-    const nodes = Array.from(
-      new Set(edges.flatMap(({ source, target }) => [source, target])),
-    ).map(function (node) {
-      return { id: node };
-    });
-
-    const graph = {
-      nodes: nodes,
-      edges: edges,
-      directed: false,
-    } satisfies UndirectedGraph;
+    const graph = (() => {
+      try {
+        return nodeGraph.shape.parse(JSON.parse(parameters.graph));
+      } catch {
+        return {
+          nodes: [],
+          edges: [],
+          directed: false,
+        };
+      }
+    })();
 
     const initialState = {
       ...graph,
@@ -63,8 +111,8 @@ const weightedGraphGenerator = createParameterizedProblem({
 
     return initialState;
   },
-  getName: ({ edges, startNode, goalNode }) => {
-    return `Weighted Graph ${edges} with ${startNode} start node and ${goalNode} goal node`;
+  getName: ({ startNode, goalNode }) => {
+    return `Weighted graph with ${startNode} start node and ${goalNode} goal node`;
   },
 });
 

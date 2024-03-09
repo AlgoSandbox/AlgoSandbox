@@ -59,98 +59,108 @@ const array2d = createParameterizedVisualizer<
             width: '100%',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column',
-            alignContent: 'start',
-            padding: 8,
+            justifyContent: 'center',
           },
         },
-        ...array.map((row, rowIndex) => {
-          return createElement(
-            'div',
-            {
-              key: rowIndex,
-              style: {
-                display: 'flex',
-                alignItems: 'end',
-                // Remove top margin for rows after the first
-                marginBlockStart: rowIndex > 0 ? -1 : 0,
-              },
+        createElement(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              flexDirection: 'column',
+              alignContent: 'start',
+              padding: 8,
             },
-            createElement(
+          },
+          ...array.map((row, rowIndex) => {
+            return createElement(
               'div',
               {
-                className: 'text-label',
+                key: rowIndex,
                 style: {
-                  fontFamily: 'monospace',
-                  marginInlineEnd: 8,
-                  height: 40,
                   display: 'flex',
-                  alignItems: 'center',
+                  justifyContent: 'end',
+                  alignItems: 'end',
+                  // Remove top margin for rows after the first
+                  marginBlockStart: rowIndex > 0 ? -1 : 0,
                 },
               },
-              rowIndex,
-            ),
-            ...Array.from({ length: maxRowLength }, (_, colIndex) => {
-              const valueString = (() => {
-                if (colIndex >= row.length) {
-                  return '';
-                }
-
-                const element = row[colIndex];
-                const value =
-                  accessor === '' ? element : get(element, accessor);
-                return typeof value === 'object'
-                  ? JSON.stringify(value)
-                  : String(value);
-              })();
-
-              const isValueSignificant =
-                valueString !== '' && valueString !== '0';
-
-              return createElement(
+              createElement(
                 'div',
                 {
-                  key: colIndex,
+                  className: 'text-label',
                   style: {
+                    fontFamily: 'monospace',
+                    marginInlineEnd: 8,
+                    height: 40,
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 4,
                   },
                 },
-                rowIndex === 0 &&
+                rowIndex,
+              ),
+              ...Array.from({ length: maxRowLength }, (_, colIndex) => {
+                const valueString = (() => {
+                  if (colIndex >= row.length) {
+                    return '';
+                  }
+
+                  const element = row[colIndex];
+                  const value =
+                    accessor === '' ? element : get(element, accessor);
+                  return typeof value === 'object'
+                    ? JSON.stringify(value)
+                    : String(value);
+                })();
+
+                const isValueSignificant =
+                  valueString !== '' && valueString !== '0';
+
+                return createElement(
+                  'div',
+                  {
+                    key: colIndex,
+                    style: {
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 4,
+                    },
+                  },
+                  rowIndex === 0 &&
+                    createElement(
+                      'div',
+                      {
+                        className: 'text-label',
+                        style: {
+                          fontFamily: 'monospace',
+                        },
+                      },
+                      colIndex,
+                    ),
                   createElement(
                     'div',
                     {
-                      className: 'text-label',
+                      className: [
+                        colIndex < row.length ? 'border' : '',
+                        isValueSignificant ? 'text-on-primary' : 'text-border',
+                      ].join(' '),
                       style: {
-                        fontFamily: 'monospace',
+                        width: 40,
+                        height: 40,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginBlockStart: rowIndex > 0 ? 1 : 0,
                       },
                     },
-                    colIndex,
+                    colIndex < row.length && valueString,
                   ),
-                createElement(
-                  'div',
-                  {
-                    className: [
-                      colIndex < row.length ? 'border' : '',
-                      isValueSignificant ? 'text-on-primary' : 'text-border',
-                    ].join(' '),
-                    style: {
-                      width: 40,
-                      height: 40,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginBlockStart: rowIndex > 0 ? 1 : 0,
-                    },
-                  },
-                  colIndex < row.length && valueString,
-                ),
-              );
-            }),
-          );
-        }),
+                );
+              }),
+            );
+          }),
+        ),
       ),
     );
 

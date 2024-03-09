@@ -104,6 +104,9 @@ const array2d = createParameterizedVisualizer<
                   : String(value);
               })();
 
+              const isValueSignificant =
+                valueString !== '' && valueString !== '0';
+
               return createElement(
                 'div',
                 {
@@ -129,7 +132,10 @@ const array2d = createParameterizedVisualizer<
                 createElement(
                   'div',
                   {
-                    className: colIndex < row.length ? 'border' : '',
+                    className: [
+                      colIndex < row.length ? 'border' : '',
+                      isValueSignificant ? 'text-on-primary' : 'text-border',
+                    ].join(' '),
                     style: {
                       width: 40,
                       height: 40,

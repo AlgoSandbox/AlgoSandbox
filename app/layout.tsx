@@ -98,9 +98,10 @@ const algorithmGroupToFolderGlob = {
 };
 
 const problemGroupToFolderGlob = {
+  Backtracking: 'lib/algo-sandbox/problems/backtracking',
+  Example: 'lib/algo-sandbox/problems/example',
   Graphs: 'lib/algo-sandbox/problems/graphs',
   'Weighted graphs': 'lib/algo-sandbox/problems/weighted-graphs',
-  Example: 'lib/algo-sandbox/problems/example',
 };
 
 const visualizerGroupToFolderGlob = {

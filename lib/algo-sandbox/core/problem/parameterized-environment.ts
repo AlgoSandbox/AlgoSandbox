@@ -44,7 +44,7 @@ export function createParameterizedEnvironment<
 }: {
   name: string;
   initialStateType: T;
-  actionsType: z.ZodEnum<Actions>;
+  actionsType: z.ZodEnum<Actions> | z.ZodString;
   parameters: P;
   getStateKey: (
     state: SandboxState<T>,

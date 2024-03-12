@@ -101,6 +101,7 @@ const problemGroupToFolderGlob = {
   Backtracking: 'lib/algo-sandbox/problems/backtracking',
   Example: 'lib/algo-sandbox/problems/example',
   Graphs: 'lib/algo-sandbox/problems/graphs',
+  Grid: 'lib/algo-sandbox/problems/grid',
   'Weighted graphs': 'lib/algo-sandbox/problems/weighted-graphs',
 };
 

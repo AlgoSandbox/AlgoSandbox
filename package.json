@@ -30,6 +30,7 @@
     "next": "^14.1.0",
     "next-themes": "^0.2.1",
     "react": "^18.2.0",
+    "react-datasheet-grid": "^4.11.4",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
@@ -39,7 +40,9 @@
     "react-markdown": "^9.0.0",
     "react-mosaic-component": "^6.1.0",
     "react-resizable-panels": "^0.0.55",
+    "react-spreadsheet": "^0.9.4",
     "reactflow": "^11.10.1",
+    "scheduler": "^0.23.0",
     "sonner": "^1.4.0",
     "zod": "^3.22.2"
   },

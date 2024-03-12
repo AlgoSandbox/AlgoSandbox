@@ -679,7 +679,7 @@ export default function GraphEditorDialog({
   const initialGraph = useMemo(() => {
     try {
       return nodeGraph.shape.parse(JSON.parse(value));
-    } catch (e) {
+    } catch {
       return {
         nodes: [],
         edges: [],

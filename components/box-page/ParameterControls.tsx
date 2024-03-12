@@ -4,6 +4,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 import { Button, Input, MaterialSymbol } from '../ui';
 import GraphEditorDialog from './GraphEditor';
+import GridEditorDialog from './GridEditor';
 
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;
@@ -29,6 +30,34 @@ function GraphEditorDialogControl({
         onClick={() => setOpen(true)}
       />
       <GraphEditorDialog
+        open={open}
+        onOpenChange={setOpen}
+        value={value}
+        onChange={onChange}
+      />
+    </>
+  );
+}
+
+function GridEditorDialogControl({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        label="Edit grid"
+        type="button"
+        variant="filled"
+        icon={<MaterialSymbol icon="edit" />}
+        onClick={() => setOpen(true)}
+      />
+      <GridEditorDialog
         open={open}
         onOpenChange={setOpen}
         value={value}
@@ -126,8 +155,28 @@ function ParameterControl<P extends SandboxParameter>({
                 }}
               />
             )}
-          ></Controller>
+          />
         );
+      case 'grid':
+        return (
+          <Controller
+            control={control}
+            name={fieldName}
+            render={({ field: { onChange, value } }) => (
+              <GridEditorDialogControl
+                value={value}
+                onChange={(value) => {
+                  onChange({
+                    target: {
+                      value,
+                    },
+                  });
+                }}
+              />
+            )}
+          />
+        );
+
       default:
         parameter.type satisfies never;
     }

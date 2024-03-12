@@ -13,7 +13,23 @@ export const sandboxParameterType = z.union([
   z.literal('integer'),
   z.literal('string'),
   z.literal('graph'),
+  z.literal('grid'),
 ]) satisfies z.ZodType<SandboxParameterType>;
+
+export type AssertEqual<T, Expected> = [T] extends [Expected]
+  ? [Expected] extends [T]
+    ? true
+    : false
+  : false;
+
+export const assertType = <T, Expected>(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ..._: AssertEqual<T, Expected> extends true ? [] : ['invalid type']
+) => {
+  // noop
+};
+
+assertType<SandboxParameterType, z.infer<typeof sandboxParameterType>>();
 
 export const sandboxParameterValue = z.union([
   z.number(),

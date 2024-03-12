@@ -201,7 +201,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     };
   }, [originalBox, params, savedBox?.label]);
 
-  console.info('boxObject', boxFromUrlCustomized);
+  console.info('boxObject', JSON.stringify(boxFromUrlCustomized));
 
   const [boxState, setBoxState] = useState<BoxState>({
     boxKey,

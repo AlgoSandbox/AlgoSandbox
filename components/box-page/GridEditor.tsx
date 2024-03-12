@@ -1,29 +1,20 @@
+import GridViewer, {
+  gridToTableData,
+} from '@algo-sandbox/react-components/GridViewer';
 import { gridWorldState } from '@algo-sandbox/states';
 import { Button, Input, ResizeHandle } from '@components/ui';
 import Checkbox from '@components/ui/Checkbox';
 import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
-import clsx from 'clsx';
-import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Panel, PanelGroup } from 'react-resizable-panels';
-import {
-  CellBase,
-  DataViewerComponent,
-  EmptySelection,
-  Matrix,
-  Selection,
-} from 'react-spreadsheet';
+import { EmptySelection, Selection } from 'react-spreadsheet';
 import { z } from 'zod';
 
-import StyledSpreadsheet from './StyledSpreadsheet';
-
 type GridWorld = z.infer<typeof gridWorldState.shape>;
-type GridWorldObject = GridWorld['objects'][number];
-type GridWorldObjectWithoutPosition = Omit<GridWorldObject, 'x' | 'y'>;
 
 const objectTypes = Object.values(
   gridWorldState.shape.shape.objects.element.shape.type.Values,
@@ -115,45 +106,7 @@ function GridEditor({
     setHeight(initialGrid.height);
   }, [initialGrid]);
 
-  const rowLabels = useMemo(() => {
-    return Array.from({ length: height }, (_, index) => index.toString());
-  }, [height]);
-
-  const columnLabels = useMemo(() => {
-    return Array.from({ length: width }, (_, index) => index.toString());
-  }, [width]);
-
-  const initialData: Matrix<CellBase<Array<GridWorldObjectWithoutPosition>>> =
-    useMemo(() => {
-      const initialData = Array.from({ length: initialGrid.height }, () =>
-        Array.from({ length: initialGrid.width }, () => ({
-          value: [] as GridWorldObjectWithoutPosition[],
-          readOnly: true,
-        })),
-      );
-
-      for (const object of initialGrid.objects) {
-        if (object.x >= initialGrid.width || object.y >= initialGrid.height) {
-          continue;
-        }
-
-        initialData[object.y][object.x] = {
-          value: [
-            ...initialData[object.y][object.x].value,
-            {
-              type: object.type,
-            },
-          ],
-          readOnly: true,
-        };
-      }
-
-      return initialData;
-    }, [initialGrid.height, initialGrid.objects, initialGrid.width]);
-
-  const [data, setData] = useState(initialData);
-
-  const { resolvedTheme } = useTheme();
+  const [objects, setObjects] = useState(initialGrid.objects);
 
   const {
     register,
@@ -170,127 +123,75 @@ function GridEditor({
     },
   });
 
-  const onWidthChange = useCallback(
-    (newWidth: number) => {
-      setWidth(newWidth);
-      setData((prevData) => {
-        const newData = Array.from({ length: height }, (_, row) =>
-          Array.from({ length: newWidth }, (_, column) => {
-            if (column < prevData[row].length) {
-              return prevData[row][column];
-            }
-
-            return {
-              value: [],
-              readOnly: true,
-            };
-          }),
-        );
-
-        return newData;
-      });
-    },
-    [height],
-  );
-
-  const onHeightChange = useCallback(
-    (newHeight: number) => {
-      setHeight(newHeight);
-      setData((prevData) => {
-        const newData = Array.from({ length: newHeight }, (_, row) =>
-          Array.from({ length: width }, (_, column) => {
-            if (row < prevData.length) {
-              return prevData[row][column];
-            }
-
-            return {
-              value: [],
-              readOnly: true,
-            };
-          }),
-        );
-
-        return newData;
-      });
-    },
-    [width],
-  );
-
   const [selection, setSelection] = useState<Selection>(new EmptySelection());
   const [preBlurSelection, setPreBlurSelection] = useState<Selection>(
     new EmptySelection(),
   );
 
-  const selectionRange = useMemo(() => {
-    return selection.toRange(data);
-  }, [data, selection]);
-
   const onCheckedChange = useCallback(
     (objectType: ObjectType, checked: boolean) => {
-      setData((prevData) => {
-        const range = selectionRange ?? preBlurSelection.toRange(prevData);
+      setObjects((prevObjects) => {
+        const prevData = gridToTableData({
+          width,
+          height,
+          objects: prevObjects,
+        });
+
+        const range =
+          selection.toRange(prevData) ?? preBlurSelection.toRange(prevData);
 
         if (range === null) {
-          return prevData;
+          return prevObjects;
         }
 
-        const newData = [...prevData.map((row) => [...row])];
+        if (checked) {
+          const newObjects = [...prevObjects];
 
-        for (const point of range) {
-          const oldPoint = prevData.at(point.row)?.at(point.column);
+          for (const point of range) {
+            const { column: x, row: y } = point;
+            const hasObject = newObjects.some(
+              (obj) => obj.x === x && obj.y === y && obj.type === objectType,
+            );
 
-          if (checked) {
-            if (oldPoint?.value.some((object) => object.type === objectType)) {
+            if (hasObject) {
               continue;
             }
 
-            newData[point.row][point.column] = {
-              ...newData.at(point.row)?.at(point.column),
-              value: [
-                ...(newData.at(point.row)?.at(point.column)?.value ?? []),
-                {
-                  type: objectType,
-                },
-              ],
-            };
-          } else {
-            newData[point.row][point.column] = {
-              ...newData.at(point.row)?.at(point.column),
-              value:
-                newData
-                  .at(point.row)
-                  ?.at(point.column)
-                  ?.value.filter((object) => object.type !== objectType) ?? [],
-            };
+            newObjects.push({ x, y, type: objectType });
           }
-        }
 
-        return newData;
+          return newObjects;
+        } else {
+          return prevObjects.filter((obj) => {
+            return !Array(...range).some((point) => {
+              return (
+                obj.x === point.column &&
+                obj.y === point.row &&
+                obj.type === objectType
+              );
+            });
+          });
+        }
       });
     },
-    [preBlurSelection, selectionRange],
+    [width, height, selection, preBlurSelection],
   );
 
   const onSaveClick = useCallback(() => {
     const grid: GridWorld = {
       width,
       height,
-      objects: data.flatMap((row, y) =>
-        row.flatMap(
-          (cell, x) =>
-            cell?.value.flatMap((object) => ({
-              ...object,
-              x,
-              y,
-            })) ?? [],
-        ),
-      ),
+      objects,
     };
 
     onGridSave(grid);
-  }, [data, height, onGridSave, width]);
+  }, [height, objects, onGridSave, width]);
 
   const objectTypeEnabled = useMemo(() => {
+    const selectionRange = selection.toRange(
+      gridToTableData({ width, height, objects }),
+    );
+
     return Object.fromEntries(
       objectTypes.map((objectType) => {
         if (selectionRange === null) {
@@ -298,12 +199,12 @@ function GridEditor({
         }
 
         const hasObjectType = Array(...selectionRange).map((point) => {
-          const dataPoint = data.at(point.row)?.at(point.column);
-          if (dataPoint === undefined) {
-            return false;
-          }
-
-          return dataPoint.value.some((object) => object.type === objectType);
+          return objects.some(
+            (obj) =>
+              obj.x === point.column &&
+              obj.y === point.row &&
+              obj.type === objectType,
+          );
         });
 
         const checked = hasObjectType.every((value) => value)
@@ -315,7 +216,7 @@ function GridEditor({
         return [objectType, checked];
       }),
     ) as Record<ObjectType, boolean | 'indeterminate'>;
-  }, [data, selectionRange]);
+  }, [height, objects, selection, width]);
 
   useShortcuts({
     onCheckedChange,
@@ -331,8 +232,8 @@ function GridEditor({
         <div className="flex flex-col gap-y-4 p-2">
           <form
             onSubmit={handleSubmit((values) => {
-              onWidthChange(values.width);
-              onHeightChange(values.height);
+              setWidth(values.width);
+              setHeight(values.height);
               reset(values);
             })}
             className="space-y-4"
@@ -374,17 +275,16 @@ function GridEditor({
       </Panel>
       <ResizeHandle />
       <Panel className="overflow-auto">
-        <StyledSpreadsheet
-          data={data}
+        <GridViewer
+          width={width}
+          height={height}
+          objects={objects}
           onBlur={() => {
             setPreBlurSelection(selection);
           }}
-          rowLabels={rowLabels}
-          columnLabels={columnLabels}
-          DataViewer={CellDataViewer}
-          darkMode={resolvedTheme === 'dark'}
           selected={selection}
           onSelect={(newSelection) => {
+            const data = gridToTableData({ width, height, objects });
             if (newSelection.size(data) === 0) {
               return;
             }
@@ -396,34 +296,6 @@ function GridEditor({
     </PanelGroup>
   );
 }
-
-const CellDataViewer: DataViewerComponent<
-  CellBase<GridWorldObjectWithoutPosition[]>
-> = ({ evaluatedCell }) => {
-  const objectTypes = evaluatedCell?.value?.map(({ type }) => type) ?? [];
-  return (
-    <div
-      className={clsx(
-        'w-full h-full min-h-[70px] flex justify-center flex-wrap items-center',
-        objectTypes.includes('lava') && 'bg-red-200',
-        objectTypes.includes('wall') && 'dark:bg-neutral-700 bg-neutral-300',
-        'text-on-surface',
-      )}
-    >
-      {objectTypes.includes('ball') && <div>🏀</div>}
-      {objectTypes.includes('box') && <div>📦</div>}
-      {objectTypes.includes('door') && <div>🚪</div>}
-      {objectTypes.includes('key') && <div>🔑</div>}
-      {objectTypes.includes('agent') && <div>👤</div>}
-      {objectTypes.includes('goal') && <div>🏁</div>}
-      {objectTypes.includes('unseen') && (
-        <div className="text-label">unseen</div>
-      )}
-      {objectTypes.includes('empty') && <div className="text-label">empty</div>}
-      {objectTypes.includes('floor') && <div className="text-label">floor</div>}
-    </div>
-  );
-};
 
 export default function GridEditorDialog({
   open,

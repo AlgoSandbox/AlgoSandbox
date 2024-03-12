@@ -2,6 +2,7 @@ import * as adapters from '@algo-sandbox/adapters/example';
 import * as algorithms from '@algo-sandbox/algorithms';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
+import * as reactComponents from '@algo-sandbox/react-components';
 import * as states from '@algo-sandbox/states';
 import * as visualizers from '@algo-sandbox/visualizers';
 import {
@@ -57,6 +58,7 @@ export default function evalWithAlgoSandbox(
     '@algo-sandbox/problems': problems,
     '@algo-sandbox/states': states,
     '@algo-sandbox/visualizers': visualizers,
+    '@algo-sandbox/react-components': reactComponents,
     react: react,
     'react-dom/client': reactDomClient,
     'react-inspector': reactInspector,

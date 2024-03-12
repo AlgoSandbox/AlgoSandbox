@@ -108,6 +108,7 @@ const problemGroupToFolderGlob = {
 const visualizerGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/visualizers/graphs',
   Primitives: 'lib/algo-sandbox/visualizers/primitives',
+  Grid: 'lib/algo-sandbox/visualizers/grid',
 };
 
 const adapterGroupToFolderGlob = {

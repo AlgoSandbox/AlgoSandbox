@@ -3,7 +3,7 @@
 import 'react-mosaic-component/react-mosaic-component.css';
 
 import { SandboxVisualization } from '@algo-sandbox/core';
-import { VisualizerRenderer } from '@algo-sandbox/react-components';
+import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import { error, ErrorOr, success } from '@app/errors/ErrorContext';
 import {
   AppBar,
@@ -150,7 +150,7 @@ export default function BoxExecutionPage() {
           return <ErrorDisplay key={alias} errors={errorEntries} />;
         },
         (value) => (
-          <VisualizerRenderer
+          <VisualizationRenderer
             key={alias}
             className="w-full h-full"
             visualization={value}

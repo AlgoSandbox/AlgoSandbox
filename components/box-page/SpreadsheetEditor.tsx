@@ -1,6 +1,5 @@
 import Dialog from '@components/ui/Dialog';
 import { useTheme } from 'next-themes';
-import { useCallback } from 'react';
 import React from 'react';
 
 import StyledSpreadsheet from './StyledSpreadsheet';
@@ -22,18 +21,17 @@ function SpreadsheetEditor() {
 
 export default function SpreadsheetEditorDialog({
   open,
-  onOpenChange,
-  value,
-  onChange,
-}: {
+  onOpenChange, // value,
+} // onChange,
+: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   value: string;
   onChange: (value: string) => void;
 }) {
-  const onCancel = useCallback(() => {
-    onOpenChange(false);
-  }, [onOpenChange]);
+  // const onCancel = useCallback(() => {
+  //   onOpenChange(false);
+  // }, [onOpenChange]);
 
   return (
     <Dialog

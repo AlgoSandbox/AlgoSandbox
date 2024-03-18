@@ -409,6 +409,7 @@ export default function AlgorithmVisualizerFlowchart({
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
   const problem = useBoxContext('problem.instance');
+  const { reset, isBoxDirty } = useBoxContext();
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
 
   const configEvaluated = useBoxContext('config.evaluated');
@@ -969,6 +970,15 @@ export default function AlgorithmVisualizerFlowchart({
             label="Auto layout"
             onClick={autoLayoutNodes}
             icon={<MaterialSymbol icon="mitre" />}
+          />
+        </div>
+        <div className="rounded-full bg-surface overflow-clip border">
+          <Button
+            label="Reset box config"
+            variant="filled"
+            onClick={reset}
+            icon={<MaterialSymbol icon="settings_backup_restore" />}
+            disabled={!isBoxDirty}
           />
         </div>
       </div>

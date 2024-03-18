@@ -10,6 +10,7 @@ import {
   useBoxControlsContext,
 } from '@components/box-page';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
+import CustomizeViewPopover from '@components/box-page/app-bar/CustomizeViewPopover';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -345,6 +346,7 @@ function BoxPageImpl() {
                     <Button
                       label="Copy link"
                       onClick={handleCopyLinkClick}
+                      hideLabel
                       icon={<MaterialSymbol icon="link" />}
                     />
                   )}
@@ -353,12 +355,14 @@ function BoxPageImpl() {
                       label="Save"
                       disabled={!isBoxDirty}
                       onClick={handleSaveClick}
+                      hideLabel
                       icon={<MaterialSymbol icon="save" />}
                     />
                   )}
                   <Button
                     label="Save as new"
                     onClick={handleSaveAsNewClick}
+                    hideLabel
                     icon={<MaterialSymbol icon="save" />}
                   />
                   {isBoxCustom && (
@@ -371,7 +375,8 @@ function BoxPageImpl() {
                 </div>
               )}
             </div>
-            <div className="hidden lg:flex items-center">
+            <div className="hidden lg:flex items-center gap-4">
+              <CustomizeViewPopover />
               <BoxExecutionControls />
             </div>
           </div>
@@ -434,7 +439,8 @@ function BoxPageImpl() {
             </TabProvider>
           ))}
         </div>
-        <div className="flex justify-center items-center py-2 lg:hidden">
+        <div className="flex gap-4 justify-center items-center py-2 lg:hidden">
+          <CustomizeViewPopover />
           <BoxExecutionControls />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import Dialog from '@components/ui/Dialog';
+import { Dialog } from '@components/ui';
 import { useTheme } from 'next-themes';
 import React from 'react';
 
@@ -22,8 +22,8 @@ function SpreadsheetEditor() {
 export default function SpreadsheetEditorDialog({
   open,
   onOpenChange, // value,
-} // onChange,
-: {
+  // onChange,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   value: string;

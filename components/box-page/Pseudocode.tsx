@@ -1,5 +1,4 @@
-import { Button, MaterialSymbol, Tooltip } from '@components/ui';
-import Heading from '@components/ui/Heading';
+import { Button, Heading, MaterialSymbol, Tooltip } from '@components/ui';
 import clsx from 'clsx';
 import { RefObject, useEffect, useRef, useState } from 'react';
 
@@ -104,14 +103,6 @@ export default function Pseudocode({
                       hideLabel
                     />
                   </div>
-                  <code className="border bg-canvas p-2 rounded text-label flex flex-col text-sm">
-                    {pseudocode
-                      .split('\n')
-                      .slice(startLine - 1, endLine)
-                      .map((line, i) => {
-                        return <span key={i}>{line}</span>;
-                      })}
-                  </code>
                   <span>{tooltip ?? cachedTooltip}</span>
                   <div className="flex justify-between">
                     <Button

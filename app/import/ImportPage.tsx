@@ -2,7 +2,7 @@
 
 import SandboxObjectEditorPage from '@app/SandboxObjectEditorPage';
 import AppNavBar from '@components/AppNavBar';
-import Heading from '@components/ui/Heading';
+import { Heading } from '@components/ui';
 import { DbSandboxObject } from '@utils/db';
 import { useSaveObjectMutation } from '@utils/db/objects';
 import { useRouter } from 'next/navigation';

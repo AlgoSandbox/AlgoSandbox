@@ -2,10 +2,14 @@ import GridViewer, {
   gridToTableData,
 } from '@algo-sandbox/react-components/GridViewer';
 import { gridWorldState } from '@algo-sandbox/states';
-import { Button, Input, ResizeHandle } from '@components/ui';
-import Checkbox from '@components/ui/Checkbox';
-import Dialog from '@components/ui/Dialog';
-import Heading from '@components/ui/Heading';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  Heading,
+  Input,
+  ResizeHandle,
+} from '@components/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import React from 'react';
 import { useForm } from 'react-hook-form';

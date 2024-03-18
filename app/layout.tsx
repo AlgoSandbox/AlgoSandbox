@@ -9,7 +9,7 @@ import Providers from './Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
-import { Toaster } from '@components/ui/Toaster';
+import Toaster from '@components/ui/Toaster';
 import { CatalogGroup } from '@constants/catalog';
 import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
 import hyphenCaseToCamelCase from '@utils/hyphenCaseToCamelCase';

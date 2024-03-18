@@ -1,5 +1,4 @@
 import AlgorithmDetails from './AlgorithmDetails';
-import AppBar from './app-bar';
 import BoxContextProvider, { useBoxContext } from './box-context';
 import BoxControlsContextProvider, {
   useBoxControlsContext,
@@ -11,7 +10,6 @@ import Pseudocode from './Pseudocode';
 
 export {
   AlgorithmDetails,
-  AppBar,
   BoxContextProvider,
   BoxControlsContextProvider,
   BoxExecutionControls,

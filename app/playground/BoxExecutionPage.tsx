@@ -6,7 +6,6 @@ import { SandboxVisualization } from '@algo-sandbox/core';
 import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import { error, ErrorOr, success } from '@app/errors/ErrorContext';
 import {
-  AppBar,
   Pseudocode,
   useBoxContext,
   useBoxControlsContext,
@@ -195,11 +194,6 @@ export default function BoxExecutionPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <AppBar
-        allVisualizerOrder={allVisualizerOrder}
-        hiddenVisualizerAliases={hiddenVisualizerAliases}
-        onHiddenVisualizerAliasesChange={setHiddenVisualizerAliases}
-      />
       <main className="relative h-full flex flex-col z-0">
         <Mosaic<string>
           className={clsx(

@@ -1,7 +1,8 @@
 import { DirectoryExplorer } from '@components/box-environment-page';
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
-import { Button, Input, MaterialSymbol, ResizeHandle } from '@components/ui';
+import { Button, Input, MaterialSymbol } from '@components/ui';
 import Heading from '@components/ui/Heading';
+import ResizeHandle from '@components/ui/ResizeHandle';
 import { DbSandboxObject, DbSandboxObjectSaved } from '@utils/db';
 import {
   useDeleteObjectMutation,

@@ -2,14 +2,8 @@
 import { ErrorOr } from '@app/errors/ErrorContext';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
-import {
-  Badge,
-  Button,
-  Heading,
-  HeadingContent,
-  MaterialSymbol,
-  Popover,
-} from '@components/ui';
+import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
+import Heading, { HeadingContent } from '@components/ui/Heading';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectType } from '@utils/db';
 import clsx from 'clsx';

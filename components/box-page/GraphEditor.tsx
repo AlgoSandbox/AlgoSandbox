@@ -1,5 +1,7 @@
 import { graphNode, nodeGraph } from '@algo-sandbox/states';
-import { Button, Dialog, Input, MaterialSymbol, Toggle } from '@components/ui';
+import { Button, Input, MaterialSymbol } from '@components/ui';
+import Dialog from '@components/ui/Dialog';
+import Toggle from '@components/ui/Toggle';
 import clsx from 'clsx';
 import * as d3 from 'd3';
 import { useCallback, useEffect, useMemo, useState } from 'react';

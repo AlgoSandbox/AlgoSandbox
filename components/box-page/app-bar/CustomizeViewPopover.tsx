@@ -1,4 +1,5 @@
-import { Button, Checkbox, MaterialSymbol, Popover } from '@components/ui';
+import { Button, MaterialSymbol, Popover } from '@components/ui';
+import Checkbox from '@components/ui/Checkbox';
 import { useMemo, useState } from 'react';
 
 import { useBoxContext } from '..';

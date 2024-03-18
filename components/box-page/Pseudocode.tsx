@@ -1,4 +1,5 @@
-import { Button, Heading, MaterialSymbol, Tooltip } from '@components/ui';
+import { Button, MaterialSymbol, Tooltip } from '@components/ui';
+import Heading from '@components/ui/Heading';
 import clsx from 'clsx';
 import { RefObject, useEffect, useRef, useState } from 'react';
 

@@ -44,6 +44,7 @@
     "reactflow": "^11.10.1",
     "scheduler": "^0.23.0",
     "sonner": "^1.4.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.22.2"
   },
   "devDependencies": {

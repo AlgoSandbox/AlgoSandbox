@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Button, Input, MaterialSymbol } from '../ui';
+import DecisionTreeTrainingSetEditorDialog from './DecisionTreeTrainingSetEditor';
 import GraphEditorDialog from './GraphEditor';
 import GridEditorDialog from './GridEditor';
 
@@ -58,6 +59,34 @@ function GridEditorDialogControl({
         onClick={() => setOpen(true)}
       />
       <GridEditorDialog
+        open={open}
+        onOpenChange={setOpen}
+        value={value}
+        onChange={onChange}
+      />
+    </>
+  );
+}
+
+function SpreadsheetEditorDialogControl({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        label="Edit spreadsheet"
+        type="button"
+        variant="filled"
+        icon={<MaterialSymbol icon="edit" />}
+        onClick={() => setOpen(true)}
+      />
+      <DecisionTreeTrainingSetEditorDialog
         open={open}
         onOpenChange={setOpen}
         value={value}
@@ -176,7 +205,25 @@ function ParameterControl<P extends SandboxParameter>({
             )}
           />
         );
-
+      case 'spreadsheet':
+        return (
+          <Controller
+            control={control}
+            name={fieldName}
+            render={({ field: { onChange, value } }) => (
+              <SpreadsheetEditorDialogControl
+                value={value}
+                onChange={(value) => {
+                  onChange({
+                    target: {
+                      value,
+                    },
+                  });
+                }}
+              />
+            )}
+          />
+        );
       default:
         parameter.type satisfies never;
     }

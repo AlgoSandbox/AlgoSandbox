@@ -133,7 +133,7 @@ export default function Dialog({
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent size={size} className="overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="overflow-hidden">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
           {content}

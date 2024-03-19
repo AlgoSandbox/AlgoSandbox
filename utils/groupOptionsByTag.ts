@@ -35,13 +35,17 @@ export default function groupOptionsByTag<T extends DbSandboxObjectType>(
           })),
       };
     }),
-    {
-      key: '.',
-      label: 'Ungrouped',
-      options: noTagOptions.map((option) => ({
-        ...option,
-        key: `.${option.key}`,
-      })),
-    },
+    ...(noTagOptions.length > 0
+      ? [
+          {
+            key: '.',
+            label: 'Ungrouped',
+            options: noTagOptions.map((option) => ({
+              ...option,
+              key: `.${option.key}`,
+            })),
+          },
+        ]
+      : []),
   ];
 }

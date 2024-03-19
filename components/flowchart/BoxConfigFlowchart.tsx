@@ -11,6 +11,8 @@ import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
 import Dagre from '@dagrejs/dagre';
+import getZodTypeName from '@utils/zod/getZodTypeName';
+import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
 import { compact } from 'lodash';
 import React, {
@@ -39,7 +41,7 @@ import ReactFlow, {
   useNodeId,
   useStore,
 } from 'reactflow';
-import { ZodError } from 'zod';
+import { SomeZodObject, ZodError } from 'zod';
 
 import { useBoxContext } from '../box-page';
 import FlowchartAdapterSelect from './FlowchartAdapterSelect';
@@ -49,12 +51,16 @@ type FlowNodeData = {
   inputs?: Array<{
     id: string;
     label: string;
+    subLabel?: string;
+    subLabelTooltip?: string;
     hasValue: boolean;
     error: ZodError | null;
   }>;
   outputs?: Array<{
     id: string;
     label: string;
+    subLabel?: string;
+    subLabelTooltip?: string;
     hasValue: boolean;
   }>;
   alias: string;
@@ -114,10 +120,14 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       id,
       error,
       label,
+      subLabel,
+      subLabelTooltip,
       hasValue,
     }: {
       id: string;
       label: string;
+      subLabel?: string;
+      subLabelTooltip?: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       error: ZodError<any> | null;
       hasValue: boolean;
@@ -152,15 +162,31 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
             id={id}
             isConnectable={!isConnected}
           />
-          <span
+          <div
             className={clsx(
+              'flex flex-col',
               'font-mono',
               hasError && 'text-danger',
               !hasError && [shouldHighlight ? 'text-on-surface' : 'text-muted'],
             )}
           >
-            {label}
-          </span>
+            <span>{label}</span>
+            {!isMainSlot && (
+              <div className="flex gap-1 items-center">
+                {subLabel && (
+                  <span className="text-xs text-label">{subLabel}</span>
+                )}
+                {subLabelTooltip && (
+                  <Tooltip content={<pre>{subLabelTooltip}</pre>}>
+                    <MaterialSymbol
+                      icon="info"
+                      className="text-label !text-[16px]"
+                    />
+                  </Tooltip>
+                )}
+              </div>
+            )}
+          </div>
           {hasError && (
             <Tooltip
               content={
@@ -218,6 +244,11 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
                     Use this to conveniently fulfill the entire input with
                     another node&apos;s output.
                   </li>
+                  <br />
+                  <li>
+                    Slot value type:
+                    <pre>{subLabelTooltip}</pre>
+                  </li>
                 </ul>
               }
             >
@@ -231,10 +262,14 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
     function createRightSlot({
       id,
       label,
+      subLabel,
+      subLabelTooltip,
       hasValue,
     }: {
       id: string;
       label: string;
+      subLabel?: string;
+      subLabelTooltip?: string;
       hasValue: boolean;
     }) {
       const isMainSlot = id === '.';
@@ -257,20 +292,41 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
                     Use this to conveniently pass the entire output to another
                     node.
                   </li>
+                  <br />
+                  <li>
+                    Slot value type:
+                    <pre>{subLabelTooltip}</pre>
+                  </li>
                 </ul>
               }
             >
               <MaterialSymbol icon="info" className="text-label" />
             </Tooltip>
           )}
-          <span
+          <div
             className={clsx(
               'font-mono',
+              'flex flex-col items-end',
               hasValue ? 'text-on-surface' : 'text-muted',
             )}
           >
-            {label}
-          </span>
+            <span>{label}</span>
+            {!isMainSlot && (
+              <div className="flex gap-1 flex-row-reverse items-center">
+                {subLabel && (
+                  <span className="text-xs text-label">{subLabel}</span>
+                )}
+                {subLabelTooltip && (
+                  <Tooltip content={<pre>{subLabelTooltip}</pre>}>
+                    <MaterialSymbol
+                      icon="info"
+                      className="text-label !text-[16px]"
+                    />
+                  </Tooltip>
+                )}
+              </div>
+            )}
+          </div>
           <Handle
             className={clsx(
               isMainSlot ? '!w-6 !h-6 -me-3' : '!w-4 !h-4 -me-2',
@@ -344,15 +400,15 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
             <div className="flex flex-col gap-2">
               {inputs
                 .filter(({ id }) => id !== '.')
-                .map(({ id, label, hasValue, error }) => {
-                  return createLeftSlot({ id, error, hasValue, label });
+                .map((slot) => {
+                  return createLeftSlot(slot);
                 })}
             </div>
             <div className="flex flex-col items-end gap-2">
               {outputs
                 .filter(({ id }) => id !== '.')
-                .map(({ id, label, hasValue }) => {
-                  return createRightSlot({ id, label, hasValue });
+                .map((slot) => {
+                  return createRightSlot(slot);
                 })}
             </div>
           </div>
@@ -397,6 +453,67 @@ const getLayoutedElements = (
 };
 
 const proOptions = { hideAttribution: true };
+
+function makeSlot({
+  values,
+  errors,
+  param,
+  shape,
+}: {
+  values: Record<string, unknown> | undefined;
+  errors: Record<string, ZodError> | undefined;
+  param: string;
+  shape: SomeZodObject | undefined;
+}) {
+  const label = (() => {
+    if (param === '.') {
+      return '';
+    }
+
+    return param;
+  })();
+
+  const subLabel = (() => {
+    if (param === '.') {
+      return undefined;
+    }
+
+    if (shape === undefined) {
+      return 'unknown type';
+    }
+
+    return getZodTypeName(shape.shape[param]);
+  })();
+
+  const subLabelTooltip = (() => {
+    if (shape === undefined) {
+      return undefined;
+    }
+
+    if (param === '.') {
+      return stringifyZodType(shape);
+    }
+
+    return stringifyZodType(shape.shape[param]);
+  })();
+
+  const hasValue = (() => {
+    if (param === '.') {
+      return values !== undefined;
+    }
+
+    return Object.hasOwn(values ?? {}, param);
+  })();
+
+  return {
+    id: param,
+    label,
+    subLabel,
+    subLabelTooltip,
+    hasValue,
+    error: errors?.[param] ?? null,
+  };
+}
 
 export default function AlgorithmVisualizerFlowchart({
   tabId,
@@ -504,51 +621,20 @@ export default function AlgorithmVisualizerFlowchart({
               },
               evaluationError,
               inputs: ['.', ...inputSlots].map((param) => {
-                const label = (() => {
-                  if (param === '.') {
-                    return '';
-                  }
-
-                  return param;
-                })();
-
-                const hasValue = (() => {
-                  if (param === '.') {
-                    return inputs[alias] !== undefined;
-                  }
-
-                  return Object.hasOwn(inputs[alias] ?? {}, param);
-                })();
-
-                return {
-                  id: param,
-                  label,
-                  hasValue,
-                  error: inputErrors[alias]?.[param] ?? null,
-                };
+                return makeSlot({
+                  values: inputs[alias],
+                  errors: inputErrors[alias],
+                  param,
+                  shape: adapter?.accepts.shape,
+                });
               }),
               outputs: ['.', ...outputSlots].map((param) => {
-                const label = (() => {
-                  if (param === '.') {
-                    return '';
-                  }
-
-                  return param;
-                })();
-
-                const hasValue = (() => {
-                  if (param === '.') {
-                    return outputs[alias] !== undefined;
-                  }
-
-                  return Object.hasOwn(outputs[alias] ?? {}, param);
-                })();
-
-                return {
-                  id: param,
-                  label,
-                  hasValue,
-                };
+                return makeSlot({
+                  values: outputs[alias],
+                  errors: undefined,
+                  param,
+                  shape: adapter?.outputs.shape,
+                });
               }),
             },
           } satisfies Omit<FlowNode, 'position'>;
@@ -588,28 +674,12 @@ export default function AlgorithmVisualizerFlowchart({
             },
             evaluationError,
             inputs: ['.', ...inputSlots].map((param) => {
-              const hasValue = (() => {
-                if (param === '.') {
-                  return inputs[alias] !== undefined;
-                }
-
-                return Object.hasOwn(inputs[alias] ?? {}, param);
-              })();
-
-              const label = (() => {
-                if (param === '.') {
-                  return '';
-                }
-
-                return param;
-              })();
-
-              return {
-                id: param,
-                label,
-                hasValue,
-                error: inputErrors[alias]?.[param] ?? null,
-              };
+              return makeSlot({
+                values: inputs[alias],
+                errors: inputErrors[alias],
+                param,
+                shape: instance?.accepts.shape,
+              });
             }),
           },
         } satisfies Omit<FlowNode, 'position'>;
@@ -644,50 +714,20 @@ export default function AlgorithmVisualizerFlowchart({
           onDelete: () => {},
           evaluationError: algorithm.mapRight(() => null).value,
           inputs: ['.', ...algorithmInputSlots].map((param) => {
-            const hasValue = (() => {
-              if (param === '.') {
-                return inputs['algorithm'] !== undefined;
-              }
-              return Object.hasOwn(inputs['algorithm'] ?? {}, param);
-            })();
-
-            const label = (() => {
-              if (param === '.') {
-                return '';
-              }
-
-              return param;
-            })();
-
-            return {
-              id: param,
-              label,
-              hasValue,
-              error: inputErrors['algorithm']?.[param] ?? null,
-            };
+            return makeSlot({
+              values: inputs['algorithm'],
+              errors: inputErrors['algorithm'],
+              param,
+              shape: algorithm.unwrapOr(null)?.accepts.shape,
+            });
           }),
           outputs: ['.', ...algorithmOutputSlots].map((param) => {
-            const hasValue = (() => {
-              if (param === '.') {
-                return outputs['algorithm'] !== undefined;
-              }
-              return Object.hasOwn(outputs['algorithm'] ?? {}, param);
-            })();
-
-            const label = (() => {
-              if (param === '.') {
-                return '';
-              }
-
-              return param;
-            })();
-
-            return {
-              id: param,
-              label,
-              // TODO: Determine if algo is valid
-              hasValue,
-            };
+            return makeSlot({
+              values: outputs['algorithm'],
+              errors: undefined,
+              param,
+              shape: algorithm.unwrapOr(null)?.outputs.shape,
+            });
           }),
         },
       },
@@ -706,27 +746,12 @@ export default function AlgorithmVisualizerFlowchart({
           onDelete: () => {},
           evaluationError: problem.mapRight(() => null).value,
           outputs: ['.', ...problemOutputSlots].map((param) => {
-            const hasValue = (() => {
-              if (param === '.') {
-                return outputs['problem'] !== undefined;
-              }
-              return Object.hasOwn(outputs['problem'] ?? {}, param);
-            })();
-
-            const label = (() => {
-              if (param === '.') {
-                return '';
-              }
-
-              return param;
-            })();
-
-            return {
-              id: param,
-              label,
-              // TODO: Determine if algo is valid
-              hasValue,
-            };
+            return makeSlot({
+              values: outputs['problem'],
+              errors: undefined,
+              param,
+              shape: problem.unwrapOr(null)?.type.shape,
+            });
           }),
         },
       },

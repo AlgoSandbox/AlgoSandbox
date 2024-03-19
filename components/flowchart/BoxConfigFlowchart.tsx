@@ -7,6 +7,7 @@ import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
 import ErrorDisplay from '@components/common/ErrorDisplay';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
@@ -15,7 +16,7 @@ import groupOptionsByTag from '@utils/groupOptionsByTag';
 import getZodTypeName from '@utils/zod/getZodTypeName';
 import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
-import { compact } from 'lodash';
+import { compact, uniqWith } from 'lodash';
 import React, {
   forwardRef,
   useCallback,
@@ -67,6 +68,7 @@ type FlowNodeData = {
   alias: string;
   label: string;
   type: 'algorithm' | 'problem' | 'visualizer' | 'adapter';
+  deletable: boolean;
   onDelete: () => void;
   evaluationError: Array<ErrorEntry> | null;
 };
@@ -88,13 +90,14 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
         type,
         alias,
         onDelete,
+        deletable,
         evaluationError,
       },
       selected,
     },
     ref,
   ) => {
-    const deletable = type !== 'algorithm' && type !== 'problem';
+    const { flowchartMode } = useUserPreferences();
     const { nodeInternals, edges } = useStore(({ nodeInternals, edges }) => ({
       nodeInternals,
       edges,
@@ -161,7 +164,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
             type="target"
             position={Position.Left}
             id={id}
-            isConnectable={!isConnected}
+            isConnectable={!isConnected && flowchartMode === 'full'}
           />
           <div
             className={clsx(
@@ -235,7 +238,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
               <MaterialSymbol icon="info" className="text-label" />
             </Tooltip>
           )}
-          {isMainSlot && (
+          {isMainSlot && flowchartMode === 'full' && (
             <Tooltip
               content={
                 <ul>
@@ -283,7 +286,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           key={`output-${id}`}
           className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
         >
-          {isMainSlot && (
+          {isMainSlot && flowchartMode === 'full' && (
             <Tooltip
               content={
                 <ul>
@@ -397,22 +400,24 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
             {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
             {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
           </div>
-          <div className="flex justify-between py-2">
-            <div className="flex flex-col gap-2">
-              {inputs
-                .filter(({ id }) => id !== '.')
-                .map((slot) => {
-                  return createLeftSlot(slot);
-                })}
+          {flowchartMode === 'full' && (
+            <div className="flex justify-between py-2">
+              <div className="flex flex-col gap-2">
+                {inputs
+                  .filter(({ id }) => id !== '.')
+                  .map((slot) => {
+                    return createLeftSlot(slot);
+                  })}
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                {outputs
+                  .filter(({ id }) => id !== '.')
+                  .map((slot) => {
+                    return createRightSlot(slot);
+                  })}
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              {outputs
-                .filter(({ id }) => id !== '.')
-                .map((slot) => {
-                  return createRightSlot(slot);
-                })}
-            </div>
-          </div>
+          )}
         </div>
       </>
     );
@@ -529,6 +534,7 @@ export default function AlgorithmVisualizerFlowchart({
   const problem = useBoxContext('problem.instance');
   const { reset, isBoxDirty } = useBoxContext();
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
+  const { setFlowchartMode, flowchartMode } = useUserPreferences();
 
   const configEvaluated = useBoxContext('config.evaluated');
 
@@ -617,10 +623,12 @@ export default function AlgorithmVisualizerFlowchart({
             height: getNodeHeight({
               slotCount,
             }),
+            deletable: flowchartMode === 'full',
             data: {
               alias,
               type: 'adapter',
               label: name ?? alias,
+              deletable: flowchartMode === 'full',
               onDelete: () => {
                 onNodeDelete('adapter', alias);
               },
@@ -647,6 +655,7 @@ export default function AlgorithmVisualizerFlowchart({
       ),
     [
       configEvaluated.adapterInstances,
+      flowchartMode,
       inputErrors,
       inputs,
       onNodeDelete,
@@ -670,6 +679,7 @@ export default function AlgorithmVisualizerFlowchart({
           height: getNodeHeight({
             slotCount: inputSlots.length,
           }),
+          deletable: flowchartMode === 'full',
           data: {
             type: 'visualizer',
             alias,
@@ -677,6 +687,7 @@ export default function AlgorithmVisualizerFlowchart({
             onDelete: () => {
               onNodeDelete('visualizer', alias);
             },
+            deletable: flowchartMode === 'full',
             evaluationError,
             inputs: ['.', ...inputSlots].map((param) => {
               return makeSlot({
@@ -690,7 +701,7 @@ export default function AlgorithmVisualizerFlowchart({
         } satisfies Omit<FlowNode, 'position'>;
       }),
     );
-  }, [inputErrors, inputs, onNodeDelete, visualizerInstances]);
+  }, [flowchartMode, inputErrors, inputs, onNodeDelete, visualizerInstances]);
 
   const initialNodes = useMemo(() => {
     const problemOutputSlots = Object.keys(problemOutputs);
@@ -717,6 +728,7 @@ export default function AlgorithmVisualizerFlowchart({
           alias: 'algorithm',
           label: algorithmName,
           onDelete: () => {},
+          deletable: false,
           evaluationError: algorithm.mapRight(() => null).value,
           inputs: ['.', ...algorithmInputSlots].map((param) => {
             return makeSlot({
@@ -749,6 +761,7 @@ export default function AlgorithmVisualizerFlowchart({
           alias: 'problem',
           label: problemName,
           onDelete: () => {},
+          deletable: false,
           evaluationError: problem.mapRight(() => null).value,
           outputs: ['.', ...problemOutputSlots].map((param) => {
             return makeSlot({
@@ -779,44 +792,62 @@ export default function AlgorithmVisualizerFlowchart({
   ]);
 
   const initialEdges = useMemo(() => {
-    const nodesUsingInputMainSlot = configEvaluated.composition.connections
+    // Return a fake edge if in simple mode
+    const connections = (() => {
+      if (flowchartMode === 'simple') {
+        const connections = configEvaluated.composition.connections.map(
+          ({ fromKey, toKey }) => ({
+            fromKey,
+            fromSlot: '.',
+            toKey,
+            toSlot: '.',
+          }),
+        );
+
+        return uniqWith(connections, (a, b) => {
+          return a.fromKey === b.fromKey && a.toKey === b.toKey;
+        });
+      }
+
+      return configEvaluated.composition.connections;
+    })();
+
+    const nodesUsingInputMainSlot = connections
       .filter(({ toSlot }) => toSlot === '.')
       .map(({ toKey }) => toKey);
 
-    return configEvaluated.composition.connections.map(
-      ({ fromKey, fromSlot, toKey, toSlot }) => {
-        const hasValue = (() => {
-          if (fromSlot === '.') {
-            return true;
-          }
-          return Object.hasOwn(outputs[fromKey] ?? {}, fromSlot);
-        })();
+    return connections.map(({ fromKey, fromSlot, toKey, toSlot }) => {
+      const hasValue = (() => {
+        if (fromSlot === '.') {
+          return true;
+        }
+        return Object.hasOwn(outputs[fromKey] ?? {}, fromSlot);
+      })();
 
-        const isShadowedByMainSlot =
-          toSlot !== '.' && nodesUsingInputMainSlot.includes(toKey);
-        const isActive = hasValue && !isShadowedByMainSlot;
+      const isShadowedByMainSlot =
+        toSlot !== '.' && nodesUsingInputMainSlot.includes(toKey);
+      const isActive = hasValue && !isShadowedByMainSlot;
 
-        return {
-          id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
-          source: fromKey,
-          sourceHandle: fromSlot,
-          target: toKey,
-          targetHandle: toSlot,
-          className: clsx([
-            // Using String.raw to avoid escaping behaviour when using \_\_
-            // See: https://github.com/tailwindlabs/tailwindcss/issues/8881
-            String.raw`[&_.react-flow\_\_edge-path]:transition-colors`,
-            String.raw`[&_.react-flow\_\_edge-path]:stroke-2 [&_.react-flow\_\_edge-path]:hover:!stroke-[4px]`,
-            isActive && String.raw`[&>.react-flow\_\_edge-path]:!stroke-label`,
-            !isActive &&
-              String.raw`[&>.react-flow\_\_edge-path]:!stroke-border`,
-            String.raw`[&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-accent [&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-[4px]`,
-          ]),
-          animated: isActive,
-        };
-      },
-    ) as Array<Edge>;
-  }, [configEvaluated.composition.connections, outputs]);
+      return {
+        id: `${fromKey}-${fromSlot}-${toKey}-${toSlot}`,
+        source: fromKey,
+        sourceHandle: fromSlot,
+        target: toKey,
+        targetHandle: toSlot,
+        className: clsx([
+          // Using String.raw to avoid escaping behaviour when using \_\_
+          // See: https://github.com/tailwindlabs/tailwindcss/issues/8881
+          String.raw`[&_.react-flow\_\_edge-path]:transition-colors`,
+          String.raw`[&_.react-flow\_\_edge-path]:stroke-2 [&_.react-flow\_\_edge-path]:hover:!stroke-[4px]`,
+          isActive && String.raw`[&>.react-flow\_\_edge-path]:!stroke-label`,
+          !isActive && String.raw`[&>.react-flow\_\_edge-path]:!stroke-border`,
+          String.raw`[&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-accent [&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-[4px]`,
+        ]),
+        animated: isActive,
+        deletable: flowchartMode === 'full',
+      };
+    }) as Array<Edge>;
+  }, [configEvaluated.composition.connections, flowchartMode, outputs]);
 
   const [nodes, setNodes] = useState<Array<FlowNode>>(
     // TODO: Remove typecast
@@ -948,10 +979,32 @@ export default function AlgorithmVisualizerFlowchart({
       >
         <Background className="bg-canvas" />
       </ReactFlow>
-      <div className="absolute top-2 mx-auto flex gap-2 items-end">
+      <div className="absolute top-4 start-4 flex gap-2">
+        <Button
+          label="Simple"
+          role="checkbox"
+          variant="filled"
+          selected={flowchartMode === 'simple'}
+          onClick={() => {
+            setFlowchartMode('simple');
+          }}
+        />
+        <Button
+          label="Full"
+          role="checkbox"
+          variant="filled"
+          selected={flowchartMode === 'full'}
+          onClick={() => {
+            setFlowchartMode('full');
+          }}
+        />
+      </div>
+      <div className="absolute top-4 mx-auto flex gap-2 items-start">
         <CatalogSelect
           label="Add component"
+          hideLabel
           options={componentOptions}
+          placeholder="Add component"
           value={undefined}
           onChange={(value) => {
             if (value === null) {
@@ -995,22 +1048,19 @@ export default function AlgorithmVisualizerFlowchart({
             }
           }}
         />
-        <div className="rounded-full bg-surface overflow-clip border">
-          <Button
-            label="Auto layout"
-            onClick={autoLayoutNodes}
-            icon={<MaterialSymbol icon="mitre" />}
-          />
-        </div>
-        <div className="rounded-full bg-surface overflow-clip border">
-          <Button
-            label="Reset box config"
-            variant="filled"
-            onClick={reset}
-            icon={<MaterialSymbol icon="settings_backup_restore" />}
-            disabled={!isBoxDirty}
-          />
-        </div>
+        <Button
+          label="Auto layout"
+          variant="filled"
+          onClick={autoLayoutNodes}
+          icon={<MaterialSymbol icon="mitre" />}
+        />
+        <Button
+          label="Reset box config"
+          variant="filled"
+          onClick={reset}
+          icon={<MaterialSymbol icon="settings_backup_restore" />}
+          disabled={!isBoxDirty}
+        />
       </div>
     </div>
   );

@@ -74,6 +74,7 @@ export default function SandboxComponentsProvider({
         label: object.name,
         value: object,
         type: 'custom',
+        tags: object.tags,
       })),
     ] as Array<CatalogOption<DbAdapterSaved>>;
   }, [builtInAdapterOptions, savedAdapterOptions]);
@@ -86,6 +87,7 @@ export default function SandboxComponentsProvider({
         label: object.name,
         value: object,
         type: 'custom',
+        tags: object.tags,
       })),
     ] as Array<CatalogOption<DbAlgorithmSaved>>;
   }, [builtInAlgorithmOptions, savedAlgorithmOptions]);
@@ -98,6 +100,7 @@ export default function SandboxComponentsProvider({
         label: object.name,
         value: object,
         type: 'custom',
+        tags: object.tags,
       })),
     ] as Array<CatalogOption<DbBoxSaved>>;
   }, [builtInBoxOptions, savedBoxOptions]);
@@ -110,6 +113,7 @@ export default function SandboxComponentsProvider({
         label: object.name,
         value: object,
         type: 'custom',
+        tags: object.tags,
       })),
     ] as Array<CatalogOption<DbProblemSaved>>;
   }, [builtInProblemOptions, savedProblemOptions]);
@@ -122,6 +126,7 @@ export default function SandboxComponentsProvider({
         label: object.name,
         value: object,
         type: 'custom',
+        tags: object.tags,
       })),
     ] as Array<CatalogOption<DbVisualizerSaved>>;
   }, [builtInVisualizerOptions, savedVisualizerOptions]);

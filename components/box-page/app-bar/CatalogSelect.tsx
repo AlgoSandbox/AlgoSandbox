@@ -35,6 +35,7 @@ export type CatalogSelectProps<
   className?: string;
   containerClassName?: string;
   options: CatalogOptions<DbSandboxObjectSaved<T>>;
+  placeholder?: string;
   value?: O;
   onChange?: (value: O | null) => void;
   label: string;
@@ -82,6 +83,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   containerClassName,
   className,
   label,
+  placeholder,
   hideLabel,
   variant = 'filled',
   value,
@@ -387,7 +389,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
             errorMessage ? 'border-2 border-danger' : '',
             className,
           )}
-          label={value?.label ?? ''}
+          label={value?.label ?? placeholder ?? ''}
           variant={variant}
           endIcon={<MaterialSymbol icon="arrow_drop_down" />}
         />

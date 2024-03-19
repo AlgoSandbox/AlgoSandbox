@@ -85,13 +85,13 @@ function Button(
             disabled && 'text-muted border-transparent',
           ],
           variant === 'filled' && [
-            'border',
+            'border bg-surface',
             !disabled && [
               'bg-surface-high hover:bg-surface-higher focus-visible:outline-accent',
               !selected && 'text-on-surface/80',
               selected && 'border-accent text-accent',
             ],
-            disabled && 'text-muted bg-surface/50',
+            disabled && 'text-muted',
           ],
           variant === 'primary' && [
             !disabled &&

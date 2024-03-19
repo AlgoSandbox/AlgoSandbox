@@ -9,14 +9,19 @@ import {
 
 const isAdvancedModeEnabledKey = 'sandbox:preferences:isAdvancedModeEnabled';
 const maxExecutionStepCountKey = 'sandbox:preferences:maxExecutionStepCount';
+const flowchartModeKey = 'sandbox:preferences:flowchartMode';
 
 const defaultMaxExecutionStepCount = 1000;
+
+type FlowchartMode = 'simple' | 'full';
 
 type UserPreferences = {
   isAdvancedModeEnabled: boolean;
   setAdvancedModeEnabled: (enabled: boolean) => void;
   maxExecutionStepCount: number;
   setMaxExecutionStepCount: (steps: number) => void;
+  flowchartMode: FlowchartMode;
+  setFlowchartMode: (mode: FlowchartMode) => void;
 };
 
 type UserPreferencesProviderProps = {
@@ -28,6 +33,8 @@ const UserPreferencesContext = createContext<UserPreferences>({
   setAdvancedModeEnabled: () => {},
   maxExecutionStepCount: defaultMaxExecutionStepCount,
   setMaxExecutionStepCount: () => {},
+  flowchartMode: 'simple',
+  setFlowchartMode: () => {},
 });
 
 export function useUserPreferences() {
@@ -41,6 +48,7 @@ export default function UserPreferencesProvider({
   const [maxExecutionStepCount, setMaxExecutionStepCount] = useState(
     defaultMaxExecutionStepCount,
   );
+  const [flowchartMode, setFlowchartMode] = useState<FlowchartMode>('simple');
 
   useEffect(() => {
     const cachedEnabled = localStorage.getItem(isAdvancedModeEnabledKey);
@@ -60,6 +68,16 @@ export default function UserPreferencesProvider({
     setMaxExecutionStepCount(parseInt(cachedMaxExecutionStepCount, 10));
   }, []);
 
+  useEffect(() => {
+    const cachedFlowchartMode = localStorage.getItem(
+      'sandbox:preferences:flowchartMode',
+    );
+    if (cachedFlowchartMode === null) {
+      return;
+    }
+    setFlowchartMode(cachedFlowchartMode as FlowchartMode);
+  }, []);
+
   const handleAdvancedModeEnabledChange = useCallback((enabled: boolean) => {
     localStorage.setItem(isAdvancedModeEnabledKey, enabled.toString());
     setAdvancedModeEnabled(enabled);
@@ -70,15 +88,24 @@ export default function UserPreferencesProvider({
     setMaxExecutionStepCount(steps);
   }, []);
 
+  const handleFlowchartModeChange = useCallback((mode: FlowchartMode) => {
+    localStorage.setItem(flowchartModeKey, mode);
+    setFlowchartMode(mode);
+  }, []);
+
   const value = useMemo(() => {
     return {
       isAdvancedModeEnabled,
       setAdvancedModeEnabled: handleAdvancedModeEnabledChange,
       maxExecutionStepCount,
       setMaxExecutionStepCount: handleMaxExecutionStepCountChange,
+      flowchartMode,
+      setFlowchartMode: handleFlowchartModeChange,
     };
   }, [
+    flowchartMode,
     handleAdvancedModeEnabledChange,
+    handleFlowchartModeChange,
     handleMaxExecutionStepCountChange,
     isAdvancedModeEnabled,
     maxExecutionStepCount,

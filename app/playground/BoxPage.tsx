@@ -442,8 +442,7 @@ function BoxPageImpl() {
             </TabProvider>
           ))}
         </div>
-        <div className="flex gap-4 justify-center items-center py-2 lg:hidden">
-          <CustomizeViewPopover />
+        <div className="flex gap-4 justify-center border-t items-center py-2 lg:hidden">
           <BoxExecutionControls />
         </div>
       </div>

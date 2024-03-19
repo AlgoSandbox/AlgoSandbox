@@ -66,7 +66,7 @@ export default function DashboardPage() {
                 <a
                   key={option.key}
                   className="bg-surface-high hover:bg-surface-higher transition rounded h-20 p-4 flex items-center justify-center font-semibold text-label"
-                  href={`/playground?box=${option.key}`}
+                  href={`/playground?box=${option.value.key}`}
                 >
                   {option.label}
                 </a>

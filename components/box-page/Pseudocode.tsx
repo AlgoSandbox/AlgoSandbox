@@ -72,7 +72,7 @@ export default function Pseudocode({
 
   return (
     <div className={className} ref={root}>
-      <div className="p-2">
+      <div className="p-2 hidden lg:block">
         <Button
           icon={
             <MaterialSymbol

@@ -10,6 +10,8 @@ import React, {
 
 import { FormLabel, MaterialSymbol } from '.';
 
+type SelectVariant = 'primary' | 'filled' | 'flat';
+
 export type SelectOption<T> = {
   key: string;
   label: string;
@@ -34,6 +36,8 @@ export type SelectProps<T, O extends SelectOption<T> = SelectOption<T>> = {
   placeholder?: string;
   options: SelectOptions<T>;
   value?: O;
+  variant?: SelectVariant;
+  disabled?: boolean;
   onChange?: (value: O) => void;
 };
 
@@ -75,6 +79,8 @@ function Select<T>(
     placeholder,
     options,
     value,
+    disabled,
+    variant = 'flat',
     onChange,
   }: SelectProps<T>,
   ref: ForwardedRef<HTMLButtonElement>,
@@ -88,6 +94,7 @@ function Select<T>(
 
   const selectElement = (
     <RadixSelect.Root
+      disabled={disabled}
       value={value?.key}
       onValueChange={(key) => {
         const newValue = flattenedOptions.find((option) => option.key === key);
@@ -101,6 +108,28 @@ function Select<T>(
         aria-label={hideLabel ? label : undefined}
         aria-labelledby={!hideLabel ? id : undefined}
         className={clsx(
+          variant === 'flat' && [
+            'border',
+            !disabled && [
+              'data-[state=closed]:hover:bg-surface-high data-[state=closed]:border-transparent data-[state=closed]:text-on-surface/80 data-[state=closed]:focus-visible:outline-accent',
+              'data-[state=open]:hover:bg-surface-high data-[state=open]:border-accent data-[state=open]:focus-visible:outline-accent',
+            ],
+            disabled && 'text-muted border-transparent',
+          ],
+          variant === 'filled' && [
+            'border',
+            !disabled && [
+              'bg-surface-high hover:bg-surface-higher focus-visible:outline-accent',
+              'data-[state=closed]:text-on-surface/80',
+              'data-[state=open]:border-accent data-[state=open]:text-accent',
+            ],
+            disabled && 'text-muted bg-surface/50',
+          ],
+          variant === 'primary' && [
+            !disabled &&
+              'text-accent border hover:border-accent focus-visible:outline-accent bg-surface-high transition-all hover:bg-surface-higher',
+            disabled && 'border bg-canvas text-muted',
+          ],
           'flex items-center ps-4 pe-2 py-2 hover:bg-surface-higher bg-surface-high rounded transition-colors text-on-surface/80 font-medium',
           '[&[data-placeholder]]:text-hint',
           className,

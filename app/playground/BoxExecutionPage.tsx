@@ -12,11 +12,19 @@ import {
 } from '@components/box-page';
 import ErrorDisplay from '@components/common/ErrorDisplay';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
-import { MaterialSymbol, Tooltip } from '@components/ui';
+import {
+  Button,
+  MaterialSymbol,
+  ResizeHandle,
+  Select,
+  SelectOption,
+  Tooltip,
+} from '@components/ui';
 import clsx from 'clsx';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDragDropManager } from 'react-dnd';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
+import { Panel, PanelGroup } from 'react-resizable-panels';
 import { toast } from 'sonner';
 
 import { useFlowchartCalculations, useScene } from './BoxPage';
@@ -95,6 +103,44 @@ export default function BoxExecutionPage() {
       visibleVisualizerAliases.slice(1),
     );
   }, [visibleVisualizerAliases]);
+
+  const [currentTileMobile, setCurrentTileMobile] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (visualizerOrder.length > 0) {
+      if (
+        currentTileMobile === null ||
+        !visualizerOrder.includes(currentTileMobile)
+      ) {
+        setCurrentTileMobile(visualizerOrder[0]);
+      }
+    }
+  }, [visualizerOrder, currentTileMobile]);
+
+  const onNextTileClick = useCallback(() => {
+    if (currentTileMobile === null) {
+      return;
+    }
+
+    const currentIndex = visualizerOrder.indexOf(currentTileMobile);
+    const nextIndex = (currentIndex + 1) % visualizerOrder.length;
+
+    setCurrentTileMobile(visualizerOrder[nextIndex]);
+  }, [currentTileMobile, visualizerOrder]);
+
+  const onPrevTileClick = useCallback(() => {
+    if (currentTileMobile === null) {
+      return;
+    }
+
+    const currentIndex = visualizerOrder.indexOf(currentTileMobile);
+    const prevIndex =
+      (currentIndex - 1 + visualizerOrder.length) % visualizerOrder.length;
+
+    setCurrentTileMobile(visualizerOrder[prevIndex]);
+  }, [currentTileMobile, visualizerOrder]);
 
   const [layout, setLayout] = useState<MosaicNode<string> | null>(
     initialLayout,
@@ -190,11 +236,22 @@ export default function BoxExecutionPage() {
     } as Record<string, string>;
   }, [visualizerOrder, visualizerInstances]);
 
+  const tileMobileOptions = useMemo(() => {
+    return visualizerOrder.map(
+      (alias) =>
+        ({
+          key: alias,
+          label: windowTitles[alias],
+          value: alias,
+        }) satisfies SelectOption<string>,
+    );
+  }, [visualizerOrder, windowTitles]);
+
   const dragAndDropManager = useDragDropManager();
 
   return (
     <div className="flex flex-col h-full">
-      <main className="relative h-full flex flex-col z-0">
+      <main className="relative h-full hidden lg:flex flex-col z-0">
         <Mosaic<string>
           className={clsx(
             'bg-transparent',
@@ -284,6 +341,50 @@ export default function BoxExecutionPage() {
           onChange={setLayout}
           dragAndDropManager={dragAndDropManager}
         />
+      </main>
+      <main className="h-full lg:hidden">
+        <PanelGroup direction="vertical">
+          <Panel>{renderTile('pseudocode')}</Panel>
+          <ResizeHandle orientation="horizontal" />
+          <Panel>
+            <div className="relative w-full h-full flex flex-col items-center">
+              <div className="flex p-2 items-center self-stretch gap-2">
+                <Button
+                  label="Previous"
+                  hideLabel
+                  variant="filled"
+                  onClick={onPrevTileClick}
+                  icon={<MaterialSymbol icon="arrow_back" />}
+                />
+                <Select
+                  containerClassName="flex-1"
+                  hideLabel
+                  variant="filled"
+                  label="Current visualizer"
+                  options={tileMobileOptions}
+                  value={tileMobileOptions.find(
+                    ({ value: alias }) => alias === currentTileMobile,
+                  )}
+                  onChange={({ value: alias }) => {
+                    setCurrentTileMobile(alias);
+                  }}
+                />
+                <Button
+                  label="Next"
+                  hideLabel
+                  variant="filled"
+                  onClick={onNextTileClick}
+                  icon={<MaterialSymbol icon="arrow_forward" />}
+                />
+              </div>
+              {currentTileMobile !== null ? (
+                renderTile(currentTileMobile)
+              ) : (
+                <div />
+              )}
+            </div>
+          </Panel>
+        </PanelGroup>
       </main>
     </div>
   );

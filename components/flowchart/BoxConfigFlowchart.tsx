@@ -1000,54 +1000,56 @@ export default function AlgorithmVisualizerFlowchart({
         />
       </div>
       <div className="absolute top-4 mx-auto flex gap-2 items-start">
-        <CatalogSelect
-          label="Add component"
-          hideLabel
-          options={componentOptions}
-          placeholder="Add component"
-          value={undefined}
-          onChange={(value) => {
-            if (value === null) {
-              return;
-            }
+        {flowchartMode === 'full' && (
+          <CatalogSelect
+            label="Add component"
+            hideLabel
+            options={componentOptions}
+            placeholder="Add component"
+            value={undefined}
+            onChange={(value) => {
+              if (value === null) {
+                return;
+              }
 
-            if (
-              visualizerOptions.some(
-                (option) => option.value.key === value.value.key,
-              )
-            ) {
-              const getKey = (index: number): string => {
-                const key = `visualizer-${index}`;
-                if (visualizers.order.includes(key)) {
-                  return getKey(index + 1);
-                }
-                return key;
-              };
-              const newKey = getKey(0);
-              visualizers.appendAlias(newKey, value.value.key);
-            } else if (
-              adapterOptions.some(
-                (option) => option.value.key === value.value.key,
-              )
-            ) {
-              const getKey = (index: number): string => {
-                const key = `adapter-${index}`;
-                if (Object.keys(configTree.adapters ?? {}).includes(key)) {
-                  return getKey(index + 1);
-                }
-                return key;
-              };
-              const newKey = getKey(0);
-              setConfig({
-                ...configTree,
-                adapters: {
-                  ...configTree.adapters,
-                  [newKey]: value.value.key,
-                },
-              });
-            }
-          }}
-        />
+              if (
+                visualizerOptions.some(
+                  (option) => option.value.key === value.value.key,
+                )
+              ) {
+                const getKey = (index: number): string => {
+                  const key = `visualizer-${index}`;
+                  if (visualizers.order.includes(key)) {
+                    return getKey(index + 1);
+                  }
+                  return key;
+                };
+                const newKey = getKey(0);
+                visualizers.appendAlias(newKey, value.value.key);
+              } else if (
+                adapterOptions.some(
+                  (option) => option.value.key === value.value.key,
+                )
+              ) {
+                const getKey = (index: number): string => {
+                  const key = `adapter-${index}`;
+                  if (Object.keys(configTree.adapters ?? {}).includes(key)) {
+                    return getKey(index + 1);
+                  }
+                  return key;
+                };
+                const newKey = getKey(0);
+                setConfig({
+                  ...configTree,
+                  adapters: {
+                    ...configTree.adapters,
+                    [newKey]: value.value.key,
+                  },
+                });
+              }
+            }}
+          />
+        )}
         <Button
           label="Auto layout"
           variant="filled"

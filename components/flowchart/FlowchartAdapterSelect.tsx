@@ -1,7 +1,8 @@
-import { error } from '@app/errors/ErrorContext';
+import { error } from '@app/errors';
 import { useBoxContext } from '@components/box-page';
 import ComponentSelect from '@components/box-page/app-bar/ComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import groupOptionsByTag from '@utils/groupOptionsByTag';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { useMemo } from 'react';
 
@@ -14,7 +15,10 @@ export default function FlowchartAdapterSelect({
   alias: string;
   className?: string;
 }) {
-  const { adapterOptions: options } = useSandboxComponents();
+  const { adapterOptions } = useSandboxComponents();
+  const options = useMemo(() => {
+    return groupOptionsByTag(adapterOptions);
+  }, [adapterOptions]);
   const setConfig = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
   const {
@@ -46,11 +50,8 @@ export default function FlowchartAdapterSelect({
     error('Adapter evaluation not found');
 
   const value = useMemo(() => {
-    const flattenedOptions = options.flatMap((item) =>
-      'options' in item ? item.options : item,
-    );
-    return flattenedOptions.find((option) => option.key === adapterKey)!;
-  }, [options, adapterKey]);
+    return adapterOptions.find((option) => option.key === adapterKey)!;
+  }, [adapterOptions, adapterKey]);
 
   return (
     <ComponentSelect<'adapter'>
@@ -67,7 +68,7 @@ export default function FlowchartAdapterSelect({
         setConfig({
           adapters: {
             ...configTree.adapters,
-            [alias]: value.key,
+            [alias]: value.value.key,
           },
           composition: {
             ...configTree.composition,

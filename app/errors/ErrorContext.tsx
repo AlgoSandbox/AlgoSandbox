@@ -1,34 +1,6 @@
-import { Either, left, right } from '@sweet-monads/either';
 import { createContext, useContext, useMemo, useState } from 'react';
-import { z } from 'zod';
 
-export type ErrorEntry = {
-  message: string;
-};
-
-export type ErrorOr<T> = Either<Array<ErrorEntry>, T>;
-
-export function success<T>(value: T): ErrorOr<T> {
-  return right(value);
-}
-
-export function error<T>(...messages: Array<string>): ErrorOr<T> {
-  return left(messages.map((message) => ({ message })));
-}
-
-export const errorEntrySchema = z.object({
-  message: z.string(),
-});
-
-export type Failable<T> =
-  | {
-      value: T;
-      hasError: false;
-    }
-  | {
-      hasError: true;
-      errors: [ErrorEntry];
-    };
+import { ErrorEntry } from '.';
 
 export type ErrorContext = {
   errors: ErrorEntry[];

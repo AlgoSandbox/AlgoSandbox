@@ -1,6 +1,6 @@
 import 'reactflow/dist/style.css';
 
-import { ErrorEntry } from '@app/errors/ErrorContext';
+import { ErrorEntry } from '@app/errors';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import AlgorithmSelect from '@components/box-page/app-bar/AlgorithmSelect';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
@@ -11,6 +11,7 @@ import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
 import Dagre from '@dagrejs/dagre';
+import groupOptionsByTag from '@utils/groupOptionsByTag';
 import getZodTypeName from '@utils/zod/getZodTypeName';
 import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
@@ -540,6 +541,10 @@ export default function AlgorithmVisualizerFlowchart({
   const algorithmName = algorithm.unwrapOr(null)?.name ?? 'Untitled algorithm';
   const problemName = problem.unwrapOr(null)?.name ?? 'Untitled problem';
 
+  const componentOptions = useMemo(() => {
+    return groupOptionsByTag([...visualizerOptions, ...adapterOptions]);
+  }, [visualizerOptions, adapterOptions]);
+
   useEffect(() => {
     const newTabName = 'Config';
     if (tabName !== newTabName) {
@@ -945,49 +950,49 @@ export default function AlgorithmVisualizerFlowchart({
       </ReactFlow>
       <div className="absolute top-2 mx-auto flex gap-2 items-end">
         <CatalogSelect
-          label="Add visualizer"
-          options={visualizerOptions}
+          label="Add component"
+          options={componentOptions}
           value={undefined}
           onChange={(value) => {
             if (value === null) {
               return;
             }
 
-            const getKey = (index: number): string => {
-              const key = `visualizer-${index}`;
-              if (visualizers.order.includes(key)) {
-                return getKey(index + 1);
-              }
-              return key;
-            };
-            const newKey = getKey(0);
-            visualizers.appendAlias(newKey, value.key);
-          }}
-        />
-        <CatalogSelect
-          label="Add adapter"
-          options={adapterOptions}
-          value={undefined}
-          onChange={(value) => {
-            if (value === null) {
-              return;
+            if (
+              visualizerOptions.some(
+                (option) => option.value.key === value.value.key,
+              )
+            ) {
+              const getKey = (index: number): string => {
+                const key = `visualizer-${index}`;
+                if (visualizers.order.includes(key)) {
+                  return getKey(index + 1);
+                }
+                return key;
+              };
+              const newKey = getKey(0);
+              visualizers.appendAlias(newKey, value.value.key);
+            } else if (
+              adapterOptions.some(
+                (option) => option.value.key === value.value.key,
+              )
+            ) {
+              const getKey = (index: number): string => {
+                const key = `adapter-${index}`;
+                if (Object.keys(configTree.adapters ?? {}).includes(key)) {
+                  return getKey(index + 1);
+                }
+                return key;
+              };
+              const newKey = getKey(0);
+              setConfig({
+                ...configTree,
+                adapters: {
+                  ...configTree.adapters,
+                  [newKey]: value.value.key,
+                },
+              });
             }
-
-            const getKey = (index: number): string => {
-              const key = `adapter-${index}`;
-              if (Object.keys(configTree.adapters ?? {}).includes(key)) {
-                return getKey(index + 1);
-              }
-              return key;
-            };
-            const newKey = getKey(0);
-            setConfig({
-              ...configTree,
-              adapters: {
-                ...configTree.adapters,
-                [newKey]: value.key,
-              },
-            });
           }}
         />
         <div className="rounded-full bg-surface overflow-clip border">

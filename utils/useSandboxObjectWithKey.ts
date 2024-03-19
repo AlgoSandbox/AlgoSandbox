@@ -3,7 +3,7 @@ import {
   SandboxKey,
   SandboxObjectType,
 } from '@algo-sandbox/components/SandboxKey';
-import { ErrorOr } from '@app/errors/ErrorContext';
+import { ErrorOr } from '@app/errors';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useMemo } from 'react';
 

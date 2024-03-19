@@ -1,3 +1,4 @@
+import { ComponentTag } from '@algo-sandbox/core';
 import { z } from 'zod';
 
 export const sandboxObjectType = z.enum([
@@ -25,6 +26,7 @@ export type DbSandboxObjectSaved<
 > = DbSandboxObject<T> & {
   key: string;
   writeup?: string;
+  tags: Array<ComponentTag>;
 };
 
 export type DbAdapter = DbSandboxObject<'adapter'>;

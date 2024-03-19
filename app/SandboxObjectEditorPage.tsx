@@ -89,7 +89,11 @@ export default function SandboxObjectEditorPage({
           name: values.name,
           files: _.mapKeys(values.files, (_, key) => key.replaceAll('$', '.')),
         });
-        onSave(newObject);
+        // TODO: update tags
+        onSave({
+          ...newObject,
+          tags: [],
+        });
         reset(values);
       })}
     >
@@ -156,7 +160,11 @@ export default function SandboxObjectEditorPage({
                       editable: true,
                       name: `${object.name} (copy)`,
                     });
-                    onCloned?.(newObject);
+                    // TODO: update tags
+                    onCloned?.({
+                      ...newObject,
+                      tags: [],
+                    });
                   }}
                 />
                 <Button

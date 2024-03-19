@@ -3,11 +3,11 @@ import {
   SandboxKey,
   SandboxObjectType,
 } from '@algo-sandbox/components/SandboxKey';
-import { error, ErrorOr } from '@app/errors/ErrorContext';
-import { DbObjectSaved } from '@components/box-page/box-context/sandbox-object';
+import { error, ErrorOr } from '@app/errors';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 
+import { DbSandboxObjectSaved } from './db';
 import { evalSavedObject } from './evalSavedObject';
 import evalWithAlgoSandbox from './evalWithAlgoSandbox';
 
@@ -49,12 +49,10 @@ export default function getSandboxObjectWithKey<T extends SandboxObjectType>({
       case 'adapter':
         return adapterOptions;
     }
-  })() as CatalogGroup<DbObjectSaved<T>>[];
+  })() as Array<CatalogOption<DbSandboxObjectSaved<T>>>;
 
   const savedObject =
-    options
-      .flatMap((group) => group.options)
-      .find((option) => option.key === key)?.value ?? null;
+    options.find((option) => option.key === key)?.value ?? null;
 
   if (savedObject === null) {
     return error(`Evaluation error: No saved object found for key ${key}`);

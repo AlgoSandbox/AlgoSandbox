@@ -21,6 +21,7 @@ import Heading from '@components/ui/Heading';
 import Toggle from '@components/ui/Toggle';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import { createScene, SandboxScene } from '@utils';
+import groupOptionsByTag from '@utils/groupOptionsByTag';
 import solveFlowchart from '@utils/solveFlowchart';
 import clsx from 'clsx';
 import { mapValues } from 'lodash';
@@ -250,10 +251,12 @@ function BoxPageImpl() {
     delete: deleteBox,
   } = useBoxContext();
   const { boxOptions } = useSandboxComponents();
+  const groupedBoxOptions = useMemo(() => {
+    return groupOptionsByTag(boxOptions, { omitTags: ['box'] });
+  }, [boxOptions]);
 
   const selectedOption = useMemo(() => {
-    const flattenedOptions = boxOptions.flatMap((group) => group.options);
-    return flattenedOptions.find((option) => option.key === boxKey);
+    return boxOptions.find((option) => option.value.key === boxKey);
   }, [boxOptions, boxKey]);
 
   const [saveBoxDialogOpen, setSaveBoxDialogOpen] = useState(false);
@@ -326,7 +329,7 @@ function BoxPageImpl() {
             <div className="flex items-center gap-2 pe-4 py-2">
               <CatalogSelect
                 containerClassName="shrink"
-                options={boxOptions}
+                options={groupedBoxOptions}
                 label="Select box"
                 hideLabel={true}
                 variant="primary"
@@ -337,7 +340,7 @@ function BoxPageImpl() {
                     return;
                   }
 
-                  router.push(`/playground?box=${option.key}`);
+                  router.push(`/playground?box=${option.value.key}`);
                 }}
               />
               {hasBox && (

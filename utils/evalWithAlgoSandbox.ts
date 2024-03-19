@@ -1,4 +1,4 @@
-import * as adapters from '@algo-sandbox/adapters/example';
+import * as adapters from '@algo-sandbox/adapters';
 import * as algorithms from '@algo-sandbox/algorithms';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
@@ -11,7 +11,7 @@ import {
   errorEntrySchema,
   ErrorOr,
   success,
-} from '@app/errors/ErrorContext';
+} from '@app/errors';
 import * as d3 from 'd3';
 import _, * as lodash from 'lodash';
 import path from 'path';
@@ -21,28 +21,16 @@ import * as reactInspector from 'react-inspector';
 import { ModuleKind, ScriptTarget, transpile } from 'typescript';
 import * as zod from 'zod';
 
+import evalWithContext from './evalWithContext';
 import hyphenCaseToCamelCase from './hyphenCaseToCamelCase';
-
-export function evalWithContext(
-  code: string,
-  context: Record<string, unknown> = {},
-) {
-  return function evaluate() {
-    const contextDef = Object.keys(context)
-      .map((key) => `${key} = this.${key}`)
-      .join(',');
-    const def = contextDef ? `let ${contextDef};` : '';
-
-    return eval(`${def}${code}`);
-  }.call(context);
-}
 
 function isAbsolutePath(libraryPath: string) {
   // Returns if the js library path is absolute
   return !libraryPath.startsWith('.');
 }
 
-export default function evalWithAlgoSandbox(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function evalWithAlgoSandbox<T = any>(
   typescriptCode: string,
   fileContext?: {
     files: Record<string, string>;
@@ -50,7 +38,7 @@ export default function evalWithAlgoSandbox(
   },
   asModule = false,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): ErrorOr<any> {
+): ErrorOr<T> {
   const libraryToValue = {
     '@algo-sandbox/adapters': adapters,
     '@algo-sandbox/algorithms': algorithms,

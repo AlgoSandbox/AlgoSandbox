@@ -1,5 +1,5 @@
 import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 import { DbProblemSaved } from '@utils/db';
 import {
   useAddSavedProblemMutation,
@@ -26,7 +26,7 @@ export default function useBoxContextProblem({
   parameters,
   onParametersChange,
 }: {
-  options: Array<CatalogGroup<DbProblemSaved>>;
+  options: Array<CatalogOption<DbProblemSaved>>;
   key: SandboxKey<'problem'> | null;
   onKeyChange: (key: SandboxKey<'problem'> | null) => void;
   parameters: Record<string, unknown> | null;

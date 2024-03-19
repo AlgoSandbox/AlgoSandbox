@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ErrorOr } from '@app/errors/ErrorContext';
+import { ErrorOr } from '@app/errors';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { Badge, Button, MaterialSymbol, Popover } from '@components/ui';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
-import { DbSandboxObjectType } from '@utils/db';
+import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
 import clsx from 'clsx';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ParameterControls } from '..';
-import { DbObjectSaved, Value } from '../box-context/sandbox-object';
+import { Value } from '../box-context/sandbox-object';
 import CatalogSelect from './CatalogSelect';
 
 export default function ComponentSelect<T extends DbSandboxObjectType>({
@@ -31,9 +31,9 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   label: string;
   hideLabel?: boolean;
   hideErrors?: boolean;
-  value: CatalogOption<DbObjectSaved<T>> | null;
-  onChange: (value: CatalogOption<DbObjectSaved<T>> | null) => void;
-  options: CatalogOptions<DbObjectSaved<T>>;
+  value: CatalogOption<DbSandboxObjectSaved<T>> | null;
+  onChange: (value: CatalogOption<DbSandboxObjectSaved<T>> | null) => void;
+  options: CatalogOptions<DbSandboxObjectSaved<T>>;
   evaluatedValue: ErrorOr<Value<T> | null>;
   defaultParameters: Readonly<Record<string, any>> | null;
   setParameters: (value: Record<string, any> | null) => void;

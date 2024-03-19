@@ -8,8 +8,8 @@ import {
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
-import { error, ErrorOr, success } from '@app/errors/ErrorContext';
-import { CatalogGroup, CatalogOption } from '@constants/catalog';
+import { error, ErrorOr, success } from '@app/errors';
+import { CatalogOption } from '@constants/catalog';
 import { DbVisualizerSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
@@ -43,7 +43,7 @@ export default function useBoxContextVisualizers({
   onAliasesChange,
   options,
 }: {
-  options: Array<CatalogGroup<DbVisualizerSaved>>;
+  options: Array<CatalogOption<DbVisualizerSaved>>;
   defaultOrder: Array<string>;
   defaultAliases: Record<
     string,
@@ -92,9 +92,7 @@ export default function useBoxContextVisualizers({
   > = useMemo(() => {
     return mapValues(aliases, (keyWithParameters) => {
       const { key } = parseKeyWithParameters(keyWithParameters);
-      const option = options
-        .flatMap((group) => group.options)
-        .find((option) => option.value.key === key);
+      const option = options.find((option) => option.value.key === key);
 
       if (option === undefined) {
         return error(`Visualizer ${key} not found`) as ErrorOr<

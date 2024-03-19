@@ -9,9 +9,11 @@ import Providers from './Providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
+import { ComponentConfig } from '@algo-sandbox/core';
 import Toaster from '@components/ui/Toaster';
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
+import evalServerSide from '@utils/evalServerSide';
 import hyphenCaseToCamelCase from '@utils/hyphenCaseToCamelCase';
 import fs from 'fs';
 import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';
@@ -94,12 +96,10 @@ function getMarkdownTitle(markdown: string) {
 
 const algorithmGroupToFolderGlob = {
   Search: 'lib/algo-sandbox/algorithms/search',
-  Example: 'lib/algo-sandbox/algorithms/example',
 };
 
 const problemGroupToFolderGlob = {
   Backtracking: 'lib/algo-sandbox/problems/backtracking',
-  Example: 'lib/algo-sandbox/problems/example',
   Graphs: 'lib/algo-sandbox/problems/graphs',
   Grid: 'lib/algo-sandbox/problems/grid',
   'Weighted graphs': 'lib/algo-sandbox/problems/weighted-graphs',
@@ -112,7 +112,6 @@ const visualizerGroupToFolderGlob = {
 };
 
 const adapterGroupToFolderGlob = {
-  Example: 'lib/algo-sandbox/adapters/example',
   Environment: 'lib/algo-sandbox/adapters/environment',
   Tools: 'lib/algo-sandbox/adapters/utils',
 };
@@ -130,6 +129,9 @@ function readSandboxObjectGroup<T extends DbSandboxObjectType>(
   const contents = readFilesMatchingPatterns([
     [path.join(folderGlob, '*/index.ts')],
   ]);
+  const configs = readFilesMatchingPatterns([
+    [path.join(folderGlob, '*/config.ts')],
+  ]);
   const writeups = readFilesMatchingPatterns([
     [path.join(folderGlob, '*/*.md')],
   ]);
@@ -141,6 +143,23 @@ function readSandboxObjectGroup<T extends DbSandboxObjectType>(
     ([contentFileName]) => {
       const folder = contentFileName.substring(0, contentFileName.length - 8);
       const writeup = writeups[folder + 'index.md'];
+
+      const tags = (() => {
+        const configContents = configs[folder + 'config.ts'];
+
+        if (configContents === undefined) {
+          return [];
+        }
+
+        const { tags } = evalServerSide<ComponentConfig>(
+          configContents,
+        ).unwrapOr({
+          tags: [],
+        });
+
+        return tags;
+      })();
+
       const title =
         writeup !== undefined ? getMarkdownTitle(writeup) : 'Untitled';
       const files = Object.fromEntries(
@@ -170,21 +189,21 @@ function readSandboxObjectGroup<T extends DbSandboxObjectType>(
         files: renamedFiles,
         editable: false,
         type,
+        tags,
       };
     },
   );
 
-  const objectOptions: CatalogGroup<DbSandboxObjectSaved<T>> = {
-    key: groupLabel,
-    label: groupLabel,
-    options: objects.map((object) => ({
+  const options: Array<CatalogOption<DbSandboxObjectSaved<T>>> = objects.map(
+    (object) => ({
       key: object.key,
       label: object.name,
       value: object,
       type: 'built-in',
-    })),
-  };
-  return objectOptions;
+    }),
+  );
+
+  return options;
 }
 
 export default async function RootLayout({
@@ -198,24 +217,26 @@ export default async function RootLayout({
 
   const builtInAlgorithmOptions = Object.entries(
     algorithmGroupToFolderGlob,
-  ).map(([label, folderGlob]) =>
+  ).flatMap(([label, folderGlob]) =>
     readSandboxObjectGroup('algorithm', label, folderGlob),
   );
-  const buildInBoxOptions = Object.entries(boxGroupToFolderGlob).map(
+  const buildInBoxOptions = Object.entries(boxGroupToFolderGlob).flatMap(
     ([label, folderGlob]) => readSandboxObjectGroup('box', label, folderGlob),
   );
-  const builtInProblemOptions = Object.entries(problemGroupToFolderGlob).map(
-    ([label, folderGlob]) =>
-      readSandboxObjectGroup('problem', label, folderGlob),
+  const builtInProblemOptions = Object.entries(
+    problemGroupToFolderGlob,
+  ).flatMap(([label, folderGlob]) =>
+    readSandboxObjectGroup('problem', label, folderGlob),
   );
   const builtInVisualizerOptions = Object.entries(
     visualizerGroupToFolderGlob,
-  ).map(([label, folderGlob]) =>
+  ).flatMap(([label, folderGlob]) =>
     readSandboxObjectGroup('visualizer', label, folderGlob),
   );
-  const builtInAdapterOptions = Object.entries(adapterGroupToFolderGlob).map(
-    ([label, folderGlob]) =>
-      readSandboxObjectGroup('adapter', label, folderGlob),
+  const builtInAdapterOptions = Object.entries(
+    adapterGroupToFolderGlob,
+  ).flatMap(([label, folderGlob]) =>
+    readSandboxObjectGroup('adapter', label, folderGlob),
   );
 
   return (

@@ -9,8 +9,8 @@ import {
   SandboxParameters,
   SandboxStateType,
 } from '@algo-sandbox/core';
-import { error, ErrorOr, success } from '@app/errors/ErrorContext';
-import { CatalogGroup, CatalogOption } from '@constants/catalog';
+import { error, ErrorOr, success } from '@app/errors';
+import { CatalogOption } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import { DbAdapterSaved } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
@@ -74,7 +74,7 @@ export default function useBoxContextConfig({
   problemOutputKeys: Array<string>;
   algorithmOutputKeys: Array<string>;
   visualizerInputKeys: Record<string, Array<string>>;
-  adapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
+  adapterOptions: Array<CatalogOption<DbAdapterSaved>>;
   value: BoxConfig;
   onChange: (value: BoxConfig) => void;
 }) {
@@ -126,9 +126,7 @@ export default function useBoxContextConfig({
   > = useMemo(() => {
     return mapValues(value?.adapters ?? {}, (keyWithParameters) => {
       const { key } = parseKeyWithParameters(keyWithParameters);
-      const option = adapterOptions
-        .flatMap((group) => group.options)
-        .find((option) => option.value.key === key);
+      const option = adapterOptions.find((option) => option.value.key === key);
 
       if (option === undefined) {
         return error(`Adapter ${key} not found`) as ErrorOr<

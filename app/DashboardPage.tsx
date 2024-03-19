@@ -5,7 +5,9 @@ import { DbSandboxObjectSaved, useSavedAlgorithmsQuery } from '@utils/db';
 import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
+import groupOptionsByTag from '@utils/groupOptionsByTag';
 import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 
 type SavedObjectsSectionProps = {
   title: string;
@@ -48,11 +50,15 @@ export default function DashboardPage() {
   const { data: visualizers } = useSavedVisualizersQuery();
   const { boxOptions } = useSandboxComponents();
 
+  const groupedOptions = useMemo(() => {
+    return groupOptionsByTag(boxOptions);
+  }, [boxOptions]);
+
   return (
     <div className="flex flex-col max-w-4xl px-4 gap-8 mx-auto py-6">
       <div className="flex flex-col gap-4">
         <Heading variant="h2">Explore boxes</Heading>
-        {boxOptions.map((group) => (
+        {groupedOptions.map((group) => (
           <div key={group.label} className="flex flex-col gap-2">
             <Heading variant="h3">{group.label}</Heading>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">

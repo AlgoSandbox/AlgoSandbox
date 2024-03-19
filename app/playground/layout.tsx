@@ -115,19 +115,22 @@ function LayoutImpl({
             },
           } as const;
 
-          await setSavedBox(newBox);
+          // TODO: update tags
+          await setSavedBox({ ...newBox, tags: [] });
         }}
         onBoxDelete={async () => {
           if (boxKey === null) {
             return;
           }
 
+          // TODO: update tags
           await deleteSavedBox({
             key: boxKey,
             type: 'box',
             files: {},
             name: '',
             editable: false,
+            tags: [],
           });
         }}
       >
@@ -147,8 +150,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     if (boxKey === null) {
       return null;
     }
-    const flattenedOptions = boxOptions.flatMap((group) => group.options);
-    return flattenedOptions.find((box) => box.key === boxKey) ?? null;
+    return boxOptions.find((box) => box.key === boxKey) ?? null;
   }, [boxOptions, boxKey]);
 
   const isBoxCustom = useMemo(() => {

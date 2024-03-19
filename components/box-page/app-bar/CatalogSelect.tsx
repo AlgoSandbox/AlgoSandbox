@@ -69,6 +69,14 @@ function ListItem<T>({
   );
 }
 
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="border rounded-full flex items-center text-label px-2 font-semibold tracking-tight">
+      {children}
+    </span>
+  );
+}
+
 export default function CatalogSelect<T extends SandboxObjectType>({
   options,
   containerClassName,
@@ -264,9 +272,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                   return (
                     <Fragment key={item.key}>
                       <div className="flex items-center pt-4 text-sm border-t">
-                        <span className="border rounded-full flex items-center text-label px-2 font-semibold tracking-tight">
-                          {item.label}
-                        </span>
+                        <Chip>{item.label}</Chip>
                       </div>
                       {item.options.map((option) => (
                         <ListItem
@@ -327,6 +333,11 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 <Markdown components={markdownComponents}>
                   {selectedOption.value.writeup ?? `# ${selectedOption.label}`}
                 </Markdown>
+                <div className="flex gap-2 flex-wrap">
+                  {selectedOption.value.tags.map((tag) => (
+                    <Chip key={tag}>{tag}</Chip>
+                  ))}
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="primary"

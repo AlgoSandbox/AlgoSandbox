@@ -4,7 +4,7 @@ import SandboxObjectEditorPage from '@app/SandboxObjectEditorPage';
 import AppNavBar from '@components/AppNavBar';
 import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useSaveObjectMutation } from '@utils/db/objects';
 import { useRouter } from 'next/navigation';
@@ -28,33 +28,16 @@ export default function ComponentPage({
   const options = useMemo(
     () =>
       [
-        ...adapterOptions.map((group) => ({
-          key: `adapters-${group.key}`,
-          label: `Adapters: ${group.label}`,
-          options: group.options,
-        })),
-        ...algorithmOptions.map((group) => ({
-          key: `algorithms-${group.key}`,
-          label: `Algorithms: ${group.label}`,
-          options: group.options,
-        })),
-        ...problemOptions.map((group) => ({
-          key: `problems-${group.key}`,
-          label: `Problems: ${group.label}`,
-          options: group.options,
-        })),
-        ...visualizerOptions.map((group) => ({
-          key: `visualizers-${group.key}`,
-          label: `Visualizers: ${group.label}`,
-          options: group.options,
-        })),
-      ] as Array<CatalogGroup<DbSandboxObjectSaved>>,
+        ...adapterOptions,
+        ...algorithmOptions,
+        ...problemOptions,
+        ...visualizerOptions,
+      ] as Array<CatalogOption<DbSandboxObjectSaved>>,
     [adapterOptions, algorithmOptions, problemOptions, visualizerOptions],
   );
 
   const selectedOption = useMemo(() => {
-    const flattenedOptions = options.flatMap((group) => group.options);
-    return flattenedOptions.find((option) => option.key === componentKey);
+    return options.find((option) => option.key === componentKey);
   }, [componentKey, options]);
 
   const component = selectedOption?.value;

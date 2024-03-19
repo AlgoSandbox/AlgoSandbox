@@ -1,5 +1,5 @@
 import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
-import { ErrorOr, success } from '@app/errors/ErrorContext';
+import { ErrorOr, success } from '@app/errors';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useMemo } from 'react';
 

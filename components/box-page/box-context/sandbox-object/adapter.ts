@@ -1,5 +1,5 @@
 import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 import { DbAdapterSaved } from '@utils/db';
 import {
   useAddSavedAdapterMutation,
@@ -26,7 +26,7 @@ export default function useBoxContextAdapter({
   parameters,
   onParametersChange,
 }: {
-  options: Array<CatalogGroup<DbAdapterSaved>>;
+  options: Array<CatalogOption<DbAdapterSaved>>;
   key: SandboxKey<'adapter'> | null;
   onKeyChange: (key: SandboxKey<'adapter'> | null) => void;
   parameters: Record<string, unknown> | null;

@@ -4,8 +4,8 @@ import AlgoSandboxEditorFilesContextProvider from '@components/editor/AlgoSandbo
 import SandboxComponentsProvider from '@components/playground/SandboxComponentsProvider';
 import UserPreferencesProvider from '@components/preferences/UserPreferencesProvider';
 import { HeadingContextProvider } from '@components/ui/Heading';
-import { CatalogGroup } from '@constants/catalog';
-import * as RadixTooltip from '@radix-ui/react-tooltip';
+import { CatalogOption } from '@constants/catalog';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   DbAdapterSaved,
@@ -22,11 +22,11 @@ import { TypeDeclaration } from './layout';
 const queryClient = new QueryClient();
 
 type ProvidersProps = {
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  builtInBoxOptions: Array<CatalogGroup<DbBoxSaved>>;
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
+  builtInAdapterOptions: Array<CatalogOption<DbAdapterSaved>>;
+  builtInAlgorithmOptions: Array<CatalogOption<DbAlgorithmSaved>>;
+  builtInBoxOptions: Array<CatalogOption<DbBoxSaved>>;
+  builtInProblemOptions: Array<CatalogOption<DbProblemSaved>>;
+  builtInVisualizerOptions: Array<CatalogOption<DbVisualizerSaved>>;
   algoSandboxFiles: Array<TypeDeclaration>;
   typeDeclarations: Array<TypeDeclaration>;
   children: React.ReactNode;
@@ -45,7 +45,7 @@ export default function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       <UserPreferencesProvider>
-        <RadixTooltip.Provider delayDuration={500} skipDelayDuration={500}>
+        <TooltipProvider delayDuration={500} skipDelayDuration={500}>
           <HeadingContextProvider>
             <AlgoSandboxEditorFilesContextProvider
               algoSandboxFiles={algoSandboxFiles}
@@ -64,7 +64,7 @@ export default function Providers({
               </DndProvider>
             </AlgoSandboxEditorFilesContextProvider>
           </HeadingContextProvider>
-        </RadixTooltip.Provider>
+        </TooltipProvider>
       </UserPreferencesProvider>
     </QueryClientProvider>
   );

@@ -12,12 +12,8 @@ import {
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
-import { ErrorEntry, ErrorOr, success } from '@app/errors/ErrorContext';
-import {
-  CatalogGroup,
-  CatalogOption,
-  CatalogOptions,
-} from '@constants/catalog';
+import { ErrorEntry, ErrorOr, success } from '@app/errors';
+import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { fromTry } from '@sweet-monads/either';
 import { UseMutationResult } from '@tanstack/react-query';
 import {
@@ -35,10 +31,12 @@ import {
   DbBoxSaved,
   DbProblem,
   DbProblemSaved,
+  DbSandboxObjectSaved,
   DbVisualizer,
   DbVisualizerSaved,
 } from '@utils/db';
 import { evalSavedObject } from '@utils/evalSavedObject';
+import groupOptionsByTag from '@utils/groupOptionsByTag';
 import {
   sandboxAdapter,
   sandboxParameterizedAdapter,
@@ -154,9 +152,9 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
     setValue: (value: ParsedParameters<SandboxParameters> | null) => void;
   };
   select: {
-    value: CatalogOption<DbObjectSaved<T>> | null;
-    setValue: (value: CatalogOption<DbObjectSaved<T>> | null) => void;
-    options: CatalogOptions<DbObjectSaved<T>>;
+    value: CatalogOption<DbSandboxObjectSaved<T>> | null;
+    setValue: (value: CatalogOption<DbSandboxObjectSaved<T>> | null) => void;
+    options: CatalogOptions<DbSandboxObjectSaved<T>>;
   };
 };
 
@@ -174,27 +172,31 @@ export function useBoxContextSandboxObject<
   key: SandboxKey<T> | null;
   parameters: Record<string, unknown> | null;
   onParametersChange: (parameters: Record<string, unknown> | null) => void;
-  options: Array<CatalogGroup<DbObjectSaved<T>>>;
+  options: Array<CatalogOption<DbSandboxObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
     DbObject<T>,
     unknown,
-    DbObjectSaved<T>
+    DbSandboxObjectSaved<T>
   >;
-  removeSavedObjectMutation: UseMutationResult<void, unknown, DbObjectSaved<T>>;
-  savedObjects: Array<DbObjectSaved<T>> | undefined;
+  removeSavedObjectMutation: UseMutationResult<
+    void,
+    unknown,
+    DbSandboxObjectSaved<T>
+  >;
+  savedObjects: Array<DbSandboxObjectSaved<T>> | undefined;
   onKeyChange: (key: SandboxKey<T> | null) => void;
 }) {
+  const groupedOptions = useMemo(() => {
+    return groupOptionsByTag(options, { omitTags: [type] });
+  }, [options, type]);
+
   const selectedOptionObject = useMemo(() => {
     if (selectedOptionKey === null) {
       return null;
     }
 
-    const flattenedOptions = options.flatMap((group) => group.options);
-    return (
-      flattenedOptions.find((option) => option.key === selectedOptionKey) ??
-      null
-    );
+    return options.find((option) => option.key === selectedOptionKey) ?? null;
   }, [options, selectedOptionKey]);
 
   const evaluation = useMemo(() => {
@@ -296,9 +298,9 @@ export function useBoxContextSandboxObject<
       select: {
         value: selectedOptionObject,
         setValue: (option) => {
-          onKeyChange((option?.key ?? null) as SandboxKey<T> | null);
+          onKeyChange((option?.value.key ?? null) as SandboxKey<T> | null);
         },
-        options: options,
+        options: groupedOptions,
       },
     } satisfies BoxContextSandboxObject<T>;
   }, [
@@ -308,7 +310,7 @@ export function useBoxContextSandboxObject<
     parameters,
     onParametersChange,
     selectedOptionObject,
-    options,
+    groupedOptions,
     onKeyChange,
   ]);
 

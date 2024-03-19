@@ -1,5 +1,5 @@
 import { SandboxKey } from '@algo-sandbox/components/SandboxKey';
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 import {
   DbAlgorithmSaved,
   useAddSavedAlgorithmMutation,
@@ -26,7 +26,7 @@ export default function useBoxContextAlgorithm({
   onParametersChange,
   onKeyChange,
 }: {
-  options: Array<CatalogGroup<DbAlgorithmSaved>>;
+  options: Array<CatalogOption<DbAlgorithmSaved>>;
   key: SandboxKey<'algorithm'> | null;
   onKeyChange: (key: SandboxKey<'algorithm'> | null) => void;
   parameters: Record<string, unknown> | null;

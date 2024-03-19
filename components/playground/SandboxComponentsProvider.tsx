@@ -1,4 +1,4 @@
-import { CatalogGroup } from '@constants/catalog';
+import { CatalogOption } from '@constants/catalog';
 import {
   DbAdapterSaved,
   DbAlgorithmSaved,
@@ -14,16 +14,16 @@ import { useSavedVisualizersQuery } from '@utils/db/visualizers';
 import { createContext, useContext, useMemo } from 'react';
 
 export type SandboxComponents = {
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  builtInBoxOptions: Array<CatalogGroup<DbBoxSaved>>;
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
-  adapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  algorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  boxOptions: Array<CatalogGroup<DbBoxSaved>>;
-  problemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  visualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
+  builtInAdapterOptions: Array<CatalogOption<DbAdapterSaved>>;
+  builtInAlgorithmOptions: Array<CatalogOption<DbAlgorithmSaved>>;
+  builtInBoxOptions: Array<CatalogOption<DbBoxSaved>>;
+  builtInProblemOptions: Array<CatalogOption<DbProblemSaved>>;
+  builtInVisualizerOptions: Array<CatalogOption<DbVisualizerSaved>>;
+  adapterOptions: Array<CatalogOption<DbAdapterSaved>>;
+  algorithmOptions: Array<CatalogOption<DbAlgorithmSaved>>;
+  boxOptions: Array<CatalogOption<DbBoxSaved>>;
+  problemOptions: Array<CatalogOption<DbProblemSaved>>;
+  visualizerOptions: Array<CatalogOption<DbVisualizerSaved>>;
 };
 
 const BuiltInComponentsContext = createContext<SandboxComponents>({
@@ -45,11 +45,11 @@ export function useSandboxComponents() {
 
 type SandboxComponentsProviderProps = {
   children: React.ReactNode;
-  builtInAdapterOptions: Array<CatalogGroup<DbAdapterSaved>>;
-  builtInAlgorithmOptions: Array<CatalogGroup<DbAlgorithmSaved>>;
-  builtInBoxOptions: Array<CatalogGroup<DbBoxSaved>>;
-  builtInProblemOptions: Array<CatalogGroup<DbProblemSaved>>;
-  builtInVisualizerOptions: Array<CatalogGroup<DbVisualizerSaved>>;
+  builtInAdapterOptions: Array<CatalogOption<DbAdapterSaved>>;
+  builtInAlgorithmOptions: Array<CatalogOption<DbAlgorithmSaved>>;
+  builtInBoxOptions: Array<CatalogOption<DbBoxSaved>>;
+  builtInProblemOptions: Array<CatalogOption<DbProblemSaved>>;
+  builtInVisualizerOptions: Array<CatalogOption<DbVisualizerSaved>>;
 };
 
 export default function SandboxComponentsProvider({
@@ -69,81 +69,61 @@ export default function SandboxComponentsProvider({
   const adapterOptions = useMemo(() => {
     return [
       ...builtInAdapterOptions,
-      {
-        key: 'custom',
-        label: 'Custom',
-        options: (savedAdapterOptions ?? []).map((object) => ({
-          key: object.key,
-          label: object.name,
-          value: object,
-          type: 'custom',
-        })),
-      },
-    ] as Array<CatalogGroup<DbAdapterSaved>>;
+      ...(savedAdapterOptions ?? []).map((object) => ({
+        key: object.key,
+        label: object.name,
+        value: object,
+        type: 'custom',
+      })),
+    ] as Array<CatalogOption<DbAdapterSaved>>;
   }, [builtInAdapterOptions, savedAdapterOptions]);
 
   const algorithmOptions = useMemo(() => {
     return [
       ...builtInAlgorithmOptions,
-      {
-        key: 'custom',
-        label: 'Custom',
-        options: (savedAlgorithmOptions ?? []).map((object) => ({
-          key: object.key,
-          label: object.name,
-          value: object,
-          type: 'custom',
-        })),
-      },
-    ] as Array<CatalogGroup<DbAlgorithmSaved>>;
+      ...(savedAlgorithmOptions ?? []).map((object) => ({
+        key: object.key,
+        label: object.name,
+        value: object,
+        type: 'custom',
+      })),
+    ] as Array<CatalogOption<DbAlgorithmSaved>>;
   }, [builtInAlgorithmOptions, savedAlgorithmOptions]);
 
   const boxOptions = useMemo(() => {
     return [
       ...builtInBoxOptions,
-      {
-        key: 'custom',
-        label: 'Custom',
-        options: (savedBoxOptions ?? []).map((object) => ({
-          key: object.key,
-          label: object.name,
-          value: object,
-          type: 'custom',
-        })),
-      },
-    ] as Array<CatalogGroup<DbBoxSaved>>;
+      ...(savedBoxOptions ?? []).map((object) => ({
+        key: object.key,
+        label: object.name,
+        value: object,
+        type: 'custom',
+      })),
+    ] as Array<CatalogOption<DbBoxSaved>>;
   }, [builtInBoxOptions, savedBoxOptions]);
 
   const problemOptions = useMemo(() => {
     return [
       ...builtInProblemOptions,
-      {
-        key: 'custom',
-        label: 'Custom',
-        options: (savedProblemOptions ?? []).map((object) => ({
-          key: object.key,
-          label: object.name,
-          value: object,
-          type: 'custom',
-        })),
-      },
-    ] as Array<CatalogGroup<DbProblemSaved>>;
+      ...(savedProblemOptions ?? []).map((object) => ({
+        key: object.key,
+        label: object.name,
+        value: object,
+        type: 'custom',
+      })),
+    ] as Array<CatalogOption<DbProblemSaved>>;
   }, [builtInProblemOptions, savedProblemOptions]);
 
   const visualizerOptions = useMemo(() => {
     return [
       ...builtInVisualizerOptions,
-      {
-        key: 'custom',
-        label: 'Custom',
-        options: (savedVisualizerOptions ?? []).map((object) => ({
-          key: object.key,
-          label: object.name,
-          value: object,
-          type: 'custom',
-        })),
-      },
-    ] as Array<CatalogGroup<DbVisualizerSaved>>;
+      ...(savedVisualizerOptions ?? []).map((object) => ({
+        key: object.key,
+        label: object.name,
+        value: object,
+        type: 'custom',
+      })),
+    ] as Array<CatalogOption<DbVisualizerSaved>>;
   }, [builtInVisualizerOptions, savedVisualizerOptions]);
 
   const value = useMemo(

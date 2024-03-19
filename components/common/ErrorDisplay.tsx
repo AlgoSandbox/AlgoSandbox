@@ -1,4 +1,4 @@
-import { ErrorEntry } from '@app/errors/ErrorContext';
+import { ErrorEntry } from '@app/errors';
 import { MaterialSymbol } from '@components/ui';
 
 export default function ErrorDisplay({

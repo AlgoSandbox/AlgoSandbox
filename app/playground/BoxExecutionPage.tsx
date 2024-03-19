@@ -4,7 +4,7 @@ import 'react-mosaic-component/react-mosaic-component.css';
 
 import { SandboxVisualization } from '@algo-sandbox/core';
 import { VisualizationRenderer } from '@algo-sandbox/react-components';
-import { error, ErrorOr, success } from '@app/errors/ErrorContext';
+import { error, ErrorOr, success } from '@app/errors';
 import {
   Pseudocode,
   useBoxContext,

@@ -1,4 +1,3 @@
-import AlgorithmDetails from './AlgorithmDetails';
 import BoxContextProvider, { useBoxContext } from './box-context';
 import BoxControlsContextProvider, {
   useBoxControlsContext,
@@ -9,7 +8,6 @@ import ParameterControls from './ParameterControls';
 import Pseudocode from './Pseudocode';
 
 export {
-  AlgorithmDetails,
   BoxContextProvider,
   BoxControlsContextProvider,
   BoxExecutionControls,

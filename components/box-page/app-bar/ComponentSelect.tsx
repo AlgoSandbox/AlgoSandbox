@@ -101,7 +101,12 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
                   <div className="font-medium flex flex-col gap-2">
                     <Heading variant="h4">Parameters</Heading>
                     <HeadingContent>
-                      <ParameterControls parameters={component.parameters} />
+                      <ParameterControls
+                        parameters={component.parameters}
+                        onSave={() => {
+                          setParameters(methods.getValues());
+                        }}
+                      />
                     </HeadingContent>
                   </div>
                 </div>

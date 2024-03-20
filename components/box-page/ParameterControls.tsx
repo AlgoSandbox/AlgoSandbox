@@ -10,6 +10,7 @@ import GridEditorDialog from './GridEditor';
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;
   parameter: P;
+  onSave: () => void;
 };
 
 function GraphEditorDialogControl({
@@ -99,6 +100,7 @@ function SpreadsheetEditorDialogControl({
 function ParameterControl<P extends SandboxParameter>({
   fieldName,
   parameter,
+  onSave,
 }: ParameterControlProps<P>) {
   const {
     register,
@@ -181,6 +183,7 @@ function ParameterControl<P extends SandboxParameter>({
                       value,
                     },
                   });
+                  onSave();
                 }}
               />
             )}
@@ -200,6 +203,7 @@ function ParameterControl<P extends SandboxParameter>({
                       value,
                     },
                   });
+                  onSave();
                 }}
               />
             )}
@@ -219,6 +223,7 @@ function ParameterControl<P extends SandboxParameter>({
                       value,
                     },
                   });
+                  onSave();
                 }}
               />
             )}
@@ -251,10 +256,12 @@ function ParameterControl<P extends SandboxParameter>({
 
 export type ParameterControlsProps<P extends SandboxParameters> = {
   parameters: P;
+  onSave: () => void;
 };
 
 export default function ParameterControls<P extends SandboxParameters>({
   parameters,
+  onSave,
 }: ParameterControlsProps<P>) {
   const {
     formState: { isDirty },
@@ -263,7 +270,12 @@ export default function ParameterControls<P extends SandboxParameters>({
   return (
     <div className="flex flex-col gap-2 items-start">
       {Object.entries(parameters).map(([field, parameter]) => (
-        <ParameterControl key={field} fieldName={field} parameter={parameter} />
+        <ParameterControl
+          key={field}
+          fieldName={field}
+          parameter={parameter}
+          onSave={onSave}
+        />
       ))}
       <Button
         label="Customize"

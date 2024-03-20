@@ -51,7 +51,7 @@ export default function DashboardPage() {
   const { boxOptions } = useSandboxComponents();
 
   const groupedOptions = useMemo(() => {
-    return groupOptionsByTag(boxOptions);
+    return groupOptionsByTag(boxOptions, { omitTags: ['box'] });
   }, [boxOptions]);
 
   return (

@@ -96,6 +96,7 @@ function getMarkdownTitle(markdown: string) {
 
 const algorithmGroupToFolderGlob = {
   Search: 'lib/algo-sandbox/algorithms/search',
+  'Decision trees': 'lib/algo-sandbox/algorithms/decision-trees',
 };
 
 const problemGroupToFolderGlob = {
@@ -118,8 +119,8 @@ const adapterGroupToFolderGlob = {
 };
 
 const boxGroupToFolderGlob = {
-  Graphs: 'lib/algo-sandbox/boxes/graphs',
   Environment: 'lib/algo-sandbox/boxes/environment',
+  'Decision trees': 'lib/algo-sandbox/boxes/decision-trees',
 };
 
 function readSandboxObjectGroup<T extends DbSandboxObjectType>(

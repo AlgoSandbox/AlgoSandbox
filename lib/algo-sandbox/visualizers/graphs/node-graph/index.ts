@@ -10,7 +10,7 @@ import {
 import { graphEdge, graphNode } from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
-import _, { isEqual } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import { z } from 'zod';
 
 const nodeGraphVisualizerEdge = graphEdge.extend({
@@ -19,7 +19,7 @@ const nodeGraphVisualizerEdge = graphEdge.extend({
 
 const nodeGraphVisualizerNode = graphNode;
 
-const nodeGraphVisualizerInput = createState(
+export const nodeGraphVisualizerInput = createState(
   'Node graph visualizer input',
   z.object({
     nodes: z.array(nodeGraphVisualizerNode),
@@ -73,7 +73,7 @@ const getVisualizerState = (
   oldNodes: Array<GraphNode>,
   oldLinks: Array<z.infer<typeof nodeGraphVisualizerEdge>>,
 ): Pick<NodeGraphVisualizerState, 'nodes' | 'links' | 'simulation'> => {
-  const { nodes: newNodes, edges } = _.cloneDeep(graph);
+  const { nodes: newNodes, edges } = cloneDeep(graph);
   const nodes = newNodes.map((node) => {
     const oldNode = oldNodes.find(({ id: oldId }) => node.id === oldId);
     return oldNode ? { ...oldNode } : node;
@@ -104,7 +104,7 @@ const getVisualizerState = (
 
   let simulation = d3
     .forceSimulation(nodes as d3.SimulationNodeDatum[])
-    .force('charge', d3.forceManyBody().strength(isTree ? -300 : -700))
+    .force('charge', d3.forceManyBody().strength(isTree ? -700 : -700))
     .force(
       'link',
       d3
@@ -322,7 +322,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('class', 'label')
             .attr('fill', 'rgb(var(--color-on-surface))')
             .attr('text-anchor', 'middle')
-            .text((d) => d.id)
+            .text((d) => d.label ?? d.id)
             .attr('dy', 15 / 2)
             .attr('style', 'pointer-events: none');
 
@@ -391,7 +391,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
             const svgNodes = g.selectAll('.node').data(nodes);
             svgNodes
-              .attr('fill', 'white')
+              .attr('fill', 'var(--color-surface)')
               .attr('cx', (d: any) => d.x)
               .attr('cy', (d: any) => d.y);
 

@@ -18,6 +18,7 @@ export const componentTag = z.enum([
   'problem',
   'visualizer',
   'environment',
+  'decision-tree',
 ]);
 
 export const componentConfig = z.object({

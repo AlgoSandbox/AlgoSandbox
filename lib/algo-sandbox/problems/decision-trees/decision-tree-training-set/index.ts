@@ -24,7 +24,7 @@ const decisionTreeTrainingSet = createParameterizedProblem({
   parameters: {
     spreadsheet: SandboxParam.spreadsheet(
       'Training data',
-      '{"attributes":[],"examples":[]}',
+      '{"attributes":["Weather","Energy"],"examples":[{"attributes":{"Weather":"Hot","Energy":"Low"},"classification":"Stay"},{"attributes":{"Weather":"Cold","Energy":"High"},"classification":"Go out"},{"attributes":{"Weather":"Hot","Energy":"High"},"classification":"Stay"},{"attributes":{"Weather":"Cold","Energy":"Medium"},"classification":"Go out"},{"attributes":{"Weather":"Cold","Energy":"Low"},"classification":"Stay"}]}',
     ),
   },
   getInitialState: (parameters) => {

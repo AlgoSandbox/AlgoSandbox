@@ -231,7 +231,7 @@ function DecisionTreeTrainingSetEditor({
                         {attributeValues[attribute].map((attributeValue) => (
                           <span
                             key={attributeValue}
-                            className="font-bond text-accent px-1 py-0.5 border border-accent rounded"
+                            className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
                           >
                             {attributeValue}
                           </span>

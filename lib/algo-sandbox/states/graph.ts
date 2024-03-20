@@ -10,6 +10,7 @@ export const graphEdge = z.object({
 
 export const graphNode = z.object({
   id: z.string(),
+  label: z.string().optional(),
 });
 
 export const nodeGraph = createState(

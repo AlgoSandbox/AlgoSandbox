@@ -1,5 +1,8 @@
 import { useBoxContext } from '@components/box-page';
-import { useBoxContextSandboxObject } from '@components/box-page/box-context/sandbox-object';
+import {
+  Instance,
+  useBoxContextSandboxObject,
+} from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import {
@@ -9,7 +12,10 @@ import {
   useSetSavedVisualizerMutation,
 } from '@utils/db/visualizers';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
-import { useMemo } from 'react';
+import { isEqual } from 'lodash';
+import { useCallback, useMemo } from 'react';
+
+import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
 export default function FlowchartVisualizerSelect({
   alias,
@@ -81,6 +87,25 @@ export default function FlowchartVisualizerSelect({
     [alias, defaultAll],
   );
 
+  const filter = useCallback(
+    (
+      instance: Instance<'visualizer'>,
+      otherInstance: Instance<'visualizer'>,
+    ) => {
+      return isEqual(
+        Object.keys(instance.accepts.shape.shape),
+        Object.keys(otherInstance.accepts.shape.shape),
+      );
+    },
+    [],
+  );
+
+  const filteredOptions = useFilteredObjectOptions({
+    options,
+    selectedOption,
+    filter,
+  });
+
   return (
     <FlowchartComponentSelect<'visualizer'>
       className={className}
@@ -89,7 +114,7 @@ export default function FlowchartVisualizerSelect({
       hideErrors={true}
       value={selectedOption}
       onChange={setSelectedOption}
-      options={options}
+      options={filteredOptions}
       evaluatedValue={visualizerEvaluation}
       defaultParameters={defaultParameters}
       setParameters={(params) => {

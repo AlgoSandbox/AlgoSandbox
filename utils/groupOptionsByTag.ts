@@ -1,5 +1,6 @@
 import { ComponentTag } from '@algo-sandbox/core';
 import { CatalogGroup, CatalogOption } from '@constants/catalog';
+import { sortBy } from 'lodash';
 
 import { DbSandboxObjectSaved, DbSandboxObjectType } from './db';
 import hyphenCaseToWords from './hyphenCaseToWords';
@@ -22,30 +23,35 @@ export default function groupOptionsByTag<T extends DbSandboxObjectType>(
     (option) => !option.value.tags.some((tag) => tags.includes(tag)),
   );
 
-  return [
-    ...tags.map((tag) => {
-      return {
-        key: tag,
-        label: hyphenCaseToWords(tag),
-        options: options
-          .filter((option) => option.value.tags.includes(tag))
-          .map((option) => ({
-            ...option,
-            key: `${tag}.${option.key}`,
-          })),
-      };
-    }),
-    ...(noTagOptions.length > 0
-      ? [
-          {
-            key: '.',
-            label: 'Ungrouped',
-            options: noTagOptions.map((option) => ({
+  return sortBy(
+    [
+      ...tags.map((tag) => {
+        return {
+          key: tag,
+          label: hyphenCaseToWords(tag),
+          options: options
+            .filter((option) => option.value.tags.includes(tag))
+            .map((option) => ({
               ...option,
-              key: `.${option.key}`,
+              key: `${tag}.${option.key}`,
             })),
-          },
-        ]
-      : []),
-  ];
+        };
+      }),
+      ...(noTagOptions.length > 0
+        ? [
+            {
+              key: '.',
+              label: 'Ungrouped',
+              options: noTagOptions.map((option) => ({
+                ...option,
+                key: `.${option.key}`,
+              })),
+            },
+          ]
+        : []),
+    ],
+    (group) => {
+      return !group.options.every((option) => option.disabled);
+    },
+  );
 }

@@ -57,12 +57,14 @@ function ListItem<T>({
   option,
   onClick,
   onDoubleClick,
+  disabled,
 }: {
   option: CatalogOption<T>;
   onClick?: () => void;
   onDoubleClick?: () => void;
   active: boolean;
   selected: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Button
@@ -72,13 +74,25 @@ function ListItem<T>({
       role="checkbox"
       onClick={onClick}
       onDoubleClick={onDoubleClick}
+      disabled={disabled}
     />
   );
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
+function Chip({
+  children,
+  disabled,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+}) {
   return (
-    <span className="border rounded-full flex items-center text-label px-2 font-semibold tracking-tight">
+    <span
+      className={clsx(
+        'border rounded-full flex items-center px-2 font-semibold tracking-tight',
+        disabled ? 'text-muted' : 'text-label',
+      )}
+    >
       {children}
     </span>
   );
@@ -316,15 +330,20 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               .filter((item) => !isSelectGroup(item) || item.options.length > 0)
               .map((item) => {
                 if (isSelectGroup(item)) {
+                  const areAllItemsDisabled = item.options.every(
+                    (option) => option.disabled,
+                  );
+
                   return (
                     <Fragment key={item.key}>
                       <div className="flex items-center pt-4 text-sm border-t">
-                        <Chip>{item.label}</Chip>
+                        <Chip disabled={areAllItemsDisabled}>{item.label}</Chip>
                       </div>
                       {item.options.map((option) => (
                         <ListItem
                           selected={option.key === selectedOption?.key}
                           active={option.key === selectedOption?.key}
+                          disabled={option.disabled}
                           key={option.key}
                           option={option}
                           onClick={() => {
@@ -344,6 +363,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                     <ListItem
                       selected={item.key === selectedOption?.key}
                       active={item.key === selectedOption?.key}
+                      disabled={item.disabled}
                       key={item.key}
                       option={item}
                       onClick={() => {

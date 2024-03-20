@@ -112,7 +112,7 @@ const verifiers = {
   },
 };
 
-type Instance<T extends keyof SandboxObjectTypeMap> =
+export type Instance<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['instance'];
 export type Value<T extends keyof SandboxObjectTypeMap> =
   SandboxObjectTypeMap[T]['value'];

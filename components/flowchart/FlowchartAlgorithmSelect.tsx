@@ -1,5 +1,10 @@
+import { Instance } from '@components/box-page/box-context/sandbox-object';
+import { isEqual } from 'lodash';
+import { useCallback } from 'react';
+
 import { useBoxContext } from '../box-page/box-context';
 import FlowchartComponentSelect from './FlowchartComponentSelect';
+import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
 export default function FlowchartAlgorithmSelect({
   className,
@@ -22,6 +27,28 @@ export default function FlowchartAlgorithmSelect({
     value: parameters = {},
   } = useBoxContext('algorithm.parameters');
 
+  const filter = useCallback(
+    (instance: Instance<'algorithm'>, otherInstance: Instance<'algorithm'>) => {
+      return (
+        isEqual(
+          Object.keys(instance.accepts.shape.shape),
+          Object.keys(otherInstance.accepts.shape.shape),
+        ) &&
+        isEqual(
+          Object.keys(instance.outputs.shape.shape),
+          Object.keys(otherInstance.outputs.shape.shape),
+        )
+      );
+    },
+    [],
+  );
+
+  const filteredOptions = useFilteredObjectOptions({
+    options,
+    selectedOption,
+    filter,
+  });
+
   return (
     <FlowchartComponentSelect<'algorithm'>
       className={className}
@@ -30,7 +57,7 @@ export default function FlowchartAlgorithmSelect({
       hideErrors={hideErrors}
       value={selectedOption}
       onChange={setSelectedOption}
-      options={options}
+      options={filteredOptions}
       evaluatedValue={algorithmEvaluation}
       defaultParameters={defaultParameters}
       setParameters={setParameters}

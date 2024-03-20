@@ -1,10 +1,14 @@
 import { error } from '@app/errors';
 import { useBoxContext } from '@components/box-page';
+import { Instance } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
-import { useMemo } from 'react';
+import { isEqual } from 'lodash';
+import { useCallback, useMemo } from 'react';
+
+import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
 export default function FlowchartAdapterSelect({
   className,
@@ -53,6 +57,28 @@ export default function FlowchartAdapterSelect({
     return adapterOptions.find((option) => option.key === adapterKey)!;
   }, [adapterOptions, adapterKey]);
 
+  const filter = useCallback(
+    (instance: Instance<'adapter'>, otherInstance: Instance<'adapter'>) => {
+      return (
+        isEqual(
+          Object.keys(instance.accepts.shape.shape),
+          Object.keys(otherInstance.accepts.shape.shape),
+        ) &&
+        isEqual(
+          Object.keys(instance.outputs.shape.shape),
+          Object.keys(otherInstance.outputs.shape.shape),
+        )
+      );
+    },
+    [],
+  );
+
+  const filteredOptions = useFilteredObjectOptions({
+    options,
+    selectedOption: value,
+    filter,
+  });
+
   return (
     <FlowchartComponentSelect<'adapter'>
       className={className}
@@ -78,7 +104,7 @@ export default function FlowchartAdapterSelect({
           },
         });
       }}
-      options={options}
+      options={filteredOptions}
       evaluatedValue={adapterEvaluation}
       defaultParameters={defaultParameters}
       setParameters={(params) => {

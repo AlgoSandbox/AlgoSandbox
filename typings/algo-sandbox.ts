@@ -6,23 +6,28 @@ import {
   SandboxParameterizedAlgorithm,
   SandboxParameterizedProblem,
   SandboxParameterizedVisualizer,
+  SandboxParameters,
   SandboxProblem,
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 
 export type SandboxAnyAlgorithm =
-  | SandboxAlgorithm<any, any>
-  | SandboxParameterizedAlgorithm<any, any, any>;
+  | SandboxAlgorithm<SandboxStateType, any>
+  | SandboxParameterizedAlgorithm<SandboxStateType, any, SandboxParameters>;
 
 export type SandboxAnyProblem =
-  | SandboxProblem<any>
-  | SandboxParameterizedProblem<any, any>;
+  | SandboxProblem<SandboxStateType>
+  | SandboxParameterizedProblem<SandboxStateType, SandboxParameters>;
 
 export type SandboxAnyVisualizer =
-  | SandboxVisualizer<any, any>
-  | SandboxParameterizedVisualizer<any, any, any>;
+  | SandboxVisualizer<SandboxStateType, any>
+  | SandboxParameterizedVisualizer<SandboxStateType, any, SandboxParameters>;
 
 export type SandboxAnyAdapter =
   | SandboxAdapter<SandboxStateType, SandboxStateType>
-  | SandboxParameterizedAdapter<SandboxStateType, SandboxStateType, any>;
+  | SandboxParameterizedAdapter<
+      SandboxStateType,
+      SandboxStateType,
+      SandboxParameters
+    >;

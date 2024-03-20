@@ -11,6 +11,7 @@ import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedBoxesQuery } from '@utils/db/boxes';
 import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
+import { sortBy } from 'lodash';
 import { createContext, useContext, useMemo } from 'react';
 
 export type SandboxComponents = {
@@ -67,68 +68,83 @@ export default function SandboxComponentsProvider({
   const { data: savedVisualizerOptions } = useSavedVisualizersQuery();
 
   const adapterOptions = useMemo(() => {
-    return [
-      ...builtInAdapterOptions,
-      ...(savedAdapterOptions ?? []).map((object) => ({
-        key: object.key,
-        label: object.name,
-        value: object,
-        type: 'custom',
-        tags: object.tags,
-      })),
-    ] as Array<CatalogOption<DbAdapterSaved>>;
+    return sortBy(
+      [
+        ...builtInAdapterOptions,
+        ...(savedAdapterOptions ?? []).map((object) => ({
+          key: object.key,
+          label: object.name,
+          value: object,
+          type: 'custom',
+          tags: object.tags,
+        })),
+      ],
+      'label',
+    ) as Array<CatalogOption<DbAdapterSaved>>;
   }, [builtInAdapterOptions, savedAdapterOptions]);
 
   const algorithmOptions = useMemo(() => {
-    return [
-      ...builtInAlgorithmOptions,
-      ...(savedAlgorithmOptions ?? []).map((object) => ({
-        key: object.key,
-        label: object.name,
-        value: object,
-        type: 'custom',
-        tags: object.tags,
-      })),
-    ] as Array<CatalogOption<DbAlgorithmSaved>>;
+    return sortBy(
+      [
+        ...builtInAlgorithmOptions,
+        ...(savedAlgorithmOptions ?? []).map((object) => ({
+          key: object.key,
+          label: object.name,
+          value: object,
+          type: 'custom',
+          tags: object.tags,
+        })),
+      ],
+      'label',
+    ) as Array<CatalogOption<DbAlgorithmSaved>>;
   }, [builtInAlgorithmOptions, savedAlgorithmOptions]);
 
   const boxOptions = useMemo(() => {
-    return [
-      ...builtInBoxOptions,
-      ...(savedBoxOptions ?? []).map((object) => ({
-        key: object.key,
-        label: object.name,
-        value: object,
-        type: 'custom',
-        tags: object.tags,
-      })),
-    ] as Array<CatalogOption<DbBoxSaved>>;
+    return sortBy(
+      [
+        ...builtInBoxOptions,
+        ...(savedBoxOptions ?? []).map((object) => ({
+          key: object.key,
+          label: object.name,
+          value: object,
+          type: 'custom',
+          tags: object.tags,
+        })),
+      ],
+      'label',
+    ) as Array<CatalogOption<DbBoxSaved>>;
   }, [builtInBoxOptions, savedBoxOptions]);
 
   const problemOptions = useMemo(() => {
-    return [
-      ...builtInProblemOptions,
-      ...(savedProblemOptions ?? []).map((object) => ({
-        key: object.key,
-        label: object.name,
-        value: object,
-        type: 'custom',
-        tags: object.tags,
-      })),
-    ] as Array<CatalogOption<DbProblemSaved>>;
+    return sortBy(
+      [
+        ...builtInProblemOptions,
+        ...(savedProblemOptions ?? []).map((object) => ({
+          key: object.key,
+          label: object.name,
+          value: object,
+          type: 'custom',
+          tags: object.tags,
+        })),
+      ],
+      'label',
+    ) as Array<CatalogOption<DbProblemSaved>>;
   }, [builtInProblemOptions, savedProblemOptions]);
 
   const visualizerOptions = useMemo(() => {
-    return [
-      ...builtInVisualizerOptions,
-      ...(savedVisualizerOptions ?? []).map((object) => ({
-        key: object.key,
-        label: object.name,
-        value: object,
-        type: 'custom',
-        tags: object.tags,
-      })),
-    ] as Array<CatalogOption<DbVisualizerSaved>>;
+    return sortBy(
+      [
+        ...builtInVisualizerOptions,
+        ...(savedVisualizerOptions ?? []).map((object) => ({
+          key: object.key,
+          label: object.name,
+          value: object,
+          type: 'custom',
+          tags: object.tags,
+        })),
+      ],
+      'label',
+    ) as Array<CatalogOption<DbVisualizerSaved>>;
   }, [builtInVisualizerOptions, savedVisualizerOptions]);
 
   const value = useMemo(

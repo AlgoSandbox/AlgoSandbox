@@ -9,7 +9,9 @@ import {
   SandboxParameterizedEnvironment,
   SandboxParameterizedProblem,
   SandboxParameterizedVisualizer,
+  SandboxParameters,
   SandboxProblem,
+  SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
@@ -18,12 +20,16 @@ import { Get } from '@utils/RecursivePath';
 import { z } from 'zod';
 
 export type SandboxAnyAlgorithm =
-  | SandboxAlgorithm<any, any>
-  | SandboxParameterizedAlgorithm<any, any, any>;
+  | SandboxAlgorithm<SandboxStateType, SandboxStateType>
+  | SandboxParameterizedAlgorithm<
+      SandboxStateType,
+      SandboxStateType,
+      SandboxParameters
+    >;
 
 export type SandboxAnyProblem =
-  | SandboxProblem<any>
-  | SandboxParameterizedProblem<any, any>
+  | SandboxProblem<SandboxStateType>
+  | SandboxParameterizedProblem<SandboxStateType, SandboxParameters>
   // Workaround: the line below is required even though parameterized environments are
   // parameterized problems. This is as Typescript is not
   // eager in evaluating conditional types like "T extends A".
@@ -34,8 +40,8 @@ export type SandboxAnyProblem =
   | SandboxParameterizedEnvironment<any, any, any>;
 
 export type SandboxAnyVisualizer =
-  | SandboxVisualizer<any, any>
-  | SandboxParameterizedVisualizer<any, any, any>;
+  | SandboxVisualizer<SandboxStateType, any>
+  | SandboxParameterizedVisualizer<SandboxStateType, any, SandboxParameters>;
 
 export type SandboxAnyAdapter = SandboxAdapter<any, any>;
 

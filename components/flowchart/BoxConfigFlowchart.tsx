@@ -2,10 +2,10 @@ import 'reactflow/dist/style.css';
 
 import { ErrorEntry } from '@app/errors';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
-import AlgorithmSelect from '@components/box-page/app-bar/AlgorithmSelect';
-import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
-import ProblemSelect from '@components/box-page/app-bar/ProblemSelect';
+import CatalogSelect from '@components/box-page/CatalogSelect';
 import ErrorDisplay from '@components/common/ErrorDisplay';
+import FlowchartAlgorithmSelect from '@components/flowchart/FlowchartAlgorithmSelect';
+import FlowchartProblemSelect from '@components/flowchart/FlowchartProblemSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -379,9 +379,11 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           </div>
           <div className="p-2 border-b">
             {type === 'problem' && (
-              <ProblemSelect hideErrors hideLabel className="flex-1" />
+              <FlowchartProblemSelect hideErrors hideLabel className="flex-1" />
             )}
-            {type === 'algorithm' && <AlgorithmSelect hideErrors hideLabel />}
+            {type === 'algorithm' && (
+              <FlowchartAlgorithmSelect hideErrors hideLabel />
+            )}
             {type === 'visualizer' && (
               <FlowchartVisualizerSelect alias={alias} />
             )}

@@ -1,6 +1,6 @@
 import { useBoxContext } from '@components/box-page';
-import ComponentSelect from '@components/box-page/app-bar/ComponentSelect';
 import { useBoxContextSandboxObject } from '@components/box-page/box-context/sandbox-object';
+import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import {
   useAddSavedVisualizerMutation,
@@ -82,7 +82,7 @@ export default function FlowchartVisualizerSelect({
   );
 
   return (
-    <ComponentSelect<'visualizer'>
+    <FlowchartComponentSelect<'visualizer'>
       className={className}
       label="Problem"
       hideLabel={true}

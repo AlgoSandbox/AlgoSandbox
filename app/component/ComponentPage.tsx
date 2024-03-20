@@ -2,7 +2,7 @@
 
 import SandboxObjectEditorPage from '@app/SandboxObjectEditorPage';
 import AppNavBar from '@components/AppNavBar';
-import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
+import CatalogSelect from '@components/box-page/CatalogSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { CatalogOption } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';

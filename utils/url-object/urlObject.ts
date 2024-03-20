@@ -1,4 +1,4 @@
-import { componentTag } from '@algo-sandbox/core';
+import { ComponentTag } from '@algo-sandbox/core';
 import {
   DbSandboxObject,
   DbSandboxObjectSaved,
@@ -40,11 +40,8 @@ export function useObjectFromUrl(): DbSandboxObject {
     }
   })();
   const type = sandboxObjectType.parse(searchParams.get('type'));
-  const tags =
-    searchParams
-      .get('tags')
-      ?.split(',')
-      .map((tag) => componentTag.parse(tag)) ?? [];
+  const tags = (searchParams.get('tags')?.split(',') ??
+    []) as Array<ComponentTag>;
   return { name, type, files, editable: true, tags };
 }
 

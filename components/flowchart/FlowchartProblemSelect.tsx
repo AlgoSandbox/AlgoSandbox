@@ -1,8 +1,8 @@
 import { useBoxContext } from '@components/box-page';
 
-import ComponentSelect from './ComponentSelect';
+import FlowchartComponentSelect from './FlowchartComponentSelect';
 
-export default function ProblemSelect({
+export default function FlowchartProblemSelect({
   hideLabel,
   hideErrors,
   className,
@@ -24,7 +24,7 @@ export default function ProblemSelect({
   } = useBoxContext('problem.parameters');
 
   return (
-    <ComponentSelect<'problem'>
+    <FlowchartComponentSelect<'problem'>
       className={className}
       label="Problem"
       hideLabel={hideLabel}

@@ -162,19 +162,19 @@ export default function BoxContextProvider({
     },
     parameters: problemParameters ?? null,
     onParametersChange: (parameters) => {
-      if (problemKey === undefined) {
-        return;
-      }
+      onBoxUpdate((box) => {
+        const { key: problemKey } = parseKeyWithParameters(box?.problem);
 
-      onBoxUpdate((box) => ({
-        ...box,
-        problem: parameters
-          ? {
-              key: problemKey ?? null,
-              parameters,
-            }
-          : problemKey,
-      }));
+        return {
+          ...box,
+          problem: parameters
+            ? {
+                key: problemKey ?? null,
+                parameters,
+              }
+            : problemKey,
+        };
+      });
     },
   });
 
@@ -202,19 +202,19 @@ export default function BoxContextProvider({
     },
     parameters: algorithmParameters,
     onParametersChange: (parameters) => {
-      if (algorithmKey === null) {
-        return;
-      }
+      onBoxUpdate((box) => {
+        const { key: algorithmKey } = parseKeyWithParameters(box?.algorithm);
 
-      onBoxUpdate((box) => ({
-        ...box,
-        algorithm: parameters
-          ? {
-              key: algorithmKey,
-              parameters,
-            }
-          : algorithmKey,
-      }));
+        return {
+          ...box,
+          algorithm: parameters
+            ? {
+                key: algorithmKey,
+                parameters,
+              }
+            : algorithmKey,
+        };
+      });
     },
   });
 

@@ -1,6 +1,6 @@
 import { error } from '@app/errors';
 import { useBoxContext } from '@components/box-page';
-import ComponentSelect from '@components/box-page/app-bar/ComponentSelect';
+import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
@@ -54,7 +54,7 @@ export default function FlowchartAdapterSelect({
   }, [adapterOptions, adapterKey]);
 
   return (
-    <ComponentSelect<'adapter'>
+    <FlowchartComponentSelect<'adapter'>
       className={className}
       label={label}
       hideLabel={true}

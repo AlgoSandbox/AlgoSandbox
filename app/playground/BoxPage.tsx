@@ -9,8 +9,8 @@ import {
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
-import CatalogSelect from '@components/box-page/app-bar/CatalogSelect';
 import CustomizeViewPopover from '@components/box-page/app-bar/CustomizeViewPopover';
+import CatalogSelect from '@components/box-page/CatalogSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';

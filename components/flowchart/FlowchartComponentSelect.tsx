@@ -10,11 +10,13 @@ import clsx from 'clsx';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { ParameterControls } from '..';
-import { Value } from '../box-context/sandbox-object';
-import CatalogSelect from './CatalogSelect';
+import { ParameterControls } from '../box-page';
+import { Value } from '../box-page/box-context/sandbox-object';
+import CatalogSelect from '../box-page/CatalogSelect';
 
-export default function ComponentSelect<T extends DbSandboxObjectType>({
+export default function FlowchartComponentSelect<
+  T extends DbSandboxObjectType,
+>({
   className,
   label,
   hideLabel,
@@ -84,8 +86,12 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
         containerClassName="flex-1"
         options={options}
         value={selectedOption ?? undefined}
-        onChange={setSelectedOption}
+        onChange={(newOption, newParameters) => {
+          setSelectedOption(newOption);
+          setParameters(newParameters);
+        }}
         errorMessage={errorMessage}
+        showParameters
       />
       {component !== null && 'parameters' in component && (
         <Popover

@@ -1,4 +1,5 @@
 import { SandboxObjectType } from '@algo-sandbox/components';
+import { getDefaultParameters, SandboxParameters } from '@algo-sandbox/core';
 import {
   Button,
   FormLabel,
@@ -12,10 +13,14 @@ import { ButtonProps } from '@components/ui/Button';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useDeleteObjectMutation } from '@utils/db/objects';
+import { evalSavedObject } from '@utils/evalSavedObject';
 import clsx from 'clsx';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import Markdown, { Components } from 'react-markdown';
 import { toast } from 'sonner';
+
+import { ParameterControls } from '.';
 
 // TODO: Restore preview
 
@@ -37,12 +42,13 @@ export type CatalogSelectProps<
   options: CatalogOptions<DbSandboxObjectSaved<T>>;
   placeholder?: string;
   value?: O;
-  onChange?: (value: O | null) => void;
+  onChange?: (value: O | null, parameters: SandboxParameters | null) => void;
   label: string;
   hideLabel?: boolean;
   variant?: ButtonProps['variant'];
   errorMessage?: string | null;
   showPreview?: boolean;
+  showParameters?: boolean;
 };
 
 function ListItem<T>({
@@ -88,7 +94,8 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   variant = 'filled',
   value,
   onChange,
-  errorMessage, // showPreview = true,
+  errorMessage,
+  showParameters = false, // showPreview = true,
 }: CatalogSelectProps<T>) {
   const [selectedOption, setSelectedOption] = useState(value);
 
@@ -100,6 +107,44 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   // const builtInComponents = useBuiltInComponents();
   const [query, setQuery] = useState('');
   // const [stepIndex, setStepIndex] = useState(0);
+
+  const objectInstance = useMemo(() => {
+    if (selectedOption === undefined) {
+      return null;
+    }
+
+    return evalSavedObject(selectedOption.value).mapLeft(() => null).value;
+  }, [selectedOption]);
+
+  const objectParameters = useMemo(() => {
+    if (objectInstance === null) {
+      return null;
+    }
+
+    if ('parameters' in objectInstance) {
+      return objectInstance.parameters as SandboxParameters;
+    }
+
+    return null;
+  }, [objectInstance]);
+
+  const defaultObjectParameters = useMemo(() => {
+    if (objectParameters === null) {
+      return null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return getDefaultParameters(objectParameters) as Record<string, any>;
+  }, [objectParameters]);
+
+  const methods = useForm({
+    defaultValues: defaultObjectParameters ?? {},
+  });
+  const { reset, getValues } = methods;
+
+  useEffect(() => {
+    reset(defaultObjectParameters ?? {});
+  }, [defaultObjectParameters, reset]);
 
   // const { executionTrace, visualizerInstance } =
   //   useMemo(() => {
@@ -287,7 +332,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                             // setStepIndex(0);
                           }}
                           onDoubleClick={() => {
-                            onChange?.(option);
+                            onChange?.(option, null);
                             setOpen(false);
                           }}
                         />
@@ -305,7 +350,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                         setSelectedOption?.(item);
                       }}
                       onDoubleClick={() => {
-                        onChange?.(item);
+                        onChange?.(item, null);
                         setOpen(false);
                       }}
                     />
@@ -314,7 +359,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               })}
           </div>
           {selectedOption !== undefined && (
-            <div className="w-[250px] overflow-y-auto">
+            <div className="w-[300px] overflow-y-auto">
               {/* {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
                   <div className="w-[250px] h-[200px]">
@@ -340,12 +385,25 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                     <Chip key={tag}>{tag}</Chip>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                {showParameters && objectParameters && (
+                  <div className="border-t mt-2 pt-4">
+                    <FormProvider {...methods}>
+                      <ParameterControls
+                        showCustomize={false}
+                        parameters={objectParameters}
+                        onSave={() => {}}
+                      />
+                    </FormProvider>
+                  </div>
+                )}
+                <div className="flex gap-2 mt-2">
                   <Button
                     variant="primary"
                     label="Select"
+                    type="submit"
                     onClick={() => {
-                      onChange?.(selectedOption);
+                      const parameterValues = getValues();
+                      onChange?.(selectedOption, parameterValues);
                       setOpen(false);
                     }}
                   />
@@ -356,7 +414,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                       onClick={async () => {
                         await deleteObject(selectedOption.value);
                         toast.success(`Deleted "${selectedOption.label}"`);
-                        onChange?.(null);
+                        onChange?.(null, null);
                         setOpen(false);
                       }}
                     />

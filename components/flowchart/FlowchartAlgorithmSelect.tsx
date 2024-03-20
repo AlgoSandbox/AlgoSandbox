@@ -1,7 +1,7 @@
-import { useBoxContext } from '../box-context';
-import ComponentSelect from './ComponentSelect';
+import { useBoxContext } from '../box-page/box-context';
+import FlowchartComponentSelect from './FlowchartComponentSelect';
 
-export default function AlgorithmSelect({
+export default function FlowchartAlgorithmSelect({
   className,
   hideLabel,
   hideErrors,
@@ -23,7 +23,7 @@ export default function AlgorithmSelect({
   } = useBoxContext('algorithm.parameters');
 
   return (
-    <ComponentSelect<'algorithm'>
+    <FlowchartComponentSelect<'algorithm'>
       className={className}
       label="Algorithm"
       hideLabel={hideLabel}

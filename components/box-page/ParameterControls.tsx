@@ -257,11 +257,13 @@ function ParameterControl<P extends SandboxParameter>({
 export type ParameterControlsProps<P extends SandboxParameters> = {
   parameters: P;
   onSave: () => void;
+  showCustomize?: boolean;
 };
 
 export default function ParameterControls<P extends SandboxParameters>({
   parameters,
   onSave,
+  showCustomize = true,
 }: ParameterControlsProps<P>) {
   const {
     formState: { isDirty },
@@ -277,12 +279,14 @@ export default function ParameterControls<P extends SandboxParameters>({
           onSave={onSave}
         />
       ))}
-      <Button
-        label="Customize"
-        type="submit"
-        variant="primary"
-        disabled={!isDirty}
-      />
+      {showCustomize && (
+        <Button
+          label="Customize"
+          type="submit"
+          variant="primary"
+          disabled={!isDirty}
+        />
+      )}
     </div>
   );
 }

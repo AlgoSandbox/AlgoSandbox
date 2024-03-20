@@ -10,7 +10,7 @@ import {
 import { Tooltip } from '.';
 
 type ButtonVariant = 'primary' | 'filled' | 'flat';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export type ButtonProps = {
   label: string;
@@ -58,6 +58,12 @@ function Button(
         aria-checked={selected}
         className={clsx(
           'flex items-center justify-between rounded transition-colors focus:outline-primary font-medium',
+          size === 'xs' && [
+            'py-1 gap-1',
+            icon !== undefined ? 'ps-1' : 'ps-2',
+            hideLabel || endIcon ? 'pe-1' : 'pe-2',
+            '[&_.material-symbols-rounded]:text-[16px] text-xs',
+          ],
           size === 'sm' && [
             'py-1 gap-1',
             icon !== undefined ? 'ps-1' : 'ps-2',

@@ -19,6 +19,7 @@ export type DbSandboxObject<
   files: Record<string, string>;
   editable: boolean;
   type: T;
+  tags: Array<ComponentTag>;
 };
 
 export type DbSandboxObjectSaved<

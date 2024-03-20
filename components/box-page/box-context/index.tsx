@@ -1,3 +1,4 @@
+import { ComponentTag } from '@algo-sandbox/core';
 import { SandboxBoxNamed } from '@app/playground/layout';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -37,8 +38,11 @@ type BoxContextType = {
     value: string;
     setValue: (value: string) => void;
   };
-  saveAsNew: (name: string) => Promise<void>;
-  save: () => Promise<void>;
+  save: (options: {
+    name: string;
+    tags: Array<ComponentTag>;
+    asNew: boolean;
+  }) => Promise<void>;
   delete: () => Promise<void>;
   isBoxCustom: boolean;
   isBoxDirty: boolean;
@@ -56,7 +60,6 @@ const BoxContext = createContext<BoxContextType>({
     value: '',
     setValue: () => {},
   },
-  saveAsNew: async () => {},
   save: async () => {},
   delete: async () => {},
   visualizers: {
@@ -91,8 +94,11 @@ export type BoxContextProviderProps = {
   box: SandboxBoxNamed | null;
   onBoxUpdate: (update: (oldBox: SandboxBoxNamed) => SandboxBoxNamed) => void;
   onBoxReset: () => void;
-  onBoxSaveAs: (name: string) => Promise<void>;
-  onBoxSave: () => Promise<void>;
+  onBoxSave: (options: {
+    name: string;
+    tags: Array<ComponentTag>;
+    asNew: boolean;
+  }) => Promise<void>;
   onBoxDelete: () => Promise<void>;
   isBoxCustom: boolean;
   isBoxDirty: boolean;
@@ -102,7 +108,6 @@ export type BoxContextProviderProps = {
 export default function BoxContextProvider({
   box,
   onBoxUpdate,
-  onBoxSaveAs,
   onBoxSave,
   onBoxReset,
   onBoxDelete,
@@ -301,7 +306,6 @@ export default function BoxContextProvider({
       reset: () => {
         onBoxReset();
       },
-      saveAsNew: onBoxSaveAs,
       save: onBoxSave,
       delete: onBoxDelete,
       visualizers,
@@ -314,7 +318,6 @@ export default function BoxContextProvider({
     boxName,
     isBoxCustom,
     isBoxDirty,
-    onBoxSaveAs,
     onBoxSave,
     onBoxDelete,
     visualizers,

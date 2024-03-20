@@ -1,6 +1,6 @@
 'use client';
 
-import { SandboxBox } from '@algo-sandbox/core';
+import { ComponentTag, SandboxBox } from '@algo-sandbox/core';
 import { BoxContextProvider } from '@components/box-page';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import TabManagerProvider from '@components/tab-manager/TabManager';
@@ -14,7 +14,10 @@ import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
-export type SandboxBoxNamed = SandboxBox & { name: string };
+export type SandboxBoxNamed = SandboxBox & {
+  name: string;
+  tags: Array<ComponentTag>;
+};
 
 type BoxState = {
   boxKey: string | null;
@@ -41,6 +44,75 @@ function LayoutImpl({
   const { mutateAsync: saveBox } = useAddSavedBoxMutation();
   const { mutateAsync: setSavedBox } = useSetSavedBoxMutation();
   const { mutateAsync: deleteSavedBox } = useRemoveSavedBoxMutation();
+
+  const handleSaveAsNew = useCallback(
+    async ({ name, tags }: { name: string; tags: Array<ComponentTag> }) => {
+      if (box === null) {
+        return;
+      }
+      const newBox = {
+        name,
+        type: 'box',
+        editable: true,
+        files: {
+          'index.ts': `const box = ${JSON.stringify(box)};
+        export default box;
+        `,
+        },
+        tags,
+      } as const;
+      const { key: newBoxKey } = await saveBox(newBox);
+      onBoxChange(({ box }) => {
+        return {
+          boxKey: newBoxKey,
+          box,
+        };
+      });
+    },
+    [box, onBoxChange, saveBox],
+  );
+
+  const handleSave = useCallback(
+    async ({ name, tags }: { name: string; tags: Array<ComponentTag> }) => {
+      if (box === null || boxKey === null) {
+        return;
+      }
+      const newBox = {
+        key: boxKey,
+        name,
+        type: 'box',
+        editable: true,
+        files: {
+          'index.ts': `const box = ${JSON.stringify(box)};
+          export default box;
+          `,
+        },
+        tags,
+      } as const;
+
+      await setSavedBox(newBox);
+    },
+    [box, boxKey, setSavedBox],
+  );
+
+  const handleBoxSave = useCallback(
+    async ({
+      name,
+      tags,
+      asNew,
+    }: {
+      name: string;
+      tags: Array<ComponentTag>;
+      asNew: boolean;
+    }) => {
+      if (asNew) {
+        return handleSaveAsNew({ name, tags });
+      } else {
+        return handleSave({ name, tags });
+      }
+    },
+    [handleSave, handleSaveAsNew],
+  );
 
   return (
     <TabManagerProvider
@@ -77,47 +149,7 @@ function LayoutImpl({
           });
         }}
         onBoxReset={onBoxReset}
-        onBoxSaveAs={async (name) => {
-          if (box === null) {
-            return;
-          }
-          const newBox = {
-            name: name,
-            type: 'box',
-            editable: true,
-            files: {
-              'index.ts': `const box = ${JSON.stringify(box)};
-              export default box;
-              `,
-            },
-          } as const;
-          const { key: newBoxKey } = await saveBox(newBox);
-          onBoxChange(({ box }) => {
-            return {
-              boxKey: newBoxKey,
-              box,
-            };
-          });
-        }}
-        onBoxSave={async () => {
-          if (box === null || boxKey === null) {
-            return;
-          }
-          const newBox = {
-            key: boxKey,
-            name: box.name,
-            type: 'box',
-            editable: true,
-            files: {
-              'index.ts': `const box = ${JSON.stringify(box)};
-              export default box;
-              `,
-            },
-          } as const;
-
-          // TODO: update tags
-          await setSavedBox({ ...newBox, tags: [] });
-        }}
+        onBoxSave={handleBoxSave}
         onBoxDelete={async () => {
           if (boxKey === null) {
             return;
@@ -200,8 +232,9 @@ function Layout({ children }: { children: React.ReactNode }) {
         params.get('config') !== null
           ? parseFromJson(params.get('config')) ?? undefined
           : originalBox.config,
+      tags: savedBox?.value.tags ?? [],
     };
-  }, [originalBox, params, savedBox?.label]);
+  }, [originalBox, params, savedBox?.label, savedBox?.value.tags]);
 
   console.info('boxObject', JSON.stringify(boxFromUrlCustomized));
 

@@ -40,7 +40,7 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
   parameters: Record<string, any> | null;
 }) {
   const { addOrFocusTab } = useTabManager();
-  const { isAdvancedModeEnabled } = useUserPreferences();
+  const { flowchartMode } = useUserPreferences();
 
   const methods = useForm({
     values: parameters ?? defaultParameters ?? {},
@@ -127,7 +127,7 @@ export default function ComponentSelect<T extends DbSandboxObjectType>({
           </Badge>
         </Popover>
       )}
-      {isAdvancedModeEnabled && selectedOption && (
+      {flowchartMode === 'full' && selectedOption && (
         <Button
           label="Edit in new tab"
           hideLabel

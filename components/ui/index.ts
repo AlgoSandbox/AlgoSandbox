@@ -11,6 +11,7 @@ import Select, {
   SelectOption,
   SelectOptions,
 } from './Select';
+import TagInput from './TagInput';
 import Tooltip from './Tooltip';
 
 export {
@@ -23,6 +24,7 @@ export {
   Popover,
   ResizeHandle,
   Select,
+  TagInput,
   Tooltip,
 };
 

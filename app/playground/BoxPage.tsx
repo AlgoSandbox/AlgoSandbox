@@ -1,6 +1,6 @@
 'use client';
 
-import { SandboxStateType } from '@algo-sandbox/core';
+import { ComponentTag, SandboxStateType } from '@algo-sandbox/core';
 import AppNavBar from '@components/AppNavBar';
 import {
   BoxControlsContextProvider,
@@ -15,10 +15,16 @@ import { useSandboxComponents } from '@components/playground/SandboxComponentsPr
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
-import { Button, Input, MaterialSymbol, Popover, Select } from '@components/ui';
+import {
+  Button,
+  Input,
+  MaterialSymbol,
+  Popover,
+  Select,
+  TagInput,
+} from '@components/ui';
 import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
-import Toggle from '@components/ui/Toggle';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import { createScene, SandboxScene } from '@utils';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
@@ -28,7 +34,7 @@ import { mapValues } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { ZodError } from 'zod';
 
@@ -237,16 +243,11 @@ function BoxPageImpl() {
   const selectedThemeOption = useMemo(() => {
     return themeOptions.find((option) => option.value === theme);
   }, [theme]);
-  const {
-    isAdvancedModeEnabled,
-    setAdvancedModeEnabled,
-    maxExecutionStepCount,
-    setMaxExecutionStepCount,
-  } = useUserPreferences();
+  const { maxExecutionStepCount, setMaxExecutionStepCount } =
+    useUserPreferences();
   const {
     isBoxCustom,
-    saveAsNew,
-    save,
+    save: saveBox,
     isBoxDirty,
     delete: deleteBox,
   } = useBoxContext();
@@ -261,11 +262,29 @@ function BoxPageImpl() {
 
   const [saveBoxDialogOpen, setSaveBoxDialogOpen] = useState(false);
 
-  const { register, handleSubmit } = useForm({
+  const {
+    register,
+    handleSubmit,
+    control,
+    getValues,
+    reset,
+    formState: { isDirty },
+  } = useForm<{
+    name: string;
+    tags: Array<ComponentTag>;
+  }>({
     defaultValues: {
-      name: '',
+      name: selectedOption?.label ?? '',
+      tags: selectedOption?.value.tags ?? [],
     },
   });
+
+  useEffect(() => {
+    reset({
+      name: selectedOption?.label ?? '',
+      tags: selectedOption?.value.tags ?? [],
+    });
+  }, [selectedOption, reset]);
 
   const {
     selectedTabId,
@@ -296,20 +315,18 @@ function BoxPageImpl() {
     toast.success('Link copied to clipboard');
   };
 
-  const handleSaveAsNewClick = () => {
+  const handleSaveClick = () => {
     setSaveBoxDialogOpen(true);
   };
 
-  const handleSaveBox = async (newBoxName: string) => {
+  const handleSaveBox: typeof saveBox = async (options) => {
     setSaveBoxDialogOpen(false);
-    await saveAsNew(newBoxName);
-    toast.success(`Saved as "${newBoxName}"`);
-  };
-
-  const handleSaveClick = async () => {
-    const boxLabel = selectedOption?.label ?? '';
-    await save();
-    toast.success(`Saved changes to ${boxLabel}`);
+    await saveBox(options);
+    if (options.asNew) {
+      toast.success(`Saved as "${options.name}"`);
+    } else {
+      toast.success(`Saved changes to ${options.name}`);
+    }
   };
 
   const handleDeleteClick = async () => {
@@ -353,24 +370,16 @@ function BoxPageImpl() {
                       icon={<MaterialSymbol icon="link" />}
                     />
                   )}
-                  {isBoxCustom && (
-                    <Button
-                      label="Save"
-                      disabled={!isBoxDirty}
-                      onClick={handleSaveClick}
-                      hideLabel
-                      icon={<MaterialSymbol icon="save" />}
-                    />
-                  )}
                   <Button
-                    label="Save as new"
-                    onClick={handleSaveAsNewClick}
+                    label="Save"
+                    onClick={handleSaveClick}
                     hideLabel
                     icon={<MaterialSymbol icon="save" />}
                   />
                   {isBoxCustom && (
                     <Button
                       label="Delete"
+                      hideLabel
                       onClick={handleDeleteClick}
                       icon={<MaterialSymbol icon="delete" />}
                     />
@@ -407,11 +416,6 @@ function BoxPageImpl() {
                       setTheme(option.value);
                     }}
                     label="Theme"
-                  />
-                  <Toggle
-                    label="Advanced mode"
-                    value={isAdvancedModeEnabled}
-                    onChange={setAdvancedModeEnabled}
                   />
                   <Input
                     label="Max execution steps"
@@ -451,20 +455,52 @@ function BoxPageImpl() {
         content={
           <form
             onSubmit={handleSubmit((data) => {
-              handleSaveBox(data.name);
+              handleSaveBox({ ...data, asNew: !isBoxCustom });
             })}
           >
             <Input
               label="Name"
-              containerClassName="flex-1"
+              containerClassName="flex-1 mb-2"
               {...register('name')}
             />
-            <Button
-              className="mt-2"
-              label="Save"
-              type="submit"
-              variant="primary"
+            <Controller
+              control={control}
+              name="tags"
+              render={({ field }) => (
+                <TagInput
+                  label="Tags (enter to add)"
+                  value={field.value}
+                  onChange={(tags) => {
+                    field.onChange({
+                      target: {
+                        value: tags,
+                      },
+                    });
+                  }}
+                />
+              )}
             />
+            <div className="flex gap-2 mt-4 justify-end">
+              <Button
+                type={isBoxCustom ? 'button' : 'submit'}
+                variant={isBoxCustom ? 'filled' : 'primary'}
+                label="Save as new"
+                onClick={() => {
+                  if (!isBoxCustom) {
+                    handleSaveBox({ ...getValues(), asNew: true });
+                  }
+                }}
+              />
+              {isBoxCustom && (
+                <Button
+                  label="Save"
+                  variant="primary"
+                  type="submit"
+                  disabled={!isBoxDirty && !isDirty}
+                  onClick={handleSaveClick}
+                />
+              )}
+            </div>
           </form>
         }
         open={saveBoxDialogOpen}

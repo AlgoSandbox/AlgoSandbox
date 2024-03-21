@@ -293,9 +293,9 @@ export default function CatalogSelect<T extends SandboxObjectType>({
       onOpenChange={setOpen}
       content={
         <div className="flex bg-surface h-[400px]">
-          <div className="flex flex-col border-r p-4 overflow-y-auto">
+          <div className="flex flex-col border-r overflow-y-hidden">
             <Input
-              className="mb-4 sticky top-0"
+              containerClassName="bg-surface mx-4 mt-4 sticky top-0"
               label="Search"
               type="search"
               hideLabel
@@ -303,80 +303,86 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               value={query}
               onChange={handleQueryChange}
             />
-            {options
-              .map((item) => {
-                if (isSelectGroup(item)) {
-                  return {
-                    ...item,
-                    options: item.options.filter(
-                      (item) =>
-                        query === '' ||
-                        item.label
-                          .toLocaleLowerCase()
-                          .includes(query.toLocaleLowerCase()),
-                    ),
-                  };
-                }
-                return item;
-              })
-              .filter(
-                (item) =>
-                  query === '' ||
-                  item.label
-                    .toLocaleLowerCase()
-                    .includes(query.toLocaleLowerCase()) ||
-                  isSelectGroup(item),
-              )
-              .filter((item) => !isSelectGroup(item) || item.options.length > 0)
-              .map((item) => {
-                if (isSelectGroup(item)) {
-                  const areAllItemsDisabled = item.options.every(
-                    (option) => option.disabled,
-                  );
+            <div className="flex flex-col p-4 overflow-y-auto">
+              {options
+                .map((item) => {
+                  if (isSelectGroup(item)) {
+                    return {
+                      ...item,
+                      options: item.options.filter(
+                        (item) =>
+                          query === '' ||
+                          item.label
+                            .toLocaleLowerCase()
+                            .includes(query.toLocaleLowerCase()),
+                      ),
+                    };
+                  }
+                  return item;
+                })
+                .filter(
+                  (item) =>
+                    query === '' ||
+                    item.label
+                      .toLocaleLowerCase()
+                      .includes(query.toLocaleLowerCase()) ||
+                    isSelectGroup(item),
+                )
+                .filter(
+                  (item) => !isSelectGroup(item) || item.options.length > 0,
+                )
+                .map((item) => {
+                  if (isSelectGroup(item)) {
+                    const areAllItemsDisabled = item.options.every(
+                      (option) => option.disabled,
+                    );
 
-                  return (
-                    <Fragment key={item.key}>
-                      <div className="flex items-center pt-4 text-sm border-t">
-                        <Chip disabled={areAllItemsDisabled}>{item.label}</Chip>
-                      </div>
-                      {item.options.map((option) => (
-                        <ListItem
-                          selected={option.key === selectedOption?.key}
-                          active={option.key === selectedOption?.key}
-                          disabled={option.disabled}
-                          key={option.key}
-                          option={option}
-                          onClick={() => {
-                            setSelectedOption?.(option);
-                            // setStepIndex(0);
-                          }}
-                          onDoubleClick={() => {
-                            onChange?.(option, null);
-                            setOpen(false);
-                          }}
-                        />
-                      ))}
-                    </Fragment>
-                  );
-                } else {
-                  return (
-                    <ListItem
-                      selected={item.key === selectedOption?.key}
-                      active={item.key === selectedOption?.key}
-                      disabled={item.disabled}
-                      key={item.key}
-                      option={item}
-                      onClick={() => {
-                        setSelectedOption?.(item);
-                      }}
-                      onDoubleClick={() => {
-                        onChange?.(item, null);
-                        setOpen(false);
-                      }}
-                    />
-                  );
-                }
-              })}
+                    return (
+                      <Fragment key={item.key}>
+                        <div className="flex items-center pt-4 text-sm border-t">
+                          <Chip disabled={areAllItemsDisabled}>
+                            {item.label}
+                          </Chip>
+                        </div>
+                        {item.options.map((option) => (
+                          <ListItem
+                            selected={option.key === selectedOption?.key}
+                            active={option.key === selectedOption?.key}
+                            disabled={option.disabled}
+                            key={option.key}
+                            option={option}
+                            onClick={() => {
+                              setSelectedOption?.(option);
+                              // setStepIndex(0);
+                            }}
+                            onDoubleClick={() => {
+                              onChange?.(option, null);
+                              setOpen(false);
+                            }}
+                          />
+                        ))}
+                      </Fragment>
+                    );
+                  } else {
+                    return (
+                      <ListItem
+                        selected={item.key === selectedOption?.key}
+                        active={item.key === selectedOption?.key}
+                        disabled={item.disabled}
+                        key={item.key}
+                        option={item}
+                        onClick={() => {
+                          setSelectedOption?.(item);
+                        }}
+                        onDoubleClick={() => {
+                          onChange?.(item, null);
+                          setOpen(false);
+                        }}
+                      />
+                    );
+                  }
+                })}
+            </div>
           </div>
           {selectedOption !== undefined && (
             <div className="w-[300px] overflow-y-auto">

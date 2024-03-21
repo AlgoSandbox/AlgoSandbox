@@ -1,6 +1,11 @@
-import { Button, MaterialSymbol } from '@components/ui';
+import { Button, MaterialSymbol, Popover } from '@components/ui';
+import Heading, { HeadingContent } from '@components/ui/Heading';
+import RadioButtons from '@components/ui/RadioButtons';
 
-import { useBoxControlsContext } from './BoxControlsContextProvider';
+import {
+  PlaybackSpeed,
+  useBoxControlsContext,
+} from './BoxControlsContextProvider';
 
 export default function BoxExecutionControls() {
   const {
@@ -16,6 +21,8 @@ export default function BoxExecutionControls() {
     stop,
     restartAndPlay,
     isPlaying,
+    playbackSpeed,
+    setPlaybackSpeed,
   } = useBoxControlsContext();
 
   return (
@@ -79,6 +86,33 @@ export default function BoxExecutionControls() {
           onClick={skipToEnd}
           icon={<MaterialSymbol icon="last_page" />}
         />
+        <Popover
+          content={
+            <div className="flex flex-col bg-surface p-4">
+              <Heading variant="h4">Settings</Heading>
+              <HeadingContent>
+                <RadioButtons
+                  label="Playback speed"
+                  value={playbackSpeed.toString()}
+                  disabled={isPlaying}
+                  onChange={(speed) => {
+                    setPlaybackSpeed(parseFloat(speed) as PlaybackSpeed);
+                  }}
+                  options={[0.25, 0.5, 1, 1.25, 1.5, 2].map((speed) => ({
+                    label: `${speed}x`,
+                    value: speed.toString(),
+                  }))}
+                />
+              </HeadingContent>
+            </div>
+          }
+        >
+          <Button
+            label="Settings"
+            hideLabel
+            icon={<MaterialSymbol icon="settings" />}
+          />
+        </Popover>
       </div>
     </div>
   );

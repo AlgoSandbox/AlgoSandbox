@@ -1,4 +1,5 @@
 import { SandboxStateType } from '@algo-sandbox/core';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { SandboxScene } from '@utils';
 import useCancelableInterval from '@utils/useCancelableInterval';
 import {
@@ -6,8 +7,11 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
+
+export type PlaybackSpeed = 0.25 | 0.5 | 1 | 1.25 | 1.5 | 2;
 
 type BoxControlsContextType = {
   play: () => void;
@@ -24,6 +28,8 @@ type BoxControlsContextType = {
   isPlaying: boolean;
   skipToStart: () => void;
   skipToEnd: () => void;
+  playbackSpeed: PlaybackSpeed;
+  setPlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
 export const BoxControlsContext = createContext<BoxControlsContextType>({
@@ -41,6 +47,8 @@ export const BoxControlsContext = createContext<BoxControlsContextType>({
   setCurrentStepIndex: () => {},
   maxSteps: null,
   isPlaying: false,
+  playbackSpeed: 1,
+  setPlaybackSpeed: () => {},
 });
 
 export function useBoxControlsContext() {
@@ -56,7 +64,7 @@ export default function BoxControlsContextProvider({
   children: React.ReactNode;
   scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
   onSceneChange: (
-    scene: SandboxScene<SandboxStateType, SandboxStateType>
+    scene: SandboxScene<SandboxStateType, SandboxStateType>,
   ) => void;
   maxSteps: number | null;
 }) {
@@ -94,11 +102,17 @@ export default function BoxControlsContextProvider({
     return true;
   }, [currentStepIndex, maxSteps, onSceneChange, scene]);
 
+  const { playbackSpeed, setPlaybackSpeed } = useUserPreferences();
+
+  const stepDelay = useMemo(() => {
+    return 500 / playbackSpeed;
+  }, [playbackSpeed]);
+
   const {
     start: play,
     stop,
     isRunning: isPlaying,
-  } = useCancelableInterval(next, 500);
+  } = useCancelableInterval(next, stepDelay);
 
   const hasPreviousStep = currentStepIndex > 0;
   const hasNextStep = maxSteps === null || currentStepIndex < maxSteps - 1;
@@ -134,6 +148,8 @@ export default function BoxControlsContextProvider({
           setCurrentStepIndex(fullyExecutedScene.executionTrace.length - 1);
         },
         maxSteps,
+        playbackSpeed,
+        setPlaybackSpeed,
       }}
     >
       {children}

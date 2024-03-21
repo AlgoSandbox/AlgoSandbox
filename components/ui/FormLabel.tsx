@@ -1,23 +1,23 @@
 import clsx from 'clsx';
-import { DetailedHTMLProps, forwardRef, HTMLAttributes } from 'react';
+import { DetailedHTMLProps, forwardRef, LabelHTMLAttributes } from 'react';
 
 export type FormLabelProps = DetailedHTMLProps<
-  HTMLAttributes<HTMLSpanElement>,
-  HTMLSpanElement
+  LabelHTMLAttributes<HTMLLabelElement>,
+  HTMLLabelElement
 > & {
   children: React.ReactNode;
 };
 
-const FormLabel = forwardRef<HTMLSpanElement, FormLabelProps>(
+const FormLabel = forwardRef<HTMLLabelElement, FormLabelProps>(
   ({ children, className, ...props }, ref) => {
     return (
-      <span
+      <label
         ref={ref}
         className={clsx('text-sm font-medium text-label', className)}
         {...props}
       >
         {children}
-      </span>
+      </label>
     );
   },
 );

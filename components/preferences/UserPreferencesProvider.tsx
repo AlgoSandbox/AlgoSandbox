@@ -1,3 +1,4 @@
+import { PlaybackSpeed } from '@components/box-page/BoxControlsContextProvider';
 import {
   createContext,
   useCallback,
@@ -9,6 +10,7 @@ import {
 
 const maxExecutionStepCountKey = 'sandbox:preferences:maxExecutionStepCount';
 const flowchartModeKey = 'sandbox:preferences:flowchartMode';
+const playbackSpeedKey = 'sandbox:preferences:playbackSpeed';
 
 const defaultMaxExecutionStepCount = 1000;
 
@@ -19,6 +21,8 @@ type UserPreferences = {
   setMaxExecutionStepCount: (steps: number) => void;
   flowchartMode: FlowchartMode;
   setFlowchartMode: (mode: FlowchartMode) => void;
+  playbackSpeed: PlaybackSpeed;
+  setPlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
 type UserPreferencesProviderProps = {
@@ -30,6 +34,8 @@ const UserPreferencesContext = createContext<UserPreferences>({
   setMaxExecutionStepCount: () => {},
   flowchartMode: 'simple',
   setFlowchartMode: () => {},
+  playbackSpeed: 1,
+  setPlaybackSpeed: () => {},
 });
 
 export function useUserPreferences() {
@@ -43,6 +49,7 @@ export default function UserPreferencesProvider({
     defaultMaxExecutionStepCount,
   );
   const [flowchartMode, setFlowchartMode] = useState<FlowchartMode>('simple');
+  const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
 
   useEffect(() => {
     const cachedMaxExecutionStepCount = localStorage.getItem(
@@ -64,6 +71,14 @@ export default function UserPreferencesProvider({
     setFlowchartMode(cachedFlowchartMode as FlowchartMode);
   }, []);
 
+  useEffect(() => {
+    const cachedPlaybackSpeed = localStorage.getItem(playbackSpeedKey);
+    if (cachedPlaybackSpeed === null) {
+      return;
+    }
+    setPlaybackSpeed(parseFloat(cachedPlaybackSpeed) as PlaybackSpeed);
+  }, []);
+
   const handleMaxExecutionStepCountChange = useCallback((steps: number) => {
     localStorage.setItem(maxExecutionStepCountKey, steps.toString());
     setMaxExecutionStepCount(steps);
@@ -74,18 +89,27 @@ export default function UserPreferencesProvider({
     setFlowchartMode(mode);
   }, []);
 
+  const handlePlaybackSpeedChange = useCallback((speed: PlaybackSpeed) => {
+    localStorage.setItem(playbackSpeedKey, speed.toString());
+    setPlaybackSpeed(speed);
+  }, []);
+
   const value = useMemo(() => {
     return {
       maxExecutionStepCount,
       setMaxExecutionStepCount: handleMaxExecutionStepCountChange,
       flowchartMode,
       setFlowchartMode: handleFlowchartModeChange,
+      playbackSpeed,
+      setPlaybackSpeed: handlePlaybackSpeedChange,
     };
   }, [
     flowchartMode,
     handleFlowchartModeChange,
     handleMaxExecutionStepCountChange,
+    handlePlaybackSpeedChange,
     maxExecutionStepCount,
+    playbackSpeed,
   ]);
 
   return (

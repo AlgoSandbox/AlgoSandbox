@@ -8,11 +8,8 @@ export function serializeJson(json: any) {
       const stringified = (() => {
         if (fnBody.length < 8 || fnBody.substring(0, 8) !== 'function') {
           //this is ES6 Arrow Function
-          console.log('stringified closure', fnBody);
           return '_NuFrRa_' + fnBody;
         }
-
-        console.log('stringified function', fnBody);
 
         return fnBody;
       })();

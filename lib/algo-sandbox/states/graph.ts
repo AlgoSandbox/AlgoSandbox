@@ -55,3 +55,18 @@ export const graphSearchAlgorithmState = createState(
     nodeDepths: z.record(z.number()).optional(),
   }),
 );
+
+export const nodeGraphVisualizerEdge = graphEdge.extend({
+  isArrow: z.boolean().optional(),
+});
+
+export const nodeGraphVisualizerNode = graphNode;
+
+export const nodeGraphVisualizerInput = createState(
+  'Node graph visualizer input',
+  z.object({
+    nodes: z.array(nodeGraphVisualizerNode),
+    edges: z.array(nodeGraphVisualizerEdge),
+    nodeDepths: z.record(z.number()).optional(),
+  }),
+);

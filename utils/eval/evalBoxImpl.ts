@@ -1,8 +1,8 @@
 import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
-import getSandboxObjectWithKeyImpl from '@utils/getSandboxObjectWithKeyImpl';
 import { mapValues } from 'lodash';
 
+import getSandboxObjectWithKeyImpl from '../getSandboxObjectWithKeyImpl';
 import parseKeyWithParameters from '../parseKeyWithParameters';
 import { EvalWithAlgoSandbox } from './evalWithAlgoSandboxServerSide';
 

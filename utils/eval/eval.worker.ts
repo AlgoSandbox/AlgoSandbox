@@ -165,7 +165,7 @@ function postScene(
       })();
 
       scene = (() => {
-        if (algorithmInstance === null) {
+        if (algorithmInstance === null || algorithmInput === null) {
           return null;
         }
 
@@ -178,7 +178,7 @@ function postScene(
 
         scene = createScene({
           algorithm: algorithmInstance,
-          algorithmInput: parseResult,
+          algorithmInput,
           maxExecutionStepCount: 100,
         });
 

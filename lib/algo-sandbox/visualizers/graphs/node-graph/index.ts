@@ -1,32 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   createParameterizedVisualizer,
-  createState,
   SandboxParam,
   SandboxParameterizedVisualizer,
   SandboxParameters,
   SandboxState,
 } from '@algo-sandbox/core';
-import { graphEdge, graphNode } from '@algo-sandbox/states';
+import {
+  nodeGraphVisualizerEdge,
+  nodeGraphVisualizerInput,
+  nodeGraphVisualizerNode,
+} from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
 import { cloneDeep, isEqual } from 'lodash';
 import { z } from 'zod';
-
-const nodeGraphVisualizerEdge = graphEdge.extend({
-  isArrow: z.boolean().optional(),
-});
-
-const nodeGraphVisualizerNode = graphNode;
-
-export const nodeGraphVisualizerInput = createState(
-  'Node graph visualizer input',
-  z.object({
-    nodes: z.array(nodeGraphVisualizerNode),
-    edges: z.array(nodeGraphVisualizerEdge),
-    nodeDepths: z.record(z.number()).optional(),
-  }),
-);
 
 type NodeGraph = SandboxState<typeof nodeGraphVisualizerInput>;
 type GraphNode = z.infer<typeof nodeGraphVisualizerNode>;

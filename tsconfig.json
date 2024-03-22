@@ -25,7 +25,6 @@
       "@constants/*": ["./constants/*"],
       "@typings": ["./typings"],
       "@typings/*": ["./typings/*"],
-      "@utils": ["./utils"],
       "@utils/*": ["./utils/*"],
       "@algo-sandbox/*": ["./lib/algo-sandbox/*"]
     }

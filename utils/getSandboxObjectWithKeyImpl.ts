@@ -6,10 +6,10 @@ import {
 import { error, ErrorOr } from '@app/errors';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { CatalogOption } from '@constants/catalog';
+import evalSavedObjectImpl from '@utils/eval/evalSavedObjectImpl';
+import { EvalWithAlgoSandbox } from '@utils/eval/evalWithAlgoSandboxServerSide';
 
 import { DbSandboxObjectSaved } from './db';
-import evalSavedObjectImpl from './eval/evalSavedObjectImpl';
-import { EvalWithAlgoSandbox } from './eval/evalWithAlgoSandboxServerSide';
 
 export default function getSandboxObjectWithKeyImpl<
   T extends SandboxObjectType,

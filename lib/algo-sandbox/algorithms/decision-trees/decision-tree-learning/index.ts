@@ -1,6 +1,6 @@
 import { createAlgorithm, createState } from '@algo-sandbox/core';
 import { decisionTreeTrainingSetState } from '@algo-sandbox/problems/decision-trees';
-import { nodeGraphVisualizerInput } from '@algo-sandbox/visualizers/graphs';
+import { nodeGraphVisualizerInput } from '@algo-sandbox/states';
 import { mapKeys, maxBy } from 'lodash';
 import { z } from 'zod';
 

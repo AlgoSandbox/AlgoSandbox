@@ -103,8 +103,6 @@ export default function useWorkerExecutedScene({
     [worker],
   );
 
-  console.log('scene', scene);
-
   return useMemo(
     () => ({
       scene,

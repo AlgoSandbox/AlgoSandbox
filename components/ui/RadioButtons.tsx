@@ -79,7 +79,7 @@ export default function RadioButtons<T extends string>({
         {options.map((option) => (
           <div key={option.value} className="flex gap-2 items-center">
             <RadioGroupItem value={option.value} id={`${id}-${option.value}`} />
-            <FormLabel htmlFor={`${id}-${option.value}`}>
+            <FormLabel disabled={disabled} htmlFor={`${id}-${option.value}`}>
               {option.label}
             </FormLabel>
           </div>

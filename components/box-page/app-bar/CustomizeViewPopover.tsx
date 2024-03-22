@@ -1,6 +1,6 @@
 import { Button, MaterialSymbol, Popover } from '@components/ui';
 import Checkbox from '@components/ui/Checkbox';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { useBoxContext } from '..';
 
@@ -20,9 +20,8 @@ export default function CustomizeViewPopover() {
     return ['pseudocode', ...visualizerOrder];
   }, [visualizerOrder]);
 
-  const [hiddenVisualizerAliases, setHiddenVisualizerAliases] = useState<
-    Set<string>
-  >(new Set());
+  const { hiddenVisualizerAliases, setHiddenVisualizerAliases } =
+    useBoxContext();
 
   return (
     <Popover

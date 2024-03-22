@@ -24,8 +24,8 @@ export default function useCancelableInterval(
     } else {
       if (timeoutId.current) {
         clearTimeout(timeoutId.current);
-        setIsRunning(false);
       }
+      setIsRunning(false);
       timeoutId.current = null;
     }
   }, [delay]);
@@ -33,9 +33,9 @@ export default function useCancelableInterval(
   const stop = useCallback(() => {
     if (timeoutId.current !== null) {
       clearTimeout(timeoutId.current);
-      setIsRunning(false);
       timeoutId.current = null;
     }
+    setIsRunning(false);
   }, []);
 
   useEffect(() => {

@@ -72,6 +72,7 @@ export default function BoxExecutionControls() {
     isPlaying,
     playbackSpeed,
     setPlaybackSpeed,
+    isExecuting,
   } = useBoxControlsContext();
 
   return (
@@ -81,14 +82,14 @@ export default function BoxExecutionControls() {
       </span>
       <div className="flex gap-2 items-center">
         <AsyncButton
-          disabled={isPlaying || !hasPrevious}
+          disabled={isPlaying || isExecuting || !hasPrevious}
           label="Skip to start (Shift + left)"
           hideLabel
           onClick={skipToStart}
           icon={<MaterialSymbol icon="first_page" />}
         />
         <AsyncButton
-          disabled={isPlaying || !hasPrevious}
+          disabled={isPlaying || isExecuting || !hasPrevious}
           onClick={previous}
           hideLabel
           label="Previous (Left)"
@@ -122,7 +123,7 @@ export default function BoxExecutionControls() {
           }
         />
         <AsyncButton
-          disabled={isPlaying || !hasNext}
+          disabled={isPlaying || isExecuting || !hasNext}
           hideLabel
           onClick={next}
           label="Next (Right)"
@@ -130,7 +131,7 @@ export default function BoxExecutionControls() {
         />
         <AsyncButton
           label="Skip to end (Shift + right)"
-          disabled={isPlaying || !hasNext}
+          disabled={isPlaying || isExecuting || !hasNext}
           hideLabel
           onClick={skipToEnd}
           icon={<MaterialSymbol icon="last_page" />}

@@ -6,14 +6,19 @@ export type FormLabelProps = DetailedHTMLProps<
   HTMLLabelElement
 > & {
   children: React.ReactNode;
+  disabled?: boolean;
 };
 
 const FormLabel = forwardRef<HTMLLabelElement, FormLabelProps>(
-  ({ children, className, ...props }, ref) => {
+  ({ children, className, disabled, ...props }, ref) => {
     return (
       <label
         ref={ref}
-        className={clsx('text-sm font-medium text-label', className)}
+        className={clsx(
+          'text-sm font-medium',
+          disabled ? 'text-muted' : 'text-label',
+          className,
+        )}
         {...props}
       >
         {children}

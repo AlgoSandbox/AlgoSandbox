@@ -43,6 +43,8 @@ export default function BoxExecutionPage() {
   } = useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
+  const { hiddenVisualizerAliases, setHiddenVisualizerAliases } =
+    useBoxContext();
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
   const pseudocode = algorithmInstance.unwrapOr(null)?.pseudocode ?? '';
@@ -76,10 +78,6 @@ export default function BoxExecutionPage() {
   const allVisualizerOrder = useMemo(() => {
     return ['pseudocode', ...visualizerOrder];
   }, [visualizerOrder]);
-
-  const [hiddenVisualizerAliases, setHiddenVisualizerAliases] = useState<
-    Set<string>
-  >(new Set());
 
   const visibleVisualizerAliases = useMemo(() => {
     return allVisualizerOrder.filter(
@@ -333,9 +331,9 @@ export default function BoxExecutionPage() {
                         className="text-muted hover:text-on-surface transition flex items-center shrink-0"
                         aria-label="Hide visualizer"
                         onClick={() => {
-                          setHiddenVisualizerAliases((prev) => {
-                            return new Set(prev).add(alias);
-                          });
+                          setHiddenVisualizerAliases(
+                            new Set(hiddenVisualizerAliases).add(alias),
+                          );
                         }}
                       >
                         <MaterialSymbol icon="close" />

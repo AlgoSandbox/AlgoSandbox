@@ -10,7 +10,9 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
 } from 'react';
 
 import useBoxContextConfig, {
@@ -47,6 +49,8 @@ type BoxContextType = {
   isBoxCustom: boolean;
   isBoxDirty: boolean;
   box: SandboxBoxNamed | null;
+  hiddenVisualizerAliases: Set<string>;
+  setHiddenVisualizerAliases: (aliases: Set<string>) => void;
 };
 
 const BoxContext = createContext<BoxContextType>({
@@ -74,6 +78,8 @@ const BoxContext = createContext<BoxContextType>({
     defaultParameters: {},
     reset: () => {},
   },
+  hiddenVisualizerAliases: new Set(),
+  setHiddenVisualizerAliases: () => {},
 });
 
 type BoxContextPath = RecursivePath<BoxContextType>;
@@ -229,6 +235,10 @@ export default function BoxContextProvider({
     [box?.visualizers?.order],
   );
 
+  const [hiddenVisualizerAliases, setHiddenVisualizerAliases] = useState<
+    Set<string>
+  >(new Set());
+
   const visualizers = useBoxContextVisualizers({
     options: visualizerOptions,
     defaultAliases: defaultAliases,
@@ -252,6 +262,10 @@ export default function BoxContextProvider({
       }));
     },
   });
+
+  useEffect(() => {
+    setHiddenVisualizerAliases(new Set());
+  }, [visualizers.aliases]);
 
   const visualizerInputKeys = useMemo(() => {
     return mapValues(visualizers.instances, (instance) => {
@@ -312,6 +326,8 @@ export default function BoxContextProvider({
       delete: onBoxDelete,
       visualizers,
       box,
+      hiddenVisualizerAliases,
+      setHiddenVisualizerAliases,
     } as BoxContextType;
   }, [
     problem,
@@ -325,6 +341,7 @@ export default function BoxContextProvider({
     onBoxDelete,
     visualizers,
     box,
+    hiddenVisualizerAliases,
     onBoxUpdate,
     onBoxReset,
   ]);

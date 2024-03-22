@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type CancelableInterval = {
   start: () => void;
@@ -7,37 +7,36 @@ type CancelableInterval = {
 };
 
 export default function useCancelableInterval(
-  callback: () => boolean | void,
+  callback: () => Promise<boolean>,
   delay: number,
 ): CancelableInterval {
-  const intervalId = useRef<NodeJS.Timeout | null>(null);
+  const timeoutId = useRef<NodeJS.Timeout | null>(null);
   const callbackRef = useRef(callback);
   const [isRunning, setIsRunning] = useState(false);
 
-  const start = () => {
-    callbackRef.current();
+  const start = useCallback(async () => {
     setIsRunning(true);
-    if (intervalId.current === null) {
-      intervalId.current = setInterval(() => {
-        const result = callbackRef.current();
-        if (result === false) {
-          if (intervalId.current) {
-            clearInterval(intervalId.current);
-            setIsRunning(false);
-          }
-          intervalId.current = null;
-        }
-      }, delay);
-    }
-  };
 
-  const stop = () => {
-    if (intervalId.current !== null) {
-      clearInterval(intervalId.current);
-      setIsRunning(false);
-      intervalId.current = null;
+    const shouldContinue = await callbackRef.current();
+
+    if (shouldContinue) {
+      timeoutId.current = setTimeout(start, delay);
+    } else {
+      if (timeoutId.current) {
+        clearTimeout(timeoutId.current);
+        setIsRunning(false);
+      }
+      timeoutId.current = null;
     }
-  };
+  }, [delay]);
+
+  const stop = useCallback(() => {
+    if (timeoutId.current !== null) {
+      clearTimeout(timeoutId.current);
+      setIsRunning(false);
+      timeoutId.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     // Update the callback ref when it changes

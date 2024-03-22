@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { isBoolean } from 'lodash';
 
-import { SandboxAlgorithm } from '../algorithm/algorithm';
+import { SandboxAlgorithm } from '..';
 import { SandboxState, SandboxStateType } from '../state';
 
 export type SandboxExecutionStep<N extends SandboxStateType> = {
@@ -74,11 +74,14 @@ export class SandboxAlgorithmExecutor<
       return this.makeExecutionStep(start, end, _tooltip, state);
     };
 
-    this.executionGenerator = this.algorithm.runAlgorithm({
+    const initialAlgorithmState = {
       state: state.data,
       problemState: this.algorithmInput,
       line,
-    });
+    };
+    const runAlgorithm = this.algorithm.runAlgorithm;
+
+    this.executionGenerator = runAlgorithm(initialAlgorithmState);
   }
 
   /**

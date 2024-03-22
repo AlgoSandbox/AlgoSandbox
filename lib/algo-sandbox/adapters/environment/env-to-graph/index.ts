@@ -1,15 +1,21 @@
-import { SandboxAdapter } from '@algo-sandbox/core';
+import { createAdapter, createState } from '@algo-sandbox/core';
 import {
   graphSearchAlgorithmState,
   sandboxEnvironmentSearchState,
+  sandboxEnvironmentState,
 } from '@algo-sandbox/states';
 import { compact } from 'lodash';
 
-const envToGraph: SandboxAdapter<
-  typeof sandboxEnvironmentSearchState,
-  typeof graphSearchAlgorithmState
-> = {
-  accepts: sandboxEnvironmentSearchState,
+const inputState = createState(
+  'Environment to search graph input state',
+
+  sandboxEnvironmentSearchState.shape.extend({
+    getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,
+  }),
+);
+
+const envToGraph = createAdapter({
+  accepts: inputState,
   outputs: graphSearchAlgorithmState,
   transform: (value) => {
     function getDepths(): Record<string, number> {
@@ -66,6 +72,6 @@ const envToGraph: SandboxAdapter<
       visited: value.visited,
     };
   },
-};
+});
 
 export default envToGraph;

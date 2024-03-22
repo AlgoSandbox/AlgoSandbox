@@ -13,7 +13,7 @@ import { ComponentConfig } from '@algo-sandbox/core';
 import Toaster from '@components/ui/Toaster';
 import { CatalogOption } from '@constants/catalog';
 import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
-import evalServerSide from '@utils/evalServerSide';
+import evalServerSide from '@utils/eval/evalServerSide';
 import hyphenCaseToCamelCase from '@utils/hyphenCaseToCamelCase';
 import fs from 'fs';
 import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';

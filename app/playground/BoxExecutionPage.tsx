@@ -33,8 +33,14 @@ export default function BoxExecutionPage() {
   const { maxExecutionStepCount } = useUserPreferences();
 
   const scene = useScene();
-  const { currentStepIndex, hasNext, hasPrevious, next, previous } =
-    useBoxControlsContext();
+  const {
+    currentStepIndex,
+    hasNext,
+    hasPrevious,
+    next,
+    previous,
+    isExecuting,
+  } = useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
 
@@ -61,7 +67,7 @@ export default function BoxExecutionPage() {
           }
 
           return success(instance.visualize(parseResult.data));
-        }) ?? error('Visualizer instance not found');
+        }) ?? error(`Visualizer instance with alias = ${alias} not found`);
 
       return { alias, value: visualization };
     });
@@ -192,6 +198,10 @@ export default function BoxExecutionPage() {
 
       return visualization.value.fold(
         (errorEntries) => {
+          // Do not show errors if algorithm is still executing
+          if (isExecuting) {
+            return <div />;
+          }
           return <ErrorDisplay key={alias} errors={errorEntries} />;
         },
         (value) => (
@@ -214,6 +224,7 @@ export default function BoxExecutionPage() {
       previous,
       hasNext,
       hasPrevious,
+      isExecuting,
     ],
   );
 

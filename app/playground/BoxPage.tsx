@@ -26,14 +26,22 @@ import {
 import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
-import { createScene, SandboxScene } from '@utils';
+import useWorkerExecutedScene from '@utils/eval/useWorkerExecutedScene';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
+import { ReadonlySandboxScene } from '@utils/scene';
 import solveFlowchart from '@utils/solveFlowchart';
 import clsx from 'clsx';
 import { mapValues } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { ZodError } from 'zod';
@@ -45,95 +53,69 @@ const themeOptions = [
 ];
 
 function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
-  const problemInstanceEvaluation = useBoxContext('problem.instance');
-  const algorithmInstanceEvaluation = useBoxContext('algorithm.instance');
-  const { maxExecutionStepCount: maxExecutionStepCount } = useUserPreferences();
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  const configTree = useBoxContext('config.tree');
-  const configAdapterInstances = useBoxContext(
-    'config.evaluated.adapterInstances',
-  );
-
-  const visualizerInstances = useBoxContext('visualizers.instances');
-
-  const { inputs } = useMemo(() => {
-    const problemInstance = problemInstanceEvaluation.unwrapOr(null);
-    const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
-
-    if (problemInstance === null || algorithmInstance === null) {
-      return {};
-    }
-
-    const problemState = problemInstance.getInitialState();
-
-    const { inputs, outputs, inputErrors } = solveFlowchart({
-      config: configTree,
-      problemState,
-      adapters: mapValues(
-        configAdapterInstances ?? {},
-        (val) => val?.mapLeft(() => undefined).value?.value,
-      ),
-      visualizers: mapValues(
-        visualizerInstances,
-        (evaluation) =>
-          evaluation.map((val) => val.value).mapLeft(() => undefined).value,
-      ),
-    });
-
-    return { inputs, outputs, inputErrors };
-  }, [
-    problemInstanceEvaluation,
-    algorithmInstanceEvaluation,
-    configTree,
-    configAdapterInstances,
-    visualizerInstances,
-  ]);
-
-  const initialScene = useMemo(() => {
-    const algorithmInstance = algorithmInstanceEvaluation.unwrapOr(null);
-    if (algorithmInstance !== null) {
-      try {
-        const algorithmInput = inputs?.['algorithm'];
-
-        const parseResult =
-          algorithmInstance.accepts.shape.safeParse(algorithmInput);
-
-        if (!parseResult.success) {
-          return null;
-        }
-
-        // TODO make intiial problem legit
-        const scene = createScene({
-          algorithm: algorithmInstance,
-          algorithmInput: parseResult.data,
-          maxExecutionStepCount,
-        });
-
-        return scene.copyWithExecution(1);
-      } catch (e) {
-        console.error(e);
-        return null;
-      }
-    }
-    return null;
-  }, [algorithmInstanceEvaluation, inputs, maxExecutionStepCount]);
-
-  const [scene, setScene] = useState(initialScene);
+  const box = useBoxContext('box');
 
   useEffect(() => {
-    setScene(initialScene);
-  }, [initialScene]);
+    if (box !== null) {
+      setCurrentStepIndex(0);
+    }
+  }, [box]);
+
+  const { scene, execute, isExecuting } = useWorkerExecutedScene({
+    box,
+  });
 
   const isFullyExecuted = useMemo(
     () => scene?.isFullyExecuted ?? false,
     [scene],
   );
 
+  const handleCurrentStepIndexChange = useCallback(
+    async (newStepIndex: number) => {
+      if (newStepIndex < scene!.executionTrace.length) {
+        setCurrentStepIndex(newStepIndex);
+        return;
+      }
+
+      if (isFullyExecuted) {
+        const clampedStepIndex = Math.min(
+          newStepIndex,
+          scene!.executionTrace.length - 1,
+        );
+        setCurrentStepIndex(clampedStepIndex);
+        return;
+      }
+
+      const newScene = await execute(newStepIndex + 1);
+      if (newScene === null) {
+        return;
+      }
+
+      const clampedStepIndex = Math.min(
+        newStepIndex,
+        newScene.executionTrace.length - 1,
+      );
+      setCurrentStepIndex(clampedStepIndex);
+    },
+    [execute, isFullyExecuted, scene],
+  );
+
   return (
     <BoxControlsContextProvider
       scene={scene}
-      onSceneChange={setScene}
+      isExecuting={isExecuting}
       maxSteps={isFullyExecuted ? scene!.executionTrace.length : null}
+      onSkipToEnd={async () => {
+        const newScene = await execute();
+        if (newScene === null) {
+          return;
+        }
+        setCurrentStepIndex(newScene.executionTrace.length - 1);
+      }}
+      currentStepIndex={currentStepIndex}
+      onCurrentStepIndexChange={handleCurrentStepIndexChange}
     >
       <BoxPageShortcuts>
         <SceneProvider scene={scene}>{children}</SceneProvider>
@@ -143,7 +125,7 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
 }
 
 type SceneContextType = {
-  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
+  scene: ReadonlySandboxScene<SandboxStateType> | null;
   flowchart: {
     inputs: Record<string, Record<string, unknown> | undefined>;
     outputs: Record<string, Record<string, unknown> | undefined>;
@@ -159,7 +141,7 @@ function SceneProvider({
   scene,
   children,
 }: {
-  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
+  scene: ReadonlySandboxScene<SandboxStateType> | null;
   children: React.ReactNode;
 }) {
   const { currentStepIndex } = useBoxControlsContext();
@@ -187,22 +169,26 @@ function SceneProvider({
 
     const problemState = problemInstance.getInitialState();
 
-    const { inputs, outputs, inputErrors } = solveFlowchart({
-      config: configTree,
-      problemState,
-      algorithmState,
-      adapters: mapValues(
-        configAdapterInstances ?? {},
-        (val) => val?.mapLeft(() => undefined).value?.value,
-      ),
-      visualizers: mapValues(
-        visualizerInstances,
-        (evaluation) =>
-          evaluation.map((val) => val.value).mapLeft(() => undefined).value,
-      ),
-    });
+    try {
+      const { inputs, outputs, inputErrors } = solveFlowchart({
+        config: configTree,
+        problemState,
+        algorithmState,
+        adapters: mapValues(
+          configAdapterInstances ?? {},
+          (val) => val?.mapLeft(() => undefined).value?.value,
+        ),
+        visualizers: mapValues(
+          visualizerInstances,
+          (evaluation) =>
+            evaluation.map((val) => val.value).mapLeft(() => undefined).value,
+        ),
+      });
 
-    return { inputs, outputs, inputErrors };
+      return { inputs, outputs, inputErrors };
+    } catch (e) {
+      return {};
+    }
   }, [
     problemInstanceEvaluation,
     algorithmInstanceEvaluation,

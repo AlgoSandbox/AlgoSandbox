@@ -3,8 +3,8 @@ import { ErrorOr, success } from '@app/errors';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useMemo } from 'react';
 
-import evalBox from './evalBox';
-import evalWithAlgoSandbox from './evalWithAlgoSandbox';
+import evalBox from './eval/evalBox';
+import evalWithAlgoSandbox from './eval/evalWithAlgoSandbox';
 
 export default function useDefaultBoxFromFiles(
   files: Record<string, string>,
@@ -26,8 +26,10 @@ export default function useDefaultBoxFromFiles(
     }
 
     const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
-      files,
-      currentFilePath: defaultBoxFilePath,
+      fileContext: {
+        files,
+        currentFilePath: defaultBoxFilePath,
+      },
     }) as ErrorOr<SandboxBox>;
 
     const evaledBox = defaultBox.map((box) =>

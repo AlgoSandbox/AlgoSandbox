@@ -6,16 +6,17 @@ import {
   SandboxStateType,
 } from '@algo-sandbox/core';
 
+export type ReadonlySandboxScene<M extends SandboxStateType> = {
+  executionTrace: Readonly<SandboxExecutionTrace<M>>;
+  isFullyExecuted: boolean;
+  didReachExecutionLimit: boolean;
+};
+
 export type SandboxScene<
   N extends SandboxStateType,
   M extends SandboxStateType,
-> = {
+> = ReadonlySandboxScene<M> & {
   copyWithExecution: (untilCount?: number) => SandboxScene<N, M>;
-  executionTrace: Readonly<SandboxExecutionTrace<M>>;
-  algorithm: Readonly<SandboxAlgorithm<N, M>>;
-  algorithmInput: Readonly<SandboxState<N>>;
-  isFullyExecuted: boolean;
-  didReachExecutionLimit: boolean;
 };
 
 export function createScene<
@@ -36,8 +37,6 @@ export function createScene<
     didReachExecutionLimit: boolean,
   ): SandboxScene<N, M> => {
     return {
-      algorithm: algorithm,
-      algorithmInput: algorithmInput,
       isFullyExecuted: executor.isFullyExecuted,
       didReachExecutionLimit,
       executionTrace: [...executor.executionTrace],

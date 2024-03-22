@@ -2,9 +2,9 @@ import * as adapters from '@algo-sandbox/adapters';
 import * as algorithms from '@algo-sandbox/algorithms';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
-import * as reactComponents from '@algo-sandbox/react-components';
+// import * as reactComponents from '@algo-sandbox/react-components';
 import * as states from '@algo-sandbox/states';
-import * as visualizers from '@algo-sandbox/visualizers';
+// import * as visualizers from '@algo-sandbox/visualizers';
 import {
   error,
   ErrorEntry,
@@ -12,32 +12,20 @@ import {
   ErrorOr,
   success,
 } from '@app/errors';
-import * as d3 from 'd3';
-import _, * as lodash from 'lodash';
-import path from 'path';
-import * as react from 'react';
-import * as reactDomClient from 'react-dom/client';
-import * as reactInspector from 'react-inspector';
+import hyphenCaseToCamelCase from '@utils/hyphenCaseToCamelCase';
+import _ from 'lodash';
 import { ModuleKind, ScriptTarget, transpile } from 'typescript';
-import * as zod from 'zod';
 
 import evalWithContext from './evalWithContext';
-import hyphenCaseToCamelCase from './hyphenCaseToCamelCase';
 
 function isAbsolutePath(libraryPath: string) {
   // Returns if the js library path is absolute
   return !libraryPath.startsWith('.');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function evalWithAlgoSandbox<T = any>(
+export default function evalServerSide<T>(
   typescriptCode: string,
-  fileContext?: {
-    files: Record<string, string>;
-    currentFilePath: string;
-  },
   asModule = false,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): ErrorOr<T> {
   const libraryToValue = {
     '@algo-sandbox/adapters': adapters,
@@ -45,14 +33,14 @@ export default function evalWithAlgoSandbox<T = any>(
     '@algo-sandbox/core': core,
     '@algo-sandbox/problems': problems,
     '@algo-sandbox/states': states,
-    '@algo-sandbox/visualizers': visualizers,
-    '@algo-sandbox/react-components': reactComponents,
-    react: react,
-    'react-dom/client': reactDomClient,
-    'react-inspector': reactInspector,
-    d3: d3,
-    lodash: lodash,
-    zod: zod,
+    // '@algo-sandbox/visualizers': visualizers,
+    // '@algo-sandbox/react-components': reactComponents,
+    // react: react,
+    // 'react-dom/client': reactDomClient,
+    // 'react-inspector': reactInspector,
+    // d3: d3,
+    // lodash: lodash,
+    // zod: zod,
   };
 
   // Make a fake require
@@ -102,31 +90,6 @@ export default function evalWithAlgoSandbox<T = any>(
             object.default = object;
           }
           return object;
-        } else if (fileContext) {
-          const resolvedPath = path.resolve(
-            path.dirname(fileContext.currentFilePath),
-            library,
-          );
-
-          const tsFilePathChoices = [
-            path.resolve(resolvedPath, 'index.ts'),
-            path.resolve(resolvedPath, 'index.js'),
-          ];
-
-          if (!resolvedPath.endsWith('.')) {
-            tsFilePathChoices.push(resolvedPath + '.ts');
-          }
-
-          for (const tsFilePath of tsFilePathChoices) {
-            if (tsFilePath in fileContext.files) {
-              const value = evalWithAlgoSandbox(
-                fileContext.files[tsFilePath],
-                undefined,
-                true,
-              );
-              return value;
-            }
-          }
         }
 
         const errorEntry: ErrorEntry = {

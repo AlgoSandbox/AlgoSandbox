@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, ZodSymbol } from 'zod';
 
 // Get type name of any zod type
 export default function getZodTypeName(zodType: z.ZodType): string {
@@ -58,6 +58,9 @@ export default function getZodTypeName(zodType: z.ZodType): string {
   }
   if (zodType instanceof z.ZodUnknown) {
     return 'unknown';
+  }
+  if (zodType instanceof ZodSymbol) {
+    return 'symbol';
   }
   console.error('unknown type', zodType);
   return 'unknown type';

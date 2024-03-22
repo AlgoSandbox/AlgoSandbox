@@ -45,7 +45,6 @@ export const sandboxEnvironmentSearchState = createState(
         data: z.any().optional(),
       }),
     ),
-    getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,
     searchTree: z.array(
       z.object({
         source: sandboxEnvironmentState.shape.shape.getStateKey.returnType(),

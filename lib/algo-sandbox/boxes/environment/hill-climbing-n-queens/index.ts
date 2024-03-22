@@ -24,9 +24,45 @@ const box: SandboxBox = {
       connections: [
         {
           fromKey: 'algorithm',
-          fromSlot: '.',
+          fromSlot: 'currentState',
           toKey: 'adapter-0',
-          toSlot: '.',
+          toSlot: 'currentState',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'initialState',
+          toKey: 'adapter-0',
+          toSlot: 'initialState',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'actions',
+          toKey: 'adapter-0',
+          toSlot: 'actions',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'visited',
+          toKey: 'adapter-0',
+          toSlot: 'visited',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'frontier',
+          toKey: 'adapter-0',
+          toSlot: 'frontier',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'searchTree',
+          toKey: 'adapter-0',
+          toSlot: 'searchTree',
+        },
+        {
+          fromKey: 'problem',
+          fromSlot: 'getStateKey',
+          toKey: 'adapter-0',
+          toSlot: 'getStateKey',
         },
         {
           fromKey: 'problem',

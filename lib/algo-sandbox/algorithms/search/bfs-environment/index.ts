@@ -30,7 +30,6 @@ const breadthFirstSearch = createAlgorithm({
       visited: new Set<string>(),
       frontier: [],
       actions: problem.actions(initialState),
-      getStateKey: problem.getStateKey,
       searchTree: [],
     };
   },

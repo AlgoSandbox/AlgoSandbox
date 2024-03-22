@@ -51,7 +51,6 @@ iterativeDeepeningSearch(maxDepth):
       visited: new Set<string>(),
       frontier: [], // Using an array as a stack
       actions: problem.actions(initialState),
-      getStateKey: problem.getStateKey,
       searchTree: [],
     };
   },

@@ -131,7 +131,7 @@ export type BoxConfigTree = BoxConfig & {
 export type BoxConfigEvaluated = {
   adapters?: Record<
     string,
-    SandboxEvaluated<ComponentWithParameters<SandboxAnyAdapter>> | undefined
+    ComponentWithParameters<SandboxAnyAdapter> | undefined
   >;
   composition: AdapterComposition<
     SandboxAliases<string, SandboxVisualizerKey | SandboxAdapterKey>

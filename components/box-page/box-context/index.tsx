@@ -1,5 +1,5 @@
 import { ComponentTag } from '@algo-sandbox/core';
-import { SandboxBoxNamed } from '@app/playground/layout';
+import { SandboxBoxNamed } from '@app/playground/PlaygroundLayout';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
@@ -46,6 +46,7 @@ type BoxContextType = {
   delete: () => Promise<void>;
   isBoxCustom: boolean;
   isBoxDirty: boolean;
+  box: SandboxBoxNamed | null;
 };
 
 const BoxContext = createContext<BoxContextType>({
@@ -56,6 +57,7 @@ const BoxContext = createContext<BoxContextType>({
   isBoxDirty: false,
   reset: () => {},
   openFlowchart: () => {},
+  box: null,
   boxName: {
     value: '',
     setValue: () => {},
@@ -309,6 +311,7 @@ export default function BoxContextProvider({
       save: onBoxSave,
       delete: onBoxDelete,
       visualizers,
+      box,
     } as BoxContextType;
   }, [
     problem,
@@ -321,6 +324,7 @@ export default function BoxContextProvider({
     onBoxSave,
     onBoxDelete,
     visualizers,
+    box,
     onBoxUpdate,
     onBoxReset,
   ]);

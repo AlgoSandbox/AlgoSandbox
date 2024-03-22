@@ -47,7 +47,6 @@ const aStarSearch = createAlgorithm({
       visited: new Set<string>(),
       frontier: [],
       actions: environment.actions(initialState),
-      getStateKey: environment.getStateKey,
       searchTree: [],
     };
   },

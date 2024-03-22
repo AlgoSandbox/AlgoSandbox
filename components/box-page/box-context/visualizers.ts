@@ -11,7 +11,7 @@ import {
 import { error, ErrorOr, success } from '@app/errors';
 import { CatalogOption } from '@constants/catalog';
 import { DbVisualizerSaved } from '@utils/db';
-import { evalSavedObject } from '@utils/evalSavedObject';
+import { evalSavedObject } from '@utils/eval/evalSavedObject';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { mapValues } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';

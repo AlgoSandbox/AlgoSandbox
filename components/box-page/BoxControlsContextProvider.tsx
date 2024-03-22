@@ -1,15 +1,8 @@
 import { SandboxStateType } from '@algo-sandbox/core';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
-import { SandboxScene } from '@utils';
+import { ReadonlySandboxScene } from '@utils/scene';
 import useCancelableInterval from '@utils/useCancelableInterval';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 
 export type PlaybackSpeed = 0.25 | 0.5 | 1 | 1.25 | 1.5 | 2;
 
@@ -17,8 +10,8 @@ type BoxControlsContextType = {
   play: () => void;
   restartAndPlay: () => void;
   stop: () => void;
-  previous: () => void;
-  next: () => boolean;
+  previous: () => Promise<void>;
+  next: () => Promise<boolean>;
   reset: () => void;
   hasPrevious: boolean;
   hasNext: boolean;
@@ -26,8 +19,9 @@ type BoxControlsContextType = {
   setCurrentStepIndex: (stepIndex: number) => void;
   maxSteps: number | null;
   isPlaying: boolean;
-  skipToStart: () => void;
-  skipToEnd: () => void;
+  skipToStart: () => Promise<void>;
+  skipToEnd: () => Promise<void>;
+  isExecuting: boolean;
   playbackSpeed: PlaybackSpeed;
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
@@ -36,17 +30,18 @@ export const BoxControlsContext = createContext<BoxControlsContextType>({
   stop: () => {},
   play: () => {},
   restartAndPlay: () => {},
-  next: () => false,
+  next: async () => false,
   reset: () => {},
-  skipToStart: () => {},
-  skipToEnd: () => {},
+  skipToStart: async () => {},
+  skipToEnd: async () => {},
   hasPrevious: false,
   hasNext: false,
-  previous: () => {},
+  previous: async () => {},
   currentStepIndex: 0,
   setCurrentStepIndex: () => {},
   maxSteps: null,
   isPlaying: false,
+  isExecuting: false,
   playbackSpeed: 1,
   setPlaybackSpeed: () => {},
 });
@@ -58,31 +53,27 @@ export function useBoxControlsContext() {
 export default function BoxControlsContextProvider({
   children,
   scene,
-  onSceneChange,
+  currentStepIndex,
+  onCurrentStepIndexChange,
+  onSkipToEnd,
+  isExecuting,
   maxSteps,
 }: {
   children: React.ReactNode;
-  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
-  onSceneChange: (
-    scene: SandboxScene<SandboxStateType, SandboxStateType>,
-  ) => void;
+  scene: ReadonlySandboxScene<SandboxStateType> | null;
+  currentStepIndex: number;
+  onCurrentStepIndexChange: (stepIndex: number) => Promise<void>;
+  isExecuting: boolean;
+  onSkipToEnd: () => Promise<void>;
   maxSteps: number | null;
 }) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-
-  useEffect(() => {
-    if (scene !== null && currentStepIndex > scene.executionTrace.length - 1) {
-      setCurrentStepIndex(scene.executionTrace.length - 1);
-    }
-  }, [currentStepIndex, scene]);
-
-  const previous = useCallback(() => {
+  const previous = useCallback(async () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+      await onCurrentStepIndexChange(currentStepIndex - 1);
     }
-  }, [currentStepIndex]);
+  }, [currentStepIndex, onCurrentStepIndexChange]);
 
-  const next = useCallback(() => {
+  const next = useCallback(async () => {
     if (scene === null) {
       // Pause
       return false;
@@ -93,14 +84,10 @@ export default function BoxControlsContextProvider({
       return false;
     }
 
-    const newScene = scene.copyWithExecution(currentStepIndex + 2);
-    onSceneChange(newScene);
-    if (currentStepIndex + 1 < newScene.executionTrace.length) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    }
-    // Continue playing
+    await onCurrentStepIndexChange(currentStepIndex + 1);
+
     return true;
-  }, [currentStepIndex, maxSteps, onSceneChange, scene]);
+  }, [currentStepIndex, maxSteps, onCurrentStepIndexChange, scene]);
 
   const { playbackSpeed, setPlaybackSpeed } = useUserPreferences();
 
@@ -117,41 +104,59 @@ export default function BoxControlsContextProvider({
   const hasPreviousStep = currentStepIndex > 0;
   const hasNextStep = maxSteps === null || currentStepIndex < maxSteps - 1;
 
+  const value = useMemo(
+    () => ({
+      next,
+      isPlaying,
+      hasNext: hasNextStep,
+      hasPrevious: hasPreviousStep,
+      currentStepIndex,
+      setCurrentStepIndex: onCurrentStepIndexChange,
+      play,
+      previous,
+      restartAndPlay: () => {
+        onCurrentStepIndexChange(0);
+        play();
+      },
+      stop,
+      reset: () => {
+        onCurrentStepIndexChange(0);
+      },
+      skipToStart: async () => {
+        onCurrentStepIndexChange(0);
+      },
+      skipToEnd: async () => {
+        if (scene === null) {
+          return;
+        }
+        await onSkipToEnd();
+      },
+      maxSteps,
+      isExecuting,
+      playbackSpeed,
+      setPlaybackSpeed,
+    }),
+    [
+      currentStepIndex,
+      hasNextStep,
+      hasPreviousStep,
+      isExecuting,
+      isPlaying,
+      maxSteps,
+      next,
+      onCurrentStepIndexChange,
+      onSkipToEnd,
+      play,
+      playbackSpeed,
+      previous,
+      scene,
+      setPlaybackSpeed,
+      stop,
+    ],
+  );
+
   return (
-    <BoxControlsContext.Provider
-      value={{
-        next,
-        isPlaying,
-        hasNext: hasNextStep,
-        hasPrevious: hasPreviousStep,
-        currentStepIndex,
-        setCurrentStepIndex,
-        play,
-        previous,
-        restartAndPlay: () => {
-          setCurrentStepIndex(0);
-          play();
-        },
-        stop,
-        reset: () => {
-          setCurrentStepIndex(0);
-        },
-        skipToStart: () => {
-          setCurrentStepIndex(0);
-        },
-        skipToEnd: () => {
-          if (scene === null) {
-            return;
-          }
-          const fullyExecutedScene = scene.copyWithExecution();
-          onSceneChange(fullyExecutedScene);
-          setCurrentStepIndex(fullyExecutedScene.executionTrace.length - 1);
-        },
-        maxSteps,
-        playbackSpeed,
-        setPlaybackSpeed,
-      }}
-    >
+    <BoxControlsContext.Provider value={value}>
       {children}
     </BoxControlsContext.Provider>
   );

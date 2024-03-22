@@ -12,11 +12,12 @@ import {
 import { error, ErrorOr, success } from '@app/errors';
 import { CatalogOption } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
+import convertBoxConfigToTree from '@utils/convertBoxConfigToTree';
 import { DbAdapterSaved } from '@utils/db';
-import { evalSavedObject } from '@utils/evalSavedObject';
+import { evalSavedObject } from '@utils/eval/evalSavedObject';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import _ from 'lodash';
-import { compact, mapValues } from 'lodash';
+import { mapValues } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
 export const defaultBoxContextConfig: BoxContextConfig = {
@@ -180,51 +181,8 @@ export default function useBoxContextConfig({
   }, [defaultParameters, evaluations, parameters]);
 
   const treeConfiguration = useMemo(() => {
-    const type = value.composition.type;
-    if (type === 'tree') {
-      return value as BoxConfigTree;
-    } else {
-      // Try to generate edges between algorithm -> adapter 1 -> adapter 2 -> visualizer/s
-      const orderedAdapterAliases = value.composition.order;
-      const orderedNodeAliases = ['algorithm', ...orderedAdapterAliases];
-      const lastNode = orderedNodeAliases[orderedNodeAliases.length - 1];
-
-      const nodeConnections = compact(
-        orderedNodeAliases.map((alias, index) => {
-          if (alias === 'algorithm' || alias === 'problem') {
-            return null;
-          }
-
-          const previousAlias = orderedNodeAliases[index - 1];
-          return {
-            fromKey: previousAlias,
-            fromSlot: '.',
-            toKey: alias,
-            toSlot: '.',
-          };
-        }),
-      );
-
-      const visualizerConnections = Object.keys(visualizerInputKeys).map(
-        (visualizerAlias) => {
-          return {
-            fromKey: lastNode,
-            fromSlot: '.',
-            toKey: visualizerAlias,
-            toSlot: '.',
-          };
-        },
-      );
-
-      const convertedConfiguration: BoxConfigTree = {
-        adapters: value.adapters ?? {},
-        composition: {
-          type: 'tree',
-          connections: [...nodeConnections, ...visualizerConnections],
-        },
-      };
-      return convertedConfiguration;
-    }
+    const visualizerAliases = Object.keys(visualizerInputKeys);
+    return convertBoxConfigToTree(value, visualizerAliases);
   }, [value, visualizerInputKeys]);
 
   const config = useMemo(() => {

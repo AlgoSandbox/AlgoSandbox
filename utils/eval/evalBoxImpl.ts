@@ -1,40 +1,70 @@
 import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import getSandboxObjectWithKeyImpl from '@utils/getSandboxObjectWithKeyImpl';
 import { mapValues } from 'lodash';
 
-import getSandboxObjectWithKey from './getSandboxObjectWithKey';
-import parseKeyWithParameters from './parseKeyWithParameters';
+import parseKeyWithParameters from '../parseKeyWithParameters';
+import { EvalWithAlgoSandbox } from './evalWithAlgoSandboxServerSide';
 
-export default function evalBox({
+export default function evalBoxImpl({
   box,
   sandboxComponents,
   files,
+  evalFn,
 }: {
   box: SandboxBox;
   currentFilePath: string;
   files: Record<string, string>;
   sandboxComponents: SandboxComponents;
+  evalFn: EvalWithAlgoSandbox;
 }): SandboxBoxEvaluated {
   const { key: problemKey, parameters: problemParameters } =
     parseKeyWithParameters(box.problem);
   const { key: algorithmKey, parameters: algorithmParameters } =
     parseKeyWithParameters(box.algorithm);
 
-  const problem = getSandboxObjectWithKey({
+  const problem = getSandboxObjectWithKeyImpl({
     type: 'problem',
     key: problemKey,
     sandboxComponents,
     files,
+    evalFn,
   }).mapLeft(() => undefined).value;
 
-  const algorithm = getSandboxObjectWithKey({
+  const algorithm = getSandboxObjectWithKeyImpl({
     type: 'algorithm',
     key: algorithmKey,
     sandboxComponents,
     files,
+    evalFn,
   }).mapLeft(() => undefined).value;
 
+  const configAdapters = box.config?.adapters;
+
   const config: SandboxBoxEvaluated['config'] = {
+    adapters: configAdapters
+      ? mapValues(configAdapters, (keyWithParameters) => {
+          const { key: adapterKey, parameters } =
+            parseKeyWithParameters(keyWithParameters);
+
+          const adapter = getSandboxObjectWithKeyImpl({
+            type: 'adapter',
+            key: adapterKey,
+            sandboxComponents,
+            files,
+            evalFn,
+          });
+
+          if (adapter.isLeft()) {
+            return undefined;
+          }
+
+          return {
+            component: adapter.unwrap(),
+            parameters: parameters ?? null,
+          };
+        })
+      : undefined,
     composition: box.config?.composition ?? {
       type: 'flat',
       order: [],
@@ -46,11 +76,12 @@ export default function evalBox({
       const { key: visualizerKey, parameters } =
         parseKeyWithParameters(keyWithParameters);
 
-      const visualizer = getSandboxObjectWithKey({
+      const visualizer = getSandboxObjectWithKeyImpl({
         type: 'visualizer',
         key: visualizerKey,
         sandboxComponents,
         files,
+        evalFn,
       });
 
       if (visualizer.isLeft()) {

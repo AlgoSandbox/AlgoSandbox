@@ -14,7 +14,7 @@ import { CatalogOption } from '@constants/catalog';
 import { SandboxAnyAdapter } from '@typings/algo-sandbox';
 import convertBoxConfigToTree from '@utils/convertBoxConfigToTree';
 import { DbAdapterSaved } from '@utils/db';
-import { evalSavedObject } from '@utils/eval/evalSavedObject';
+import evalSavedObject from '@utils/eval/evalSavedObject';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import _ from 'lodash';
 import { mapValues } from 'lodash';

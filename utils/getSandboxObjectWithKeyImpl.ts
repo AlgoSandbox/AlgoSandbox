@@ -8,7 +8,7 @@ import { SandboxComponents } from '@components/playground/SandboxComponentsProvi
 import { CatalogOption } from '@constants/catalog';
 
 import { DbSandboxObjectSaved } from './db';
-import { evalSavedObjectImpl } from './eval/evalSavedObjectImpl';
+import evalSavedObjectImpl from './eval/evalSavedObjectImpl';
 import { EvalWithAlgoSandbox } from './eval/evalWithAlgoSandboxServerSide';
 
 export default function getSandboxObjectWithKeyImpl<

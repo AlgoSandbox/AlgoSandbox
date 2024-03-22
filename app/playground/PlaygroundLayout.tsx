@@ -9,7 +9,7 @@ import {
   useRemoveSavedBoxMutation,
   useSetSavedBoxMutation,
 } from '@utils/db/boxes';
-import { evalSavedObject } from '@utils/eval/evalSavedObject';
+import evalSavedObject from '@utils/eval/evalSavedObject';
 import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';

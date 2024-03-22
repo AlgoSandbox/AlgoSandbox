@@ -3,7 +3,7 @@ import { Instance } from '@components/box-page/box-context/sandbox-object';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
-import { evalSavedObject } from '@utils/evalSavedObject';
+import evalSavedObject from '@utils/eval/evalSavedObject';
 import filterCatalogOptions from '@utils/filterCatalogOptions';
 import { useMemo } from 'react';
 

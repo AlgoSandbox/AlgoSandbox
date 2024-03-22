@@ -35,7 +35,7 @@ import {
   DbVisualizer,
   DbVisualizerSaved,
 } from '@utils/db';
-import { evalSavedObject } from '@utils/eval/evalSavedObject';
+import evalSavedObject from '@utils/eval/evalSavedObject';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import {
   sandboxAdapter,

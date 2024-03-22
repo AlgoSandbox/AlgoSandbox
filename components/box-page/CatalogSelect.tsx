@@ -13,7 +13,7 @@ import { ButtonProps } from '@components/ui/Button';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useDeleteObjectMutation } from '@utils/db/objects';
-import { evalSavedObject } from '@utils/evalSavedObject';
+import evalSavedObject from '@utils/eval/evalSavedObject';
 import clsx from 'clsx';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

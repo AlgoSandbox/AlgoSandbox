@@ -178,7 +178,7 @@ function postScene(
 
         scene = createScene({
           algorithm: algorithmInstance,
-          algorithmInput,
+          algorithmInput: parseResult,
           maxExecutionStepCount: 100,
         });
 

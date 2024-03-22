@@ -27,21 +27,29 @@ export type EvalWorkerArgs =
       action: 'execute';
       data: {
         untilCount?: number;
+        maxExecutionStepCount: number;
+        updateCount: number;
       };
     };
 
 export type EvalWorkerResponse = {
   scene: string | null;
+  finished: boolean;
 };
 
-function postScene(
-  scene: SandboxScene<SandboxStateType, SandboxStateType> | null,
-) {
+function postScene({
+  scene,
+  finished,
+}: {
+  scene: SandboxScene<SandboxStateType, SandboxStateType> | null;
+  finished: boolean;
+}) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { copyWithExecution: _, ...readonlyScene } = scene ?? {};
 
   const response: EvalWorkerResponse = {
     scene: scene ? serializeJson(readonlyScene) : null,
+    finished,
   };
 
   postMessage(response);
@@ -179,26 +187,45 @@ function postScene(
         scene = createScene({
           algorithm: algorithmInstance,
           algorithmInput,
-          maxExecutionStepCount: 100,
         });
 
-        return scene.copyWithExecution(1);
+        return scene
+          .copyWithExecution({
+            untilCount: 1,
+            maxExecutionStepCount: 1,
+            updateCount: 1,
+          })
+          .next().value;
       })();
 
-      postScene(scene);
+      postScene({ scene, finished: true });
 
       return;
     }
 
     if (action === 'execute') {
-      const { untilCount } = data;
+      const { untilCount, maxExecutionStepCount, updateCount } = data;
 
       if (scene === null) {
         return;
       }
 
-      scene = scene.copyWithExecution(untilCount);
-      postScene(scene);
+      const sceneGenerator = scene.copyWithExecution({
+        maxExecutionStepCount,
+        untilCount,
+        updateCount,
+      });
+      let sceneIterator = sceneGenerator.next();
+
+      while (!sceneIterator.done) {
+        scene = sceneIterator.value;
+        postScene({ scene, finished: false });
+        sceneIterator = sceneGenerator.next();
+      }
+
+      scene = sceneIterator.value;
+
+      postScene({ scene, finished: true });
 
       return;
     }

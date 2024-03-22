@@ -90,15 +90,23 @@ export class SandboxAlgorithmExecutor<
    * @param maxExecutionStepCount The maximum number of execution steps to execute within an execution attempt.
    * @returns Whether the max execution step count was reached.
    */
-  execute({
+  *execute({
     untilCount,
     maxExecutionStepCount,
+    updateCount,
   }: {
     untilCount?: number;
     maxExecutionStepCount: number;
-  }): boolean {
+    updateCount: number;
+  }): Generator<void, boolean> {
     const previousExecutedCount = this.executionTrace.length;
+    let generatedCount = 0;
     while (!this.isFullyExecuted) {
+      if (generatedCount % updateCount === 0) {
+        generatedCount = 0;
+        yield;
+      }
+
       if (
         untilCount !== undefined &&
         this.executionTrace.length >= untilCount
@@ -122,6 +130,7 @@ export class SandboxAlgorithmExecutor<
 
       if (!isBoolean(executionStep)) {
         this.executionTrace.push(executionStep);
+        generatedCount++;
       }
     }
 

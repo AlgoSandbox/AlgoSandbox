@@ -108,6 +108,10 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
       isExecuting={isExecuting}
       maxSteps={isFullyExecuted ? scene!.executionTrace.length : null}
       onSkipToEnd={async () => {
+        if (isFullyExecuted) {
+          setCurrentStepIndex(scene!.executionTrace.length - 1);
+          return;
+        }
         const newScene = await execute();
         if (newScene === null) {
           return;

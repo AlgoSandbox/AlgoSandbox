@@ -2,6 +2,7 @@
 
 import { SandboxBox, SandboxStateType } from '@algo-sandbox/core';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { deserializeJson } from '@utils/json-serializer';
 import { ReadonlySandboxScene } from '@utils/scene';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ export default function useWorkerExecutedScene({
     useState<ReadonlySandboxScene<SandboxStateType> | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const sandboxComponents = useSandboxComponents();
+  const { maxExecutionStepCount } = useUserPreferences();
 
   const worker = useMemo(() => {
     if (typeof window === 'undefined' || typeof Worker === 'undefined') {
@@ -65,7 +67,7 @@ export default function useWorkerExecutedScene({
   }, [box, sandboxComponents, worker]);
 
   const execute = useCallback(
-    (untilCount?: number) => {
+    async (untilCount?: number) => {
       if (worker === null) {
         return Promise.reject(new Error('Worker is not available'));
       }
@@ -75,32 +77,34 @@ export default function useWorkerExecutedScene({
       const message: EvalWorkerArgs = {
         data: {
           untilCount,
+          maxExecutionStepCount,
+          updateCount: 10,
         },
         action: 'execute',
       };
 
-      const promise =
-        new Promise<ReadonlySandboxScene<SandboxStateType> | null>(
-          (resolve, reject) => {
-            worker.onmessage = (event: MessageEvent<EvalWorkerResponse>) => {
-              const newScene: ReadonlySandboxScene<SandboxStateType> | null =
-                event.data.scene ? deserializeJson(event.data.scene) : null;
-              setScene(newScene);
+      return new Promise<ReadonlySandboxScene<SandboxStateType> | null>(
+        (resolve, reject) => {
+          worker.onmessage = (event: MessageEvent<EvalWorkerResponse>) => {
+            const { scene, finished } = event.data;
+            const newScene: ReadonlySandboxScene<SandboxStateType> | null =
+              scene ? deserializeJson(scene) : null;
+            setScene(newScene);
+
+            if (finished) {
               resolve(newScene);
-            };
-            worker.onerror = (error) => {
-              reject(error);
-            };
-          },
-        ).finally(() => {
-          setIsExecuting(false);
-        });
-
-      worker.postMessage(message);
-
-      return promise;
+            }
+          };
+          worker.onerror = (error) => {
+            reject(error);
+          };
+          worker.postMessage(message);
+        },
+      ).finally(() => {
+        setIsExecuting(false);
+      });
     },
-    [worker],
+    [maxExecutionStepCount, worker],
   );
 
   return useMemo(

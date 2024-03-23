@@ -330,7 +330,7 @@ function BoxPageImpl() {
 
   return (
     <>
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-dvh">
         <AppNavBar>
           <div className="flex justify-between flex-1 px-2">
             <div className="flex items-center gap-2 pe-4 py-2">

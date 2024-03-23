@@ -43,7 +43,7 @@ export default function ComponentPage({
   const component = selectedOption?.value;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-dvh">
       <AppNavBar>
         <div className="flex items-center">
           <CatalogSelect

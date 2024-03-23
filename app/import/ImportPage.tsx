@@ -17,7 +17,7 @@ export default function ImportPage({
   const { mutateAsync: saveObject } = useSaveObjectMutation();
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-dvh">
       <AppNavBar>
         <div className="flex items-center">
           <Heading variant="h4">Import {component.type}</Heading>

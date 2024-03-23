@@ -14,7 +14,7 @@ const playbackSpeedKey = 'sandbox:preferences:playbackSpeed';
 
 const defaultMaxExecutionStepCount = 1000;
 
-type FlowchartMode = 'simple' | 'full';
+type FlowchartMode = 'simple' | 'intermediate' | 'full';
 
 type UserPreferences = {
   maxExecutionStepCount: number;

@@ -794,9 +794,9 @@ export default function AlgorithmVisualizerFlowchart({
   ]);
 
   const initialEdges = useMemo(() => {
-    // Return a fake edge if in simple mode
+    // Return a fake edge if not in full mode
     const connections = (() => {
-      if (flowchartMode === 'simple') {
+      if (flowchartMode !== 'full') {
         const connections = configEvaluated.composition.connections.map(
           ({ fromKey, toKey }) => ({
             fromKey,
@@ -983,12 +983,21 @@ export default function AlgorithmVisualizerFlowchart({
       </ReactFlow>
       <div className="absolute top-4 start-4 flex gap-2">
         <Button
-          label="Simple"
+          label="Basic"
           role="checkbox"
           variant="filled"
           selected={flowchartMode === 'simple'}
           onClick={() => {
             setFlowchartMode('simple');
+          }}
+        />
+        <Button
+          label="Intermediate"
+          role="checkbox"
+          variant="filled"
+          selected={flowchartMode === 'intermediate'}
+          onClick={() => {
+            setFlowchartMode('intermediate');
           }}
         />
         <Button
@@ -1002,7 +1011,7 @@ export default function AlgorithmVisualizerFlowchart({
         />
       </div>
       <div className="absolute top-4 mx-auto flex gap-2 items-start">
-        {flowchartMode === 'full' && (
+        {(flowchartMode === 'intermediate' || flowchartMode === 'full') && (
           <CatalogSelect
             label="Add component"
             hideLabel

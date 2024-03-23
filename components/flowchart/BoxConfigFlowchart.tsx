@@ -40,6 +40,7 @@ import ReactFlow, {
   NodeToolbar,
   NodeTypes,
   Position,
+  ReactFlowInstance,
   useNodeId,
   useStore,
 } from 'reactflow';
@@ -857,6 +858,10 @@ export default function AlgorithmVisualizerFlowchart({
   );
   const [edges, setEdges] = useState(initialEdges);
 
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
+  const [hasViewInitialized, setHasViewInitialized] = useState(false);
+
   useEffect(() => {
     const { nodes, edges } = getLayoutedElements(initialNodes, initialEdges);
 
@@ -876,7 +881,12 @@ export default function AlgorithmVisualizerFlowchart({
       });
     });
     setEdges(edges);
-  }, [initialEdges, initialNodes]);
+
+    if (!hasViewInitialized && reactFlowInstance) {
+      reactFlowInstance.fitView();
+      setHasViewInitialized(true);
+    }
+  }, [hasViewInitialized, initialEdges, initialNodes, reactFlowInstance]);
 
   const autoLayoutNodes = useCallback(() => {
     const { nodes: newNodes, edges: newEdges } = getLayoutedElements(
@@ -886,7 +896,8 @@ export default function AlgorithmVisualizerFlowchart({
 
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [edges, nodes]);
+    reactFlowInstance?.fitView();
+  }, [edges, nodes, reactFlowInstance]);
 
   const onNodesChange = useCallback((changes: Array<NodeChange>) => {
     return setNodes((nds) => applyNodeChanges(changes, nds));
@@ -960,6 +971,10 @@ export default function AlgorithmVisualizerFlowchart({
   return (
     <div className="relative w-full h-full flex flex-col items-center">
       <ReactFlow
+        onInit={(instance) => {
+          setHasViewInitialized(false);
+          setReactFlowInstance(instance);
+        }}
         className={clsx(
           String.raw`[&_.react-flow\_\_handle]:border-2`,
           String.raw`[&_.react-flow\_\_handle]:border-border [&_.react-flow\_\_handle]:relative`,

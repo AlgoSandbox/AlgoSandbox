@@ -81,9 +81,7 @@ const TagInput = forwardRef<HTMLInputElement, TagInputProps>(
       ],
     );
 
-    return hideLabel && !error ? (
-      inputElement
-    ) : (
+    return (
       <div className={clsx('flex flex-col', containerClassName)}>
         {!hideLabel && <FormLabel id={id}>{label}</FormLabel>}
         <div
@@ -105,7 +103,7 @@ const TagInput = forwardRef<HTMLInputElement, TagInputProps>(
                 }}
                 hideLabel
                 size="xs"
-                label="Delete tag"
+                label="Remove"
                 icon={<MaterialSymbol icon="close" />}
               />
             </span>

@@ -1,6 +1,6 @@
 'use client';
 
-import SandboxObjectEditorPage from '@app/SandboxObjectEditorPage';
+import SandboxObjectEditorPage from '@app/SandboxObjectEditor';
 import AppNavBar from '@components/AppNavBar';
 import Heading from '@components/ui/Heading';
 import { DbSandboxObject } from '@utils/db';

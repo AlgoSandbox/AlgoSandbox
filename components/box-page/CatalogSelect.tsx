@@ -1,7 +1,9 @@
 import { SandboxObjectType } from '@algo-sandbox/components';
 import { getDefaultParameters, SandboxParameters } from '@algo-sandbox/core';
+import MarkdownPreview from '@components/common/MarkdownPreview';
 import {
   Button,
+  Chip,
   FormLabel,
   Input,
   isSelectGroup,
@@ -14,22 +16,16 @@ import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useDeleteObjectMutation } from '@utils/db/objects';
 import evalSavedObject from '@utils/eval/evalSavedObject';
+import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
+import getSandboxObjectWriteup from '@utils/getSandboxObjectWriteup';
 import clsx from 'clsx';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import Markdown, { Components } from 'react-markdown';
 import { toast } from 'sonner';
 
 import { ParameterControls } from '.';
 
 // TODO: Restore preview
-
-const markdownComponents: Components = {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  h1: ({ node, ...props }) => (
-    <h1 className="text-lg font-semibold" {...props} />
-  ),
-};
 
 export type CatalogSelectProps<
   T extends SandboxObjectType,
@@ -79,25 +75,6 @@ function ListItem<T>({
   );
 }
 
-function Chip({
-  children,
-  disabled,
-}: {
-  children: React.ReactNode;
-  disabled?: boolean;
-}) {
-  return (
-    <span
-      className={clsx(
-        'border rounded-full flex items-center px-2 font-semibold tracking-tight',
-        disabled ? 'text-muted' : 'text-label',
-      )}
-    >
-      {children}
-    </span>
-  );
-}
-
 export default function CatalogSelect<T extends SandboxObjectType>({
   options,
   containerClassName,
@@ -116,6 +93,25 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   useEffect(() => {
     setSelectedOption(value);
   }, [value]);
+
+  const selectedOptionTags = useMemo(() => {
+    if (selectedOption === undefined) {
+      return [];
+    }
+
+    return getSandboxObjectConfig(selectedOption.value).tags;
+  }, [selectedOption]);
+
+  const selectedOptionWriteup = useMemo(() => {
+    if (selectedOption === undefined) {
+      return undefined;
+    }
+
+    return (
+      getSandboxObjectWriteup(selectedOption.value) ??
+      `# ${selectedOption.label}`
+    );
+  }, [selectedOption]);
 
   const { mutateAsync: deleteObject } = useDeleteObjectMutation<T>();
   // const builtInComponents = useBuiltInComponents();
@@ -403,11 +399,9 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 </div>
               )} */}
               <div className="p-4 flex-col flex gap-2 items-start">
-                <Markdown components={markdownComponents}>
-                  {selectedOption.value.writeup ?? `# ${selectedOption.label}`}
-                </Markdown>
+                <MarkdownPreview markdown={selectedOptionWriteup!} />
                 <div className="flex gap-2 flex-wrap">
-                  {selectedOption.value.tags.map((tag) => (
+                  {selectedOptionTags.map((tag) => (
                     <Chip key={tag}>{tag}</Chip>
                   ))}
                 </div>
@@ -441,7 +435,6 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                         await deleteObject(selectedOption.value);
                         toast.success(`Deleted "${selectedOption.label}"`);
                         onChange?.(null, null);
-                        setOpen(false);
                       }}
                     />
                   )}

@@ -1,6 +1,6 @@
 'use client';
 
-import SandboxObjectEditorPage from '@app/SandboxObjectEditorPage';
+import SandboxObjectEditorPage from '@app/SandboxObjectEditor';
 import AppNavBar from '@components/AppNavBar';
 import CatalogSelect from '@components/box-page/CatalogSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';

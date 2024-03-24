@@ -8,8 +8,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import { CellBase, Matrix } from 'react-spreadsheet';
 import { toast } from 'sonner';
-import { useFilePicker, useImperativeFilePicker } from 'use-file-picker';
-import { read as readXlsx } from 'xlsx';
+import { useFilePicker } from 'use-file-picker';
 import { z } from 'zod';
 
 import StyledSpreadsheet from './StyledSpreadsheet';

@@ -1,6 +1,6 @@
 import { DbSandboxObjectSaved } from '@utils/db';
 
-import SandboxObjectEditorPage from '../../app/SandboxObjectEditorPage';
+import SandboxObjectEditorPage from '../../app/SandboxObjectEditor';
 import { SandboxBaseTabConfig, TabFromConfig } from './TabManager';
 
 export const sandboxObjectEditorTabConfig: SandboxBaseTabConfig<

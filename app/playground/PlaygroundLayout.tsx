@@ -10,6 +10,7 @@ import {
   useSetSavedBoxMutation,
 } from '@utils/db/boxes';
 import evalSavedObject from '@utils/eval/evalSavedObject';
+import stringifyComponentConfigToTs from '@utils/stringifyComponentConfigToTs';
 import { isEqual } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -55,8 +56,8 @@ function LayoutImpl({
           'index.ts': `const box = ${JSON.stringify(box)};
         export default box;
         `,
+          'config.ts': stringifyComponentConfigToTs({ tags }),
         },
-        tags,
       } as const;
       const { key: newBoxKey } = await saveBox(newBox);
       onBoxChange(({ box }) => {
@@ -83,8 +84,8 @@ function LayoutImpl({
           'index.ts': `const box = ${JSON.stringify(box)};
           export default box;
           `,
+          'config.ts': stringifyComponentConfigToTs({ tags }),
         },
-        tags,
       } as const;
 
       await setSavedBox(newBox);
@@ -152,14 +153,12 @@ function LayoutImpl({
             return;
           }
 
-          // TODO: update tags
           await deleteSavedBox({
             key: boxKey,
             type: 'box',
             files: {},
             name: '',
             editable: false,
-            tags: [],
           });
         }}
       >

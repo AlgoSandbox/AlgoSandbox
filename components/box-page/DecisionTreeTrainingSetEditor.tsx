@@ -4,9 +4,12 @@ import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
 import { uniq } from 'lodash';
 import { useTheme } from 'next-themes';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import { CellBase, Matrix } from 'react-spreadsheet';
+import { toast } from 'sonner';
+import { useFilePicker, useImperativeFilePicker } from 'use-file-picker';
+import { read as readXlsx } from 'xlsx';
 import { z } from 'zod';
 
 import StyledSpreadsheet from './StyledSpreadsheet';
@@ -108,6 +111,10 @@ function DecisionTreeTrainingSetEditor({
   onSave: (trainingSet: TrainingSet) => void;
   initialData: TrainingSet;
 }) {
+  const { openFilePicker, filesContent } = useFilePicker({
+    accept: ['.csv'],
+  });
+
   const initialData = useMemo(() => {
     // map from training set
     const attributes = initialTrainingSet.attributes;
@@ -127,6 +134,30 @@ function DecisionTreeTrainingSetEditor({
   }, [initialTrainingSet]);
 
   const [data, setData] = useState<Matrix<CellBase<string>>>(initialData);
+
+  useEffect(() => {
+    const selectedFileContent = filesContent.at(0);
+
+    if (selectedFileContent === undefined) {
+      return;
+    }
+
+    if (selectedFileContent.name.endsWith('.csv')) {
+      const newData: Matrix<CellBase<string>> = selectedFileContent.content
+        .split('\n')
+        .filter((row) => row !== '')
+        .map((row) => {
+          return row.split(',').map((cell) => ({ value: cell }));
+        });
+
+      if (newData.length === 0) {
+        toast.error('No data found in the CSV file');
+        return;
+      }
+
+      setData(newData);
+    }
+  }, [filesContent]);
 
   const attributes = useMemo(() => {
     const headers = data[0]
@@ -203,6 +234,13 @@ function DecisionTreeTrainingSetEditor({
       <PanelGroup direction="horizontal">
         <Panel defaultSize={30}>
           <div className="flex flex-col gap-y-4 pt-2 h-full overflow-y-hidden">
+            <div className="flex">
+              <Button
+                label="Import"
+                onClick={openFilePicker}
+                variant="primary"
+              />
+            </div>
             <div className="flex gap-2">
               <Button
                 label="Add example"

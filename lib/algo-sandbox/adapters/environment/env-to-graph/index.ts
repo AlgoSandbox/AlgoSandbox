@@ -1,6 +1,7 @@
 import { createAdapter, createState } from '@algo-sandbox/core';
 import {
   graphSearchAlgorithmState,
+  NodeGraphVisualizerNode,
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
@@ -54,7 +55,7 @@ const envToGraph = createAdapter({
     return {
       graph: {
         nodes: Array.from(new Set([...visitedNodes, ...searchTreeNodes])).map(
-          (node) => ({ id: node }),
+          (node) => ({ id: node }) satisfies NodeGraphVisualizerNode,
         ),
         edges: value.searchTree.map(({ source, result, action }) => {
           return {

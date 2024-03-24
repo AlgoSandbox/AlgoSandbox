@@ -10,7 +10,6 @@ export const graphEdge = z.object({
 
 export const graphNode = z.object({
   id: z.string(),
-  label: z.string().optional(),
 });
 
 export const nodeGraph = createState(
@@ -60,7 +59,14 @@ export const nodeGraphVisualizerEdge = graphEdge.extend({
   isArrow: z.boolean().optional(),
 });
 
-export const nodeGraphVisualizerNode = graphNode;
+export const nodeGraphVisualizerNode = graphNode.extend({
+  createElement: z.function().optional() as z.ZodOptional<
+    z.ZodType<(document: Document) => SVGElement>
+  >,
+});
+
+export type NodeGraphVisualizerNode = z.infer<typeof nodeGraphVisualizerNode>;
+export type NodeGraphVisualizerEdge = z.infer<typeof nodeGraphVisualizerEdge>;
 
 export const nodeGraphVisualizerInput = createState(
   'Node graph visualizer input',

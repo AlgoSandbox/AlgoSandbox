@@ -310,8 +310,17 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .attr('class', 'label')
             .attr('fill', 'rgb(var(--color-on-surface))')
             .attr('text-anchor', 'middle')
-            .text((d) => d.label ?? d.id)
+            .filter((d) => d.createElement === undefined)
             .attr('dy', 15 / 2)
+            .attr('style', 'pointer-events: none');
+
+          // Add node elements
+          g.selectAll('.element')
+            .data(nodes)
+            .enter()
+            .filter((d) => d.createElement !== undefined)
+            .append((d) => d.createElement!(document))
+            .attr('class', 'element')
             .attr('style', 'pointer-events: none');
 
           // Add labels to links
@@ -414,6 +423,13 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             // Update labels
             g.selectAll('.label')
               .data(nodes)
+              .attr('x', (d: any) => d.x)
+              .attr('y', (d: any) => d.y);
+
+            // Add node elements
+            g.selectAll('.element')
+              .data(nodes)
+              .filter((d) => d.createElement !== undefined)
               .attr('x', (d: any) => d.x)
               .attr('y', (d: any) => d.y);
 

@@ -11,6 +11,7 @@ import {
 } from '@components/box-page';
 import CustomizeViewPopover from '@components/box-page/app-bar/CustomizeViewPopover';
 import CatalogSelect from '@components/box-page/CatalogSelect';
+import DrawerItem from '@components/DrawerItem';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -19,12 +20,10 @@ import {
   Button,
   Input,
   MaterialSymbol,
-  Popover,
   Select,
   TagInput,
 } from '@components/ui';
 import Dialog from '@components/ui/Dialog';
-import Heading from '@components/ui/Heading';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import useWorkerExecutedScene from '@utils/eval/useWorkerExecutedScene';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
@@ -294,6 +293,10 @@ function BoxPageImpl() {
     selectTab,
   } = useTabManager();
 
+  const isExecutionPageVisible = useMemo(() => {
+    return selectedTabId === 'box';
+  }, [selectedTabId]);
+
   const tabItems = useMemo(() => {
     return tabs.map(
       (tab) =>
@@ -336,15 +339,91 @@ function BoxPageImpl() {
   };
 
   const hasBox = selectedOption !== undefined;
+  const [showSettings, setShowSettings] = useState(false);
 
   return (
     <>
+      <Dialog
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        title="Settings"
+        content={
+          <div className="p-4 flex flex-col gap-4 items-start">
+            <Select
+              options={themeOptions}
+              value={selectedThemeOption}
+              onChange={(option) => {
+                setTheme(option.value);
+              }}
+              label="Theme"
+            />
+            <Input
+              label="Max execution steps"
+              value={maxExecutionStepCount.toString()}
+              onChange={(e) => {
+                setMaxExecutionStepCount(parseInt(e.target.value, 10));
+              }}
+              type="number"
+            />
+          </div>
+        }
+      />
       <div className="flex flex-col w-dvw h-dvh">
-        <AppNavBar>
+        <AppNavBar
+          drawerContents={
+            <div>
+              {hasBox && (
+                <div className="border-t border-b flex flex-col md:hidden">
+                  {!isBoxCustom && (
+                    <DrawerItem
+                      label="Copy link"
+                      onClick={handleCopyLinkClick}
+                      icon="link"
+                    />
+                  )}
+                  <DrawerItem
+                    label="Save"
+                    onClick={handleSaveClick}
+                    icon="save"
+                  />
+                  {isBoxCustom && (
+                    <DrawerItem
+                      label="Delete"
+                      onClick={handleDeleteClick}
+                      icon="delete"
+                    />
+                  )}
+                </div>
+              )}
+              <VerticalTabs
+                showLabels={true}
+                draggable={false}
+                tabs={tabItems}
+                onTabsReorder={reorderTabs}
+                onTabSelect={(tab) => {
+                  selectTab(tab.key);
+                }}
+                onTabClose={(tab) => {
+                  closeTab(tab.key);
+                }}
+              />
+              <div className="border-t">
+                <DrawerItem
+                  label="Settings"
+                  onClick={() => {
+                    setShowSettings(true);
+                  }}
+                  icon="settings"
+                />
+              </div>
+            </div>
+          }
+        >
           <div className="flex justify-between flex-1 px-2">
-            <div className="flex items-center gap-2 pe-4 py-2">
+            <div className="flex flex-1 md:flex-none items-center gap-2 py-2">
               <CatalogSelect
-                containerClassName="shrink"
+                containerClassName="flex-1 md:flex-auto"
+                className="w-full"
                 options={groupedBoxOptions}
                 label="Select box"
                 hideLabel={true}
@@ -360,7 +439,7 @@ function BoxPageImpl() {
                 }}
               />
               {hasBox && (
-                <div className="flex gap-2 min-w-0">
+                <div className="hidden md:flex gap-2 min-w-0">
                   {!isBoxCustom && (
                     <Button
                       label="Copy link"
@@ -386,15 +465,19 @@ function BoxPageImpl() {
                 </div>
               )}
             </div>
-            <div className="hidden lg:flex items-center gap-4">
-              <CustomizeViewPopover />
-              <BoxExecutionControls />
-            </div>
+            {isExecutionPageVisible && (
+              <div className="ms-4 hidden lg:flex items-center gap-4">
+                <CustomizeViewPopover />
+                <BoxExecutionControls />
+              </div>
+            )}
           </div>
         </AppNavBar>
         <div className="flex flex-1">
-          <div className="flex flex-col items-stretch h-full justify-between border-e">
+          <div className="hidden flex-col items-stretch h-full lg:flex justify-between border-e">
             <VerticalTabs
+              showLabels={false}
+              draggable={true}
               tabs={tabItems}
               onTabsReorder={reorderTabs}
               onTabSelect={(tab) => {
@@ -404,36 +487,15 @@ function BoxPageImpl() {
                 closeTab(tab.key);
               }}
             />
-            <Popover
-              content={
-                <div className="bg-surface p-4 flex flex-col gap-4 items-start">
-                  <Heading variant="h4">Settings</Heading>
-                  <Select
-                    options={themeOptions}
-                    value={selectedThemeOption}
-                    onChange={(option) => {
-                      setTheme(option.value);
-                    }}
-                    label="Theme"
-                  />
-                  <Input
-                    label="Max execution steps"
-                    value={maxExecutionStepCount.toString()}
-                    onChange={(e) => {
-                      setMaxExecutionStepCount(parseInt(e.target.value, 10));
-                    }}
-                    type="number"
-                  />
-                </div>
-              }
-            >
-              <Button
-                hideLabel={true}
-                size="lg"
-                label="Settings"
-                icon={<MaterialSymbol icon="settings" />}
-              />
-            </Popover>
+            <Button
+              hideLabel={true}
+              size="lg"
+              label="Settings"
+              icon={<MaterialSymbol icon="settings" />}
+              onClick={() => {
+                setShowSettings(true);
+              }}
+            />
           </div>
           {tabs.map((tab) => (
             <TabProvider key={tab.id} tab={tab}>
@@ -448,9 +510,11 @@ function BoxPageImpl() {
             </TabProvider>
           ))}
         </div>
-        <div className="flex gap-4 justify-center border-t items-center py-2 lg:hidden">
-          <BoxExecutionControls />
-        </div>
+        {isExecutionPageVisible && (
+          <div className="flex px-2 gap-4 justify-center border-t items-center py-2 lg:hidden">
+            <BoxExecutionControls />
+          </div>
+        )}
       </div>
       <Dialog
         title="Save box"

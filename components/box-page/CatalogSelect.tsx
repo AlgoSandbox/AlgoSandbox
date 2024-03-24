@@ -18,6 +18,7 @@ import { useDeleteObjectMutation } from '@utils/db/objects';
 import evalSavedObject from '@utils/eval/evalSavedObject';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
 import getSandboxObjectWriteup from '@utils/getSandboxObjectWriteup';
+import { useBreakpoint } from '@utils/useBreakpoint';
 import clsx from 'clsx';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -276,6 +277,11 @@ export default function CatalogSelect<T extends SandboxObjectType>({
 
   const [open, setOpen] = useState(false);
 
+  // For mobile
+  const [showItemDetails, setShowItemDetails] = useState(false);
+
+  const { isMd } = useBreakpoint('md');
+
   const handleQueryChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setQuery(e.target.value);
@@ -283,13 +289,25 @@ export default function CatalogSelect<T extends SandboxObjectType>({
     [],
   );
 
+  useEffect(() => {
+    if (open) {
+      setShowItemDetails(false);
+    }
+  }, [open]);
+
   return (
     <Popover
       open={open}
       onOpenChange={setOpen}
       content={
         <div className="flex bg-surface h-[400px]">
-          <div className="flex flex-col border-r overflow-y-hidden">
+          <div
+            className={clsx(
+              'w-full md:w-auto flex flex-col border-r overflow-y-hidden',
+              isMd && 'flex',
+              !isMd && [showItemDetails ? 'hidden' : 'flex'],
+            )}
+          >
             <Input
               containerClassName="bg-surface mx-4 mt-4 sticky top-0"
               label="Search"
@@ -345,10 +363,11 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                             selected={option.key === selectedOption?.key}
                             active={option.key === selectedOption?.key}
                             disabled={option.disabled}
-                            key={option.key}
+                            key={`${item.key}.${option.key}`}
                             option={option}
                             onClick={() => {
                               setSelectedOption?.(option);
+                              setShowItemDetails(true);
                               // setStepIndex(0);
                             }}
                             onDoubleClick={() => {
@@ -369,6 +388,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                         option={item}
                         onClick={() => {
                           setSelectedOption?.(item);
+                          setShowItemDetails(true);
                         }}
                         onDoubleClick={() => {
                           onChange?.(item, null);
@@ -380,8 +400,15 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 })}
             </div>
           </div>
-          {selectedOption !== undefined && (
-            <div className="w-[300px] overflow-y-auto">
+          {selectedOption !== undefined && (showItemDetails || isMd) && (
+            <div className="w-full md:w-[300px] overflow-y-auto">
+              <Button
+                className="md:hidden mx-4"
+                label="Back"
+                variant="filled"
+                icon={<MaterialSymbol icon="arrow_back" />}
+                onClick={() => setShowItemDetails(false)}
+              />
               {/* {visualization && (
                 <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
                   <div className="w-[250px] h-[200px]">

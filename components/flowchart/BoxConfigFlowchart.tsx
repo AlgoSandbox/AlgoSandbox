@@ -1001,7 +1001,7 @@ export default function AlgorithmVisualizerFlowchart({
           }}
         />
       </div>
-      <div className="absolute top-4 mx-auto flex gap-2 items-start">
+      <div className="absolute bottom-4 md:bottom-auto end-4 md:end-auto md:top-4 mx-auto flex flex-col items-end md:flex-row gap-2 md:items-center">
         {flowchartMode === 'full' && (
           <CatalogSelect
             label="Add component"

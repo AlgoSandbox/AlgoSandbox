@@ -68,7 +68,7 @@ export default function Pseudocode({
       <PanelGroup direction="vertical" className="flex-1">
         {!isMd && (
           <>
-            <Panel>
+            <Panel key="annotations">
               <div className="bg-surface h-full text-on-surface p-4">
                 {tooltip && <span>{tooltip}</span>}
                 {!tooltip && (
@@ -81,7 +81,7 @@ export default function Pseudocode({
             <ResizeHandle orientation="horizontal" />
           </>
         )}
-        <Panel defaultSize={80}>
+        <Panel key="pseudocode" defaultSize={80}>
           <div className="group relative text-xs overflow-x-hidden h-full">
             <div className="flex gap-1">
               {hasHighlight && (

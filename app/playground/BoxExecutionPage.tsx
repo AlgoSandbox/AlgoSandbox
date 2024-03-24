@@ -33,14 +33,7 @@ export default function BoxExecutionPage() {
   const { maxExecutionStepCount } = useUserPreferences();
 
   const scene = useScene();
-  const {
-    currentStepIndex,
-    hasNext,
-    hasPrevious,
-    next,
-    previous,
-    isExecuting,
-  } = useBoxControlsContext();
+  const { currentStepIndex, isExecuting } = useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
   const { hiddenVisualizerAliases, setHiddenVisualizerAliases } =
@@ -179,10 +172,6 @@ export default function BoxExecutionPage() {
             endLine={executionStep?.endLine}
             tooltip={executionStep?.tooltip}
             stepNumber={currentStepIndex + 1}
-            onNext={next}
-            onPrevious={previous}
-            hasNext={hasNext}
-            hasPrevious={hasPrevious}
           />
         );
       }
@@ -218,10 +207,6 @@ export default function BoxExecutionPage() {
       executionStep?.endLine,
       executionStep?.tooltip,
       currentStepIndex,
-      next,
-      previous,
-      hasNext,
-      hasPrevious,
       isExecuting,
     ],
   );

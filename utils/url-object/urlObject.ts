@@ -1,4 +1,3 @@
-import { ComponentTag } from '@algo-sandbox/core';
 import {
   DbSandboxObject,
   DbSandboxObjectSaved,
@@ -19,7 +18,6 @@ export function exportObjectToRelativeUrl(object: DbSandboxObject) {
     compressToEncodedURIComponent(JSON.stringify(files)),
   );
   searchParams.set('type', type);
-  searchParams.set('tags', object.tags.map((tag) => tag).join(','));
   return `/import?${searchParams.toString()}`;
 }
 
@@ -40,9 +38,7 @@ export function useObjectFromUrl(): DbSandboxObject {
     }
   })();
   const type = sandboxObjectType.parse(searchParams.get('type'));
-  const tags = (searchParams.get('tags')?.split(',') ??
-    []) as Array<ComponentTag>;
-  return { name, type, files, editable: true, tags };
+  return { name, type, files, editable: true };
 }
 
 export function getSavedComponentRelativeUrl(object: DbSandboxObjectSaved) {

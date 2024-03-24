@@ -3,6 +3,7 @@ import { CatalogGroup, CatalogOption } from '@constants/catalog';
 import { sortBy } from 'lodash';
 
 import { DbSandboxObjectSaved, DbSandboxObjectType } from './db';
+import getSandboxObjectConfig from './getSandboxObjectConfig';
 import hyphenCaseToWords from './hyphenCaseToWords';
 
 type GroupOptionsByTagOptions = {
@@ -13,13 +14,21 @@ export default function groupOptionsByTag<T extends DbSandboxObjectType>(
   options: Array<CatalogOption<DbSandboxObjectSaved<T>>>,
   { omitTags = [] }: GroupOptionsByTagOptions = {},
 ): Array<CatalogGroup<DbSandboxObjectSaved<T>>> {
+  const optionsWithTags = options.map((option) => ({
+    ...option,
+    value: {
+      ...option.value,
+      tags: getSandboxObjectConfig(option.value).tags,
+    },
+  }));
+
   const tags = Array.from(
-    new Set(options.flatMap((option) => option.value.tags)),
+    new Set(optionsWithTags.flatMap((option) => option.value.tags)),
   )
     .filter((tag) => !omitTags.includes(tag))
     .sort();
 
-  const noTagOptions = options.filter(
+  const noTagOptions = optionsWithTags.filter(
     (option) => !option.value.tags.some((tag) => tags.includes(tag)),
   );
 
@@ -29,7 +38,7 @@ export default function groupOptionsByTag<T extends DbSandboxObjectType>(
         return {
           key: tag,
           label: hyphenCaseToWords(tag),
-          options: options
+          options: optionsWithTags
             .filter((option) => option.value.tags.includes(tag))
             .map((option) => ({
               ...option,

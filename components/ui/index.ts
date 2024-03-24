@@ -1,5 +1,6 @@
 import Badge from './Badge';
 import Button from './Button';
+import Chip from './Chip';
 import FormLabel from './FormLabel';
 import Input from './Input';
 import MaterialSymbol from './MaterialSymbol';
@@ -17,6 +18,7 @@ import Tooltip from './Tooltip';
 export {
   Badge,
   Button,
+  Chip,
   FormLabel,
   Input,
   isSelectGroup,

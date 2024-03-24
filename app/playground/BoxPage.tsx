@@ -27,6 +27,7 @@ import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import useWorkerExecutedScene from '@utils/eval/useWorkerExecutedScene';
+import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import { ReadonlySandboxScene } from '@utils/scene';
 import solveFlowchart from '@utils/solveFlowchart';
@@ -250,6 +251,14 @@ function BoxPageImpl() {
     return boxOptions.find((option) => option.value.key === boxKey);
   }, [boxOptions, boxKey]);
 
+  const selectedOptionTags = useMemo(() => {
+    if (selectedOption === undefined) {
+      return [];
+    }
+
+    return getSandboxObjectConfig(selectedOption.value).tags;
+  }, [selectedOption]);
+
   const [saveBoxDialogOpen, setSaveBoxDialogOpen] = useState(false);
 
   const {
@@ -265,16 +274,16 @@ function BoxPageImpl() {
   }>({
     defaultValues: {
       name: selectedOption?.label ?? '',
-      tags: selectedOption?.value.tags ?? [],
+      tags: selectedOptionTags,
     },
   });
 
   useEffect(() => {
     reset({
       name: selectedOption?.label ?? '',
-      tags: selectedOption?.value.tags ?? [],
+      tags: selectedOptionTags,
     });
-  }, [selectedOption, reset]);
+  }, [selectedOption, reset, selectedOptionTags]);
 
   const {
     selectedTabId,
@@ -330,7 +339,7 @@ function BoxPageImpl() {
 
   return (
     <>
-      <div className="flex flex-col h-dvh">
+      <div className="flex flex-col w-dvw h-dvh">
         <AppNavBar>
           <div className="flex justify-between flex-1 px-2">
             <div className="flex items-center gap-2 pe-4 py-2">
@@ -429,7 +438,10 @@ function BoxPageImpl() {
           {tabs.map((tab) => (
             <TabProvider key={tab.id} tab={tab}>
               <main
-                className={clsx('flex-1', tab.id !== selectedTabId && 'hidden')}
+                className={clsx(
+                  'flex-1 overflow-auto',
+                  tab.id !== selectedTabId && 'hidden',
+                )}
               >
                 {renderTabContent(tab.id)}
               </main>
@@ -471,24 +483,27 @@ function BoxPageImpl() {
               )}
             />
             <div className="flex gap-2 mt-4 justify-end">
-              <Button
-                type={isBoxCustom ? 'button' : 'submit'}
-                variant={isBoxCustom ? 'filled' : 'primary'}
-                label="Save as new"
-                onClick={() => {
-                  if (!isBoxCustom) {
-                    handleSaveBox({ ...getValues(), asNew: true });
-                  }
-                }}
-              />
+              {!isBoxCustom && (
+                <Button type="submit" variant="primary" label="Save as new" />
+              )}
               {isBoxCustom && (
-                <Button
-                  label="Save"
-                  variant="primary"
-                  type="submit"
-                  disabled={!isBoxDirty && !isDirty}
-                  onClick={handleSaveClick}
-                />
+                <>
+                  <Button
+                    type="button"
+                    variant="filled"
+                    label="Save as new"
+                    onClick={() => {
+                      handleSaveBox({ ...getValues(), asNew: true });
+                    }}
+                  />
+                  <Button
+                    label="Save"
+                    variant="primary"
+                    type="submit"
+                    disabled={!isBoxDirty && !isDirty}
+                    onClick={handleSaveClick}
+                  />
+                </>
               )}
             </div>
           </form>

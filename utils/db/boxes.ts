@@ -13,7 +13,6 @@ export function useAddSavedBoxMutation() {
   const queryClient = useQueryClient();
   return useMutation(
     async (box: DbBox) => {
-      1;
       return LocalDb.addSavedBox(box);
     },
     {

@@ -1,6 +1,6 @@
 'use client';
 
-import SandboxObjectEditorPage from '@app/SandboxObjectEditor';
+import SandboxObjectEditor from '@app/SandboxObjectEditor';
 import AppNavBar from '@components/AppNavBar';
 import CatalogSelect from '@components/box-page/CatalogSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
@@ -43,7 +43,7 @@ export default function ComponentPage({
   const component = selectedOption?.value;
 
   return (
-    <div className="flex flex-col h-dvh">
+    <div className="flex flex-col w-dvw h-dvh">
       <AppNavBar>
         <div className="flex items-center">
           <CatalogSelect
@@ -64,14 +64,16 @@ export default function ComponentPage({
         </div>
       </AppNavBar>
       {component && (
-        <SandboxObjectEditorPage
-          mode="edit"
-          object={component}
-          onCloned={(newComponent) => {
-            router.push(`/component?key=${newComponent.key}`);
-          }}
-          onSave={saveObject}
-        />
+        <div className="flex-1 overflow-hidden">
+          <SandboxObjectEditor
+            mode="edit"
+            object={component}
+            onCloned={(newComponent) => {
+              router.push(`/component?key=${newComponent.key}`);
+            }}
+            onSave={saveObject}
+          />
+        </div>
       )}
     </div>
   );

@@ -339,7 +339,7 @@ function BoxPageImpl() {
 
   return (
     <>
-      <div className="flex flex-col h-dvh">
+      <div className="flex flex-col w-dvw h-dvh">
         <AppNavBar>
           <div className="flex justify-between flex-1 px-2">
             <div className="flex items-center gap-2 pe-4 py-2">
@@ -438,7 +438,10 @@ function BoxPageImpl() {
           {tabs.map((tab) => (
             <TabProvider key={tab.id} tab={tab}>
               <main
-                className={clsx('flex-1', tab.id !== selectedTabId && 'hidden')}
+                className={clsx(
+                  'flex-1 overflow-auto',
+                  tab.id !== selectedTabId && 'hidden',
+                )}
               >
                 {renderTabContent(tab.id)}
               </main>

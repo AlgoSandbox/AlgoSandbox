@@ -1,1 +1,1 @@
-# Uniform-cost search (graph)
+# Uniform-cost search

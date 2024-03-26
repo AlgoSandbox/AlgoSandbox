@@ -5,7 +5,9 @@ import { MaterialSymbol, Tooltip } from '.';
 
 type TabProps = {
   label: string;
+  showLabel: boolean;
   icon: string;
+  draggable?: boolean;
   subIcon?: string;
   isSelected: boolean;
   onClick: () => void;
@@ -22,14 +24,17 @@ export function Tab({
   icon,
   subIcon,
   label,
+  showLabel,
   isSelected,
   onClose,
   onClick,
   onTabDrop,
   closeable = true,
+  draggable = false,
 }: TabProps) {
   const [, drag] = useDrag(
     () => ({
+      canDrag: draggable,
       type: 'tab',
       item: { id },
       collect: (monitor) => ({
@@ -70,7 +75,7 @@ export function Tab({
       <Tooltip content={label}>
         <button
           className={clsx(
-            'font-medium items-center p-4 flex gap-2 overflow-x-hidden group',
+            'font-medium items-center p-4 flex flex-1 gap-2 overflow-x-hidden group',
           )}
           onClick={() => {
             if (isSelected && closeable) {
@@ -113,6 +118,7 @@ export function Tab({
               )}
             </div>
           )}
+          {showLabel && label}
         </button>
       </Tooltip>
     </div>
@@ -130,13 +136,17 @@ export type TabsItem = Readonly<{
 
 type TabsProps = {
   tabs: Array<TabsItem>;
+  draggable: boolean;
   onTabClose: (tab: TabsItem) => void;
   onTabSelect: (tab: TabsItem) => void;
   onTabsReorder: (srcTabId: string, destTabId: string) => void;
+  showLabels: boolean;
 };
 
 export function VerticalTabs({
   tabs,
+  showLabels,
+  draggable,
   onTabClose,
   onTabSelect,
   onTabsReorder,
@@ -150,6 +160,8 @@ export function VerticalTabs({
             key={tab.key}
             isSelected={tab.isSelected}
             label={tab.label}
+            draggable={draggable}
+            showLabel={showLabels}
             id={tab.key}
             icon={tab.icon}
             subIcon={tab.subIcon}

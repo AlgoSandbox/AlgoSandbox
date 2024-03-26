@@ -76,7 +76,7 @@ export default function BoxExecutionControls() {
   } = useBoxControlsContext();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-1 justify-between items-center gap-2">
       <span className="font-mono px-2 rounded-full bg-surface border">
         #{currentStepIndex + 1}/{maxSteps ?? '?'}
       </span>
@@ -136,34 +136,34 @@ export default function BoxExecutionControls() {
           onClick={skipToEnd}
           icon={<MaterialSymbol icon="last_page" />}
         />
-        <Popover
-          content={
-            <div className="flex flex-col bg-surface p-4">
-              <Heading variant="h4">Settings</Heading>
-              <HeadingContent>
-                <RadioButtons
-                  label="Playback speed"
-                  value={playbackSpeed.toString()}
-                  disabled={isPlaying}
-                  onChange={(speed) => {
-                    setPlaybackSpeed(parseFloat(speed) as PlaybackSpeed);
-                  }}
-                  options={[0.25, 0.5, 1, 1.25, 1.5, 2].map((speed) => ({
-                    label: `${speed}x`,
-                    value: speed.toString(),
-                  }))}
-                />
-              </HeadingContent>
-            </div>
-          }
-        >
-          <Button
-            label="Settings"
-            hideLabel
-            icon={<MaterialSymbol icon="settings" />}
-          />
-        </Popover>
       </div>
+      <Popover
+        content={
+          <div className="flex flex-col bg-surface p-4">
+            <Heading variant="h4">Settings</Heading>
+            <HeadingContent>
+              <RadioButtons
+                label="Playback speed"
+                value={playbackSpeed.toString()}
+                disabled={isPlaying}
+                onChange={(speed) => {
+                  setPlaybackSpeed(parseFloat(speed) as PlaybackSpeed);
+                }}
+                options={[0.25, 0.5, 1, 1.25, 1.5, 2].map((speed) => ({
+                  label: `${speed}x`,
+                  value: speed.toString(),
+                }))}
+              />
+            </HeadingContent>
+          </div>
+        }
+      >
+        <Button
+          label="Settings"
+          hideLabel
+          icon={<MaterialSymbol icon="settings" />}
+        />
+      </Popover>
     </div>
   );
 }

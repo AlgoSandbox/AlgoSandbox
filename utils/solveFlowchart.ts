@@ -6,7 +6,7 @@ import {
 } from '@algo-sandbox/core';
 import { ZodError } from 'zod';
 
-function topologicalSort(graph: Record<string, Array<string>>) {
+export function topologicalSort(graph: Record<string, Array<string>>) {
   const visited = new Set<string>();
   const result: Array<string> = [];
 
@@ -31,7 +31,7 @@ function topologicalSort(graph: Record<string, Array<string>>) {
   return result.reverse();
 }
 
-function buildGraphFromBoxConfig(boxConfig: BoxConfigTree) {
+export function buildGraphFromBoxConfig(boxConfig: BoxConfigTree) {
   const graph: Record<
     string,
     Record<string, Array<{ fromSlot: string; toSlot: string }>>

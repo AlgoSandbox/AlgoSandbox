@@ -13,10 +13,14 @@ import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
 import Dagre from '@dagrejs/dagre';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
+import {
+  buildGraphFromBoxConfig,
+  topologicalSort,
+} from '@utils/solveFlowchart';
 import getZodTypeName from '@utils/zod/getZodTypeName';
 import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
-import { compact, uniqWith } from 'lodash';
+import _, { compact, uniqWith } from 'lodash';
 import React, {
   forwardRef,
   useCallback,
@@ -575,6 +579,22 @@ export default function AlgorithmVisualizerFlowchart({
     [problem],
   );
 
+  // Every node that is eventually connected to the algorithm input
+  const algorithmInputNodes = useMemo(() => {
+    const graph = buildGraphFromBoxConfig(configTree);
+    const nodesToExplore = topologicalSort(
+      Object.fromEntries(
+        Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
+      ),
+    );
+
+    const nodesUptoToIncludingAlgorithm = _(nodesToExplore).dropRightWhile(
+      (node) => node !== 'algorithm',
+    );
+
+    return nodesUptoToIncludingAlgorithm.toArray();
+  }, [configTree]);
+
   const onNodeDelete = useCallback(
     (type: FlowNode['data']['type'], alias: string) => {
       if (type === 'adapter') {
@@ -775,14 +795,26 @@ export default function AlgorithmVisualizerFlowchart({
           }),
         },
       },
-      ...initialAdapterNodes,
-      ...initialVisualizerNodes,
+      ...initialAdapterNodes.map((node) => ({
+        ...node,
+        hidden:
+          flowchartMode === 'simple' &&
+          !algorithmInputNodes.includes(node.data.alias),
+      })),
+      ...initialVisualizerNodes.map((node) => ({
+        ...node,
+        hidden:
+          flowchartMode === 'simple' &&
+          !algorithmInputNodes.includes(node.data.alias),
+      })),
     ] satisfies Array<Omit<FlowNode, 'position'>>;
   }, [
     algorithm,
+    algorithmInputNodes,
     algorithmInputs,
     algorithmName,
     algorithmOutputs,
+    flowchartMode,
     initialAdapterNodes,
     initialVisualizerNodes,
     inputErrors,
@@ -808,6 +840,11 @@ export default function AlgorithmVisualizerFlowchart({
 
         return uniqWith(connections, (a, b) => {
           return a.fromKey === b.fromKey && a.toKey === b.toKey;
+        }).filter(({ fromKey, toKey }) => {
+          return (
+            algorithmInputNodes.includes(fromKey) &&
+            algorithmInputNodes.includes(toKey)
+          );
         });
       }
 
@@ -849,7 +886,12 @@ export default function AlgorithmVisualizerFlowchart({
         deletable: flowchartMode === 'full',
       };
     }) as Array<Edge>;
-  }, [configEvaluated.composition.connections, flowchartMode, outputs]);
+  }, [
+    algorithmInputNodes,
+    configEvaluated.composition.connections,
+    flowchartMode,
+    outputs,
+  ]);
 
   const [nodes, setNodes] = useState<Array<FlowNode>>(
     // TODO: Remove typecast

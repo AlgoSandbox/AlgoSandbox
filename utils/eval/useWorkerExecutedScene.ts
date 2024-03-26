@@ -25,21 +25,36 @@ export default function useWorkerExecutedScene({
   const [isExecuting, setIsExecuting] = useState(false);
   const sandboxComponents = useSandboxComponents();
   const { maxExecutionStepCount } = useUserPreferences();
+  const [worker, setWorker] = useState<Worker | null>(null);
 
-  const worker = useMemo(() => {
-    if (typeof window === 'undefined' || typeof Worker === 'undefined') {
-      return null;
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      typeof Worker === 'undefined' ||
+      box === null
+    ) {
+      if (worker !== null) {
+        worker.terminate();
+      }
+
+      setWorker(null);
+
+      return;
     }
 
-    const worker = new Worker(
+    if (worker !== null) {
+      return;
+    }
+
+    const newWorker = new Worker(
       new URL('/utils/eval/eval.worker.ts', import.meta.url),
       {
         type: 'classic',
       },
     );
 
-    return worker;
-  }, []);
+    setWorker(newWorker);
+  }, [box, worker]);
 
   useEffect(() => {
     setScene(null);
@@ -69,7 +84,7 @@ export default function useWorkerExecutedScene({
   const execute = useCallback(
     async (untilCount?: number) => {
       if (worker === null) {
-        return Promise.reject(new Error('Worker is not available'));
+        return Promise.resolve(null);
       }
 
       setIsExecuting(true);

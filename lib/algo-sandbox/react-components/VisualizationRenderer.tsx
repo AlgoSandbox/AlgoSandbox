@@ -5,11 +5,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 export type VisualizationRendererProps<V> = {
   className?: string;
   visualization: SandboxVisualization<V>;
+  zoom?: number;
 };
 
 export default function VisualizationRenderer<V>({
   className,
   visualization: { onUpdate },
+  zoom = 1,
 }: VisualizationRendererProps<V>) {
   const [divElement, setDivElement] = useState<HTMLDivElement | null>(null);
   const divRef = useCallback((divElement: HTMLDivElement) => {
@@ -26,8 +28,8 @@ export default function VisualizationRenderer<V>({
 
     const handleResize = () => {
       const { width, height } = divElement.getBoundingClientRect();
-      setWidth(width);
-      setHeight(height);
+      setWidth(width / zoom);
+      setHeight(height / zoom);
     };
 
     const resizeObserver = new ResizeObserver(() => {
@@ -41,7 +43,7 @@ export default function VisualizationRenderer<V>({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [divElement, divRef]);
+  }, [divElement, divRef, zoom]);
 
   useEffect(() => {
     if (divElement === null) {

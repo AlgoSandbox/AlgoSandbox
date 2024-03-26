@@ -1,6 +1,12 @@
 import { SandboxObjectType } from '@algo-sandbox/components';
-import { getDefaultParameters, SandboxParameters } from '@algo-sandbox/core';
+import {
+  getDefaultParameters,
+  SandboxBox,
+  SandboxParameters,
+} from '@algo-sandbox/core';
+import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import MarkdownPreview from '@components/common/MarkdownPreview';
+import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import {
   Button,
   Chip,
@@ -13,20 +19,32 @@ import {
 } from '@components/ui';
 import { ButtonProps } from '@components/ui/Button';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
+import convertBoxConfigToTree from '@utils/convertBoxConfigToTree';
 import { DbSandboxObjectSaved } from '@utils/db';
 import { useDeleteObjectMutation } from '@utils/db/objects';
+import createInitialScene from '@utils/eval/createInitialScene';
+import evalBox from '@utils/eval/evalBox';
 import evalSavedObject from '@utils/eval/evalSavedObject';
+import evalWithAlgoSandbox from '@utils/eval/evalWithAlgoSandbox';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
 import getSandboxObjectWriteup from '@utils/getSandboxObjectWriteup';
+import {
+  isParameterizedAlgorithm,
+  isParameterizedProblem,
+  isParameterizedVisualizer,
+} from '@utils/isParameterized';
+import solveFlowchart from '@utils/solveFlowchart';
 import { useBreakpoint } from '@utils/useBreakpoint';
+import useCancelableInterval from '@utils/useCancelableInterval';
 import clsx from 'clsx';
+import { mapValues } from 'lodash';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { ParameterControls } from '.';
 
-// TODO: Restore preview
+const MAX_EXECUTION_STEP_COUNT = 50;
 
 export type CatalogSelectProps<
   T extends SandboxObjectType,
@@ -87,9 +105,11 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   value,
   onChange,
   errorMessage,
-  showParameters = false, // showPreview = true,
+  showParameters = false,
+  showPreview = true,
 }: CatalogSelectProps<T>) {
   const [selectedOption, setSelectedOption] = useState(value);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setSelectedOption(value);
@@ -115,9 +135,9 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   }, [selectedOption]);
 
   const { mutateAsync: deleteObject } = useDeleteObjectMutation<T>();
-  // const builtInComponents = useBuiltInComponents();
+  const sandboxComponents = useSandboxComponents();
   const [query, setQuery] = useState('');
-  // const [stepIndex, setStepIndex] = useState(0);
+  const [stepIndex, setStepIndex] = useState(0);
 
   const objectInstance = useMemo(() => {
     if (selectedOption === undefined) {
@@ -157,125 +177,279 @@ export default function CatalogSelect<T extends SandboxObjectType>({
     reset(defaultObjectParameters ?? {});
   }, [defaultObjectParameters, reset]);
 
-  // const { executionTrace, visualizerInstance } =
-  //   useMemo(() => {
-  //     if (selectedOption === null) {
-  //       return;
-  //     }
+  const selectedBox = useMemo(() => {
+    if (selectedOption === undefined) {
+      return null;
+    }
 
-  //     if (!showPreview) {
-  //       return;
-  //     }
+    if (!showPreview || !open) {
+      return null;
+    }
 
-  //     const {
-  //       value: { files },
-  //     } = selectedOption;
+    const {
+      value: { files },
+    } = selectedOption;
 
-  //     if (!files) {
-  //       return;
-  //     }
+    if (!files) {
+      return null;
+    }
 
-  //     const defaultBoxFilePath = Object.keys(files).find((path) =>
-  //       path.includes('default-box.ts'),
-  //     );
+    const defaultBoxFilePath = Object.keys(files).find((path) =>
+      path.includes('default-box.ts'),
+    );
 
-  //     if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
-  //       return;
-  //     }
+    if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
+      return null;
+    }
 
-  //     const defaultBoxCode = files[defaultBoxFilePath];
+    const defaultBoxCode = files[defaultBoxFilePath];
 
-  //     if (defaultBoxCode === undefined) {
-  //       return;
-  //     }
+    if (defaultBoxCode === undefined) {
+      return null;
+    }
 
-  //     const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
-  //       files,
-  //       currentFilePath: defaultBoxFilePath,
-  //     }) as SandboxBox;
+    const defaultBox = evalWithAlgoSandbox<SandboxBox>(defaultBoxCode, {
+      fileContext: {
+        files,
+        currentFilePath: defaultBoxFilePath,
+      },
+    }).mapLeft(() => null).value;
 
-  //     const evaledBox = evalBox({
-  //       box: defaultBox,
-  //       builtInComponents,
-  //       currentFilePath: defaultBoxFilePath,
-  //       files,
-  //     });
+    if (defaultBox === null) {
+      return null;
+    }
 
-  //     const { algorithm, problem, visualizer } = evaledBox;
+    return defaultBox;
+  }, [open, selectedOption, showPreview]);
 
-  //     if (
-  //       algorithm === undefined ||
-  //       problem === undefined ||
-  //       visualizer === undefined
-  //     ) {
-  //       return;
-  //     }
+  const scene = useMemo(() => {
+    const initialScene = createInitialScene({
+      box: selectedBox,
+      sandboxComponents,
+      files: selectedOption?.value.files ?? {},
+    });
 
-  //     const problemInstance = (() => {
-  //       if (isParameterizedProblem(problem)) {
-  //         return problem.create();
-  //       }
+    if (initialScene === null) {
+      return null;
+    }
 
-  //       return problem;
-  //     })();
+    const sceneGenerator = initialScene.copyWithExecution({
+      untilCount: MAX_EXECUTION_STEP_COUNT,
+      maxExecutionStepCount: MAX_EXECUTION_STEP_COUNT,
+      updateCount: MAX_EXECUTION_STEP_COUNT,
+    });
 
-  //     const algorithmInstance = (() => {
-  //       if (isParameterizedAlgorithm(algorithm)) {
-  //         return algorithm.create();
-  //       }
+    return sceneGenerator.next().value;
+  }, [sandboxComponents, selectedBox, selectedOption?.value.files]);
 
-  //       return algorithm;
-  //     })();
+  const {
+    visualizerInstance,
+    algorithmInstance,
+    problemInstance,
+    evaledBox,
+    visualizerAlias,
+  } = useMemo(() => {
+    if (selectedBox === null || selectedOption === undefined) {
+      return {};
+    }
 
-  //     const visualizerInstance = (() => {
-  //       if (isParameterizedVisualizer(visualizer)) {
-  //         return visualizer.create();
-  //       }
+    const {
+      value: { files },
+    } = selectedOption;
 
-  //       return visualizer;
-  //     })();
+    if (!files) {
+      return {};
+    }
 
-  //     const scene = createScene({
-  //       algorithm: algorithmInstance,
-  //       problem: problemInstance,
-  //     });
+    const defaultBoxFilePath = Object.keys(files).find((path) =>
+      path.includes('default-box.ts'),
+    );
 
-  //     return {
-  //       executionTrace: scene.copyWithExecution(MAX_EXECUTION_STEP_COUNT)
-  //         .executionTrace,
-  //       visualizerInstance,
-  //     };
-  //   }, [builtInComponents, selectedOption, showPreview]) ?? {};
+    if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
+      return {};
+    }
 
-  // const stepCount = Math.min(
-  //   MAX_EXECUTION_STEP_COUNT,
-  //   executionTrace?.length ?? MAX_EXECUTION_STEP_COUNT,
-  // );
+    const evaledBox = evalBox({
+      box: selectedBox,
+      sandboxComponents,
+      currentFilePath: defaultBoxFilePath,
+      files,
+    });
 
-  // const interval = useCancelableInterval(() => {
-  //   setStepIndex((stepIndex) => (stepIndex + 1) % stepCount);
-  // }, 300);
+    const {
+      problem: problemComponent,
+      algorithm: algorithmComponent,
+      visualizers,
+    } = evaledBox;
 
-  // useEffect(() => {
-  //   if (!interval.isRunning && selectedOption !== null) interval.start();
-  // }, [interval, selectedOption]);
+    const visualizerAlias = visualizers?.order[0];
 
-  // const visualization = useMemo(() => {
-  //   if (visualizerInstance && executionTrace) {
-  //     try {
-  //       const step = executionTrace.at(stepIndex);
-  //       if (step === undefined) {
-  //         return undefined;
-  //       }
+    if (visualizerAlias === undefined) {
+      return {};
+    }
 
-  //       return visualizerInstance.visualize(step.state);
-  //     } catch {
-  //       return undefined;
-  //     }
-  //   }
-  // }, [executionTrace, stepIndex, visualizerInstance]);
+    const visualizerInstance = (() => {
+      if (visualizers === undefined) {
+        return null;
+      }
 
-  const [open, setOpen] = useState(false);
+      const visualizerComponent = visualizers.aliases[visualizerAlias];
+
+      if (visualizerComponent === undefined) {
+        return null;
+      }
+
+      const { parameters, component: visualizer } = visualizerComponent;
+
+      if (isParameterizedVisualizer(visualizer)) {
+        return visualizer.create(parameters ?? undefined);
+      }
+
+      return visualizer;
+    })();
+
+    const problemInstance = (() => {
+      if (problemComponent === undefined) {
+        return null;
+      }
+
+      const { parameters, component: problem } = problemComponent;
+
+      if (isParameterizedProblem(problem)) {
+        return problem.create(parameters ?? undefined);
+      }
+
+      return problem;
+    })();
+
+    const algorithmInstance = (() => {
+      if (algorithmComponent === undefined) {
+        return null;
+      }
+
+      const { parameters, component: algorithm } = algorithmComponent;
+
+      if (isParameterizedAlgorithm(algorithm)) {
+        return algorithm.create(parameters ?? undefined);
+      }
+
+      return algorithm;
+    })();
+
+    return {
+      algorithmInstance,
+      problemInstance,
+      visualizerInstance,
+      visualizerAlias,
+      evaledBox,
+    };
+  }, [sandboxComponents, selectedBox, selectedOption]);
+
+  const executionTrace = useMemo(() => {
+    return scene?.executionTrace ?? null;
+  }, [scene]);
+
+  const stepCount = scene?.executionTrace.length ?? null;
+
+  const incrementStep = useCallback(async () => {
+    setStepIndex((stepIndex) => {
+      const newStepCount = stepCount !== null ? (stepIndex + 1) % stepCount : 0;
+
+      return newStepCount;
+    });
+
+    return true;
+  }, [stepCount]);
+
+  const interval = useCancelableInterval(incrementStep, 1000);
+
+  useEffect(() => {
+    if (!interval.isRunning && selectedOption !== null && open) {
+      interval.start();
+    }
+
+    if (interval.isRunning && (selectedOption === null || !open)) {
+      interval.stop();
+    }
+  }, [interval, open, selectedOption]);
+
+  const visualization = useMemo(() => {
+    if (!visualizerInstance || executionTrace === null) {
+      return null;
+    }
+
+    try {
+      const step = executionTrace.at(stepIndex);
+      if (step === undefined) {
+        return null;
+      }
+
+      if (problemInstance === null || algorithmInstance === undefined) {
+        return null;
+      }
+
+      const config = selectedBox?.config;
+
+      if (!config) {
+        return null;
+      }
+
+      const visualizerAliases = Object.keys(
+        selectedBox?.visualizers.aliases ?? {},
+      );
+      const configTree = convertBoxConfigToTree(config, visualizerAliases);
+
+      const problemState = problemInstance.getInitialState();
+      const algorithmState = step.state;
+
+      const visualizerInstances = {
+        [visualizerAlias]: visualizerInstance,
+      };
+      const adapters = evaledBox.config?.adapters ?? {};
+      const adapterInstances = mapValues(adapters, (adapterComponent) => {
+        if (adapterComponent === undefined) {
+          return undefined;
+        }
+
+        const { component: adapter, parameters } = adapterComponent;
+
+        if ('parameters' in adapter) {
+          return adapter.create(parameters ?? undefined);
+        }
+
+        return adapter;
+      });
+
+      try {
+        const { inputs } = solveFlowchart({
+          config: configTree,
+          problemState,
+          algorithmState,
+          adapters: adapterInstances,
+          visualizers: visualizerInstances,
+        });
+
+        const visualizerInput = inputs[visualizerAlias];
+
+        return visualizerInstance.visualize(visualizerInput);
+      } catch (e) {
+        return null;
+      }
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }, [
+    algorithmInstance,
+    evaledBox?.config?.adapters,
+    executionTrace,
+    problemInstance,
+    selectedBox?.config,
+    selectedBox?.visualizers.aliases,
+    stepIndex,
+    visualizerAlias,
+    visualizerInstance,
+  ]);
 
   // For mobile
   const [showItemDetails, setShowItemDetails] = useState(false);
@@ -409,22 +583,20 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 icon={<MaterialSymbol icon="arrow_back" />}
                 onClick={() => setShowItemDetails(false)}
               />
-              {/* {visualization && (
-                <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
-                  <div className="w-[250px] h-[200px]">
-                    <VisualizationRenderer
-                      className="w-[250px] h-[200px] overflow-visible"
-                      visualization={visualization}
-                      zoomLevel={0.5}
-                    />
-                  </div>
+              {visualization && showPreview && (
+                <div className="w-[300px] h-[200px] relative rounded-tr-md bg-canvas border-b overflow-clip">
+                  <VisualizationRenderer
+                    className="w-[300px] h-[200px] absolute top-0 left-0 overflow-visible"
+                    visualization={visualization}
+                    zoom={0.33}
+                  />
                 </div>
               )}
               {!visualization && showPreview && (
-                <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
+                <div className="w-[300px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
                   <span className="text-label">No preview available</span>
                 </div>
-              )} */}
+              )}
               <div className="p-4 flex-col flex gap-2 items-start">
                 <MarkdownPreview markdown={selectedOptionWriteup!} />
                 <div className="flex gap-2 flex-wrap">

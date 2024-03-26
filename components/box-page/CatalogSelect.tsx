@@ -194,9 +194,13 @@ export default function CatalogSelect<T extends SandboxObjectType>({
       return null;
     }
 
-    const defaultBoxFilePath = Object.keys(files).find((path) =>
-      path.includes('default-box.ts'),
-    );
+    const defaultBoxFilePath = (() => {
+      if (selectedOption.value.type === 'box') {
+        return Object.keys(files).find((path) => path.includes('index.ts'));
+      }
+
+      return Object.keys(files).find((path) => path.includes('default-box.ts'));
+    })();
 
     if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
       return null;
@@ -261,9 +265,13 @@ export default function CatalogSelect<T extends SandboxObjectType>({
       return {};
     }
 
-    const defaultBoxFilePath = Object.keys(files).find((path) =>
-      path.includes('default-box.ts'),
-    );
+    const defaultBoxFilePath = (() => {
+      if (selectedOption.value.type === 'box') {
+        return Object.keys(files).find((path) => path.includes('index.ts'));
+      }
+
+      return Object.keys(files).find((path) => path.includes('default-box.ts'));
+    })();
 
     if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
       return {};
@@ -586,9 +594,10 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               {visualization && showPreview && (
                 <div className="w-[300px] h-[200px] relative rounded-tr-md bg-canvas border-b overflow-clip">
                   <VisualizationRenderer
-                    className="w-[300px] h-[200px] absolute top-0 left-0 overflow-visible"
+                    key={selectedOption.key}
+                    className="absolute top-0 left-0 w-full h-full overflow-visible"
                     visualization={visualization}
-                    zoom={0.33}
+                    zoom={1 / 3}
                   />
                 </div>
               )}

@@ -13,21 +13,26 @@ export default function VisualizationRenderer<V>({
   visualization: { onUpdate },
   zoom = 1,
 }: VisualizationRendererProps<V>) {
+  const [containerElement, setContainerElement] =
+    useState<HTMLDivElement | null>(null);
   const [divElement, setDivElement] = useState<HTMLDivElement | null>(null);
   const divRef = useCallback((divElement: HTMLDivElement) => {
     setDivElement(divElement);
+  }, []);
+  const containerRef = useCallback((containerElement: HTMLDivElement) => {
+    setContainerElement(containerElement);
   }, []);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
   const [visualizerState, setVisualizerState] = useState<V | null>(null);
 
   useEffect(() => {
-    if (!divElement) {
+    if (!containerElement) {
       return;
     }
 
     const handleResize = () => {
-      const { width, height } = divElement.getBoundingClientRect();
+      const { width, height } = containerElement.getBoundingClientRect();
       setWidth(width / zoom);
       setHeight(height / zoom);
     };
@@ -36,14 +41,14 @@ export default function VisualizationRenderer<V>({
       handleResize();
     });
 
-    resizeObserver.observe(divElement);
+    resizeObserver.observe(containerElement);
 
     handleResize();
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [divElement, divRef, zoom]);
+  }, [containerElement, divElement, divRef, zoom]);
 
   useEffect(() => {
     if (divElement === null) {
@@ -68,5 +73,20 @@ export default function VisualizationRenderer<V>({
     }
   }, [divElement, height, onUpdate, visualizerState, width]);
 
-  return <div ref={divRef} className={className} />;
+  return (
+    <div ref={containerRef} className={className}>
+      <div
+        ref={divRef}
+        style={{
+          width,
+          height,
+          transform: `scale(${zoom})`,
+          transformOrigin: 'top left',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    </div>
+  );
 }

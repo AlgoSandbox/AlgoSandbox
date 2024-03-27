@@ -1,33 +1,117 @@
 import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
-  problem: 'problem.graphs.fiveNodes',
+  problem: 'problem.graphs.tenNodes',
   algorithm: '.',
   visualizers: {
     aliases: {
-      'visualizer-0': 'visualizer.graphs.searchGraph',
-      'visualizer-1': 'visualizer.primitives.objectInspector',
+      'visualizer-2': 'visualizer.graphs.searchGraph',
     },
-    order: ['visualizer-0', 'visualizer-1'],
+    order: ['visualizer-2'],
   },
   config: {
     adapters: {
-      'adapter-0': 'adapter.environments.envToGraph',
+      'adapter-0': 'adapter.environment.envToGraph',
+      'adapter-1': 'adapter.environment.searchGraphToEnv',
     },
     composition: {
       type: 'tree',
       connections: [
         {
-          fromKey: 'algorithm',
+          fromKey: 'problem',
           fromSlot: '.',
-          toKey: 'adapter-0',
+          toKey: 'adapter-1',
           toSlot: '.',
+        },
+        {
+          fromKey: 'adapter-1',
+          fromSlot: '.',
+          toKey: 'algorithm',
+          toSlot: '.',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'currentState',
+          toKey: 'adapter-0',
+          toSlot: 'currentState',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'initialState',
+          toKey: 'adapter-0',
+          toSlot: 'initialState',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'actions',
+          toKey: 'adapter-0',
+          toSlot: 'actions',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'visited',
+          toKey: 'adapter-0',
+          toSlot: 'visited',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'frontier',
+          toKey: 'adapter-0',
+          toSlot: 'frontier',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'searchTree',
+          toKey: 'adapter-0',
+          toSlot: 'searchTree',
+        },
+        {
+          fromKey: 'adapter-1',
+          fromSlot: 'getStateKey',
+          toKey: 'adapter-0',
+          toSlot: 'getStateKey',
         },
         {
           fromKey: 'adapter-0',
           fromSlot: '.',
           toKey: 'visualizer-0',
           toSlot: '.',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: '.',
+          toKey: 'visualizer-1',
+          toSlot: 'object',
+        },
+        {
+          fromKey: 'problem',
+          fromSlot: '.',
+          toKey: 'visualizer-2',
+          toSlot: 'graph',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'frontier',
+          toKey: 'visualizer-2',
+          toSlot: 'frontier',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'visited',
+          toKey: 'visualizer-2',
+          toSlot: 'visited',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'currentNodeId',
+          toKey: 'visualizer-2',
+          toSlot: 'currentNodeId',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'initialNodeId',
+          toKey: 'visualizer-2',
+          toSlot: 'initialNodeId',
         },
       ],
     },

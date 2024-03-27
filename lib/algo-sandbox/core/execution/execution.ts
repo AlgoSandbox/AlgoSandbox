@@ -102,7 +102,7 @@ export class SandboxAlgorithmExecutor<
     const previousExecutedCount = this.executionTrace.length;
     let generatedCount = 0;
     while (!this.isFullyExecuted) {
-      if (generatedCount % updateCount === 0) {
+      if (generatedCount > 0 && generatedCount % updateCount === 0) {
         generatedCount = 0;
         yield;
       }
@@ -123,14 +123,14 @@ export class SandboxAlgorithmExecutor<
       }
 
       const { done, value: executionStep } = this.executionGenerator.next();
-      if (done) {
-        this.isFullyExecuted = true;
-        break;
-      }
 
       if (!isBoolean(executionStep)) {
         this.executionTrace.push(executionStep);
         generatedCount++;
+      }
+      if (done) {
+        this.isFullyExecuted = true;
+        break;
       }
     }
 

@@ -351,6 +351,7 @@ export default function BoxExecutionPage() {
                   icon={<MaterialSymbol icon="arrow_back" />}
                 />
                 <Select
+                  className="truncate text-ellipsis"
                   containerClassName="flex-1"
                   hideLabel
                   variant="filled"

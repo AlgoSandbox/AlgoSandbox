@@ -167,7 +167,24 @@ const decisionTreeLearning = createAlgorithm({
       attributes: Attributes,
       examples: Examples,
     ): string {
-      // Choose attribute with the highest information gain
+      function entropy(examples: Examples): number {
+        const classificationCounts = Array.from(
+          new Set(examples.map((example) => example.classification)),
+        ).map(
+          (classification) =>
+            examples.filter(
+              (example) => example.classification === classification,
+            ).length,
+        );
+
+        const total = classificationCounts.reduce((acc, count) => acc + count);
+        return classificationCounts.reduce((acc, count) => {
+          const p = count / total;
+          return acc - p * Math.log2(p);
+        }, 0);
+      }
+
+      const currentEntropy = entropy(examples);
 
       function getInformationGain(
         attribute: string,
@@ -177,41 +194,24 @@ const decisionTreeLearning = createAlgorithm({
           new Set(examples.map((example) => example.attributes[attribute])),
         );
 
-        const entropy = attributeValues.reduce((acc, value) => {
+        const newEntropy = attributeValues.reduce((acc, value) => {
           const examplesWithAttributeValue = examples.filter(
             (example) => example.attributes[attribute] === value,
           );
 
-          const classificationCounts: Record<string, number> = {};
+          const weight = examplesWithAttributeValue.length / examples.length;
 
-          for (const example of examplesWithAttributeValue) {
-            if (classificationCounts[example.classification] === undefined) {
-              classificationCounts[example.classification] = 0;
-            }
-            classificationCounts[example.classification]++;
-          }
-
-          const valueEntropy = Object.values(classificationCounts).reduce(
-            (acc, count) => {
-              const p = count / examplesWithAttributeValue.length;
-              return acc - p * Math.log2(p);
-            },
-            0,
-          );
-
-          return (
-            acc +
-            (examplesWithAttributeValue.length / examples.length) * valueEntropy
-          );
+          return acc + weight * entropy(examplesWithAttributeValue);
         }, 0);
 
-        return entropy;
+        return currentEntropy - newEntropy;
       }
 
       const attributeInformationGains = attributes.map((attribute) => ({
         attribute,
         informationGain: getInformationGain(attribute, examples),
       }));
+      console.log('attribute info gains', attributeInformationGains);
 
       return maxBy(attributeInformationGains, (x) => x.informationGain)!
         .attribute;

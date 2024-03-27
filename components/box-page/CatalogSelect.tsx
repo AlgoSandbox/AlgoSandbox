@@ -189,7 +189,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
       open={open}
       onOpenChange={setOpen}
       content={
-        <div className="flex bg-surface h-[400px]">
+        <div className="flex bg-surface h-[75dvh] lg:h-[400px]">
           <div
             className={clsx(
               'w-full md:w-auto flex flex-col border-r overflow-y-hidden',
@@ -292,14 +292,14 @@ export default function CatalogSelect<T extends SandboxObjectType>({
           {selectedOption !== undefined && (showItemDetails || isMd) && (
             <div className="w-full md:w-[300px] overflow-y-auto">
               <Button
-                className="md:hidden mx-4"
+                className="md:hidden mx-4 mb-4"
                 label="Back"
                 variant="filled"
                 icon={<MaterialSymbol icon="arrow_back" />}
                 onClick={() => setShowItemDetails(false)}
               />
               {visualization && showPreview && (
-                <div className="w-[300px] h-[200px] relative rounded-tr-md bg-canvas border-b overflow-clip">
+                <div className="w-full lg:w-[300px] h-[200px] relative rounded-tr-md bg-canvas border-b overflow-clip">
                   <VisualizationRenderer
                     key={selectedOption.key}
                     className="absolute top-0 left-0 w-full h-full overflow-visible"
@@ -309,7 +309,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                 </div>
               )}
               {!visualization && showPreview && (
-                <div className="w-[300px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
+                <div className="w-full lg:w-[300px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
                   <span className="text-label">No preview available</span>
                 </div>
               )}

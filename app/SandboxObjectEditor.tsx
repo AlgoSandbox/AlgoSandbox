@@ -20,7 +20,7 @@ import {
   getSavedComponentRelativeUrl,
 } from '@utils/url-object/urlObject';
 import clsx from 'clsx';
-import _, { debounce } from 'lodash';
+import _, { throttle } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Panel, PanelGroup } from 'react-resizable-panels';
@@ -98,7 +98,7 @@ export default function SandboxObjectEditorPage({
     useState<Record<string, string>>(formFiles);
 
   const updateInternalFiles = useMemo(() => {
-    return debounce((files: Record<string, string>) => {
+    return throttle((files: Record<string, string>) => {
       setInternalFiles(files);
     }, 1000);
   }, []);

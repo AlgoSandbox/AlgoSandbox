@@ -86,6 +86,7 @@ export default function Pseudocode({
             <div className="flex gap-1">
               {hasHighlight && (
                 <Tooltip
+                  zIndex={20}
                   side="bottom"
                   open={
                     tooltip !== undefined && showTooltip && isVisible && isMd

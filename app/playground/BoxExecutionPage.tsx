@@ -164,6 +164,12 @@ export default function BoxExecutionPage() {
 
   const renderTile = useCallback(
     (id: string) => {
+      if (isExecuting && scene === null) {
+        return (
+          <div className="w-full h-full bg-surface-high animate-pulse"></div>
+        );
+      }
+
       if (id === 'pseudocode') {
         return (
           <Pseudocode
@@ -201,13 +207,14 @@ export default function BoxExecutionPage() {
       );
     },
     [
+      isExecuting,
+      scene,
       visualizations,
       pseudocode,
       executionStep?.startLine,
       executionStep?.endLine,
       executionStep?.tooltip,
       currentStepIndex,
-      isExecuting,
     ],
   );
 
@@ -249,7 +256,9 @@ export default function BoxExecutionPage() {
         <Mosaic<string>
           className={clsx(
             'bg-transparent',
-            '[&_.mosaic-window-body]:!bg-surface',
+            !isExecuting && scene !== null
+              ? '[&_.mosaic-window-body]:!bg-surface'
+              : '[&_.mosaic-window-body]:!bg-canvas',
             '[&_.mosaic-window-toolbar]:!bg-surface-high',
             '[&_.mosaic-split]:!bg-transparent',
             '[&_.mosaic-tile]:!m-1',

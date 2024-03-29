@@ -61,6 +61,7 @@ export default function useWorkerExecutedScene({
     if (worker === null) {
       return;
     }
+    setIsExecuting(true);
 
     worker.onmessage = (event: MessageEvent<EvalWorkerResponse>) => {
       const newScene: ReadonlySandboxScene<SandboxStateType> | null = event.data
@@ -68,6 +69,7 @@ export default function useWorkerExecutedScene({
         ? deserializeJson(event.data.scene)
         : null;
       setScene(newScene);
+      setIsExecuting(false);
     };
 
     const message: EvalWorkerArgs = {

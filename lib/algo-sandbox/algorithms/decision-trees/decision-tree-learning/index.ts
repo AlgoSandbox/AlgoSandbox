@@ -211,7 +211,6 @@ const decisionTreeLearning = createAlgorithm({
         attribute,
         informationGain: getInformationGain(attribute, examples),
       }));
-      console.log('attribute info gains', attributeInformationGains);
 
       return maxBy(attributeInformationGains, (x) => x.informationGain)!
         .attribute;

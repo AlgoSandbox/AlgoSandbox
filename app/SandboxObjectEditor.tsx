@@ -20,11 +20,13 @@ import {
   getSavedComponentRelativeUrl,
 } from '@utils/url-object/urlObject';
 import clsx from 'clsx';
-import _ from 'lodash';
-import { useCallback, useMemo, useState } from 'react';
+import _, { debounce } from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import { toast } from 'sonner';
+
+import { error, ErrorOr, success } from './errors';
 
 type SandboxObjectEditorProps =
   | {
@@ -80,6 +82,37 @@ export default function SandboxObjectEditorPage({
 
   const markdownContents = watch('files.index$md');
   const configContents = watch('files.config$ts');
+  const indexContents = watch('files.index$ts');
+
+  const formFiles = useMemo(
+    () => ({
+      ...files,
+      'index.ts': indexContents,
+      'index.md': markdownContents,
+      'config.ts': configContents,
+    }),
+    [configContents, files, indexContents, markdownContents],
+  );
+
+  const [internalFiles, setInternalFiles] =
+    useState<Record<string, string>>(formFiles);
+
+  const updateInternalFiles = useMemo(() => {
+    return debounce((files: Record<string, string>) => {
+      setInternalFiles(files);
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    updateInternalFiles(formFiles);
+  }, [formFiles, updateInternalFiles]);
+
+  const objectInternal = useMemo(() => {
+    return {
+      ...object,
+      files: internalFiles,
+    };
+  }, [internalFiles, object]);
 
   const currentConfig = useMemo(() => {
     return parseSandboxObjectConfig(configContents);
@@ -236,7 +269,7 @@ export default function SandboxObjectEditorPage({
                   />
                 )}
               </div>
-              <SandboxObjectEditorAdditionalMetadata object={object} />
+              <SandboxObjectEditorAdditionalMetadata object={objectInternal} />
               <div className="flex flex-col border-t pb-4">
                 <div className="px-4 py-2 flex items-center justify-between">
                   {!isViewOnly && (
@@ -366,12 +399,16 @@ function SandboxObjectEditorAdditionalMetadata({
       object as DbSandboxObject<'algorithm'>,
     );
 
-    return algorithmEvaluation.map((algorithm) => {
+    return algorithmEvaluation.chain((algorithm) => {
+      if (algorithm === undefined) {
+        return error('Algorithm evaluation failed');
+      }
+
       const instance =
         'parameters' in algorithm ? algorithm.create() : algorithm;
 
-      return instance.pseudocode;
-    });
+      return success(instance.pseudocode);
+    }) as ErrorOr<string>;
   }, [object]);
 
   if (object.type !== 'algorithm') {

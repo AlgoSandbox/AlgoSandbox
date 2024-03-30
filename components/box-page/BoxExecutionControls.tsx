@@ -1,4 +1,5 @@
-import { Button, MaterialSymbol, Popover } from '@components/ui';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
+import { Button, Input, MaterialSymbol, Popover } from '@components/ui';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import RadioButtons from '@components/ui/RadioButtons';
 import { ComponentPropsWithRef, useCallback, useState } from 'react';
@@ -75,6 +76,9 @@ export default function BoxExecutionControls() {
     isExecuting,
   } = useBoxControlsContext();
 
+  const { maxExecutionStepCount, setMaxExecutionStepCount } =
+    useUserPreferences();
+
   return (
     <div className="flex flex-1 flex-col items-center">
       <span className="lg:hidden font-mono px-2 text-sm text-label">
@@ -145,7 +149,7 @@ export default function BoxExecutionControls() {
         </div>
         <Popover
           content={
-            <div className="flex flex-col bg-surface p-4">
+            <div className="flex flex-col bg-surface p-4 gap-2">
               <Heading variant="h4">Settings</Heading>
               <HeadingContent>
                 <RadioButtons
@@ -159,6 +163,14 @@ export default function BoxExecutionControls() {
                     label: `${speed}x`,
                     value: speed.toString(),
                   }))}
+                />
+                <Input
+                  label="Max execution steps"
+                  value={maxExecutionStepCount.toString()}
+                  onChange={(e) => {
+                    setMaxExecutionStepCount(parseInt(e.target.value, 10));
+                  }}
+                  type="number"
                 />
               </HeadingContent>
             </div>

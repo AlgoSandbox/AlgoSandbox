@@ -13,7 +13,6 @@ import CustomizeViewPopover from '@components/box-page/app-bar/CustomizeViewPopo
 import CatalogSelect from '@components/box-page/CatalogSelect';
 import DrawerItem from '@components/DrawerItem';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
-import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
 import {
@@ -233,8 +232,6 @@ function BoxPageImpl() {
   const selectedThemeOption = useMemo(() => {
     return themeOptions.find((option) => option.value === theme);
   }, [theme]);
-  const { maxExecutionStepCount, setMaxExecutionStepCount } =
-    useUserPreferences();
   const {
     isBoxCustom,
     save: saveBox,
@@ -356,14 +353,6 @@ function BoxPageImpl() {
                 setTheme(option.value);
               }}
               label="Theme"
-            />
-            <Input
-              label="Max execution steps"
-              value={maxExecutionStepCount.toString()}
-              onChange={(e) => {
-                setMaxExecutionStepCount(parseInt(e.target.value, 10));
-              }}
-              type="number"
             />
           </div>
         }

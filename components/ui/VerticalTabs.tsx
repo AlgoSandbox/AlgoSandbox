@@ -1,7 +1,8 @@
+import { useBreakpoint } from '@utils/useBreakpoint';
 import clsx from 'clsx';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { MaterialSymbol, Tooltip } from '.';
+import { Button, MaterialSymbol, Tooltip } from '.';
 
 type TabProps = {
   label: string;
@@ -61,6 +62,9 @@ export function Tab({
     drag(drop(node));
   };
 
+  const { isLg } = useBreakpoint('lg');
+  const isMobile = !isLg;
+
   return (
     <div
       ref={ref}
@@ -75,50 +79,62 @@ export function Tab({
       <Tooltip content={label}>
         <button
           className={clsx(
-            'font-medium items-center p-4 flex flex-1 gap-2 overflow-x-hidden group',
+            'font-medium items-center p-4 flex flex-1 gap-2 justify-between overflow-x-hidden group',
           )}
           onClick={() => {
-            if (isSelected && closeable) {
+            if (isSelected && closeable && !isMobile) {
               onClose();
               return;
             }
             onClick();
           }}
         >
-          {icon && (
-            <div className="relative w-6 h-6">
-              <MaterialSymbol
-                icon={icon}
-                className={clsx(
-                  !isSelected && 'text-on-surface/50',
-                  isSelected && 'text-accent',
-                  isSelected &&
-                    closeable &&
-                    'group-focus-active:!hidden group-hover:!hidden block',
-                )}
-              />
-              {isSelected && closeable && (
+          <div className="flex gap-2 items-center">
+            {icon && (
+              <div className="relative w-6 h-6">
                 <MaterialSymbol
-                  icon="close"
-                  className="text-on-surface/50 !hidden group-focus-active:!block group-hover:!block"
-                />
-              )}
-              {subIcon && (
-                <MaterialSymbol
-                  icon={subIcon}
+                  icon={icon}
                   className={clsx(
-                    'bg-surface rounded-full !text-[16px] absolute end-0 bottom-0 transform translate-x-1/4 translate-y-1/4',
                     !isSelected && 'text-on-surface/50',
                     isSelected && 'text-accent',
                     isSelected &&
                       closeable &&
+                      !isMobile &&
                       'group-focus-active:!hidden group-hover:!hidden block',
                   )}
                 />
-              )}
-            </div>
+                {isSelected && closeable && !isMobile && (
+                  <MaterialSymbol
+                    icon="close"
+                    className="text-on-surface/50 !hidden group-focus-active:!block group-hover:!block"
+                  />
+                )}
+                {subIcon && (
+                  <MaterialSymbol
+                    icon={subIcon}
+                    className={clsx(
+                      'bg-surface rounded-full !text-[16px] absolute end-0 bottom-0 transform translate-x-1/4 translate-y-1/4',
+                      !isSelected && 'text-on-surface/50',
+                      isSelected && 'text-accent',
+                      isSelected &&
+                        closeable &&
+                        !isMobile &&
+                        'group-focus-active:!hidden group-hover:!hidden block',
+                    )}
+                  />
+                )}
+              </div>
+            )}
+            {showLabel && label}
+          </div>
+          {isSelected && closeable && isMobile && (
+            <Button
+              label="Close tab"
+              hideLabel
+              onClick={onClose}
+              icon={<MaterialSymbol icon="close" />}
+            />
           )}
-          {showLabel && label}
         </button>
       </Tooltip>
     </div>

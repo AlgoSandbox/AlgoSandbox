@@ -12,7 +12,7 @@ import { useUserPreferences } from '@components/preferences/UserPreferencesProvi
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
-import CodeBlock from '@components/ui/Codeblock';
+import CodeBlock from '@components/ui/CodeBlock';
 import Dialog from '@components/ui/Dialog';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';

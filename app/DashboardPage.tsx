@@ -1,7 +1,7 @@
 import { ComponentTag } from '@algo-sandbox/core';
 import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
-import { Badge, Button, Chip, MaterialSymbol } from '@components/ui';
+import { Badge, Button, Chip, Input, MaterialSymbol } from '@components/ui';
 import Checkbox from '@components/ui/Checkbox';
 import { Drawer, DrawerContent, DrawerTrigger } from '@components/ui/Drawer';
 import Heading, { HeadingContent } from '@components/ui/Heading';
@@ -157,6 +157,8 @@ export default function DashboardPage() {
   const { data: visualizers } = useSavedVisualizersQuery();
   const { boxOptions } = useSandboxComponents();
 
+  const [boxQuery, setBoxQuery] = useState('');
+
   const boxOptionsWithTags = useMemo(
     () =>
       boxOptions.map((option) => ({
@@ -179,14 +181,32 @@ export default function DashboardPage() {
   const [selectedTags, setSelectedTags] = useState<Array<ComponentTag>>([]);
 
   const filteredBoxOptions = useMemo(() => {
+    const query = boxQuery.toLowerCase();
+
+    // query token can be either in tag or in label
+    const boxOptionsMatchingQuery = (() => {
+      if (query === '') {
+        return boxOptionsWithTags;
+      }
+
+      return boxOptionsWithTags.filter((option) => {
+        const queryTokens = query.split(' ');
+        return queryTokens.every((token) => {
+          const label = option.label.toLowerCase();
+          const tags = option.tags.join(' ').toLowerCase();
+          return label.includes(token) || tags.includes(token);
+        });
+      });
+    })();
+
     if (selectedTags.length === 0) {
-      return boxOptionsWithTags;
+      return boxOptionsMatchingQuery;
     }
 
-    return boxOptionsWithTags.filter((option) =>
+    return boxOptionsMatchingQuery.filter((option) =>
       selectedTags.every((tag) => option.tags.includes(tag)),
     );
-  }, [boxOptionsWithTags, selectedTags]);
+  }, [boxOptionsWithTags, boxQuery, selectedTags]);
 
   const [showBoxFilterDialog, setShowBoxFilterDialog] = useState(false);
 
@@ -256,6 +276,14 @@ export default function DashboardPage() {
                 </DrawerContent>
               </Drawer>
             </div>
+            <Input
+              label="Search boxes"
+              hideLabel
+              placeholder="Search boxes..."
+              type="search"
+              value={boxQuery}
+              onChange={(e) => setBoxQuery(e.target.value)}
+            />
             <div className="hidden md:flex flex-wrap gap-2">
               {allTags.map((tag) => (
                 <Chip

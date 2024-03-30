@@ -4,6 +4,7 @@ import { ErrorEntry } from '@app/errors';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import CatalogSelect from '@components/box-page/CatalogSelect';
 import ErrorDisplay from '@components/common/ErrorDisplay';
+import StyledObjectInspector from '@components/common/StyledObjectInspector';
 import FlowchartAlgorithmSelect from '@components/flowchart/FlowchartAlgorithmSelect';
 import FlowchartProblemSelect from '@components/flowchart/FlowchartProblemSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
@@ -11,6 +12,9 @@ import { useUserPreferences } from '@components/preferences/UserPreferencesProvi
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Tooltip } from '@components/ui';
+import CodeBlock from '@components/ui/Codeblock';
+import Dialog from '@components/ui/Dialog';
+import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import getZodTypeName from '@utils/zod/getZodTypeName';
@@ -54,7 +58,8 @@ type FlowNodeData = {
     id: string;
     label: string;
     subLabel?: string;
-    subLabelTooltip?: string;
+    valueType?: string;
+    value?: unknown;
     hasValue: boolean;
     error: ZodError | null;
   }>;
@@ -62,7 +67,8 @@ type FlowNodeData = {
     id: string;
     label: string;
     subLabel?: string;
-    subLabelTooltip?: string;
+    valueType?: string;
+    value?: unknown;
     hasValue: boolean;
   }>;
   alias: string;
@@ -79,6 +85,188 @@ type FlowNode = Node<FlowNodeProps['data']>;
 
 function getNodeHeight({ slotCount }: { slotCount: number }) {
   return 160 + slotCount * 32;
+}
+
+type FlowNodeSlotSide = 'start' | 'end';
+
+function FlowNodeSlot({
+  id,
+  error,
+  label,
+  subLabel,
+  value,
+  valueType,
+  hasValue,
+  isUsingInputMainSlot,
+  isConnected,
+  side,
+}: {
+  id: string;
+  label: string;
+  subLabel?: string;
+  value?: unknown;
+  valueType?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: ZodError<any> | null;
+  hasValue: boolean;
+  isUsingInputMainSlot: boolean;
+  isConnected: boolean;
+  side: FlowNodeSlotSide;
+}) {
+  const { flowchartMode } = useUserPreferences();
+  const isMainSlot = id === '.';
+  const hasError = error !== null;
+  const shouldHighlight = hasValue && (isMainSlot || !isUsingInputMainSlot);
+  const isShadowedByMainSlot =
+    !isMainSlot && isConnected && isUsingInputMainSlot;
+
+  const [showSlotDialog, setShowSlotDialog] = useState(false);
+
+  return (
+    <div
+      key={`input-${id}`}
+      className={clsx(
+        'flex items-center',
+        isMainSlot ? 'gap-1' : 'gap-3',
+        side === 'end' && 'flex-row-reverse',
+      )}
+    >
+      <Handle
+        className={clsx(
+          [
+            side === 'start' && [
+              isMainSlot ? '!w-6 !h-6 -ms-3' : '!w-4 !h-4 -ms-2',
+            ],
+            side === 'end' && [
+              isMainSlot ? '!w-6 !h-6 -me-3' : '!w-4 !h-4 -me-2',
+            ],
+          ],
+          hasError && '!bg-danger',
+          !hasError && [
+            isConnected && [
+              shouldHighlight ? '!bg-accent' : '!bg-surface-high',
+            ],
+            !isConnected && '!bg-surface',
+          ],
+        )}
+        type={side === 'start' ? 'target' : 'source'}
+        position={side === 'start' ? Position.Left : Position.Right}
+        id={id}
+        isConnectable={!isConnected && flowchartMode === 'full'}
+      />
+      <div
+        className={clsx(
+          'flex flex-col',
+          side === 'start' ? 'items-start' : 'items-end',
+          'font-mono',
+          hasError && 'text-danger',
+          !hasError && [shouldHighlight ? 'text-on-surface' : 'text-muted'],
+        )}
+      >
+        <span>{label}</span>
+        {!isMainSlot && subLabel && (
+          <>
+            <button
+              className="hover:bg-surface-high rounded text-sm flex px-1 gap-1 items-center border text-label"
+              type="button"
+              onClick={() => setShowSlotDialog(true)}
+            >
+              {subLabel}
+              <MaterialSymbol icon="info" className="text-label !text-[16px]" />
+            </button>
+            <Dialog
+              title={`Slot info: ${label}`}
+              size="full"
+              content={
+                <div className="flex flex-col h-full gap-y-2">
+                  <Heading variant="h4">Type</Heading>
+                  <HeadingContent>
+                    <CodeBlock code={valueType ?? ''} language="ts" />
+                  </HeadingContent>
+                  <Heading variant="h4">Current value</Heading>
+                  <HeadingContent>
+                    <div className="bg-surface">
+                      <StyledObjectInspector data={value} />
+                    </div>
+                  </HeadingContent>
+                </div>
+              }
+              open={showSlotDialog}
+              onOpenChange={setShowSlotDialog}
+            />
+          </>
+        )}
+      </div>
+      {hasError && (
+        <Tooltip
+          content={
+            <div>
+              <span className="text-lg">Errors:</span>
+              <ul className="list-disc list-inside">
+                {error
+                  .flatten((issue) => ({
+                    message: issue.message,
+                    path: issue.path,
+                  }))
+                  .formErrors.map(({ path, message }) => (
+                    <li key={path.join('.')}>{message}</li>
+                  ))}
+                {Object.entries(
+                  error.flatten((issue) => ({
+                    message: issue.message,
+                    path: issue.path,
+                  })).fieldErrors,
+                ).map(([field, fieldErrors]) => (
+                  <li key={field}>
+                    <span className="font-mono">{field}:</span>
+                    <ul className="list-disc list-inside ps-4">
+                      {fieldErrors?.map(({ path, message }) => (
+                        <li key={path.join('.')}>{message}</li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          }
+        >
+          <MaterialSymbol icon="error" className="text-danger" />
+        </Tooltip>
+      )}
+      {isShadowedByMainSlot && (
+        <Tooltip
+          content={
+            <ul>
+              <li>This input is shadowed by the main input slot</li>
+            </ul>
+          }
+        >
+          <MaterialSymbol icon="info" className="text-label" />
+        </Tooltip>
+      )}
+      {isMainSlot && flowchartMode === 'full' && (
+        <Tooltip
+          content={
+            <ul>
+              <li>
+                This slot represents the entire input.
+                <br />
+                Use this to conveniently fulfill the entire input with another
+                node&apos;s output.
+              </li>
+              <br />
+              <li>
+                Slot value type:
+                <pre>{valueType}</pre>
+              </li>
+            </ul>
+          }
+        >
+          <MaterialSymbol icon="info" className="text-label" />
+        </Tooltip>
+      )}
+    </div>
+  );
 }
 
 const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
@@ -125,141 +313,36 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       error,
       label,
       subLabel,
-      subLabelTooltip,
       hasValue,
+      value,
+      valueType,
     }: {
       id: string;
       label: string;
       subLabel?: string;
-      subLabelTooltip?: string;
+      valueType?: string;
+      value?: unknown;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       error: ZodError<any> | null;
       hasValue: boolean;
     }) {
-      const isMainSlot = id === '.';
       const isConnected = connectedEdges.some(
         (edge) => edge.target === nodeId && edge.targetHandle === id,
       );
-      const hasError = error !== null;
-      const shouldHighlight = hasValue && (isMainSlot || !isUsingInputMainSlot);
-      const isShadowedByMainSlot =
-        !isMainSlot && isConnected && isUsingInputMainSlot;
 
       return (
-        <div
-          key={`input-${id}`}
-          className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
-        >
-          <Handle
-            className={clsx(
-              isMainSlot ? '!w-6 !h-6 -ms-3' : '!w-4 !h-4 -ms-2',
-              hasError && '!bg-danger',
-              !hasError && [
-                isConnected && [
-                  shouldHighlight ? '!bg-accent' : '!bg-surface-high',
-                ],
-                !isConnected && '!bg-surface',
-              ],
-            )}
-            type="target"
-            position={Position.Left}
-            id={id}
-            isConnectable={!isConnected && flowchartMode === 'full'}
-          />
-          <div
-            className={clsx(
-              'flex flex-col',
-              'font-mono',
-              hasError && 'text-danger',
-              !hasError && [shouldHighlight ? 'text-on-surface' : 'text-muted'],
-            )}
-          >
-            <span>{label}</span>
-            {!isMainSlot && (
-              <div className="flex gap-1 items-center">
-                {subLabel && (
-                  <span className="text-xs text-label">{subLabel}</span>
-                )}
-                {subLabelTooltip && (
-                  <Tooltip content={<pre>{subLabelTooltip}</pre>}>
-                    <MaterialSymbol
-                      icon="info"
-                      className="text-label !text-[16px]"
-                    />
-                  </Tooltip>
-                )}
-              </div>
-            )}
-          </div>
-          {hasError && (
-            <Tooltip
-              content={
-                <div>
-                  <span className="text-lg">Errors:</span>
-                  <ul className="list-disc list-inside">
-                    {error
-                      .flatten((issue) => ({
-                        message: issue.message,
-                        path: issue.path,
-                      }))
-                      .formErrors.map(({ path, message }) => (
-                        <li key={path.join('.')}>{message}</li>
-                      ))}
-                    {Object.entries(
-                      error.flatten((issue) => ({
-                        message: issue.message,
-                        path: issue.path,
-                      })).fieldErrors,
-                    ).map(([field, fieldErrors]) => (
-                      <li key={field}>
-                        <span className="font-mono">{field}:</span>
-                        <ul className="list-disc list-inside ps-4">
-                          {fieldErrors?.map(({ path, message }) => (
-                            <li key={path.join('.')}>{message}</li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              }
-            >
-              <MaterialSymbol icon="error" className="text-danger" />
-            </Tooltip>
-          )}
-          {isShadowedByMainSlot && (
-            <Tooltip
-              content={
-                <ul>
-                  <li>This input is shadowed by the main input slot</li>
-                </ul>
-              }
-            >
-              <MaterialSymbol icon="info" className="text-label" />
-            </Tooltip>
-          )}
-          {isMainSlot && flowchartMode === 'full' && (
-            <Tooltip
-              content={
-                <ul>
-                  <li>
-                    This slot represents the entire input.
-                    <br />
-                    Use this to conveniently fulfill the entire input with
-                    another node&apos;s output.
-                  </li>
-                  <br />
-                  <li>
-                    Slot value type:
-                    <pre>{subLabelTooltip}</pre>
-                  </li>
-                </ul>
-              }
-            >
-              <MaterialSymbol icon="info" className="text-label" />
-            </Tooltip>
-          )}
-        </div>
+        <FlowNodeSlot
+          id={id}
+          label={label}
+          subLabel={subLabel}
+          value={value}
+          valueType={valueType}
+          error={error}
+          hasValue={hasValue}
+          isUsingInputMainSlot={isUsingInputMainSlot}
+          isConnected={isConnected}
+          side="start"
+        />
       );
     }
 
@@ -267,81 +350,34 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
       id,
       label,
       subLabel,
-      subLabelTooltip,
       hasValue,
+      value,
+      valueType,
     }: {
       id: string;
       label: string;
       subLabel?: string;
-      subLabelTooltip?: string;
       hasValue: boolean;
+      value?: unknown;
+      valueType?: string;
     }) {
-      const isMainSlot = id === '.';
       const isConnected = connectedEdges.some(
         (edge) => edge.source === nodeId && edge.sourceHandle === id,
       );
 
       return (
-        <div
-          key={`output-${id}`}
-          className={clsx('flex items-center', isMainSlot ? 'gap-1' : 'gap-3')}
-        >
-          {isMainSlot && flowchartMode === 'full' && (
-            <Tooltip
-              content={
-                <ul>
-                  <li>
-                    This slot represents the entire output.
-                    <br />
-                    Use this to conveniently pass the entire output to another
-                    node.
-                  </li>
-                  <br />
-                  <li>
-                    Slot value type:
-                    <pre>{subLabelTooltip}</pre>
-                  </li>
-                </ul>
-              }
-            >
-              <MaterialSymbol icon="info" className="text-label" />
-            </Tooltip>
-          )}
-          <div
-            className={clsx(
-              'font-mono',
-              'flex flex-col items-end',
-              hasValue ? 'text-on-surface' : 'text-muted',
-            )}
-          >
-            <span>{label}</span>
-            {!isMainSlot && (
-              <div className="flex gap-1 flex-row-reverse items-center">
-                {subLabel && (
-                  <span className="text-xs text-label">{subLabel}</span>
-                )}
-                {subLabelTooltip && (
-                  <Tooltip content={<pre>{subLabelTooltip}</pre>}>
-                    <MaterialSymbol
-                      icon="info"
-                      className="text-label !text-[16px]"
-                    />
-                  </Tooltip>
-                )}
-              </div>
-            )}
-          </div>
-          <Handle
-            className={clsx(
-              isMainSlot ? '!w-6 !h-6 -me-3' : '!w-4 !h-4 -me-2',
-              isConnected && [hasValue ? '!bg-accent' : '!bg-surface-high'],
-              !isConnected && '!bg-surface',
-            )}
-            type="source"
-            position={Position.Right}
-            id={id}
-          />
-        </div>
+        <FlowNodeSlot
+          id={id}
+          label={label}
+          subLabel={subLabel}
+          value={value}
+          valueType={valueType}
+          error={null}
+          hasValue={hasValue}
+          isUsingInputMainSlot={false}
+          isConnected={isConnected}
+          side="end"
+        />
       );
     }
 
@@ -493,7 +529,8 @@ function makeSlot({
     return getZodTypeName(shape.shape[param]);
   })();
 
-  const subLabelTooltip = (() => {
+  // stirngifed zdotype
+  const valueType = (() => {
     if (shape === undefined) {
       return undefined;
     }
@@ -503,6 +540,14 @@ function makeSlot({
     }
 
     return stringifyZodType(shape.shape[param]);
+  })();
+
+  const value = (() => {
+    if (param === '.') {
+      return values;
+    }
+
+    return values?.[param];
   })();
 
   const hasValue = (() => {
@@ -517,7 +562,8 @@ function makeSlot({
     id: param,
     label,
     subLabel,
-    subLabelTooltip,
+    value,
+    valueType,
     hasValue,
     error: errors?.[param] ?? null,
   };

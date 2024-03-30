@@ -8,10 +8,12 @@ import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
+import { useBreakpoint } from '@utils/useBreakpoint';
 import usePreviewVisualization from '@utils/usePreviewVisualization';
+import clsx from 'clsx';
 import _ from 'lodash';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 
 type SavedObjectsSectionProps = {
   title: string;
@@ -46,6 +48,36 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
     </div>
   );
 }
+function useInMiddleOfScreen(
+  ref: RefObject<HTMLElement>,
+  options?: { enabled?: boolean },
+) {
+  const { enabled = true } = options ?? {};
+  const [isIntersecting, setIntersecting] = useState(false);
+
+  const observer = useMemo(
+    () =>
+      new IntersectionObserver(
+        ([entry]) => setIntersecting(entry.isIntersecting),
+        {
+          root: null,
+          rootMargin: '-100px 0px -45% 0px',
+          threshold: 0.5,
+        },
+      ),
+    [],
+  );
+
+  useEffect(() => {
+    if (!ref.current || !enabled) {
+      return;
+    }
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [enabled, observer, ref]);
+
+  return isIntersecting;
+}
 
 function BoxOption({
   box,
@@ -57,18 +89,37 @@ function BoxOption({
   tags: Array<ComponentTag>;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const ref = useRef<HTMLAnchorElement>(null);
+
+  const { isMd } = useBreakpoint('md');
+  const isMobile = !isMd;
+
+  const inMiddleOfScreen = useInMiddleOfScreen(ref, { enabled: isMobile });
+
   const visualization = usePreviewVisualization(box, {
-    playAnimation: hovered,
+    playAnimation: hovered || focused || (isMobile && inMiddleOfScreen),
   });
 
   return (
     <a
+      ref={ref}
       key={box.key}
       onMouseEnter={() => setHovered(true)}
-      onFocus={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onBlur={() => setHovered(false)}
-      className="group bg-surface-high border hover:text-accent focus:text-accent hover:border-accent focus:border-accent hover:bg-surface-higher overflow-clip flex flex-col transition rounded font-semibold text-on-surface"
+      onFocus={() => {
+        setFocused(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+      }}
+      onTouchStart={() => {
+        ref.current?.focus({ preventScroll: true });
+      }}
+      className={clsx(
+        'group bg-surface-high border hover:text-accent focus:text-accent hover:border-accent focus:border-accent hover:bg-surface-higher overflow-clip flex flex-col transition rounded font-semibold text-on-surface',
+        isMobile && inMiddleOfScreen && 'border-primary',
+      )}
       href={`/playground?box=${box.key}`}
     >
       <div className="p-4 flex flex-1 flex-col gap-2">

@@ -11,7 +11,7 @@ import { useSandboxComponents } from '@components/playground/SandboxComponentsPr
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
-import { Button, MaterialSymbol, Tooltip } from '@components/ui';
+import { Button, Input, MaterialSymbol, Tooltip } from '@components/ui';
 import CodeBlock from '@components/ui/CodeBlock';
 import Dialog from '@components/ui/Dialog';
 import Heading, { HeadingContent } from '@components/ui/Heading';
@@ -76,6 +76,8 @@ type FlowNodeData = {
   type: 'algorithm' | 'problem' | 'visualizer' | 'adapter';
   deletable: boolean;
   onDelete: () => void;
+  name: string;
+  onNameChange: (name: string) => void;
   evaluationError: Array<ErrorEntry> | null;
 };
 
@@ -277,6 +279,8 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
         outputs = [],
         type,
         alias,
+        name,
+        onNameChange,
         onDelete,
         deletable,
         evaluationError,
@@ -303,6 +307,12 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
 
       return getConnectedEdges([node], edges);
     }, [edges, nodeId, nodeInternals]);
+
+    const [internalName, setInternalName] = useState(name);
+
+    useEffect(() => {
+      setInternalName(name);
+    }, [name]);
 
     const isUsingInputMainSlot = connectedEdges.some(
       (edge) => edge.target === nodeId && edge.targetHandle === '.',
@@ -433,6 +443,26 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           </div>
           {evaluationError !== null && (
             <ErrorDisplay errors={evaluationError} />
+          )}
+          {alias !== 'algorithm' && alias !== 'problem' && (
+            <div className="px-2 mt-2 flex items-end gap-2">
+              <Input
+                label="Display name"
+                containerClassName="flex-1"
+                value={internalName}
+                onChange={(e) => {
+                  setInternalName(e.target.value);
+                }}
+              />
+              <Button
+                onClick={() => onNameChange(internalName)}
+                disabled={internalName === name}
+                variant="filled"
+                label="Save"
+                hideLabel
+                icon={<MaterialSymbol icon="save" />}
+              />
+            </div>
           )}
           <div className="flex justify-between items-center text-lg font-semibold py-2">
             {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
@@ -588,6 +618,8 @@ export default function AlgorithmVisualizerFlowchart({
 
   const setConfig = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
+  const componentNames = useBoxContext('componentNames');
+  const setComponentNames = useBoxContext('setComponentNames');
 
   const visualizers = useBoxContext('visualizers');
   const visualizerInstances = useBoxContext('visualizers.instances');
@@ -657,8 +689,7 @@ export default function AlgorithmVisualizerFlowchart({
     () =>
       Object.entries(configEvaluated.adapterInstances ?? {}).map(
         ([alias, evaluation]) => {
-          const { value: adapter, name } =
-            evaluation.mapLeft(() => null).value ?? {};
+          const { value: adapter } = evaluation.mapLeft(() => null).value ?? {};
           const evaluationError = evaluation.mapRight(() => null).value;
           const inputSlots = Object.keys(adapter?.accepts.shape.shape ?? {});
           const outputSlots = Object.keys(adapter?.outputs.shape.shape ?? {});
@@ -675,8 +706,15 @@ export default function AlgorithmVisualizerFlowchart({
             data: {
               alias,
               type: 'adapter',
-              label: name ?? alias,
+              label: alias,
               deletable: flowchartMode === 'full',
+              name: componentNames[alias] ?? '',
+              onNameChange: (name: string) => {
+                setComponentNames({
+                  ...componentNames,
+                  [alias]: name,
+                });
+              },
               onDelete: () => {
                 onNodeDelete('adapter', alias);
               },
@@ -702,12 +740,14 @@ export default function AlgorithmVisualizerFlowchart({
         },
       ),
     [
+      componentNames,
       configEvaluated.adapterInstances,
       flowchartMode,
       inputErrors,
       inputs,
       onNodeDelete,
       outputs,
+      setComponentNames,
     ],
   );
 
@@ -732,6 +772,13 @@ export default function AlgorithmVisualizerFlowchart({
             type: 'visualizer',
             alias,
             label: name ?? alias,
+            name: componentNames[alias] ?? '',
+            onNameChange: (name: string) => {
+              setComponentNames({
+                ...componentNames,
+                [alias]: name,
+              });
+            },
             onDelete: () => {
               onNodeDelete('visualizer', alias);
             },
@@ -749,7 +796,15 @@ export default function AlgorithmVisualizerFlowchart({
         } satisfies Omit<FlowNode, 'position'>;
       }),
     );
-  }, [flowchartMode, inputErrors, inputs, onNodeDelete, visualizerInstances]);
+  }, [
+    componentNames,
+    flowchartMode,
+    inputErrors,
+    inputs,
+    onNodeDelete,
+    setComponentNames,
+    visualizerInstances,
+  ]);
 
   const initialNodes = useMemo(() => {
     const problemOutputSlots = Object.keys(problemOutputs);
@@ -775,6 +830,13 @@ export default function AlgorithmVisualizerFlowchart({
           type: 'algorithm',
           alias: 'algorithm',
           label: algorithmName,
+          name: componentNames['algorithm'] ?? '',
+          onNameChange: (name: string) => {
+            setComponentNames({
+              ...componentNames,
+              algorithm: name,
+            });
+          },
           onDelete: () => {},
           deletable: false,
           evaluationError: algorithm.mapRight(() => null).value,
@@ -808,6 +870,13 @@ export default function AlgorithmVisualizerFlowchart({
           type: 'problem',
           alias: 'problem',
           label: problemName,
+          name: componentNames['problem'] ?? '',
+          onNameChange: (name: string) => {
+            setComponentNames({
+              ...componentNames,
+              problem: name,
+            });
+          },
           onDelete: () => {},
           deletable: false,
           evaluationError: problem.mapRight(() => null).value,
@@ -829,6 +898,7 @@ export default function AlgorithmVisualizerFlowchart({
     algorithmInputs,
     algorithmName,
     algorithmOutputs,
+    componentNames,
     initialAdapterNodes,
     initialVisualizerNodes,
     inputErrors,
@@ -837,6 +907,7 @@ export default function AlgorithmVisualizerFlowchart({
     problem,
     problemName,
     problemOutputs,
+    setComponentNames,
   ]);
 
   const initialEdges = useMemo(() => {

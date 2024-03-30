@@ -26,11 +26,9 @@ export default function FlowchartAdapterSelect({
   }, [adapterOptions]);
   const setConfig = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
-  const {
-    default: defaultAll,
-    setValue: setParameters,
-    value: parametersAll,
-  } = useBoxContext('config.evaluated.parameters');
+  const { default: defaultAll, value: parametersAll } = useBoxContext(
+    'config.evaluated.parameters',
+  );
   const evaluatedAdapters = useBoxContext('config.evaluated.adapters');
 
   const defaultParameters = useMemo(
@@ -109,9 +107,6 @@ export default function FlowchartAdapterSelect({
       options={filteredOptions}
       evaluatedValue={adapterEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={(params) => {
-        setParameters(alias, params);
-      }}
       parameters={parameters}
     />
   );

@@ -22,11 +22,9 @@ export default function FlowchartAlgorithmSelect({
     options,
   } = useBoxContext('algorithm.select');
   const algorithmEvaluation = useBoxContext('algorithm.value');
-  const {
-    default: defaultParameters,
-    setValue: setParameters,
-    value: parameters = {},
-  } = useBoxContext('algorithm.parameters');
+  const { default: defaultParameters, value: parameters = {} } = useBoxContext(
+    'algorithm.parameters',
+  );
 
   const filter = useCallback(
     (instance: Instance<'algorithm'>, otherInstance: Instance<'algorithm'>) => {
@@ -62,7 +60,6 @@ export default function FlowchartAlgorithmSelect({
       options={filteredOptions}
       evaluatedValue={algorithmEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={setParameters}
       parameters={parameters}
     />
   );

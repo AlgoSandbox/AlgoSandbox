@@ -79,10 +79,6 @@ export default function useBoxContextConfig({
   value: BoxConfig;
   onChange: (value: BoxConfig) => void;
 }) {
-  // const [parameters, setParameters] = useState<
-  //   Record<string, ParsedParameters<SandboxParameters> | null>
-  // >({});
-
   const parameters = useMemo(() => {
     return mapValues(value.adapters ?? {}, (keyWithParameters) => {
       const { parameters } = parseKeyWithParameters(keyWithParameters);

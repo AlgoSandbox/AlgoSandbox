@@ -22,11 +22,8 @@ export default function FlowchartProblemSelect({
     options,
   } = useBoxContext('problem.select');
   const problemEvaluation = useBoxContext('problem.value');
-  const {
-    default: defaultParameters,
-    setValue: setParameters,
-    value: parameters = {},
-  } = useBoxContext('problem.parameters');
+  const { default: defaultParameters, value: parameters = {} } =
+    useBoxContext('problem.parameters');
 
   const filter = useCallback(
     (instance: Instance<'problem'>, otherInstance: Instance<'problem'>) => {
@@ -57,7 +54,6 @@ export default function FlowchartProblemSelect({
       options={filteredOptions}
       evaluatedValue={problemEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={setParameters}
       parameters={parameters}
     />
   );

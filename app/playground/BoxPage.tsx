@@ -62,8 +62,21 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [box]);
 
+  const workerBox = useMemo(() => {
+    if (box?.problem === undefined) {
+      return null;
+    }
+
+    return {
+      problem: box?.problem,
+      algorithm: box?.algorithm,
+      visualizers: box?.visualizers,
+      config: box?.config,
+    };
+  }, [box?.problem, box?.algorithm, box?.visualizers, box?.config]);
+
   const { scene, execute, isExecuting } = useWorkerExecutedScene({
-    box,
+    box: workerBox,
   });
 
   const isFullyExecuted = useMemo(

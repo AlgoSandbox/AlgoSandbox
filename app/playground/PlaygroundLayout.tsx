@@ -11,7 +11,7 @@ import {
 } from '@utils/db/boxes';
 import evalSavedObject from '@utils/eval/evalSavedObject';
 import stringifyComponentConfigToTs from '@utils/stringifyComponentConfigToTs';
-import { isEqual } from 'lodash';
+import { isEqual, mergeWith } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -112,6 +112,36 @@ function LayoutImpl({
     [handleSave, handleSaveAsNew],
   );
 
+  const onBoxUpdate = useCallback(
+    (update: (box: SandboxBoxNamed) => SandboxBoxNamed) => {
+      onBoxChange(({ boxKey, box }) => {
+        if (box === null) {
+          return { boxKey, box };
+        }
+        const newBox = update(box);
+        return {
+          boxKey,
+          box: newBox,
+        };
+      });
+    },
+    [onBoxChange],
+  );
+
+  const onBoxDelete = useCallback(async () => {
+    if (boxKey === null) {
+      return;
+    }
+
+    await deleteSavedBox({
+      key: boxKey,
+      type: 'box',
+      files: {},
+      name: '',
+      editable: false,
+    });
+  }, [boxKey, deleteSavedBox]);
+
   return (
     <TabManagerProvider
       defaultSelectedTabId="box"
@@ -134,33 +164,10 @@ function LayoutImpl({
         box={box}
         isBoxCustom={isBoxCustom}
         isBoxDirty={isBoxDirty}
-        onBoxUpdate={(update) => {
-          onBoxChange(({ boxKey, box }) => {
-            if (box === null) {
-              return { boxKey, box };
-            }
-            const newBox = update(box);
-            return {
-              boxKey,
-              box: newBox,
-            };
-          });
-        }}
+        onBoxUpdate={onBoxUpdate}
         onBoxReset={onBoxReset}
         onBoxSave={handleBoxSave}
-        onBoxDelete={async () => {
-          if (boxKey === null) {
-            return;
-          }
-
-          await deleteSavedBox({
-            key: boxKey,
-            type: 'box',
-            files: {},
-            name: '',
-            editable: false,
-          });
-        }}
+        onBoxDelete={onBoxDelete}
       >
         {children}
       </BoxContextProvider>
@@ -232,24 +239,49 @@ export default function PlaygroundLayout({
         params.get('config') !== null
           ? parseFromJson(params.get('config')) ?? undefined
           : originalBox.config,
+      componentNames:
+        params.get('componentNames') !== null
+          ? parseFromJson(params.get('componentNames')) ?? undefined
+          : originalBox.componentNames,
     };
   }, [originalBox, params, savedBox?.label]);
 
-  console.info('boxObject', JSON.stringify(boxFromUrlCustomized));
+  // console.info('boxObject', JSON.stringify(boxFromUrlCustomized));
 
   const [boxState, setBoxState] = useState<BoxState>({
     boxKey,
     box: boxFromUrlCustomized,
   });
 
+  // Load box from url
   useEffect(() => {
+    const newBox = (() => {
+      const oldBox = boxState.box;
+      if (oldBox === null) {
+        return boxFromUrlCustomized;
+      }
+
+      // Use lodash mergeWith to merge the two boxes
+      // If a key's value is equal to the new one in value, then don't replace it with the new one
+      // e.g. problem: oldBox.problem or boxFromUrlCustomized.problem.
+      // If isEqual(oldBox.problem, boxFromUrlCustomized.problem) is true, then problem: oldBox.problem
+      // else problem: boxFromUrlCustomized.problem
+      return mergeWith(oldBox, boxFromUrlCustomized, (objValue, srcValue) => {
+        if (isEqual(objValue, srcValue)) {
+          return objValue;
+        }
+
+        return srcValue;
+      });
+    })();
+
     setBoxState(() => ({
       boxKey,
-      box: boxFromUrlCustomized,
+      box: newBox,
     }));
-  }, [boxFromUrlCustomized, boxKey]);
+  }, [boxFromUrlCustomized, boxKey, boxState.box]);
 
-  const onBoxChange = useCallback(
+  const updateBoxUrl = useCallback(
     (boxKey: string | null, box: SandboxBox | null) => {
       if (box === null || originalBox === null || boxKey === null) {
         router.replace('/playground');
@@ -274,22 +306,24 @@ export default function PlaygroundLayout({
           box.config ? JSON.stringify(box.config) : 'null',
         );
       }
+      if (!isEqual(box.componentNames, originalBox.componentNames)) {
+        searchParams.set(
+          'componentNames',
+          box.componentNames ? JSON.stringify(box.componentNames) : 'null',
+        );
+      }
 
       router.replace(`/playground?${searchParams.toString()}`);
     },
     [originalBox, router],
   );
 
-  useEffect(() => {
-    onBoxChange(boxState.boxKey, boxState.box);
-  }, [boxState, onBoxChange]);
-
   const onBoxReset = useCallback(() => {
     if (boxKey === null) {
       return;
     }
-    onBoxChange(boxKey, originalBox);
-  }, [boxKey, onBoxChange, originalBox]);
+    updateBoxUrl(boxKey, originalBox);
+  }, [boxKey, originalBox, updateBoxUrl]);
 
   const isBoxDirty = useMemo(() => {
     if (params.get('problem') !== null) {
@@ -304,13 +338,26 @@ export default function PlaygroundLayout({
     if (params.get('config') !== null) {
       return true;
     }
+    if (params.get('componentNames') !== null) {
+      return true;
+    }
 
     return false;
   }, [params]);
 
+  const onUiBoxChange = useCallback(
+    (update: (oldBox: BoxState) => BoxState) => {
+      setBoxState(update);
+      const { box: newBox, boxKey: newBoxKey } = update(boxState);
+
+      updateBoxUrl(newBoxKey, newBox);
+    },
+    [boxState, updateBoxUrl],
+  );
+
   return (
     <LayoutImpl
-      onBoxChange={setBoxState}
+      onBoxChange={onUiBoxChange}
       onBoxReset={onBoxReset}
       box={boxState.box}
       boxKey={boxState.boxKey}

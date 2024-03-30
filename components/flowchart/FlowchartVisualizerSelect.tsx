@@ -43,12 +43,20 @@ export default function FlowchartVisualizerSelect({
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
     savedObjects: useSavedVisualizersQuery().data,
     key: visualizerKey,
-    onKeyChange: (key) => {
+    onChange: (key, parameters) => {
       if (key === null) {
         return;
       }
 
-      setAlias(alias, key);
+      setAlias(
+        alias,
+        parameters
+          ? {
+              key: visualizerKey,
+              parameters,
+            }
+          : visualizerKey,
+      );
       setConfig({
         adapters: configTree.adapters,
         composition: {
@@ -60,17 +68,6 @@ export default function FlowchartVisualizerSelect({
       });
     },
     parameters: parameters ?? null,
-    onParametersChange: (parameters) => {
-      setAlias(
-        alias,
-        parameters
-          ? {
-              key: visualizerKey,
-              parameters,
-            }
-          : visualizerKey,
-      );
-    },
   });
 
   const {
@@ -120,17 +117,6 @@ export default function FlowchartVisualizerSelect({
       options={filteredOptions}
       evaluatedValue={visualizerEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={(params) => {
-        setAlias(
-          alias,
-          params
-            ? {
-                key: visualizerKey,
-                parameters: params,
-              }
-            : visualizerKey,
-        );
-      }}
       parameters={parameters ?? null}
     />
   );

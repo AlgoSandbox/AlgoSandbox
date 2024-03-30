@@ -36,8 +36,11 @@ export default function BoxExecutionPage() {
   const { currentStepIndex, isExecuting } = useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
-  const { hiddenVisualizerAliases, setHiddenVisualizerAliases } =
-    useBoxContext();
+  const {
+    hiddenVisualizerAliases,
+    setHiddenVisualizerAliases,
+    componentNames,
+  } = useBoxContext();
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
   const pseudocode = algorithmInstance.unwrapOr(null)?.pseudocode ?? '';
@@ -220,6 +223,11 @@ export default function BoxExecutionPage() {
 
   const windowTitles = useMemo(() => {
     const getVisualizerName = (alias: string) => {
+      const componentName = componentNames[alias];
+      if (componentName !== undefined) {
+        return componentName;
+      }
+
       const visualizer = visualizerInstances[alias];
 
       return (
@@ -235,7 +243,7 @@ export default function BoxExecutionPage() {
         visualizerOrder.map((alias) => [alias, getVisualizerName(alias)]),
       ),
     } as Record<string, string>;
-  }, [visualizerOrder, visualizerInstances]);
+  }, [visualizerOrder, componentNames, visualizerInstances]);
 
   const tileMobileOptions = useMemo(() => {
     return visualizerOrder.map(

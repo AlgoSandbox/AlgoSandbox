@@ -51,6 +51,10 @@ type BoxContextType = {
   box: SandboxBoxNamed | null;
   hiddenVisualizerAliases: Set<string>;
   setHiddenVisualizerAliases: (aliases: Set<string>) => void;
+  componentNames: Record<string, string | undefined>;
+  setComponentNames: (
+    componentNames: Record<string, string | undefined>,
+  ) => void;
 };
 
 const BoxContext = createContext<BoxContextType>({
@@ -80,6 +84,8 @@ const BoxContext = createContext<BoxContextType>({
   },
   hiddenVisualizerAliases: new Set(),
   setHiddenVisualizerAliases: () => {},
+  componentNames: {},
+  setComponentNames: () => {},
 });
 
 type BoxContextPath = RecursivePath<BoxContextType>;
@@ -134,18 +140,8 @@ export default function BoxContextProvider({
 
   const boxName = box?.name ?? 'Untitled box';
 
-  const { algorithmKeyWithParameters, problemKeyWithParameters } =
-    useMemo(() => {
-      const {
-        algorithm: algorithmKeyWithParameters,
-        problem: problemKeyWithParameters,
-      } = box ?? {};
-
-      return {
-        algorithmKeyWithParameters,
-        problemKeyWithParameters,
-      };
-    }, [box]);
+  const algorithmKeyWithParameters = box?.algorithm;
+  const problemKeyWithParameters = box?.problem;
 
   const { key: problemKey, parameters: problemParameters } = useMemo(() => {
     if (problemKeyWithParameters === undefined) {
@@ -155,36 +151,32 @@ export default function BoxContextProvider({
     return parseKeyWithParameters(problemKeyWithParameters);
   }, [problemKeyWithParameters]);
 
-  const problem = useBoxContextProblem({
-    options: problemOptions,
-    key: problemKey ?? null,
-    onKeyChange: (key) => {
-      if (key === null) {
-        return;
-      }
+  const boxContextProblemArgs = useMemo(() => {
+    const args: Parameters<typeof useBoxContextProblem>[0] = {
+      options: problemOptions,
+      key: problemKey ?? null,
+      onChange: (key, parameters) => {
+        if (key === null) {
+          return;
+        }
 
-      onBoxUpdate((box) => ({
-        ...box,
-        problem: key,
-      }));
-    },
-    parameters: problemParameters ?? null,
-    onParametersChange: (parameters) => {
-      onBoxUpdate((box) => {
-        const { key: problemKey } = parseKeyWithParameters(box?.problem);
-
-        return {
+        onBoxUpdate((box) => ({
           ...box,
           problem: parameters
             ? {
-                key: problemKey ?? null,
+                key,
                 parameters,
               }
-            : problemKey,
-        };
-      });
-    },
-  });
+            : key,
+        }));
+      },
+      parameters: problemParameters ?? null,
+    };
+
+    return args;
+  }, [problemOptions, problemKey, problemParameters, onBoxUpdate]);
+
+  const problem = useBoxContextProblem(boxContextProblemArgs);
 
   const { key: algorithmKey = null, parameters: algorithmParameters = null } =
     useMemo(() => {
@@ -195,36 +187,32 @@ export default function BoxContextProvider({
       return parseKeyWithParameters(algorithmKeyWithParameters);
     }, [algorithmKeyWithParameters]);
 
-  const algorithm = useBoxContextAlgorithm({
-    options: algorithmOptions,
-    key: algorithmKey,
-    onKeyChange: (key) => {
-      if (key === null) {
-        return;
-      }
+  const boxContextAlgorithmArgs = useMemo(() => {
+    const args: Parameters<typeof useBoxContextAlgorithm>[0] = {
+      options: algorithmOptions,
+      key: algorithmKey,
+      onChange: (key, parameters) => {
+        if (key === null) {
+          return;
+        }
 
-      onBoxUpdate((box) => ({
-        ...box,
-        algorithm: key,
-      }));
-    },
-    parameters: algorithmParameters,
-    onParametersChange: (parameters) => {
-      onBoxUpdate((box) => {
-        const { key: algorithmKey } = parseKeyWithParameters(box?.algorithm);
-
-        return {
+        onBoxUpdate((box) => ({
           ...box,
           algorithm: parameters
             ? {
-                key: algorithmKey,
+                key,
                 parameters,
               }
-            : algorithmKey,
-        };
-      });
-    },
-  });
+            : key,
+        }));
+      },
+      parameters: algorithmParameters,
+    };
+
+    return args;
+  }, [algorithmOptions, algorithmKey, algorithmParameters, onBoxUpdate]);
+
+  const algorithm = useBoxContextAlgorithm(boxContextAlgorithmArgs);
 
   const defaultAliases = useMemo(
     () => box?.visualizers?.aliases ?? {},
@@ -239,29 +227,35 @@ export default function BoxContextProvider({
     Set<string>
   >(new Set());
 
-  const visualizers = useBoxContextVisualizers({
-    options: visualizerOptions,
-    defaultAliases: defaultAliases,
-    defaultOrder: defaultOrder,
-    onAliasesChange: (aliases) => {
-      onBoxUpdate((box) => ({
-        ...box,
-        visualizers: {
-          order: box?.visualizers?.order ?? [],
-          aliases,
-        },
-      }));
-    },
-    onOrderChange: (order) => {
-      onBoxUpdate((box) => ({
-        ...box,
-        visualizers: {
-          aliases: box?.visualizers?.aliases ?? {},
-          order,
-        },
-      }));
-    },
-  });
+  const boxContextVisualizersArgs = useMemo(() => {
+    const args: Parameters<typeof useBoxContextVisualizers>[0] = {
+      options: visualizerOptions,
+      defaultAliases: defaultAliases,
+      defaultOrder: defaultOrder,
+      onAliasesChange: (aliases) => {
+        onBoxUpdate((box) => ({
+          ...box,
+          visualizers: {
+            order: box?.visualizers?.order ?? [],
+            aliases,
+          },
+        }));
+      },
+      onOrderChange: (order) => {
+        onBoxUpdate((box) => ({
+          ...box,
+          visualizers: {
+            aliases: box?.visualizers?.aliases ?? {},
+            order,
+          },
+        }));
+      },
+    };
+
+    return args;
+  }, [visualizerOptions, defaultAliases, defaultOrder, onBoxUpdate]);
+
+  const visualizers = useBoxContextVisualizers(boxContextVisualizersArgs);
 
   useEffect(() => {
     setHiddenVisualizerAliases(new Set());
@@ -277,26 +271,39 @@ export default function BoxContextProvider({
     });
   }, [visualizers.instances]);
 
-  const config = useBoxContextConfig({
+  const boxContextConfigArgs = useMemo(() => {
+    const args: Parameters<typeof useBoxContextConfig>[0] = {
+      adapterOptions,
+      value: box?.config ?? {
+        composition: { type: 'flat', order: [] },
+        adapters: {},
+      },
+      problemOutputKeys: Object.keys(
+        problem.instance.unwrapOr(null)?.type.shape.shape ?? {},
+      ),
+      algorithmOutputKeys: Object.keys(
+        algorithm.instance.unwrapOr(null)?.outputs.shape.shape ?? {},
+      ),
+      visualizerInputKeys,
+      onChange: (newValue) => {
+        onBoxUpdate((box) => ({
+          ...box,
+          config: newValue,
+        }));
+      },
+    };
+
+    return args;
+  }, [
     adapterOptions,
-    value: box?.config ?? {
-      composition: { type: 'flat', order: [] },
-      adapters: {},
-    },
-    problemOutputKeys: Object.keys(
-      problem.instance.unwrapOr(null)?.type.shape.shape ?? {},
-    ),
-    algorithmOutputKeys: Object.keys(
-      algorithm.instance.unwrapOr(null)?.outputs.shape.shape ?? {},
-    ),
+    box?.config,
+    problem.instance,
+    algorithm.instance,
     visualizerInputKeys,
-    onChange: (newValue) => {
-      onBoxUpdate((box) => ({
-        ...box,
-        config: newValue,
-      }));
-    },
-  });
+    onBoxUpdate,
+  ]);
+
+  const config = useBoxContextConfig(boxContextConfigArgs);
 
   const openFlowchart = useCallback(() => {
     addOrFocusTab({
@@ -304,6 +311,20 @@ export default function BoxContextProvider({
       label: `Visualizers: ${boxName}`,
     });
   }, [addOrFocusTab, boxName]);
+
+  const componentNames = useMemo(() => {
+    return box?.componentNames ?? {};
+  }, [box?.componentNames]);
+
+  const setComponentNames = useCallback(
+    (componentNames: Record<string, string | undefined>) => {
+      onBoxUpdate((box) => ({
+        ...box,
+        componentNames,
+      }));
+    },
+    [onBoxUpdate],
+  );
 
   const value = useMemo(() => {
     return {
@@ -328,6 +349,8 @@ export default function BoxContextProvider({
       box,
       hiddenVisualizerAliases,
       setHiddenVisualizerAliases,
+      componentNames,
+      setComponentNames,
     } as BoxContextType;
   }, [
     problem,
@@ -342,6 +365,8 @@ export default function BoxContextProvider({
     visualizers,
     box,
     hiddenVisualizerAliases,
+    componentNames,
+    setComponentNames,
     onBoxUpdate,
     onBoxReset,
   ]);

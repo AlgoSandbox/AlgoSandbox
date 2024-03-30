@@ -14,7 +14,7 @@ export function useFilteredObjectOptions<T extends SandboxObjectType>({
 }: {
   options: CatalogOptions<DbSandboxObjectSaved<T>>;
   selectedOption: CatalogOption<DbSandboxObjectSaved<T>> | null;
-  filter: (instance: Instance<T>, otherInstance: Instance<T>) => boolean;
+  filter: (instance: Instance<T>, otherInstance: Instance<T>) => string | true;
 }) {
   const { flowchartMode } = useUserPreferences();
 
@@ -41,8 +41,9 @@ export function useFilteredObjectOptions<T extends SandboxObjectType>({
       const object = evalSavedObject(option).mapLeft(() => null).value;
 
       if (object === null) {
-        return false;
+        return 'Error in evaluating object instance';
       }
+
       const objectInstance =
         'parameters' in object ? object.create() : (object as Instance<T>);
 

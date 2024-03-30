@@ -5,6 +5,7 @@ import {
 } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import {
   useAddSavedVisualizerMutation,
   useRemoveSavedVisualizerMutation,
@@ -92,9 +93,11 @@ export default function FlowchartVisualizerSelect({
       instance: Instance<'visualizer'>,
       otherInstance: Instance<'visualizer'>,
     ) => {
-      return isEqual(
-        Object.keys(instance.accepts.shape.shape),
-        Object.keys(otherInstance.accepts.shape.shape),
+      return (
+        isEqual(
+          Object.keys(instance.accepts.shape.shape),
+          Object.keys(otherInstance.accepts.shape.shape),
+        ) || errorFlowchartIncompatibleComponent
       );
     },
     [],

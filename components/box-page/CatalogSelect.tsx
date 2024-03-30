@@ -55,6 +55,7 @@ function ListItem<T>({
   onClick,
   onDoubleClick,
   disabled,
+  tooltip,
 }: {
   option: CatalogOption<T>;
   onClick?: () => void;
@@ -62,17 +63,20 @@ function ListItem<T>({
   active: boolean;
   selected: boolean;
   disabled?: boolean;
+  tooltip?: string;
 }) {
   return (
-    <Button
-      className={active ? 'font-semibold' : ''}
-      label={option.label}
-      selected={selected}
-      role="checkbox"
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-      disabled={disabled}
-    />
+    <Tooltip content={tooltip} disabled={tooltip === undefined} zIndex={200}>
+      <Button
+        className={active ? 'font-semibold' : ''}
+        label={option.label}
+        selected={selected}
+        role="checkbox"
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+        disabled={disabled}
+      />
+    </Tooltip>
   );
 }
 
@@ -253,11 +257,11 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                             active={option.key === selectedOption?.key}
                             disabled={option.disabled}
                             key={`${item.key}.${option.key}`}
+                            tooltip={option.tooltip}
                             option={option}
                             onClick={() => {
                               setSelectedOption?.(option);
                               setShowItemDetails(true);
-                              // setStepIndex(0);
                             }}
                             onDoubleClick={() => {
                               onChange?.(option, null);
@@ -274,6 +278,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
                         active={item.key === selectedOption?.key}
                         disabled={item.disabled}
                         key={item.key}
+                        tooltip={item.tooltip}
                         option={item}
                         onClick={() => {
                           setSelectedOption?.(item);

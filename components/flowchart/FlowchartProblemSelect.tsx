@@ -1,5 +1,6 @@
 import { useBoxContext } from '@components/box-page';
 import { Instance } from '@components/box-page/box-context/sandbox-object';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import { isEqual } from 'lodash';
 import { useCallback } from 'react';
 
@@ -29,9 +30,11 @@ export default function FlowchartProblemSelect({
 
   const filter = useCallback(
     (instance: Instance<'problem'>, otherInstance: Instance<'problem'>) => {
-      return isEqual(
-        Object.keys(instance.type.shape.shape),
-        Object.keys(otherInstance.type.shape.shape),
+      return (
+        isEqual(
+          Object.keys(instance.type.shape.shape),
+          Object.keys(otherInstance.type.shape.shape),
+        ) || errorFlowchartIncompatibleComponent
       );
     },
     [],

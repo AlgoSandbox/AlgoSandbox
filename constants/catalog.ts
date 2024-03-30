@@ -3,6 +3,7 @@ import { SelectGroup, SelectOption } from '../components/ui';
 export type CatalogOption<T> = SelectOption<T> & {
   type: 'custom' | 'built-in';
   disabled?: boolean;
+  tooltip?: string;
 };
 
 export type CatalogGroup<T> = Omit<SelectGroup<T>, 'options'> & {

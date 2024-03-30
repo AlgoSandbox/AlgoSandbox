@@ -1,8 +1,10 @@
 import { ComponentTag } from '@algo-sandbox/core';
 import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
-import { Chip, MaterialSymbol } from '@components/ui';
-import Heading from '@components/ui/Heading';
+import { Badge, Button, Chip, MaterialSymbol } from '@components/ui';
+import Checkbox from '@components/ui/Checkbox';
+import { Drawer, DrawerContent, DrawerTrigger } from '@components/ui/Drawer';
+import Heading, { HeadingContent } from '@components/ui/Heading';
 import { DbSandboxObjectSaved, useSavedAlgorithmsQuery } from '@utils/db';
 import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedProblemsQuery } from '@utils/db/problems';
@@ -182,32 +184,96 @@ export default function DashboardPage() {
     }
 
     return boxOptionsWithTags.filter((option) =>
-      selectedTags.some((tag) => option.tags.includes(tag)),
+      selectedTags.every((tag) => option.tags.includes(tag)),
     );
   }, [boxOptionsWithTags, selectedTags]);
+
+  const [showBoxFilterDialog, setShowBoxFilterDialog] = useState(false);
 
   return (
     <div className="flex w-full justify-center">
       <div className="flex flex-col max-w-7xl flex-1 px-4 gap-8 py-6">
         <div className="flex flex-col gap-2">
-          <Heading variant="h2">Explore boxes</Heading>
-          <div className="flex flex-wrap gap-2 sticky top-0 py-4 bg-canvas z-10">
-            {allTags.map((tag) => (
-              <Chip
-                selectable
-                selected={selectedTags.includes(tag)}
-                onClick={() => {
-                  if (selectedTags.includes(tag)) {
-                    setSelectedTags(selectedTags.filter((t) => t !== tag));
-                  } else {
-                    setSelectedTags([...selectedTags, tag]);
-                  }
-                }}
-                key={tag}
+          <div className="flex flex-col gap-2 py-2 sticky top-0 bg-canvas z-10">
+            <div className="flex justify-between">
+              <Heading variant="h2">Explore boxes</Heading>
+              <Drawer
+                open={showBoxFilterDialog}
+                onOpenChange={setShowBoxFilterDialog}
               >
-                {tag}
-              </Chip>
-            ))}
+                <DrawerTrigger asChild>
+                  <Badge
+                    content={selectedTags.length}
+                    visible={selectedTags.length > 0}
+                  >
+                    <Button
+                      className="md:hidden"
+                      label={
+                        selectedTags.length === 0
+                          ? 'Filter boxes'
+                          : `Filter boxes (${selectedTags.length})`
+                      }
+                      hideLabel
+                      icon={<MaterialSymbol icon="filter_list" />}
+                      variant="filled"
+                    />
+                  </Badge>
+                </DrawerTrigger>
+                <DrawerContent className="flex flex-col items-stretch p-4 gap-2">
+                  <Heading variant="h4">Filter boxes by tag</Heading>
+                  <HeadingContent>
+                    {allTags.map((tag) => (
+                      <Checkbox
+                        className="w-full"
+                        checked={selectedTags.includes(tag)}
+                        onChange={(checked) => {
+                          if (checked) {
+                            setSelectedTags([...selectedTags, tag]);
+                          } else {
+                            setSelectedTags(
+                              selectedTags.filter((t) => t !== tag),
+                            );
+                          }
+                        }}
+                        key={tag}
+                        label={tag}
+                      />
+                    ))}
+                    <div className="flex gap-2">
+                      <Button
+                        label="Done"
+                        onClick={() => setShowBoxFilterDialog(false)}
+                        variant="primary"
+                      />
+                      <Button
+                        label="Clear all"
+                        onClick={() => setSelectedTags([])}
+                        disabled={selectedTags.length === 0}
+                        variant="filled"
+                      />
+                    </div>
+                  </HeadingContent>
+                </DrawerContent>
+              </Drawer>
+            </div>
+            <div className="hidden md:flex flex-wrap gap-2">
+              {allTags.map((tag) => (
+                <Chip
+                  selectable
+                  selected={selectedTags.includes(tag)}
+                  onClick={() => {
+                    if (selectedTags.includes(tag)) {
+                      setSelectedTags(selectedTags.filter((t) => t !== tag));
+                    } else {
+                      setSelectedTags([...selectedTags, tag]);
+                    }
+                  }}
+                  key={tag}
+                >
+                  {tag}
+                </Chip>
+              ))}
+            </div>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredBoxOptions.map((option) => (

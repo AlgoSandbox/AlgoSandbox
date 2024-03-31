@@ -246,7 +246,7 @@ export default function PlaygroundLayout({
     };
   }, [originalBox, params, savedBox?.label]);
 
-  // console.info('boxObject', JSON.stringify(boxFromUrlCustomized));
+  console.info('boxObject', JSON.stringify(boxFromUrlCustomized));
 
   const [boxState, setBoxState] = useState<BoxState>({
     boxKey,

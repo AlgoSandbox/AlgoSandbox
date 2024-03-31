@@ -2,7 +2,7 @@ import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
   problem: 'problem.weightedGraphs.generator',
-  algorithm: 'algorithm.search.ucsEnvironment',
+  algorithm: { key: 'algorithm.search.aStarEnvironment', parameters: {} },
   visualizers: {
     aliases: {
       'visualizer-0': 'visualizer.graphs.searchGraph',
@@ -15,28 +15,17 @@ const box: SandboxBox = {
     adapters: {
       'adapter-0': 'adapter.environment.envToGraph',
       'adapter-1': 'adapter.environment.searchGraphToEnv',
+      'adapter-2': 'adapter.environment.heuristicGraphPerfect',
     },
     composition: {
       type: 'tree',
       connections: [
         { fromKey: 'problem', fromSlot: '.', toKey: 'adapter-1', toSlot: '.' },
         {
-          fromKey: 'adapter-1',
-          fromSlot: '.',
-          toKey: 'algorithm',
-          toSlot: '.',
-        },
-        {
           fromKey: 'adapter-0',
           fromSlot: '.',
           toKey: 'visualizer-0',
           toSlot: '.',
-        },
-        {
-          fromKey: 'adapter-0',
-          fromSlot: '.',
-          toKey: 'visualizer-1',
-          toSlot: 'object',
         },
         {
           fromKey: 'problem',
@@ -110,11 +99,34 @@ const box: SandboxBox = {
           toKey: 'adapter-0',
           toSlot: 'getStateKey',
         },
+        {
+          fromKey: 'adapter-1',
+          fromSlot: '.',
+          toKey: 'algorithm',
+          toSlot: 'environment',
+        },
+        {
+          fromKey: 'adapter-2',
+          fromSlot: 'heuristic',
+          toKey: 'algorithm',
+          toSlot: 'heuristic',
+        },
+        {
+          fromKey: 'problem',
+          fromSlot: '.',
+          toKey: 'adapter-2',
+          toSlot: 'graph',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: '.',
+          toKey: 'visualizer-1',
+          toSlot: 'object',
+        },
       ],
     },
   },
   componentNames: {
-    'visualizer-1': '',
     'visualizer-2': 'State space',
     'visualizer-0': 'Search graph',
   },

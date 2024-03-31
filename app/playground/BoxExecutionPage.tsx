@@ -224,7 +224,7 @@ export default function BoxExecutionPage() {
   const windowTitles = useMemo(() => {
     const getVisualizerName = (alias: string) => {
       const componentName = componentNames[alias];
-      if (componentName !== undefined) {
+      if (componentName) {
         return componentName;
       }
 
@@ -264,7 +264,7 @@ export default function BoxExecutionPage() {
         <Mosaic<string>
           className={clsx(
             'bg-transparent',
-            !isExecuting && scene !== null
+            scene !== null
               ? '[&_.mosaic-window-body]:!bg-surface'
               : '[&_.mosaic-window-body]:!bg-canvas',
             '[&_.mosaic-window-toolbar]:!bg-surface-high',

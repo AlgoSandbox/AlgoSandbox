@@ -154,7 +154,7 @@ function FlowNodeSlot({
         type={side === 'start' ? 'target' : 'source'}
         position={side === 'start' ? Position.Left : Position.Right}
         id={id}
-        isConnectable={!isConnected && flowchartMode === 'full'}
+        isConnectable={(!isConnected || isMainSlot) && flowchartMode === 'full'}
       />
       <div
         className={clsx(

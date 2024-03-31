@@ -11,17 +11,12 @@ import {
 } from '@components/box-page';
 import CustomizeViewPopover from '@components/box-page/app-bar/CustomizeViewPopover';
 import CatalogSelect from '@components/box-page/CatalogSelect';
+import SettingsDialog from '@components/common/SettingsDialog';
 import DrawerItem from '@components/DrawerItem';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
-import {
-  Button,
-  Input,
-  MaterialSymbol,
-  Select,
-  TagInput,
-} from '@components/ui';
+import { Button, Input, MaterialSymbol, TagInput } from '@components/ui';
 import Dialog from '@components/ui/Dialog';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import useWorkerExecutedScene from '@utils/eval/useWorkerExecutedScene';
@@ -32,7 +27,6 @@ import solveFlowchart from '@utils/solveFlowchart';
 import clsx from 'clsx';
 import { mapValues } from 'lodash';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import {
   createContext,
   useCallback,
@@ -44,12 +38,6 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { ZodError } from 'zod';
-
-const themeOptions = [
-  { label: 'System', key: 'system', value: 'system' },
-  { label: 'Light', key: 'light', value: 'light' },
-  { label: 'Dark', key: 'dark', value: 'dark' },
-];
 
 function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -240,11 +228,7 @@ export function useFlowchartCalculations() {
 
 function BoxPageImpl() {
   const boxKey = useSearchParams().get('box') ?? '';
-  const { theme, setTheme } = useTheme();
   const router = useRouter();
-  const selectedThemeOption = useMemo(() => {
-    return themeOptions.find((option) => option.value === theme);
-  }, [theme]);
   const {
     isBoxCustom,
     save: saveBox,
@@ -353,23 +337,7 @@ function BoxPageImpl() {
 
   return (
     <>
-      <Dialog
-        open={showSettings}
-        onOpenChange={setShowSettings}
-        title="Settings"
-        content={
-          <div className="p-4 flex flex-col gap-4 items-start">
-            <Select
-              options={themeOptions}
-              value={selectedThemeOption}
-              onChange={(option) => {
-                setTheme(option.value);
-              }}
-              label="Theme"
-            />
-          </div>
-        }
-      />
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
       <div className="flex flex-col w-dvw h-dvh">
         <AppNavBar
           drawerContents={

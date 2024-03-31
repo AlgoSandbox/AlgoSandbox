@@ -394,13 +394,54 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
     const mainInputSlot = inputs.find(({ id }) => id === '.');
     const mainOutputSlot = outputs.find(({ id }) => id === '.');
 
+    const [showRenameDialog, setShowRenameDialog] = useState(false);
+
     return (
       <>
+        <Dialog
+          title="Rename component"
+          open={showRenameDialog}
+          onOpenChange={setShowRenameDialog}
+          content={
+            <div className="flex flex-col gap-4 items-start">
+              <Input
+                label="Name"
+                containerClassName="self-stretch"
+                placeholder={alias}
+                value={internalName}
+                onChange={(e) => {
+                  setInternalName(e.target.value);
+                }}
+              />
+              <Button
+                onClick={() => {
+                  onNameChange(internalName);
+                  setShowRenameDialog(false);
+                }}
+                disabled={internalName === name}
+                variant="filled"
+                label="Save"
+              />
+            </div>
+          }
+        />
         <NodeToolbar
           isVisible={selected && deletable}
           position={Position.Top}
           align="end"
+          className="flex gap-2"
         >
+          {alias !== 'algorithm' && alias !== 'problem' && (
+            <Button
+              icon={<MaterialSymbol icon="edit" />}
+              label="Rename"
+              variant="filled"
+              size="sm"
+              onClick={() => {
+                setShowRenameDialog(true);
+              }}
+            />
+          )}
           <Button
             icon={<MaterialSymbol icon="delete" />}
             label="Delete"
@@ -421,7 +462,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           ref={ref}
         >
           <div className="absolute -top-1 -translate-y-full text-label text-lg">
-            <span>{alias}</span>
+            <span>{name || alias}</span>
           </div>
           <div className="p-2 border-b">
             {type === 'problem' && (
@@ -443,26 +484,6 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           </div>
           {evaluationError !== null && (
             <ErrorDisplay errors={evaluationError} />
-          )}
-          {alias !== 'algorithm' && alias !== 'problem' && (
-            <div className="px-2 mt-2 flex items-end gap-2">
-              <Input
-                label="Display name"
-                containerClassName="flex-1"
-                value={internalName}
-                onChange={(e) => {
-                  setInternalName(e.target.value);
-                }}
-              />
-              <Button
-                onClick={() => onNameChange(internalName)}
-                disabled={internalName === name}
-                variant="filled"
-                label="Save"
-                hideLabel
-                icon={<MaterialSymbol icon="save" />}
-              />
-            </div>
           )}
           <div className="flex justify-between items-center text-lg font-semibold py-2">
             {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}

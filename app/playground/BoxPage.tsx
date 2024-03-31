@@ -56,12 +56,6 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
 
   const box = useBoxContext('box');
 
-  useEffect(() => {
-    if (box !== null) {
-      setCurrentStepIndex(0);
-    }
-  }, [box]);
-
   const workerBox = useMemo(() => {
     if (box?.problem === undefined) {
       return null;
@@ -74,6 +68,12 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
       config: box?.config,
     };
   }, [box?.problem, box?.algorithm, box?.visualizers, box?.config]);
+
+  useEffect(() => {
+    if (workerBox !== null) {
+      setCurrentStepIndex(0);
+    }
+  }, [box, workerBox]);
 
   const { scene, execute, isExecuting } = useWorkerExecutedScene({
     box: workerBox,

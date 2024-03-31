@@ -49,7 +49,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { SomeZodObject, ZodError } from 'zod';
 
-import { useBoxContext } from '../box-page';
+import { useBoxContext, useBoxControlsContext } from '../box-page';
 import FlowchartAdapterSelect from './FlowchartAdapterSelect';
 import FlowchartVisualizerSelect from './FlowchartVisualizerSelect';
 
@@ -604,7 +604,11 @@ export default function AlgorithmVisualizerFlowchart({
 }: {
   tabId: string;
 }) {
-  const { inputs, outputs, inputErrors } = useFlowchartCalculations();
+  const {
+    inputs,
+    outputs,
+    inputErrors: inputErrorsRaw,
+  } = useFlowchartCalculations();
   const { label: tabName } = useTab();
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
@@ -613,6 +617,7 @@ export default function AlgorithmVisualizerFlowchart({
   const { reset, isBoxDirty } = useBoxContext();
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
   const { setFlowchartMode, flowchartMode } = useUserPreferences();
+  const { isExecuting } = useBoxControlsContext();
 
   const configEvaluated = useBoxContext('config.evaluated');
 
@@ -637,6 +642,15 @@ export default function AlgorithmVisualizerFlowchart({
       renameTab(tabId, newTabName);
     }
   }, [boxName, renameTab, tabId, tabName]);
+
+  const inputErrors = useMemo(() => {
+    // Don't show error when still executing
+    if (isExecuting) {
+      return {};
+    }
+
+    return inputErrorsRaw;
+  }, [inputErrorsRaw, isExecuting]);
 
   const algorithmInputs = useMemo(
     () => algorithm.unwrapOr(null)?.accepts.shape.shape ?? {},

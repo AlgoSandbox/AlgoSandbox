@@ -54,7 +54,7 @@ export default function getZodTypeName(zodType: z.ZodType): string {
     return `optional<${getZodTypeName(zodType._def.innerType)}>`;
   }
   if (zodType instanceof z.ZodNullable) {
-    return `nullable<${getZodTypeName(zodType._def.innerType)}>`;
+    return `${getZodTypeName(zodType._def.innerType)} | null`;
   }
   if (zodType instanceof z.ZodUnknown) {
     return 'unknown';

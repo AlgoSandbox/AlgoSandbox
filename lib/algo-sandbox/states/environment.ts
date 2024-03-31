@@ -26,6 +26,23 @@ export const sandboxEnvironmentState = createState(
   >,
 );
 
+const action = sandboxEnvironmentState.shape.shape.actions.returnType().element;
+
+const baseSearchTreeNode = z.object({
+  id: z.string(),
+  stateKey: z.string(),
+  action: action.nullable(),
+});
+
+export type SearchTreeNode = z.infer<typeof baseSearchTreeNode> & {
+  children: SearchTreeNode[];
+};
+
+export const searchTreeNode: z.ZodType<SearchTreeNode> =
+  baseSearchTreeNode.extend({
+    children: z.lazy(() => searchTreeNode.array()),
+  });
+
 export const sandboxEnvironmentSearchState = createState(
   'Sandbox environment search state',
   z.object({
@@ -39,21 +56,13 @@ export const sandboxEnvironmentSearchState = createState(
     ),
     frontier: z.array(
       z.object({
+        id: z.string(),
         state: sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
         cost: z.number(),
         isGoal: z.boolean(),
         data: z.any().optional(),
       }),
     ),
-    searchTree: z.array(
-      z.object({
-        source: sandboxEnvironmentState.shape.shape.getStateKey.returnType(),
-        action:
-          sandboxEnvironmentState.shape.shape.actions.returnType().element,
-        result: sandboxEnvironmentState.shape.shape.getStateKey
-          .returnType()
-          .optional(),
-      }),
-    ),
+    searchTree: searchTreeNode.nullable(),
   }),
 );

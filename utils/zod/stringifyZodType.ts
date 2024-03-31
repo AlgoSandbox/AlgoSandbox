@@ -4,7 +4,7 @@ import getZodTypeName from './getZodTypeName';
 
 export default function stringifyZodType(zodType: z.ZodType): string {
   if (zodType instanceof z.ZodNullable) {
-    return `Nullable<${stringifyZodType(zodType._def.innerType)}>`;
+    return `${stringifyZodType(zodType._def.innerType)} | null`;
   }
   if (zodType instanceof z.ZodOptional) {
     return `Optional<${stringifyZodType(zodType._def.innerType)}>`;

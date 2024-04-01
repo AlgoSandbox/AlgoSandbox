@@ -1,5 +1,6 @@
 import { tabularDatasetState } from '@algo-sandbox/problems/tabular';
 import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
+import Checkbox from '@components/ui/Checkbox';
 import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
 import { uniq } from 'lodash';
@@ -158,12 +159,34 @@ function TabularDatasetEditor({
     }
   }, [filesContent]);
 
-  const xLabels = useMemo(() => {
-    const headers = data[0]
-      .slice(0, -1)
-      .map((cell, index) => cell?.value || `x${index}`);
+  const columnLabels = useMemo(() => {
+    const headers = data[0].map(
+      (cell, index) => cell?.value || `Column ${index + 1}`,
+    );
     return headers;
   }, [data]);
+
+  const [xColumnIndices, setXColumnIndices] = useState<number[]>(
+    Array.from({ length: columnLabels.length - 1 }, (_, i) => i),
+  );
+  const [yColumnIndex, setYColumnIndex] = useState<number | null>(
+    columnLabels.length - 1,
+  );
+
+  const xLabels = useMemo(() => {
+    const headers = data[0]
+      .map((cell, index) => cell?.value || `x${index}`)
+      .filter((_, index) => xColumnIndices.includes(index));
+    return headers;
+  }, [data, xColumnIndices]);
+
+  const yColumnLabel = useMemo(() => {
+    if (yColumnIndex === null) {
+      return null;
+    }
+
+    return columnLabels.at(yColumnIndex);
+  }, [columnLabels, yColumnIndex]);
 
   const parsedData = useMemo(() => {
     const examples = data.slice(1).map((row) => {
@@ -178,23 +201,31 @@ function TabularDatasetEditor({
   }, [xLabels, data]);
 
   const yValues = useMemo(() => {
-    const yValues = data
-      .slice(1)
-      .map((row) => row[row.length - 1]?.value ?? '');
+    const yValues = data.slice(1).map((row) => {
+      if (yColumnIndex === null) {
+        return '';
+      }
+
+      return row.at(yColumnIndex)?.value ?? '';
+    });
     return uniq(yValues).filter((yValue) => yValue !== '');
-  }, [data]);
+  }, [data, yColumnIndex]);
 
   const { resolvedTheme } = useTheme();
 
-  const xValuesByLabel = useMemo(() => {
-    const xValuesByLabel: Record<string, string[]> = {};
-    xLabels.forEach((xLabel) => {
-      xValuesByLabel[xLabel] = uniq(
-        parsedData.map((item) => item.xValues[xLabel]),
+  const valuesByColumn = useMemo(() => {
+    const valuesByColumn: Array<Array<string>> = Array.from({
+      length: columnLabels.length,
+    }).map((_, colIndex) => {
+      return uniq(
+        data.slice(1).map((row) => {
+          const cell = row[colIndex];
+          return cell?.value ?? '';
+        }),
       ).filter((value) => value !== '');
     });
-    return xValuesByLabel;
-  }, [xLabels, parsedData]);
+    return valuesByColumn;
+  }, [columnLabels.length, data]);
 
   const onSaveClick = useCallback(() => {
     onSave({
@@ -224,10 +255,10 @@ function TabularDatasetEditor({
   }, []);
 
   return (
-    <div className="w-full flex flex-col flex-1 overflow-hidden">
+    <div className="w-full h-full flex flex-col flex-1 overflow-hidden">
       <PanelGroup direction="horizontal">
-        <Panel defaultSize={30}>
-          <div className="flex flex-col gap-y-4 pt-2 h-full overflow-y-hidden">
+        <Panel defaultSize={30} className="overflow-y-hidden">
+          <div className="flex flex-col gap-y-4 pt-2 h-full overflow-y-auto">
             <div className="flex">
               <Button
                 label="Import CSV"
@@ -250,44 +281,81 @@ function TabularDatasetEditor({
             <div className="flex flex-1 flex-col gap-y-4 overflow-auto pe-4">
               <div className="flex flex-col p-2 bg-surface-high rounded border">
                 <Heading className="mb-2" variant="h4">
-                  Dataset
+                  Data columns
                 </Heading>
                 <ul className="flex flex-col gap-2">
-                  {xLabels.map((xLabel, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="font-mono text-xs flex gap-1 items-center flex-wrap">
-                        <pre className="-me-1">{xLabel} = </pre>
-                        {xValuesByLabel[xLabel].map((xValue) => (
-                          <span
-                            key={xValue}
-                            className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
-                          >
-                            {xValue}
-                          </span>
-                        ))}
-                      </div>
-                      <Button
-                        label="Remove"
-                        hideLabel
-                        size="sm"
-                        variant="filled"
-                        onClick={() => {
-                          setData((prevData) =>
-                            prevData.map((row) =>
-                              row.filter((_, i) => i !== index),
-                            ),
-                          );
+                  {columnLabels.map((columnLabel, index) => (
+                    <li key={index} className="grid grid-cols-3">
+                      <span>{columnLabel}</span>
+                      <Checkbox
+                        checked={xColumnIndices.includes(index)}
+                        label="xValue"
+                        onChange={(checked) => {
+                          setXColumnIndices((prev) => {
+                            if (checked) {
+                              return [...prev, index];
+                            } else {
+                              return prev.filter((i) => i !== index);
+                            }
+                          });
                         }}
-                        icon={<MaterialSymbol icon="delete" />}
+                      />
+                      <Checkbox
+                        checked={yColumnIndex === index}
+                        onChange={(checked) => {
+                          setYColumnIndex(checked ? index : null);
+                        }}
+                        label="yValue"
                       />
                     </li>
                   ))}
+                </ul>
+              </div>
+              <div className="flex flex-col p-2 bg-surface-high rounded border">
+                <Heading className="mb-2" variant="h4">
+                  Dataset
+                </Heading>
+                <ul className="flex flex-col gap-2">
+                  {xColumnIndices.map((xColumnIndex, index) => {
+                    const xLabel = columnLabels[xColumnIndex];
+                    return (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="font-mono text-xs flex gap-1 items-center flex-wrap">
+                          <pre className="-me-1">
+                            x{index} ({xLabel}) ={' '}
+                          </pre>
+                          {valuesByColumn[xColumnIndex].map((xValue) => (
+                            <span
+                              key={xValue}
+                              className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
+                            >
+                              {xValue}
+                            </span>
+                          ))}
+                        </div>
+                        <Button
+                          label="Remove"
+                          hideLabel
+                          size="sm"
+                          variant="filled"
+                          onClick={() => {
+                            setData((prevData) =>
+                              prevData.map((row) =>
+                                row.filter((_, i) => i !== index),
+                              ),
+                            );
+                          }}
+                          icon={<MaterialSymbol icon="delete" />}
+                        />
+                      </li>
+                    );
+                  })}
                   <li className="border-t mt-2 pt-2">
                     <div className="font-mono text-xs flex items-center flex-wrap">
-                      <pre>y = </pre>
+                      <pre>y ({yColumnLabel ?? 'unknown'}) = </pre>
                       <ul className="inline-flex gap-1">
                         {yValues.map((yValue) => (
                           <li
@@ -327,10 +395,12 @@ function TabularDatasetEditor({
                     </div>
                     <ul className="flex flex-col gap-y-2">
                       {Object.entries(example.xValues).map(
-                        ([xLabel, value]) => (
+                        ([xLabel, value], index) => (
                           <li key={xLabel}>
                             <div className="font-mono text-xs flex items-center flex-wrap">
-                              <pre>{xLabel} = </pre>
+                              <pre>
+                                x{index} ({xLabel}) ={' '}
+                              </pre>
                               {value !== '' && (
                                 <span className="font-bold text-accent px-1 py-0.5 border border-accent rounded">
                                   {value}
@@ -342,7 +412,7 @@ function TabularDatasetEditor({
                       )}
                       <li className="border-t mt-2 pt-2">
                         <div className="font-mono text-xs flex items-center flex-wrap">
-                          <pre>y = </pre>
+                          <pre>y ({yColumnLabel ?? 'unknown'}) = </pre>
                           {example.yValue !== '' && (
                             <span className="font-bold text-accent px-1 py-0.5 border border-accent rounded">
                               {example.yValue}
@@ -355,9 +425,14 @@ function TabularDatasetEditor({
                 ))}
               </ul>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 sticky bottom-0">
               <Button label="Cancel" onClick={onCancel} />
-              <Button label="Save" variant="primary" onClick={onSaveClick} />
+              <Button
+                label="Save"
+                variant="primary"
+                onClick={onSaveClick}
+                disabled={xLabels.length === 0 || yColumnLabel === null}
+              />
             </div>
           </div>
         </Panel>
@@ -418,6 +493,7 @@ export default function TabularDatasetEditorDialog({
       size="full"
       open={open}
       onOpenChange={onOpenChange}
+      autoScroll={false}
     />
   );
 }

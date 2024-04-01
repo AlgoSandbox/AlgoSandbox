@@ -124,6 +124,7 @@ export default function Dialog({
   content,
   open,
   onOpenChange,
+  autoScroll = true,
 }: {
   title: string;
   description?: string;
@@ -131,6 +132,7 @@ export default function Dialog({
   content: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  autoScroll?: boolean;
 }) {
   const { isMd } = useBreakpoint('md');
   const isMobile = !isMd;
@@ -161,7 +163,14 @@ export default function Dialog({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <div className="overflow-y-auto flex-1">{content}</div>
+        <div
+          className={clsx(
+            'flex-1',
+            autoScroll ? 'overflow-y-auto' : 'overflow-y-hidden',
+          )}
+        >
+          {content}
+        </div>
       </DialogContent>
     </DialogRoot>
   );

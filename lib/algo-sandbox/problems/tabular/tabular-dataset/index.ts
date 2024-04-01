@@ -19,7 +19,7 @@ export const tabularDatasetState = createState(
 );
 
 const tabularDataset = createParameterizedProblem({
-  name: 'Decision tree training set',
+  name: 'Tabular  dataset',
   type: tabularDatasetState,
   parameters: {
     spreadsheet: SandboxParam.spreadsheet(

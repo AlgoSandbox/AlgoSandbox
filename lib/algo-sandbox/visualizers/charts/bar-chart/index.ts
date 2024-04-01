@@ -25,6 +25,7 @@ const barChart = createVisualizer<
     previousVisualizerState,
     element,
   }) => {
+    const style = getComputedStyle(document.body);
     const canvas = (() => {
       if (previousVisualizerState) {
         return previousVisualizerState.canvas;
@@ -37,13 +38,6 @@ const barChart = createVisualizer<
 
     const chart = (() => {
       if (previousVisualizerState) {
-        previousVisualizerState.chart.data.labels = array.map((number) =>
-          number.toString(),
-        );
-        previousVisualizerState.chart.data.datasets[0].data = array;
-        previousVisualizerState.chart.data.datasets[0].backgroundColor =
-          backgroundColors;
-        previousVisualizerState.chart.update();
         return previousVisualizerState.chart;
       }
 
@@ -61,16 +55,24 @@ const barChart = createVisualizer<
           },
         },
         data: {
-          labels: array.map((number) => number.toString()),
-          datasets: [
-            {
-              data: array,
-              backgroundColor: backgroundColors,
-            },
-          ],
+          datasets: [],
         },
       });
     })();
+
+    chart.data = {
+      labels: array.map((number) => number.toString()),
+      datasets: [
+        {
+          data: array,
+          backgroundColor:
+            backgroundColors ??
+            `rgb(${style.getPropertyValue('--color-label')})`,
+        },
+      ],
+    };
+
+    chart.update();
 
     return { canvas, element, chart };
   },

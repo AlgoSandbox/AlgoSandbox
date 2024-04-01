@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Button, Input, MaterialSymbol } from '../ui';
-import DecisionTreeTrainingSetEditorDialog from './DecisionTreeTrainingSetEditor';
 import GraphEditorDialog from './GraphEditor';
 import GridEditorDialog from './GridEditor';
+import TabularDatasetEditorDialog from './TabularDatasetEditor';
 
 type ParameterControlProps<P extends SandboxParameter> = {
   fieldName: string;
@@ -87,7 +87,7 @@ function SpreadsheetEditorDialogControl({
         icon={<MaterialSymbol icon="edit" />}
         onClick={() => setOpen(true)}
       />
-      <DecisionTreeTrainingSetEditorDialog
+      <TabularDatasetEditorDialog
         open={open}
         onOpenChange={setOpen}
         value={value}

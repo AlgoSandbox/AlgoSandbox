@@ -1,4 +1,4 @@
-import { decisionTreeTrainingSetState } from '@algo-sandbox/problems/decision-trees';
+import { tabularDatasetState } from '@algo-sandbox/problems/tabular';
 import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
 import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
@@ -14,94 +14,94 @@ import { z } from 'zod';
 import StyledSpreadsheet from './StyledSpreadsheet';
 
 const initialTrainingSet = {
-  attributes: ['Income', 'Credit History', 'Debt'],
-  examples: [
+  xLabels: ['Income', 'Credit History', 'Debt'],
+  data: [
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Bad',
         Debt: 'Low',
       },
-      classification: 'Reject',
+      yValue: 'Reject',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'High',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: '0 - 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: '0 - 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Bad',
         Debt: 'Low',
       },
-      classification: 'Reject',
+      yValue: 'Reject',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'High',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: '0 - 10k',
         'Credit History': 'Bad',
         Debt: 'High',
       },
-      classification: 'Reject',
+      yValue: 'Reject',
     },
   ],
 };
 
-type TrainingSet = z.infer<typeof decisionTreeTrainingSetState.shape>;
+type TrainingSet = z.infer<typeof tabularDatasetState.shape>;
 
-function DecisionTreeTrainingSetEditor({
+function TabularDatasetEditor({
   onCancel,
   onSave,
   initialData: initialTrainingSet,
@@ -116,16 +116,16 @@ function DecisionTreeTrainingSetEditor({
 
   const initialData = useMemo(() => {
     // map from training set
-    const attributes = initialTrainingSet.attributes;
-    const examples = initialTrainingSet.examples;
+    const xLabels = initialTrainingSet.xLabels;
+    const data = initialTrainingSet.data;
 
     const initialData: Matrix<CellBase<string>> = [
-      [...attributes, 'Decision'].map((attribute) => ({ value: attribute })),
-      ...examples.map((example) => [
-        ...attributes.map((attribute) => ({
-          value: example.attributes[attribute],
+      [...xLabels, 'Decision'].map((xLabel) => ({ value: xLabel })),
+      ...data.map((example) => [
+        ...xLabels.map((xLabel) => ({
+          value: example.xValues[xLabel],
         })),
-        { value: example.classification },
+        { value: example.yValue },
       ]),
     ];
 
@@ -158,64 +158,59 @@ function DecisionTreeTrainingSetEditor({
     }
   }, [filesContent]);
 
-  const attributes = useMemo(() => {
+  const xLabels = useMemo(() => {
     const headers = data[0]
       .slice(0, -1)
-      .map((cell, index) => cell?.value || `Attribute ${index + 1}`);
+      .map((cell, index) => cell?.value || `x${index}`);
     return headers;
   }, [data]);
 
-  const examples = useMemo(() => {
+  const parsedData = useMemo(() => {
     const examples = data.slice(1).map((row) => {
-      const attributeValues = row.slice(0, -1).map((cell) => cell?.value ?? '');
-      const attributeMap = Object.fromEntries(
-        attributes.map((attribute, index) => [
-          attribute,
-          attributeValues[index],
-        ]),
+      const rowXValues = row.slice(0, -1).map((cell) => cell?.value ?? '');
+      const xValues = Object.fromEntries(
+        xLabels.map((xLabel, index) => [xLabel, rowXValues[index]]),
       );
-      const classification = row[row.length - 1]?.value ?? '';
-      return { attributes: attributeMap, classification };
+      const yValue = row[row.length - 1]?.value ?? '';
+      return { xValues, yValue };
     });
     return examples;
-  }, [attributes, data]);
+  }, [xLabels, data]);
 
-  const classifications = useMemo(() => {
-    const classifications = data
+  const yValues = useMemo(() => {
+    const yValues = data
       .slice(1)
       .map((row) => row[row.length - 1]?.value ?? '');
-    return uniq(classifications).filter(
-      (classification) => classification !== '',
-    );
+    return uniq(yValues).filter((yValue) => yValue !== '');
   }, [data]);
 
   const { resolvedTheme } = useTheme();
 
-  const attributeValues = useMemo(() => {
-    const attributeValues: Record<string, string[]> = {};
-    attributes.forEach((attribute) => {
-      attributeValues[attribute] = uniq(
-        examples.map((example) => example.attributes[attribute]),
+  const xValuesByLabel = useMemo(() => {
+    const xValuesByLabel: Record<string, string[]> = {};
+    xLabels.forEach((xLabel) => {
+      xValuesByLabel[xLabel] = uniq(
+        parsedData.map((item) => item.xValues[xLabel]),
       ).filter((value) => value !== '');
     });
-    return attributeValues;
-  }, [attributes, examples]);
+    return xValuesByLabel;
+  }, [xLabels, parsedData]);
 
   const onSaveClick = useCallback(() => {
     onSave({
-      attributes,
-      examples,
+      xLabels,
+      data: parsedData,
     });
-  }, [attributes, examples, onSave]);
+  }, [xLabels, onSave, parsedData]);
 
-  const onExampleAdd = useCallback(() => {
+  const onDataEntryAdd = useCallback(() => {
     setData((prevData) => {
-      const newRow = attributes.map(() => ({ value: '' }));
+      const newRow = xLabels.map(() => ({ value: '' }));
       return [...prevData, newRow];
     });
-  }, [attributes]);
+  }, [xLabels]);
 
-  const onAttributeAdd = useCallback(() => {
+  const onXAdd = useCallback(() => {
     // add new column to the second rightmost position
     setData((prevData) => {
       return prevData.map((row) => [
@@ -235,21 +230,21 @@ function DecisionTreeTrainingSetEditor({
           <div className="flex flex-col gap-y-4 pt-2 h-full overflow-y-hidden">
             <div className="flex">
               <Button
-                label="Import"
+                label="Import CSV"
                 onClick={openFilePicker}
                 variant="primary"
               />
             </div>
             <div className="flex gap-2">
               <Button
-                label="Add example"
+                label="Add data entry"
                 variant="filled"
-                onClick={onExampleAdd}
+                onClick={onDataEntryAdd}
               />
               <Button
-                label="Add attribute"
+                label="Add x attribute"
                 variant="filled"
-                onClick={onAttributeAdd}
+                onClick={onXAdd}
               />
             </div>
             <div className="flex flex-1 flex-col gap-y-4 overflow-auto pe-4">
@@ -258,19 +253,19 @@ function DecisionTreeTrainingSetEditor({
                   Dataset
                 </Heading>
                 <ul className="flex flex-col gap-2">
-                  {attributes.map((attribute, index) => (
+                  {xLabels.map((xLabel, index) => (
                     <li
                       key={index}
                       className="flex items-center justify-between"
                     >
                       <div className="font-mono text-xs flex gap-1 items-center flex-wrap">
-                        <pre className="-me-1">{attribute} = </pre>
-                        {attributeValues[attribute].map((attributeValue) => (
+                        <pre className="-me-1">{xLabel} = </pre>
+                        {xValuesByLabel[xLabel].map((xValue) => (
                           <span
-                            key={attributeValue}
+                            key={xValue}
                             className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
                           >
-                            {attributeValue}
+                            {xValue}
                           </span>
                         ))}
                       </div>
@@ -292,14 +287,14 @@ function DecisionTreeTrainingSetEditor({
                   ))}
                   <li className="border-t mt-2 pt-2">
                     <div className="font-mono text-xs flex items-center flex-wrap">
-                      <pre>Classifications = </pre>
+                      <pre>y = </pre>
                       <ul className="inline-flex gap-1">
-                        {classifications.map((classification) => (
+                        {yValues.map((yValue) => (
                           <li
-                            key={classification}
+                            key={yValue}
                             className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
                           >
-                            {classification}
+                            {yValue}
                           </li>
                         ))}
                       </ul>
@@ -308,7 +303,7 @@ function DecisionTreeTrainingSetEditor({
                 </ul>
               </div>
               <ul className="flex flex-col gap-y-4 border-t pt-4">
-                {examples.map((example, index) => (
+                {parsedData.map((example, index) => (
                   <li
                     key={index}
                     className="bg-surface-high border rounded p-2"
@@ -331,11 +326,11 @@ function DecisionTreeTrainingSetEditor({
                       />
                     </div>
                     <ul className="flex flex-col gap-y-2">
-                      {Object.entries(example.attributes).map(
-                        ([attribute, value]) => (
-                          <li key={attribute}>
+                      {Object.entries(example.xValues).map(
+                        ([xLabel, value]) => (
+                          <li key={xLabel}>
                             <div className="font-mono text-xs flex items-center flex-wrap">
-                              <pre>{attribute} = </pre>
+                              <pre>{xLabel} = </pre>
                               {value !== '' && (
                                 <span className="font-bold text-accent px-1 py-0.5 border border-accent rounded">
                                   {value}
@@ -347,10 +342,10 @@ function DecisionTreeTrainingSetEditor({
                       )}
                       <li className="border-t mt-2 pt-2">
                         <div className="font-mono text-xs flex items-center flex-wrap">
-                          <pre>Classification = </pre>
-                          {example.classification !== '' && (
+                          <pre>y = </pre>
+                          {example.yValue !== '' && (
                             <span className="font-bold text-accent px-1 py-0.5 border border-accent rounded">
-                              {example.classification}
+                              {example.yValue}
                             </span>
                           )}
                         </div>
@@ -379,7 +374,7 @@ function DecisionTreeTrainingSetEditor({
   );
 }
 
-export default function DecisionTreeTrainingSetEditorDialog({
+export default function TabularDatasetEditorDialog({
   open,
   onOpenChange,
   value,
@@ -404,7 +399,7 @@ export default function DecisionTreeTrainingSetEditorDialog({
 
   const initialData = useMemo(() => {
     try {
-      return decisionTreeTrainingSetState.shape.parse(JSON.parse(value));
+      return tabularDatasetState.shape.parse(JSON.parse(value));
     } catch {
       return initialTrainingSet;
     }
@@ -412,9 +407,9 @@ export default function DecisionTreeTrainingSetEditorDialog({
 
   return (
     <Dialog
-      title="Decision tree problem editor"
+      title="Tabular dataset editor"
       content={
-        <DecisionTreeTrainingSetEditor
+        <TabularDatasetEditor
           initialData={initialData}
           onSave={onTrainingSetSave}
           onCancel={onCancel}

@@ -1,5 +1,5 @@
 import { createAlgorithm, createState } from '@algo-sandbox/core';
-import { decisionTreeTrainingSetState } from '@algo-sandbox/problems/decision-trees';
+import { tabularDatasetState } from '@algo-sandbox/problems/tabular';
 import { nodeGraphVisualizerInput } from '@algo-sandbox/states';
 import { mapKeys, maxBy } from 'lodash';
 import { z } from 'zod';
@@ -39,8 +39,8 @@ const decisionTreeLearningState = createState(
   'Decision tree state',
   z.object({
     decisionTree: treeShape,
-    examples: decisionTreeTrainingSetState.shape.shape.examples,
-    attributes: decisionTreeTrainingSetState.shape.shape.attributes,
+    examples: tabularDatasetState.shape.shape.data,
+    attributes: tabularDatasetState.shape.shape.xLabels,
     defaultClassification: z.string(),
   }),
 );
@@ -142,10 +142,10 @@ function mode(array: Array<string>): string {
 
 const decisionTreeLearning = createAlgorithm({
   name: 'Decision tree learning',
-  accepts: decisionTreeTrainingSetState,
+  accepts: tabularDatasetState,
   outputs: decisionTreeLearningState,
   pseudocode,
-  createInitialState: ({ attributes, examples }) => {
+  createInitialState: ({ xLabels: attributes, data: examples }) => {
     return {
       decisionTree: {
         nodes: [],
@@ -157,7 +157,11 @@ const decisionTreeLearning = createAlgorithm({
       defaultClassification: 'unknown classification',
     };
   },
-  *runAlgorithm({ line, state, problemState: { attributes, examples } }) {
+  *runAlgorithm({
+    line,
+    state,
+    problemState: { xLabels: attributes, data: examples },
+  }) {
     type Attributes = typeof attributes;
     type Examples = typeof examples;
     // create frontier (priority queue based on cost)
@@ -169,12 +173,11 @@ const decisionTreeLearning = createAlgorithm({
     ): string {
       function entropy(examples: Examples): number {
         const classificationCounts = Array.from(
-          new Set(examples.map((example) => example.classification)),
+          new Set(examples.map((example) => example.yValue)),
         ).map(
           (classification) =>
-            examples.filter(
-              (example) => example.classification === classification,
-            ).length,
+            examples.filter((example) => example.yValue === classification)
+              .length,
         );
 
         const total = classificationCounts.reduce((acc, count) => acc + count);
@@ -191,12 +194,12 @@ const decisionTreeLearning = createAlgorithm({
         examples: Examples,
       ): number {
         const attributeValues = Array.from(
-          new Set(examples.map((example) => example.attributes[attribute])),
+          new Set(examples.map((example) => example.xValues[attribute])),
         );
 
         const newEntropy = attributeValues.reduce((acc, value) => {
           const examplesWithAttributeValue = examples.filter(
-            (example) => example.attributes[attribute] === value,
+            (example) => example.xValues[attribute] === value,
           );
 
           const weight = examplesWithAttributeValue.length / examples.length;
@@ -246,10 +249,8 @@ const decisionTreeLearning = createAlgorithm({
       }
 
       // If examples have the same classification, return classification
-      const classification = examples[0].classification;
-      if (
-        examples.every((example) => example.classification === classification)
-      ) {
+      const classification = examples[0].yValue;
+      if (examples.every((example) => example.yValue === classification)) {
         yield line(
           13,
           14,
@@ -264,7 +265,7 @@ const decisionTreeLearning = createAlgorithm({
       // If attributes is empty, return mode(examples)
       if (attributes.length === 0) {
         const modeClassification = mode(
-          examples.map((example) => example.classification),
+          examples.map((example) => example.yValue),
         );
 
         yield line(
@@ -282,12 +283,12 @@ const decisionTreeLearning = createAlgorithm({
       const bestAttribute = chooseAttribute(attributes, examples);
       const tree = createTreeWithRoot(bestAttribute);
       const bestAttributeValues = Array.from(
-        new Set(examples.map((example) => example.attributes[bestAttribute])),
+        new Set(examples.map((example) => example.xValues[bestAttribute])),
       );
 
       const subTrees = bestAttributeValues.map((v_i) => {
         const examplesWithAttributeValue = examples.filter(
-          (example) => example.attributes[bestAttribute] === v_i,
+          (example) => example.xValues[bestAttribute] === v_i,
         );
 
         return {
@@ -295,7 +296,7 @@ const decisionTreeLearning = createAlgorithm({
           examples: examplesWithAttributeValue,
           attributes: attributes.filter((a) => a !== bestAttribute),
           defaultClassification: mode(
-            examples.map((example) => example.classification),
+            examples.map((example) => example.yValue),
           ),
         };
       });

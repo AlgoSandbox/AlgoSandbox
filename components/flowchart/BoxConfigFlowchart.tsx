@@ -1,5 +1,6 @@
 import 'reactflow/dist/style.css';
 
+import { BoxConfigTree } from '@algo-sandbox/core';
 import { ErrorEntry } from '@app/errors';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import CatalogSelect from '@components/box-page/CatalogSelect';
@@ -28,6 +29,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import ReactFlow, {
   applyEdgeChanges,
   applyNodeChanges,
@@ -47,6 +49,7 @@ import ReactFlow, {
   useNodeId,
   useStore,
 } from 'reactflow';
+import { toast } from 'sonner';
 import { SomeZodObject, ZodError } from 'zod';
 
 import { useBoxContext, useBoxControlsContext } from '../box-page';
@@ -635,14 +638,14 @@ export default function AlgorithmVisualizerFlowchart({
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
   const problem = useBoxContext('problem.instance');
-  const { reset, isBoxDirty } = useBoxContext();
+  const { reset: resetRaw, isBoxDirty } = useBoxContext();
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
   const { setFlowchartMode, flowchartMode } = useUserPreferences();
   const { isExecuting } = useBoxControlsContext();
 
   const configEvaluated = useBoxContext('config.evaluated');
 
-  const setConfig = useBoxContext('config.set');
+  const setConfigRaw = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
   const componentNames = useBoxContext('componentNames');
   const setComponentNames = useBoxContext('setComponentNames');
@@ -656,6 +659,44 @@ export default function AlgorithmVisualizerFlowchart({
   const componentOptions = useMemo(() => {
     return groupOptionsByTag([...visualizerOptions, ...adapterOptions]);
   }, [visualizerOptions, adapterOptions]);
+
+  const [configUndoStack, setConfigUndoStack] = useState<BoxConfigTree[]>([]);
+
+  const setConfig = useCallback(
+    (value: BoxConfigTree) => {
+      setConfigRaw(value);
+      setConfigUndoStack((prev) => [...prev, configTree]);
+    },
+    [configTree, setConfigRaw],
+  );
+
+  const reset = useCallback(() => {
+    resetRaw();
+    setConfigUndoStack((prev) => [...prev, configTree]);
+  }, [configTree, resetRaw]);
+
+  const undo = useCallback(() => {
+    if (configUndoStack.length === 0) {
+      toast.error('Nothing to undo');
+      return;
+    }
+
+    const currentConfig = configTree;
+    const newStack = [...configUndoStack];
+    const newConfig = newStack.pop();
+    setConfig(newConfig!);
+    setConfigUndoStack(newStack);
+
+    toast.info('Undo successful', {
+      action: {
+        label: 'Redo',
+        onClick: () => {
+          setConfig(currentConfig);
+          setConfigUndoStack(configUndoStack);
+        },
+      },
+    });
+  }, [configTree, configUndoStack, setConfig]);
 
   useEffect(() => {
     const newTabName = 'Config';
@@ -1107,6 +1148,15 @@ export default function AlgorithmVisualizerFlowchart({
       });
     },
     [configTree, setConfig],
+  );
+
+  useHotkeys(
+    'meta+z',
+    (e) => {
+      e.preventDefault();
+      undo();
+    },
+    [undo],
   );
 
   return (

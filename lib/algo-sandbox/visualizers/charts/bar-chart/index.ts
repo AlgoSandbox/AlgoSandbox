@@ -50,9 +50,7 @@ const barChart = createVisualizer<
       return new Chart(canvas, {
         type: 'bar',
         options: {
-          animation: {
-            duration: 200,
-          },
+          animation: false,
           plugins: {
             legend: {
               display: false,

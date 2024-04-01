@@ -365,6 +365,7 @@ export default function BoxExecutionPage() {
                   hideLabel
                   variant="filled"
                   onClick={onPrevTileClick}
+                  disabled={visualizerOrder.length <= 1}
                   icon={<MaterialSymbol icon="arrow_back" />}
                 />
                 <Select
@@ -386,6 +387,7 @@ export default function BoxExecutionPage() {
                   hideLabel
                   variant="filled"
                   onClick={onNextTileClick}
+                  disabled={visualizerOrder.length <= 1}
                   icon={<MaterialSymbol icon="arrow_forward" />}
                 />
               </div>

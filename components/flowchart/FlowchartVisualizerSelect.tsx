@@ -28,8 +28,6 @@ export default function FlowchartVisualizerSelect({
   const { visualizerOptions } = useSandboxComponents();
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
-  const setConfig = useBoxContext('config.set');
-  const configTree = useBoxContext('config.tree');
 
   const { key: visualizerKey, parameters } = parseKeyWithParameters(
     aliases[alias],
@@ -52,20 +50,11 @@ export default function FlowchartVisualizerSelect({
         alias,
         parameters
           ? {
-              key: visualizerKey,
+              key,
               parameters,
             }
-          : visualizerKey,
+          : key,
       );
-      setConfig({
-        adapters: configTree.adapters,
-        composition: {
-          ...configTree.composition,
-          connections: configTree.composition.connections.filter(
-            ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-          ),
-        },
-      });
     },
     parameters: parameters ?? null,
   });

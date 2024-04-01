@@ -2,8 +2,10 @@ import { ComponentTag } from '@algo-sandbox/core';
 import { SandboxBoxNamed } from '@app/playground/PlaygroundLayout';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
+import convertBoxConfigToTree from '@utils/convertBoxConfigToTree';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { Get, RecursivePath } from '@utils/RecursivePath';
+import { produce } from 'immer';
 import _, { mapValues } from 'lodash';
 import {
   createContext,
@@ -80,7 +82,6 @@ const BoxContext = createContext<BoxContextType>({
     setAlias: () => {},
     removeAlias: () => {},
     defaultParameters: {},
-    reset: () => {},
   },
   hiddenVisualizerAliases: new Set(),
   setHiddenVisualizerAliases: () => {},
@@ -232,23 +233,33 @@ export default function BoxContextProvider({
       options: visualizerOptions,
       defaultAliases: defaultAliases,
       defaultOrder: defaultOrder,
-      onAliasesChange: (aliases) => {
-        onBoxUpdate((box) => ({
-          ...box,
-          visualizers: {
-            order: box?.visualizers?.order ?? [],
-            aliases,
-          },
-        }));
-      },
-      onOrderChange: (order) => {
-        onBoxUpdate((box) => ({
-          ...box,
-          visualizers: {
-            aliases: box?.visualizers?.aliases ?? {},
-            order,
-          },
-        }));
+      onChange: ({ aliases, order }) => {
+        onBoxUpdate((box) => {
+          const newBox = produce(box, (draft) => {
+            draft.visualizers.aliases = aliases;
+            draft.visualizers.order = order;
+
+            const boxConfig = draft.config;
+
+            if (!boxConfig) {
+              return;
+            }
+
+            const visualizerAliases = Object.keys(aliases);
+            const boxConfigTree = convertBoxConfigToTree(
+              boxConfig,
+              visualizerAliases,
+            );
+            boxConfigTree.composition.connections =
+              boxConfigTree.composition.connections.filter(
+                ({ fromKey, toKey }) => !aliases[fromKey] && !aliases[toKey],
+              );
+
+            draft.config = boxConfigTree;
+          });
+
+          return { ...newBox };
+        });
       },
     };
 

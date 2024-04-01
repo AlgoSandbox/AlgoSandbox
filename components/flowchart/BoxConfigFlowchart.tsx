@@ -89,7 +89,7 @@ type FlowNodeProps = NodeProps<FlowNodeData>;
 type FlowNode = Node<FlowNodeProps['data']>;
 
 function getNodeHeight({ slotCount }: { slotCount: number }) {
-  return 160 + slotCount * 32;
+  return 160 + slotCount * 90;
 }
 
 type FlowNodeSlotSide = 'start' | 'end';
@@ -157,7 +157,9 @@ function FlowNodeSlot({
         type={side === 'start' ? 'target' : 'source'}
         position={side === 'start' ? Position.Left : Position.Right}
         id={id}
-        isConnectable={(!isConnected || isMainSlot) && flowchartMode === 'full'}
+        isConnectable={
+          (!isConnected || side === 'end') && flowchartMode === 'full'
+        }
       />
       <div
         className={clsx(
@@ -747,15 +749,6 @@ export default function AlgorithmVisualizerFlowchart({
         });
       } else if (type === 'visualizer') {
         visualizers.removeAlias(alias);
-        setConfig({
-          adapters: configTree.adapters,
-          composition: {
-            ...configTree.composition,
-            connections: configTree.composition.connections.filter(
-              ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-            ),
-          },
-        });
       }
     },
     [configTree.adapters, configTree.composition, setConfig, visualizers],

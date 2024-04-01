@@ -1,5 +1,9 @@
 import { SandboxObjectType } from '@algo-sandbox/components';
-import { getDefaultParameters, SandboxParameters } from '@algo-sandbox/core';
+import {
+  ComponentTag,
+  getDefaultParameters,
+  SandboxParameters,
+} from '@algo-sandbox/core';
 import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import MarkdownPreview from '@components/common/MarkdownPreview';
 import {
@@ -78,6 +82,10 @@ function ListItem<T>({
       />
     </Tooltip>
   );
+}
+
+function getTags<T extends SandboxObjectType>(object: DbSandboxObjectSaved<T>) {
+  return getSandboxObjectConfig(object).tags;
 }
 
 export default function CatalogSelect<T extends SandboxObjectType>({
@@ -188,6 +196,59 @@ export default function CatalogSelect<T extends SandboxObjectType>({
     }
   }, [open]);
 
+  const optionsWithTags = useMemo(() => {
+    return options.map((item) => {
+      if (isSelectGroup(item)) {
+        return {
+          ...item,
+          options: item.options.map((option) => ({
+            ...option,
+            tags: getTags(option.value),
+          })),
+        };
+      }
+
+      return {
+        ...item,
+        tags: getTags(item.value),
+      };
+    });
+  }, [options]);
+
+  const filteredOptions = useMemo(() => {
+    if (query === '') {
+      return optionsWithTags;
+    }
+
+    const queryTokens = query.split(' ');
+
+    const itemMatchesQuery = (item: {
+      label: string;
+      tags: Array<ComponentTag>;
+    }) => {
+      return queryTokens.every(
+        (token) =>
+          item.label.toLocaleLowerCase().includes(token.toLocaleLowerCase()) ||
+          item.tags.some((tag) =>
+            tag.toLocaleLowerCase().includes(token.toLocaleLowerCase()),
+          ),
+      );
+    };
+
+    return optionsWithTags
+      .map((item) => {
+        if (isSelectGroup(item)) {
+          return {
+            ...item,
+            options: item.options.filter((item) => itemMatchesQuery(item)),
+          };
+        }
+        return item;
+      })
+      .filter((item) => isSelectGroup(item) || itemMatchesQuery(item))
+      .filter((item) => !isSelectGroup(item) || item.options.length > 0);
+  }, [optionsWithTags, query]);
+
   return (
     <Popover
       open={open}
@@ -211,87 +272,58 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               onChange={handleQueryChange}
             />
             <div className="flex flex-col p-4 overflow-y-auto">
-              {options
-                .map((item) => {
-                  if (isSelectGroup(item)) {
-                    return {
-                      ...item,
-                      options: item.options.filter(
-                        (item) =>
-                          query === '' ||
-                          item.label
-                            .toLocaleLowerCase()
-                            .includes(query.toLocaleLowerCase()),
-                      ),
-                    };
-                  }
-                  return item;
-                })
-                .filter(
-                  (item) =>
-                    query === '' ||
-                    item.label
-                      .toLocaleLowerCase()
-                      .includes(query.toLocaleLowerCase()) ||
-                    isSelectGroup(item),
-                )
-                .filter(
-                  (item) => !isSelectGroup(item) || item.options.length > 0,
-                )
-                .map((item) => {
-                  if (isSelectGroup(item)) {
-                    const areAllItemsDisabled = item.options.every(
-                      (option) => option.disabled,
-                    );
+              {filteredOptions.map((item) => {
+                if (isSelectGroup(item)) {
+                  const areAllItemsDisabled = item.options.every(
+                    (option) => option.disabled,
+                  );
 
-                    return (
-                      <Fragment key={item.key}>
-                        <div className="flex items-center pt-4 text-sm border-t">
-                          <Chip disabled={areAllItemsDisabled}>
-                            {item.label}
-                          </Chip>
-                        </div>
-                        {item.options.map((option) => (
-                          <ListItem
-                            selected={option.key === selectedOption?.key}
-                            active={option.key === selectedOption?.key}
-                            disabled={option.disabled}
-                            key={`${item.key}.${option.key}`}
-                            tooltip={option.tooltip}
-                            option={option}
-                            onClick={() => {
-                              setSelectedOption?.(option);
-                              setShowItemDetails(true);
-                            }}
-                            onDoubleClick={() => {
-                              onChange?.(option, null);
-                              setOpen(false);
-                            }}
-                          />
-                        ))}
-                      </Fragment>
-                    );
-                  } else {
-                    return (
-                      <ListItem
-                        selected={item.key === selectedOption?.key}
-                        active={item.key === selectedOption?.key}
-                        disabled={item.disabled}
-                        key={item.key}
-                        tooltip={item.tooltip}
-                        option={item}
-                        onClick={() => {
-                          setSelectedOption?.(item);
-                          setShowItemDetails(true);
-                        }}
-                        onDoubleClick={() => {
-                          onChange?.(item, null);
-                          setOpen(false);
-                        }}
-                      />
-                    );
-                  }
-                })}
+                  return (
+                    <Fragment key={item.key}>
+                      <div className="flex items-center pt-4 text-sm border-t">
+                        <Chip disabled={areAllItemsDisabled}>{item.label}</Chip>
+                      </div>
+                      {item.options.map((option) => (
+                        <ListItem
+                          selected={option.key === selectedOption?.key}
+                          active={option.key === selectedOption?.key}
+                          disabled={option.disabled}
+                          key={`${item.key}.${option.key}`}
+                          tooltip={option.tooltip}
+                          option={option}
+                          onClick={() => {
+                            setSelectedOption?.(option);
+                            setShowItemDetails(true);
+                          }}
+                          onDoubleClick={() => {
+                            onChange?.(option, null);
+                            setOpen(false);
+                          }}
+                        />
+                      ))}
+                    </Fragment>
+                  );
+                } else {
+                  return (
+                    <ListItem
+                      selected={item.key === selectedOption?.key}
+                      active={item.key === selectedOption?.key}
+                      disabled={item.disabled}
+                      key={item.key}
+                      tooltip={item.tooltip}
+                      option={item}
+                      onClick={() => {
+                        setSelectedOption?.(item);
+                        setShowItemDetails(true);
+                      }}
+                      onDoubleClick={() => {
+                        onChange?.(item, null);
+                        setOpen(false);
+                      }}
+                    />
+                  );
+                }
+              })}
             </div>
           </div>
           {selectedOption !== undefined && (showItemDetails || isMd) && (

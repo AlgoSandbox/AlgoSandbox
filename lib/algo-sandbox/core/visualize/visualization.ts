@@ -1,4 +1,4 @@
-type SandboxVisualizationContext<V> = {
+export type SandboxVisualizationContext<V> = {
   element: HTMLElement;
   width: number;
   height: number;

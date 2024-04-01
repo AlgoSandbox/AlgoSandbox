@@ -97,6 +97,7 @@ function getMarkdownTitle(markdown: string) {
 const algorithmGroupToFolderGlob = {
   Search: 'lib/algo-sandbox/algorithms/search',
   'Decision trees': 'lib/algo-sandbox/algorithms/decision-trees',
+  Sorting: 'lib/algo-sandbox/algorithms/sorting',
 };
 
 const problemGroupToFolderGlob = {
@@ -105,12 +106,14 @@ const problemGroupToFolderGlob = {
   Grid: 'lib/algo-sandbox/problems/grid',
   Tabular: 'lib/algo-sandbox/problems/tabular',
   'Weighted graphs': 'lib/algo-sandbox/problems/weighted-graphs',
+  Arrays: 'lib/algo-sandbox/problems/arrays',
 };
 
 const visualizerGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/visualizers/graphs',
   Primitives: 'lib/algo-sandbox/visualizers/primitives',
   Grid: 'lib/algo-sandbox/visualizers/grid',
+  Charts: 'lib/algo-sandbox/visualizers/charts',
 };
 
 const adapterGroupToFolderGlob = {
@@ -121,6 +124,7 @@ const adapterGroupToFolderGlob = {
 const boxGroupToFolderGlob = {
   Environment: 'lib/algo-sandbox/boxes/environment',
   'Decision trees': 'lib/algo-sandbox/boxes/decision-trees',
+  Sorting: 'lib/algo-sandbox/boxes/sorting',
 };
 
 function readSandboxObjectGroup<T extends DbSandboxObjectType>(

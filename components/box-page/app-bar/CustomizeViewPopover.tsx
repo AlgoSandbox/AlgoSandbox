@@ -6,10 +6,18 @@ import { useBoxContext } from '..';
 
 export default function CustomizeViewPopover() {
   const visualizerInstances = useBoxContext('visualizers.instances');
+  const componentNames = useBoxContext('componentNames');
   const getVisualizerName = (alias: string) => {
+    const componentName = componentNames[alias];
+    if (componentName) {
+      return componentName;
+    }
+
+    const visualizer = visualizerInstances[alias];
+
     return (
-      visualizerInstances[alias]
-        ?.map(({ value: visualizer }) => `${visualizer.name} (${alias})`)
+      visualizer
+        ?.map(({ value }) => `${value.name} (${alias})`)
         .unwrapOr(alias) ?? alias
     );
   };
@@ -55,10 +63,10 @@ export default function CustomizeViewPopover() {
       }
     >
       <Button
-        label="Customize view"
+        label="Show/hide windows"
         variant="filled"
         hideLabel
-        icon={<MaterialSymbol icon="dashboard_customize" />}
+        icon={<MaterialSymbol icon="select_window" />}
       />
     </Popover>
   );

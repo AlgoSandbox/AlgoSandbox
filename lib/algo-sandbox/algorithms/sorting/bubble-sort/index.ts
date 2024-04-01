@@ -29,7 +29,7 @@ const bubbleSort = createAlgorithm({
   createInitialState: ({ array }) => {
     return {
       array,
-      states: {},
+      states: array.map(() => 'unsorted' as const),
       swapped: false,
     };
   },
@@ -41,6 +41,13 @@ const bubbleSort = createAlgorithm({
       state.swapped = false;
 
       for (let i = 0; i < state.array.length - 1; i++) {
+        for (let j = 0; j < state.array.length; j++) {
+          state.states[j] = 'unsorted';
+        }
+
+        state.states[i] = 'current';
+        state.states[i + 1] = 'comparing';
+
         yield line(4, `Comparing ${state.array[i]} and ${state.array[i + 1]}`);
 
         if (state.array[i] > state.array[i + 1]) {
@@ -55,6 +62,9 @@ const bubbleSort = createAlgorithm({
       }
 
       if (!state.swapped) {
+        for (let i = 0; i < state.array.length; i++) {
+          state.states[i] = 'sorted';
+        }
         yield line(7, `Swapped = ${state.swapped}, break the loop`);
         break;
       }

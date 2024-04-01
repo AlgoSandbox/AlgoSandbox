@@ -119,6 +119,7 @@ const visualizerGroupToFolderGlob = {
 const adapterGroupToFolderGlob = {
   Environment: 'lib/algo-sandbox/adapters/environment',
   Tools: 'lib/algo-sandbox/adapters/utils',
+  Sorting: 'lib/algo-sandbox/adapters/sorting',
 };
 
 const boxGroupToFolderGlob = {

@@ -8,13 +8,17 @@ export const sortingAlgorithmInputState = createState(
   }),
 );
 
+export const sortingState = z.enum([
+  'unsorted',
+  'sorted',
+  'current',
+  'comparing',
+]);
+
 export const sortingAlgorithmState = createState(
   'Sorting algorithm state',
   z.object({
     array: z.array(z.number()),
-    states: z.record(
-      z.number(),
-      z.enum(['unsorted', 'sorted', 'current', 'comparing']),
-    ),
+    states: z.array(sortingState),
   }),
 );

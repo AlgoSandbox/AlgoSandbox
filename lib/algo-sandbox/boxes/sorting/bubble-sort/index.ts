@@ -11,7 +11,7 @@ const bubbleSort: SandboxBox = {
     order: ['visualizer-0'],
   },
   config: {
-    adapters: {},
+    adapters: { 'adapter-0': 'adapter.sorting.sortingStateToColor' },
     composition: {
       type: 'tree',
       connections: [
@@ -21,6 +21,18 @@ const bubbleSort: SandboxBox = {
           fromSlot: 'array',
           toKey: 'visualizer-0',
           toSlot: 'array',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'states',
+          toKey: 'adapter-0',
+          toSlot: 'sortingStates',
+        },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'backgroundColors',
+          toKey: 'visualizer-0',
+          toSlot: 'backgroundColors',
         },
       ],
     },

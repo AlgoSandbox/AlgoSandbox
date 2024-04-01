@@ -6,6 +6,7 @@ const arrayType = {
   name: 'array',
   shape: z.object({
     array: z.array(z.number()),
+    backgroundColors: z.array(z.string()).optional(),
   }),
 } satisfies SandboxStateType;
 
@@ -19,7 +20,11 @@ const barChart = createVisualizer<
 >({
   name: 'Array 1D',
   accepts: arrayType,
-  onUpdate: ({ state: { array }, previousVisualizerState, element }) => {
+  onUpdate: ({
+    state: { array, backgroundColors },
+    previousVisualizerState,
+    element,
+  }) => {
     const canvas = (() => {
       if (previousVisualizerState) {
         return previousVisualizerState.canvas;
@@ -36,6 +41,8 @@ const barChart = createVisualizer<
           number.toString(),
         );
         previousVisualizerState.chart.data.datasets[0].data = array;
+        previousVisualizerState.chart.data.datasets[0].backgroundColor =
+          backgroundColors;
         previousVisualizerState.chart.update();
         return previousVisualizerState.chart;
       }
@@ -43,7 +50,9 @@ const barChart = createVisualizer<
       return new Chart(canvas, {
         type: 'bar',
         options: {
-          animation: false,
+          animation: {
+            duration: 200,
+          },
           plugins: {
             legend: {
               display: false,
@@ -58,6 +67,7 @@ const barChart = createVisualizer<
           datasets: [
             {
               data: array,
+              backgroundColor: backgroundColors,
             },
           ],
         },

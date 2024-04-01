@@ -6,7 +6,7 @@ import {
 import random from 'random';
 import { z } from 'zod';
 
-const general = createParameterizedProblem({
+const randomArray = createParameterizedProblem({
   name: 'Random array generator',
   type: createState('Array', z.object({ array: z.array(z.number()) })),
   parameters: {
@@ -32,4 +32,4 @@ const general = createParameterizedProblem({
   },
 });
 
-export default general;
+export default randomArray;

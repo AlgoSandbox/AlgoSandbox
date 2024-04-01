@@ -18,7 +18,7 @@ const barChart = createVisualizer<
     chart: Chart<'bar'>;
   }
 >({
-  name: 'Array 1D',
+  name: 'Bar chart',
   accepts: arrayType,
   onUpdate: ({
     state: { array, backgroundColors },

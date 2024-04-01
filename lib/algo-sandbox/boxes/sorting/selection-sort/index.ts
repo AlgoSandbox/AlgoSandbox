@@ -5,7 +5,7 @@ const box: SandboxBox = {
     key: 'problem.arrays.randomArray',
     parameters: { minValue: 0, maxValue: 100, length: 10, seed: '' },
   },
-  algorithm: 'algorithm.sorting.bubbleSort',
+  algorithm: 'algorithm.sorting.selectionSort',
   visualizers: {
     aliases: { 'visualizer-0': 'visualizer.charts.barChart' },
     order: ['visualizer-0'],

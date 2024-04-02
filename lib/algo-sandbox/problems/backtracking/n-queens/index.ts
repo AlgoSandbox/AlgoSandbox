@@ -3,6 +3,7 @@ import {
   createState,
   SandboxParam,
 } from '@algo-sandbox/core';
+import { SVG } from '@svgdotjs/svg.js';
 import { z } from 'zod';
 
 const nQueensState = createState(
@@ -85,7 +86,7 @@ const nQueensEnvironmentParameterized = createParameterizedEnvironment({
   },
   render: () => {
     // TODO: Render n queens board
-    return 'Render logic not implemented yet';
+    return SVG().rect(100, 100).fill('red');
   },
 });
 

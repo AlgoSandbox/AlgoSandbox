@@ -8,6 +8,7 @@ import {
   SandboxState,
   SandboxStateType,
 } from '@algo-sandbox/core';
+import type { Dom } from '@svgdotjs/svg.js';
 import { UnknownKeysParam, z, ZodObject, ZodRawShape, ZodTypeAny } from 'zod';
 
 export type SandboxParameterizedEnvironment<
@@ -66,10 +67,7 @@ export function createParameterizedEnvironment<
     state: SandboxState<T>,
     parameters: ParsedParameters<P>,
   ) => Array<Actions[number]>;
-  render: (
-    state: SandboxState<T>,
-    parameters: ParsedParameters<P>,
-  ) => React.ReactNode;
+  render: (state: SandboxState<T>, parameters: ParsedParameters<P>) => Dom;
 }): SandboxParameterizedEnvironment<T, Actions[number], P> {
   return {
     name,

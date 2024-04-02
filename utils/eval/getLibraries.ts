@@ -13,6 +13,7 @@ export default function getLibraries() {
     '@algo-sandbox/core': core,
     '@algo-sandbox/problems': problems,
     '@algo-sandbox/states': states,
+    '@svgdotjs/svg.js': {},
     lodash: lodash,
     zod: zod,
   };

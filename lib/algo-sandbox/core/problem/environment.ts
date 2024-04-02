@@ -3,6 +3,7 @@ import {
   SandboxState,
   SandboxStateType,
 } from '@algo-sandbox/core';
+import type { Dom } from '@svgdotjs/svg.js';
 import { UnknownKeysParam, z, ZodObject, ZodRawShape, ZodTypeAny } from 'zod';
 
 export type SandboxEnvironmentState<State, Action> = {
@@ -19,7 +20,7 @@ export type SandboxEnvironmentState<State, Action> = {
     info: Record<string, unknown>;
   };
   actions: (state: State) => Array<Action>;
-  render: (state: State) => React.ReactNode;
+  render: (state: State) => Dom;
 };
 
 export type SandboxEnvironment<
@@ -64,7 +65,7 @@ export function createEnvironment<
     info: Record<string, unknown>;
   };
   actions: (state: SandboxState<T>) => Array<Actions[number]>;
-  render: (state: SandboxState<T>) => React.ReactNode;
+  render: (state: SandboxState<T>) => Dom;
 }): SandboxEnvironment<T, Actions[number]> {
   return {
     name,

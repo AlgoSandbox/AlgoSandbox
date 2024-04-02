@@ -134,7 +134,6 @@ export const defaultBoxContextSandboxObject: BoxContextSandboxObject<any> = {
   parameters: {
     default: {},
     value: {},
-    setValue: () => {},
   },
   select: {
     value: null,
@@ -149,11 +148,13 @@ export type BoxContextSandboxObject<T extends keyof SandboxObjectTypeMap> = {
   parameters: {
     default: ParsedParameters<SandboxParameters> | null;
     value: ParsedParameters<SandboxParameters> | null;
-    setValue: (value: ParsedParameters<SandboxParameters> | null) => void;
   };
   select: {
     value: CatalogOption<DbSandboxObjectSaved<T>> | null;
-    setValue: (value: CatalogOption<DbSandboxObjectSaved<T>> | null) => void;
+    setValue: (
+      value: CatalogOption<DbSandboxObjectSaved<T>> | null,
+      parameters: ParsedParameters<SandboxParameters> | null,
+    ) => void;
     options: CatalogOptions<DbSandboxObjectSaved<T>>;
   };
 };
@@ -164,14 +165,16 @@ export function useBoxContextSandboxObject<
   options,
   type,
   key: selectedOptionKey,
-  onKeyChange,
+  onChange,
   parameters,
-  onParametersChange,
 }: {
   type: T;
   key: SandboxKey<T> | null;
   parameters: Record<string, unknown> | null;
-  onParametersChange: (parameters: Record<string, unknown> | null) => void;
+  onChange: (
+    key: SandboxKey<T> | null,
+    parameters: Record<string, unknown> | null,
+  ) => void;
   options: Array<CatalogOption<DbSandboxObjectSaved<T>>>;
   addSavedObjectMutation: UseMutationResult<DbObject<T>, unknown, DbObject<T>>;
   setSavedObjectMutation: UseMutationResult<
@@ -185,7 +188,6 @@ export function useBoxContextSandboxObject<
     DbSandboxObjectSaved<T>
   >;
   savedObjects: Array<DbSandboxObjectSaved<T>> | undefined;
-  onKeyChange: (key: SandboxKey<T> | null) => void;
 }) {
   const groupedOptions = useMemo(() => {
     return groupOptionsByTag(options, { omitTags: [type] });
@@ -293,12 +295,14 @@ export function useBoxContextSandboxObject<
       parameters: {
         default: defaultParameters,
         value: parameters,
-        setValue: onParametersChange,
       },
       select: {
         value: selectedOptionObject,
-        setValue: (option) => {
-          onKeyChange((option?.value.key ?? null) as SandboxKey<T> | null);
+        setValue: (option, parameters) => {
+          onChange(
+            (option?.value.key ?? null) as SandboxKey<T> | null,
+            parameters,
+          );
         },
         options: groupedOptions,
       },
@@ -308,10 +312,9 @@ export function useBoxContextSandboxObject<
     evaluation,
     defaultParameters,
     parameters,
-    onParametersChange,
     selectedOptionObject,
     groupedOptions,
-    onKeyChange,
+    onChange,
   ]);
 
   return object;

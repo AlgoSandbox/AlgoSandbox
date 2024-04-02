@@ -3,6 +3,7 @@ import { useBoxContext } from '@components/box-page';
 import { Instance } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
 import { isEqual } from 'lodash';
@@ -25,11 +26,9 @@ export default function FlowchartAdapterSelect({
   }, [adapterOptions]);
   const setConfig = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
-  const {
-    default: defaultAll,
-    setValue: setParameters,
-    value: parametersAll,
-  } = useBoxContext('config.evaluated.parameters');
+  const { default: defaultAll, value: parametersAll } = useBoxContext(
+    'config.evaluated.parameters',
+  );
   const evaluatedAdapters = useBoxContext('config.evaluated.adapters');
 
   const defaultParameters = useMemo(
@@ -60,14 +59,15 @@ export default function FlowchartAdapterSelect({
   const filter = useCallback(
     (instance: Instance<'adapter'>, otherInstance: Instance<'adapter'>) => {
       return (
-        isEqual(
+        (isEqual(
           Object.keys(instance.accepts.shape.shape),
           Object.keys(otherInstance.accepts.shape.shape),
         ) &&
-        isEqual(
-          Object.keys(instance.outputs.shape.shape),
-          Object.keys(otherInstance.outputs.shape.shape),
-        )
+          isEqual(
+            Object.keys(instance.outputs.shape.shape),
+            Object.keys(otherInstance.outputs.shape.shape),
+          )) ||
+        errorFlowchartIncompatibleComponent
       );
     },
     [],
@@ -107,9 +107,6 @@ export default function FlowchartAdapterSelect({
       options={filteredOptions}
       evaluatedValue={adapterEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={(params) => {
-        setParameters(alias, params);
-      }}
       parameters={parameters}
     />
   );

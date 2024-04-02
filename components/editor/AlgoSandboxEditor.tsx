@@ -3,7 +3,7 @@ import { useQueries } from '@tanstack/react-query';
 import getImportNames from '@utils/npm-fetcher/getImportNames';
 import getTypeDefinitionsWithWorker from '@utils/npm-fetcher/getTypeDefinitionsWithWorker';
 import * as EsModuleLexer from 'es-module-lexer';
-import { compact, debounce } from 'lodash';
+import { compact, throttle } from 'lodash';
 import { useTheme } from 'next-themes';
 import _path from 'path';
 import { useEffect, useMemo, useState } from 'react';
@@ -41,9 +41,9 @@ export default function AlgoSandboxEditor({
   const [internalValue, setInternalValue] = useState(value ?? '');
 
   const onValueChange = useMemo(() => {
-    return debounce((value: string) => {
+    return throttle((value: string) => {
       setInternalValue(value);
-    }, 1000);
+    }, 2000);
   }, []);
 
   useEffect(() => {

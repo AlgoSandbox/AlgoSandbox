@@ -1,5 +1,10 @@
 import { SandboxObjectType } from '@algo-sandbox/components';
-import { getDefaultParameters, SandboxParameters } from '@algo-sandbox/core';
+import {
+  ComponentTag,
+  getDefaultParameters,
+  SandboxParameters,
+} from '@algo-sandbox/core';
+import { VisualizationRenderer } from '@algo-sandbox/react-components';
 import MarkdownPreview from '@components/common/MarkdownPreview';
 import {
   Button,
@@ -18,14 +23,14 @@ import { useDeleteObjectMutation } from '@utils/db/objects';
 import evalSavedObject from '@utils/eval/evalSavedObject';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
 import getSandboxObjectWriteup from '@utils/getSandboxObjectWriteup';
+import { useBreakpoint } from '@utils/useBreakpoint';
+import usePreviewVisualization from '@utils/usePreviewVisualization';
 import clsx from 'clsx';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { ParameterControls } from '.';
-
-// TODO: Restore preview
 
 export type CatalogSelectProps<
   T extends SandboxObjectType,
@@ -54,6 +59,7 @@ function ListItem<T>({
   onClick,
   onDoubleClick,
   disabled,
+  tooltip,
 }: {
   option: CatalogOption<T>;
   onClick?: () => void;
@@ -61,18 +67,25 @@ function ListItem<T>({
   active: boolean;
   selected: boolean;
   disabled?: boolean;
+  tooltip?: string;
 }) {
   return (
-    <Button
-      className={active ? 'font-semibold' : ''}
-      label={option.label}
-      selected={selected}
-      role="checkbox"
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-      disabled={disabled}
-    />
+    <Tooltip content={tooltip} disabled={tooltip === undefined} zIndex={200}>
+      <Button
+        className={active ? 'font-semibold' : ''}
+        label={option.label}
+        selected={selected}
+        role="checkbox"
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+        disabled={disabled}
+      />
+    </Tooltip>
   );
+}
+
+function getTags<T extends SandboxObjectType>(object: DbSandboxObjectSaved<T>) {
+  return getSandboxObjectConfig(object).tags;
 }
 
 export default function CatalogSelect<T extends SandboxObjectType>({
@@ -86,9 +99,11 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   value,
   onChange,
   errorMessage,
-  showParameters = false, // showPreview = true,
+  showParameters = false,
+  showPreview = true,
 }: CatalogSelectProps<T>) {
   const [selectedOption, setSelectedOption] = useState(value);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setSelectedOption(value);
@@ -114,9 +129,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
   }, [selectedOption]);
 
   const { mutateAsync: deleteObject } = useDeleteObjectMutation<T>();
-  // const builtInComponents = useBuiltInComponents();
   const [query, setQuery] = useState('');
-  // const [stepIndex, setStepIndex] = useState(0);
 
   const objectInstance = useMemo(() => {
     if (selectedOption === undefined) {
@@ -156,125 +169,19 @@ export default function CatalogSelect<T extends SandboxObjectType>({
     reset(defaultObjectParameters ?? {});
   }, [defaultObjectParameters, reset]);
 
-  // const { executionTrace, visualizerInstance } =
-  //   useMemo(() => {
-  //     if (selectedOption === null) {
-  //       return;
-  //     }
+  const selectedObject = useMemo(
+    () => selectedOption?.value ?? null,
+    [selectedOption?.value],
+  );
 
-  //     if (!showPreview) {
-  //       return;
-  //     }
+  const visualization = usePreviewVisualization(selectedObject, {
+    enabled: open && showPreview,
+  });
 
-  //     const {
-  //       value: { files },
-  //     } = selectedOption;
+  // For mobile
+  const [showItemDetails, setShowItemDetails] = useState(false);
 
-  //     if (!files) {
-  //       return;
-  //     }
-
-  //     const defaultBoxFilePath = Object.keys(files).find((path) =>
-  //       path.includes('default-box.ts'),
-  //     );
-
-  //     if (defaultBoxFilePath === undefined || !(defaultBoxFilePath in files)) {
-  //       return;
-  //     }
-
-  //     const defaultBoxCode = files[defaultBoxFilePath];
-
-  //     if (defaultBoxCode === undefined) {
-  //       return;
-  //     }
-
-  //     const defaultBox = evalWithAlgoSandbox(defaultBoxCode, {
-  //       files,
-  //       currentFilePath: defaultBoxFilePath,
-  //     }) as SandboxBox;
-
-  //     const evaledBox = evalBox({
-  //       box: defaultBox,
-  //       builtInComponents,
-  //       currentFilePath: defaultBoxFilePath,
-  //       files,
-  //     });
-
-  //     const { algorithm, problem, visualizer } = evaledBox;
-
-  //     if (
-  //       algorithm === undefined ||
-  //       problem === undefined ||
-  //       visualizer === undefined
-  //     ) {
-  //       return;
-  //     }
-
-  //     const problemInstance = (() => {
-  //       if (isParameterizedProblem(problem)) {
-  //         return problem.create();
-  //       }
-
-  //       return problem;
-  //     })();
-
-  //     const algorithmInstance = (() => {
-  //       if (isParameterizedAlgorithm(algorithm)) {
-  //         return algorithm.create();
-  //       }
-
-  //       return algorithm;
-  //     })();
-
-  //     const visualizerInstance = (() => {
-  //       if (isParameterizedVisualizer(visualizer)) {
-  //         return visualizer.create();
-  //       }
-
-  //       return visualizer;
-  //     })();
-
-  //     const scene = createScene({
-  //       algorithm: algorithmInstance,
-  //       problem: problemInstance,
-  //     });
-
-  //     return {
-  //       executionTrace: scene.copyWithExecution(MAX_EXECUTION_STEP_COUNT)
-  //         .executionTrace,
-  //       visualizerInstance,
-  //     };
-  //   }, [builtInComponents, selectedOption, showPreview]) ?? {};
-
-  // const stepCount = Math.min(
-  //   MAX_EXECUTION_STEP_COUNT,
-  //   executionTrace?.length ?? MAX_EXECUTION_STEP_COUNT,
-  // );
-
-  // const interval = useCancelableInterval(() => {
-  //   setStepIndex((stepIndex) => (stepIndex + 1) % stepCount);
-  // }, 300);
-
-  // useEffect(() => {
-  //   if (!interval.isRunning && selectedOption !== null) interval.start();
-  // }, [interval, selectedOption]);
-
-  // const visualization = useMemo(() => {
-  //   if (visualizerInstance && executionTrace) {
-  //     try {
-  //       const step = executionTrace.at(stepIndex);
-  //       if (step === undefined) {
-  //         return undefined;
-  //       }
-
-  //       return visualizerInstance.visualize(step.state);
-  //     } catch {
-  //       return undefined;
-  //     }
-  //   }
-  // }, [executionTrace, stepIndex, visualizerInstance]);
-
-  const [open, setOpen] = useState(false);
+  const { isMd } = useBreakpoint('md');
 
   const handleQueryChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,13 +190,78 @@ export default function CatalogSelect<T extends SandboxObjectType>({
     [],
   );
 
+  useEffect(() => {
+    if (open) {
+      setShowItemDetails(false);
+    }
+  }, [open]);
+
+  const optionsWithTags = useMemo(() => {
+    return options.map((item) => {
+      if (isSelectGroup(item)) {
+        return {
+          ...item,
+          options: item.options.map((option) => ({
+            ...option,
+            tags: getTags(option.value),
+          })),
+        };
+      }
+
+      return {
+        ...item,
+        tags: getTags(item.value),
+      };
+    });
+  }, [options]);
+
+  const filteredOptions = useMemo(() => {
+    if (query === '') {
+      return optionsWithTags;
+    }
+
+    const queryTokens = query.split(' ');
+
+    const itemMatchesQuery = (item: {
+      label: string;
+      tags: Array<ComponentTag>;
+    }) => {
+      return queryTokens.every(
+        (token) =>
+          item.label.toLocaleLowerCase().includes(token.toLocaleLowerCase()) ||
+          item.tags.some((tag) =>
+            tag.toLocaleLowerCase().includes(token.toLocaleLowerCase()),
+          ),
+      );
+    };
+
+    return optionsWithTags
+      .map((item) => {
+        if (isSelectGroup(item)) {
+          return {
+            ...item,
+            options: item.options.filter((item) => itemMatchesQuery(item)),
+          };
+        }
+        return item;
+      })
+      .filter((item) => isSelectGroup(item) || itemMatchesQuery(item))
+      .filter((item) => !isSelectGroup(item) || item.options.length > 0);
+  }, [optionsWithTags, query]);
+
   return (
     <Popover
       open={open}
       onOpenChange={setOpen}
       content={
-        <div className="flex bg-surface h-[400px]">
-          <div className="flex flex-col border-r overflow-y-hidden">
+        <div className="flex bg-surface h-[75dvh] lg:h-[400px]">
+          <div
+            className={clsx(
+              'w-full md:w-auto flex flex-col border-r overflow-y-hidden',
+              isMd && 'flex',
+              !isMd && [showItemDetails ? 'hidden' : 'flex'],
+            )}
+          >
             <Input
               containerClassName="bg-surface mx-4 mt-4 sticky top-0"
               label="Search"
@@ -300,104 +272,84 @@ export default function CatalogSelect<T extends SandboxObjectType>({
               onChange={handleQueryChange}
             />
             <div className="flex flex-col p-4 overflow-y-auto">
-              {options
-                .map((item) => {
-                  if (isSelectGroup(item)) {
-                    return {
-                      ...item,
-                      options: item.options.filter(
-                        (item) =>
-                          query === '' ||
-                          item.label
-                            .toLocaleLowerCase()
-                            .includes(query.toLocaleLowerCase()),
-                      ),
-                    };
-                  }
-                  return item;
-                })
-                .filter(
-                  (item) =>
-                    query === '' ||
-                    item.label
-                      .toLocaleLowerCase()
-                      .includes(query.toLocaleLowerCase()) ||
-                    isSelectGroup(item),
-                )
-                .filter(
-                  (item) => !isSelectGroup(item) || item.options.length > 0,
-                )
-                .map((item) => {
-                  if (isSelectGroup(item)) {
-                    const areAllItemsDisabled = item.options.every(
-                      (option) => option.disabled,
-                    );
+              {filteredOptions.map((item) => {
+                if (isSelectGroup(item)) {
+                  const areAllItemsDisabled = item.options.every(
+                    (option) => option.disabled,
+                  );
 
-                    return (
-                      <Fragment key={item.key}>
-                        <div className="flex items-center pt-4 text-sm border-t">
-                          <Chip disabled={areAllItemsDisabled}>
-                            {item.label}
-                          </Chip>
-                        </div>
-                        {item.options.map((option) => (
-                          <ListItem
-                            selected={option.key === selectedOption?.key}
-                            active={option.key === selectedOption?.key}
-                            disabled={option.disabled}
-                            key={option.key}
-                            option={option}
-                            onClick={() => {
-                              setSelectedOption?.(option);
-                              // setStepIndex(0);
-                            }}
-                            onDoubleClick={() => {
-                              onChange?.(option, null);
-                              setOpen(false);
-                            }}
-                          />
-                        ))}
-                      </Fragment>
-                    );
-                  } else {
-                    return (
-                      <ListItem
-                        selected={item.key === selectedOption?.key}
-                        active={item.key === selectedOption?.key}
-                        disabled={item.disabled}
-                        key={item.key}
-                        option={item}
-                        onClick={() => {
-                          setSelectedOption?.(item);
-                        }}
-                        onDoubleClick={() => {
-                          onChange?.(item, null);
-                          setOpen(false);
-                        }}
-                      />
-                    );
-                  }
-                })}
+                  return (
+                    <Fragment key={item.key}>
+                      <div className="flex items-center pt-4 text-sm border-t">
+                        <Chip disabled={areAllItemsDisabled}>{item.label}</Chip>
+                      </div>
+                      {item.options.map((option) => (
+                        <ListItem
+                          selected={option.key === selectedOption?.key}
+                          active={option.key === selectedOption?.key}
+                          disabled={option.disabled}
+                          key={`${item.key}.${option.key}`}
+                          tooltip={option.tooltip}
+                          option={option}
+                          onClick={() => {
+                            setSelectedOption?.(option);
+                            setShowItemDetails(true);
+                          }}
+                          onDoubleClick={() => {
+                            onChange?.(option, null);
+                            setOpen(false);
+                          }}
+                        />
+                      ))}
+                    </Fragment>
+                  );
+                } else {
+                  return (
+                    <ListItem
+                      selected={item.key === selectedOption?.key}
+                      active={item.key === selectedOption?.key}
+                      disabled={item.disabled}
+                      key={item.key}
+                      tooltip={item.tooltip}
+                      option={item}
+                      onClick={() => {
+                        setSelectedOption?.(item);
+                        setShowItemDetails(true);
+                      }}
+                      onDoubleClick={() => {
+                        onChange?.(item, null);
+                        setOpen(false);
+                      }}
+                    />
+                  );
+                }
+              })}
             </div>
           </div>
-          {selectedOption !== undefined && (
-            <div className="w-[300px] overflow-y-auto">
-              {/* {visualization && (
-                <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas border-b overflow-clip">
-                  <div className="w-[250px] h-[200px]">
-                    <VisualizationRenderer
-                      className="w-[250px] h-[200px] overflow-visible"
-                      visualization={visualization}
-                      zoomLevel={0.5}
-                    />
-                  </div>
+          {selectedOption !== undefined && (showItemDetails || isMd) && (
+            <div className="w-full md:w-[300px] overflow-y-auto">
+              <Button
+                className="md:hidden mx-4 mb-4"
+                label="Back"
+                variant="filled"
+                icon={<MaterialSymbol icon="arrow_back" />}
+                onClick={() => setShowItemDetails(false)}
+              />
+              {visualization && showPreview && (
+                <div className="w-full lg:w-[300px] h-[200px] relative rounded-tr-md bg-canvas border-b overflow-clip">
+                  <VisualizationRenderer
+                    key={selectedOption.key}
+                    className="absolute top-0 left-0 w-full h-full overflow-visible"
+                    visualization={visualization}
+                    zoom={1 / 3}
+                  />
                 </div>
               )}
               {!visualization && showPreview && (
-                <div className="w-[250px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
+                <div className="w-full lg:w-[300px] h-[200px] rounded-tr-md bg-canvas flex border-b justify-center items-center">
                   <span className="text-label">No preview available</span>
                 </div>
-              )} */}
+              )}
               <div className="p-4 flex-col flex gap-2 items-start">
                 <MarkdownPreview markdown={selectedOptionWriteup!} />
                 <div className="flex gap-2 flex-wrap">

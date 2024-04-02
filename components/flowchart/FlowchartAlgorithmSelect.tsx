@@ -1,4 +1,5 @@
 import { Instance } from '@components/box-page/box-context/sandbox-object';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import { isEqual } from 'lodash';
 import { useCallback } from 'react';
 
@@ -21,23 +22,22 @@ export default function FlowchartAlgorithmSelect({
     options,
   } = useBoxContext('algorithm.select');
   const algorithmEvaluation = useBoxContext('algorithm.value');
-  const {
-    default: defaultParameters,
-    setValue: setParameters,
-    value: parameters = {},
-  } = useBoxContext('algorithm.parameters');
+  const { default: defaultParameters, value: parameters = {} } = useBoxContext(
+    'algorithm.parameters',
+  );
 
   const filter = useCallback(
     (instance: Instance<'algorithm'>, otherInstance: Instance<'algorithm'>) => {
       return (
-        isEqual(
+        (isEqual(
           Object.keys(instance.accepts.shape.shape),
           Object.keys(otherInstance.accepts.shape.shape),
         ) &&
-        isEqual(
-          Object.keys(instance.outputs.shape.shape),
-          Object.keys(otherInstance.outputs.shape.shape),
-        )
+          isEqual(
+            Object.keys(instance.outputs.shape.shape),
+            Object.keys(otherInstance.outputs.shape.shape),
+          )) ||
+        errorFlowchartIncompatibleComponent
       );
     },
     [],
@@ -60,7 +60,6 @@ export default function FlowchartAlgorithmSelect({
       options={filteredOptions}
       evaluatedValue={algorithmEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={setParameters}
       parameters={parameters}
     />
   );

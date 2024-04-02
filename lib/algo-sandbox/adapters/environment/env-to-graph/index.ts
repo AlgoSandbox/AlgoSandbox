@@ -5,65 +5,76 @@ import {
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
-import { compact } from 'lodash';
+import type { Dom } from '@svgdotjs/svg.js';
+import { z } from 'zod';
 
 const inputState = createState(
-  'Environment to search graph input state',
-
+  'Environment to search tree input state',
   sandboxEnvironmentSearchState.shape.extend({
     getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,
+    render: sandboxEnvironmentState.shape.shape.render,
   }),
 );
+
+type GraphNode = NodeGraphVisualizerNode;
+type GraphEdge = z.infer<
+  (typeof graphSearchAlgorithmState)['shape']
+>['graph']['edges'][number];
 
 const envToGraph = createAdapter({
   accepts: inputState,
   outputs: graphSearchAlgorithmState,
   transform: (value) => {
-    function getDepths(): Record<string, number> {
-      const depths: Record<string, number> = {};
+    function createGraph(): {
+      nodes: GraphNode[];
+      edges: GraphEdge[];
+      nodeDepths: Record<string, number>;
+    } {
+      const root = value.searchTree;
+      const nodes: Array<GraphNode> = [];
+      const edges: Array<GraphEdge> = [];
+      const nodeDepths: Record<string, number> = {};
 
-      const current = value.getStateKey(value.initialState);
-      const visited = new Set();
-      const frontier = [{ node: current, depth: 0 }];
-
-      while (frontier.length > 0) {
-        const popped = frontier.shift();
-        if (popped === undefined) break;
-
-        const { node: current, depth } = popped;
-        depths[current] = depth;
-        visited.add(current);
-        value.searchTree
-          .filter((edge) => edge.source === current)
-          .forEach(({ result }) => {
-            if (result === undefined) return;
-            if (visited.has(result)) return;
-            visited.add(result);
-            frontier.push({ node: result, depth: depth + 1 });
-          });
+      if (root === null) {
+        return { nodes, edges, nodeDepths };
       }
 
-      return depths;
-    }
-    const nodeDepths = getDepths();
+      const frontier = [{ node: root, depth: 0 }];
 
-    const visitedNodes = Array.from(value.visited);
-    const searchTreeNodes = compact(
-      value.searchTree.flatMap(({ source, result }) => [source, result]),
-    );
+      while (frontier.length > 0) {
+        const current = frontier.shift();
+        if (current === undefined) break;
+
+        const { node: currentNode, depth } = current;
+        const { id, children } = currentNode;
+
+        nodes.push({
+          id,
+          createElement: () => {
+            const dom = value.render(value.currentState) as Dom;
+            return dom.node as SVGElement;
+          },
+        });
+        nodeDepths[id] = depth;
+
+        for (const child of children) {
+          frontier.push({ node: child, depth: depth + 1 });
+          edges.push({
+            source: currentNode.id,
+            target: child.id,
+            label: child.action ?? undefined,
+          });
+        }
+      }
+
+      return { nodes, edges, nodeDepths };
+    }
+    const { nodes, edges, nodeDepths } = createGraph();
 
     return {
       graph: {
-        nodes: Array.from(new Set([...visitedNodes, ...searchTreeNodes])).map(
-          (node) => ({ id: node }) satisfies NodeGraphVisualizerNode,
-        ),
-        edges: value.searchTree.map(({ source, result, action }) => {
-          return {
-            source,
-            target: result ?? '',
-            label: action,
-          };
-        }),
+        nodes,
+        edges,
         directed: true,
       },
       nodeDepths,

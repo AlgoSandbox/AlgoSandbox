@@ -2,7 +2,46 @@ import { createAlgorithm } from '@algo-sandbox/core';
 import {
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
+  SearchTreeNode,
 } from '@algo-sandbox/states';
+import { Draft, produce } from 'immer';
+
+function addNodeToSearchTree(
+  tree: SearchTreeNode,
+  options: {
+    fromId: string;
+    toId: string;
+    toStateKey: string;
+    action: string;
+  },
+) {
+  const { fromId, toId, toStateKey, action } = options;
+  const newNode: SearchTreeNode = {
+    id: toId,
+    stateKey: toStateKey,
+    action,
+    children: [],
+  };
+
+  const newTree = produce(tree, (draft) => {
+    const findAndPush = (node: Draft<SearchTreeNode>) => {
+      if (node.id === fromId) {
+        node.children.push(newNode);
+        return true;
+      }
+      for (const child of node.children) {
+        if (findAndPush(child)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    findAndPush(draft);
+  });
+
+  return newTree;
+}
 
 const pseudocode = `create frontier
 create visited
@@ -30,10 +69,16 @@ const breadthFirstSearch = createAlgorithm({
       visited: new Set<string>(),
       frontier: [],
       actions: problem.actions(initialState),
-      searchTree: [],
+      searchTree: null,
     };
   },
   *runAlgorithm({ line, state, problemState }) {
+    let nextAvailableId = 0;
+
+    const getNextId = () => {
+      return (nextAvailableId++).toString();
+    };
+
     // create frontier
     // create visited
     yield line(
@@ -43,8 +88,21 @@ const breadthFirstSearch = createAlgorithm({
     );
 
     // insert initial state to frontier and visited
-    state.frontier.push({ state: state.currentState, cost: 0, isGoal: false });
-    state.visited.add(problemState.getStateKey(state.currentState));
+    const initialNodeId = getNextId();
+    const initialStateKey = problemState.getStateKey(state.currentState);
+    state.frontier.push({
+      id: initialNodeId,
+      state: state.currentState,
+      cost: 0,
+      isGoal: false,
+    });
+    state.visited.add(initialStateKey);
+    state.searchTree = {
+      id: initialNodeId,
+      stateKey: initialStateKey,
+      action: null,
+      children: [],
+    };
     yield line(3, 'Insert the initial state to frontier and visited set.');
 
     // while frontier is not empty
@@ -57,7 +115,11 @@ const breadthFirstSearch = createAlgorithm({
       yield line(4, 'Frontier is not empty.');
 
       // state = frontier.pop()
-      const { state: visitedState, cost } = state.frontier.shift()!;
+      const {
+        id: currentId,
+        state: visitedState,
+        cost,
+      } = state.frontier.shift()!;
       state.currentState = visitedState;
       const currentKey = problemState.getStateKey(state.currentState);
 
@@ -78,15 +140,14 @@ const breadthFirstSearch = createAlgorithm({
           state.currentState,
           action,
         );
+        const nextStateId = getNextId();
         const nextStateKey = problemState.getStateKey(nextState);
-        state.searchTree = [
-          ...state.searchTree,
-          {
-            source: currentKey,
-            action,
-            result: nextStateKey,
-          },
-        ];
+        state.searchTree = addNodeToSearchTree(state.searchTree, {
+          fromId: currentId,
+          toId: nextStateId,
+          toStateKey: nextStateKey,
+          action,
+        });
         yield line(7, `Next state = ${problemState.getStateKey(nextState)}`);
 
         // if nextState in visited: continue
@@ -112,6 +173,7 @@ const breadthFirstSearch = createAlgorithm({
           state: nextState,
           cost: cost + 1,
           isGoal: false,
+          id: nextStateId,
         });
         state.visited.add(nextStateKey);
         yield line(

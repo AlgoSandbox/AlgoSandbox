@@ -22,15 +22,16 @@ export const defaultBoxContextAdapter =
 export default function useBoxContextAdapter({
   options,
   key,
-  onKeyChange,
+  onChange,
   parameters,
-  onParametersChange,
 }: {
   options: Array<CatalogOption<DbAdapterSaved>>;
   key: SandboxKey<'adapter'> | null;
-  onKeyChange: (key: SandboxKey<'adapter'> | null) => void;
   parameters: Record<string, unknown> | null;
-  onParametersChange: (parameters: Record<string, unknown> | null) => void;
+  onChange: (
+    key: SandboxKey<'problem'> | null,
+    parameters: Record<string, unknown> | null,
+  ) => void;
 }) {
   return useBoxContextSandboxObject({
     type: 'adapter',
@@ -40,8 +41,7 @@ export default function useBoxContextAdapter({
     removeSavedObjectMutation: useRemoveSavedAdapterMutation(),
     savedObjects: useSavedAdaptersQuery().data,
     key,
-    onKeyChange,
+    onChange,
     parameters,
-    onParametersChange,
   }) as BoxContextAdapter;
 }

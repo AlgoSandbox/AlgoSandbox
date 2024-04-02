@@ -3,7 +3,7 @@ import { sortBy } from 'lodash';
 
 export default function filterCatalogOptions<T>(
   options: CatalogOptions<T>,
-  predicate: (option: T) => boolean,
+  predicate: (option: T) => string | true,
 ) {
   return sortBy(
     options.map((item) => {
@@ -11,10 +11,17 @@ export default function filterCatalogOptions<T>(
         return {
           ...item,
           options: sortBy(
-            item.options.map((option) => ({
-              ...option,
-              disabled: !predicate(option.value),
-            })),
+            item.options.map((option) => {
+              const disabledReason = predicate(option.value);
+              const disabled = disabledReason !== true;
+              const tooltip =
+                typeof disabledReason === 'string' ? disabledReason : undefined;
+              return {
+                ...option,
+                disabled,
+                tooltip,
+              };
+            }),
             (option) => {
               return option.disabled;
             },

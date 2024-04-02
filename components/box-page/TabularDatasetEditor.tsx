@@ -1,5 +1,6 @@
-import { decisionTreeTrainingSetState } from '@algo-sandbox/problems/decision-trees';
+import { tabularDatasetState } from '@algo-sandbox/problems/tabular';
 import { Button, MaterialSymbol, ResizeHandle } from '@components/ui';
+import Checkbox from '@components/ui/Checkbox';
 import Dialog from '@components/ui/Dialog';
 import Heading from '@components/ui/Heading';
 import { uniq } from 'lodash';
@@ -14,94 +15,94 @@ import { z } from 'zod';
 import StyledSpreadsheet from './StyledSpreadsheet';
 
 const initialTrainingSet = {
-  attributes: ['Income', 'Credit History', 'Debt'],
-  examples: [
+  xLabels: ['Income', 'Credit History', 'Debt'],
+  data: [
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Bad',
         Debt: 'Low',
       },
-      classification: 'Reject',
+      yValue: 'Reject',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'High',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: '0 - 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: '0 - 10k',
         'Credit History': 'Good',
         Debt: 'Low',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Bad',
         Debt: 'Low',
       },
-      classification: 'Reject',
+      yValue: 'Reject',
     },
     {
-      attributes: {
+      xValues: {
         Income: 'Over 10k',
         'Credit History': 'Good',
         Debt: 'High',
       },
-      classification: 'Approve',
+      yValue: 'Approve',
     },
     {
-      attributes: {
+      xValues: {
         Income: '0 - 10k',
         'Credit History': 'Bad',
         Debt: 'High',
       },
-      classification: 'Reject',
+      yValue: 'Reject',
     },
   ],
 };
 
-type TrainingSet = z.infer<typeof decisionTreeTrainingSetState.shape>;
+type TrainingSet = z.infer<typeof tabularDatasetState.shape>;
 
-function DecisionTreeTrainingSetEditor({
+function TabularDatasetEditor({
   onCancel,
   onSave,
   initialData: initialTrainingSet,
@@ -116,16 +117,16 @@ function DecisionTreeTrainingSetEditor({
 
   const initialData = useMemo(() => {
     // map from training set
-    const attributes = initialTrainingSet.attributes;
-    const examples = initialTrainingSet.examples;
+    const xLabels = initialTrainingSet.xLabels;
+    const data = initialTrainingSet.data;
 
     const initialData: Matrix<CellBase<string>> = [
-      [...attributes, 'Decision'].map((attribute) => ({ value: attribute })),
-      ...examples.map((example) => [
-        ...attributes.map((attribute) => ({
-          value: example.attributes[attribute],
+      [...xLabels, 'Decision'].map((xLabel) => ({ value: xLabel })),
+      ...data.map((example) => [
+        ...xLabels.map((xLabel) => ({
+          value: example.xValues[xLabel],
         })),
-        { value: example.classification },
+        { value: example.yValue },
       ]),
     ];
 
@@ -158,64 +159,89 @@ function DecisionTreeTrainingSetEditor({
     }
   }, [filesContent]);
 
-  const attributes = useMemo(() => {
-    const headers = data[0]
-      .slice(0, -1)
-      .map((cell, index) => cell?.value || `Attribute ${index + 1}`);
+  const columnLabels = useMemo(() => {
+    const headers = data[0].map(
+      (cell, index) => cell?.value || `Column ${index + 1}`,
+    );
     return headers;
   }, [data]);
 
-  const examples = useMemo(() => {
+  const [xColumnIndices, setXColumnIndices] = useState<number[]>(
+    Array.from({ length: columnLabels.length - 1 }, (_, i) => i),
+  );
+  const [yColumnIndex, setYColumnIndex] = useState<number | null>(
+    columnLabels.length - 1,
+  );
+
+  const xLabels = useMemo(() => {
+    const headers = data[0]
+      .map((cell, index) => cell?.value || `x${index}`)
+      .filter((_, index) => xColumnIndices.includes(index));
+    return headers;
+  }, [data, xColumnIndices]);
+
+  const yColumnLabel = useMemo(() => {
+    if (yColumnIndex === null) {
+      return null;
+    }
+
+    return columnLabels.at(yColumnIndex);
+  }, [columnLabels, yColumnIndex]);
+
+  const parsedData = useMemo(() => {
     const examples = data.slice(1).map((row) => {
-      const attributeValues = row.slice(0, -1).map((cell) => cell?.value ?? '');
-      const attributeMap = Object.fromEntries(
-        attributes.map((attribute, index) => [
-          attribute,
-          attributeValues[index],
-        ]),
+      const rowXValues = row.slice(0, -1).map((cell) => cell?.value ?? '');
+      const xValues = Object.fromEntries(
+        xLabels.map((xLabel, index) => [xLabel, rowXValues[index]]),
       );
-      const classification = row[row.length - 1]?.value ?? '';
-      return { attributes: attributeMap, classification };
+      const yValue = row[row.length - 1]?.value ?? '';
+      return { xValues, yValue };
     });
     return examples;
-  }, [attributes, data]);
+  }, [xLabels, data]);
 
-  const classifications = useMemo(() => {
-    const classifications = data
-      .slice(1)
-      .map((row) => row[row.length - 1]?.value ?? '');
-    return uniq(classifications).filter(
-      (classification) => classification !== '',
-    );
-  }, [data]);
+  const yValues = useMemo(() => {
+    const yValues = data.slice(1).map((row) => {
+      if (yColumnIndex === null) {
+        return '';
+      }
+
+      return row.at(yColumnIndex)?.value ?? '';
+    });
+    return uniq(yValues).filter((yValue) => yValue !== '');
+  }, [data, yColumnIndex]);
 
   const { resolvedTheme } = useTheme();
 
-  const attributeValues = useMemo(() => {
-    const attributeValues: Record<string, string[]> = {};
-    attributes.forEach((attribute) => {
-      attributeValues[attribute] = uniq(
-        examples.map((example) => example.attributes[attribute]),
+  const valuesByColumn = useMemo(() => {
+    const valuesByColumn: Array<Array<string>> = Array.from({
+      length: columnLabels.length,
+    }).map((_, colIndex) => {
+      return uniq(
+        data.slice(1).map((row) => {
+          const cell = row[colIndex];
+          return cell?.value ?? '';
+        }),
       ).filter((value) => value !== '');
     });
-    return attributeValues;
-  }, [attributes, examples]);
+    return valuesByColumn;
+  }, [columnLabels.length, data]);
 
   const onSaveClick = useCallback(() => {
     onSave({
-      attributes,
-      examples,
+      xLabels,
+      data: parsedData,
     });
-  }, [attributes, examples, onSave]);
+  }, [xLabels, onSave, parsedData]);
 
-  const onExampleAdd = useCallback(() => {
+  const onDataEntryAdd = useCallback(() => {
     setData((prevData) => {
-      const newRow = attributes.map(() => ({ value: '' }));
+      const newRow = xLabels.map(() => ({ value: '' }));
       return [...prevData, newRow];
     });
-  }, [attributes]);
+  }, [xLabels]);
 
-  const onAttributeAdd = useCallback(() => {
+  const onXAdd = useCallback(() => {
     // add new column to the second rightmost position
     setData((prevData) => {
       return prevData.map((row) => [
@@ -229,77 +255,114 @@ function DecisionTreeTrainingSetEditor({
   }, []);
 
   return (
-    <div className="w-full flex flex-col flex-1 overflow-hidden">
+    <div className="w-full h-full flex flex-col flex-1 overflow-hidden">
       <PanelGroup direction="horizontal">
-        <Panel defaultSize={30}>
-          <div className="flex flex-col gap-y-4 pt-2 h-full overflow-y-hidden">
+        <Panel defaultSize={30} className="overflow-y-hidden">
+          <div className="flex flex-col gap-y-4 pt-2 h-full overflow-y-auto">
             <div className="flex">
               <Button
-                label="Import"
+                label="Import CSV"
                 onClick={openFilePicker}
                 variant="primary"
               />
             </div>
             <div className="flex gap-2">
               <Button
-                label="Add example"
+                label="Add data entry"
                 variant="filled"
-                onClick={onExampleAdd}
+                onClick={onDataEntryAdd}
               />
               <Button
-                label="Add attribute"
+                label="Add x attribute"
                 variant="filled"
-                onClick={onAttributeAdd}
+                onClick={onXAdd}
               />
             </div>
             <div className="flex flex-1 flex-col gap-y-4 overflow-auto pe-4">
               <div className="flex flex-col p-2 bg-surface-high rounded border">
                 <Heading className="mb-2" variant="h4">
-                  Dataset
+                  Data columns
                 </Heading>
                 <ul className="flex flex-col gap-2">
-                  {attributes.map((attribute, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="font-mono text-xs flex gap-1 items-center flex-wrap">
-                        <pre className="-me-1">{attribute} = </pre>
-                        {attributeValues[attribute].map((attributeValue) => (
-                          <span
-                            key={attributeValue}
-                            className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
-                          >
-                            {attributeValue}
-                          </span>
-                        ))}
-                      </div>
-                      <Button
-                        label="Remove"
-                        hideLabel
-                        size="sm"
-                        variant="filled"
-                        onClick={() => {
-                          setData((prevData) =>
-                            prevData.map((row) =>
-                              row.filter((_, i) => i !== index),
-                            ),
-                          );
+                  {columnLabels.map((columnLabel, index) => (
+                    <li key={index} className="grid grid-cols-3">
+                      <span>{columnLabel}</span>
+                      <Checkbox
+                        checked={xColumnIndices.includes(index)}
+                        label="xValue"
+                        onChange={(checked) => {
+                          setXColumnIndices((prev) => {
+                            if (checked) {
+                              return [...prev, index];
+                            } else {
+                              return prev.filter((i) => i !== index);
+                            }
+                          });
                         }}
-                        icon={<MaterialSymbol icon="delete" />}
+                      />
+                      <Checkbox
+                        checked={yColumnIndex === index}
+                        onChange={(checked) => {
+                          setYColumnIndex(checked ? index : null);
+                        }}
+                        label="yValue"
                       />
                     </li>
                   ))}
+                </ul>
+              </div>
+              <div className="flex flex-col p-2 bg-surface-high rounded border">
+                <Heading className="mb-2" variant="h4">
+                  Dataset
+                </Heading>
+                <ul className="flex flex-col gap-2">
+                  {xColumnIndices.map((xColumnIndex, index) => {
+                    const xLabel = columnLabels[xColumnIndex];
+                    return (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="font-mono text-xs flex gap-1 items-center flex-wrap">
+                          <pre className="-me-1">
+                            x{index} ({xLabel}) ={' '}
+                          </pre>
+                          {valuesByColumn[xColumnIndex].map((xValue) => (
+                            <span
+                              key={xValue}
+                              className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
+                            >
+                              {xValue}
+                            </span>
+                          ))}
+                        </div>
+                        <Button
+                          label="Remove"
+                          hideLabel
+                          size="sm"
+                          variant="filled"
+                          onClick={() => {
+                            setData((prevData) =>
+                              prevData.map((row) =>
+                                row.filter((_, i) => i !== index),
+                              ),
+                            );
+                          }}
+                          icon={<MaterialSymbol icon="delete" />}
+                        />
+                      </li>
+                    );
+                  })}
                   <li className="border-t mt-2 pt-2">
                     <div className="font-mono text-xs flex items-center flex-wrap">
-                      <pre>Classifications = </pre>
+                      <pre>y ({yColumnLabel ?? 'unknown'}) = </pre>
                       <ul className="inline-flex gap-1">
-                        {classifications.map((classification) => (
+                        {yValues.map((yValue) => (
                           <li
-                            key={classification}
+                            key={yValue}
                             className="font-bold text-accent px-1 py-0.5 border border-accent rounded"
                           >
-                            {classification}
+                            {yValue}
                           </li>
                         ))}
                       </ul>
@@ -308,7 +371,7 @@ function DecisionTreeTrainingSetEditor({
                 </ul>
               </div>
               <ul className="flex flex-col gap-y-4 border-t pt-4">
-                {examples.map((example, index) => (
+                {parsedData.map((example, index) => (
                   <li
                     key={index}
                     className="bg-surface-high border rounded p-2"
@@ -331,11 +394,13 @@ function DecisionTreeTrainingSetEditor({
                       />
                     </div>
                     <ul className="flex flex-col gap-y-2">
-                      {Object.entries(example.attributes).map(
-                        ([attribute, value]) => (
-                          <li key={attribute}>
+                      {Object.entries(example.xValues).map(
+                        ([xLabel, value], index) => (
+                          <li key={xLabel}>
                             <div className="font-mono text-xs flex items-center flex-wrap">
-                              <pre>{attribute} = </pre>
+                              <pre>
+                                x{index} ({xLabel}) ={' '}
+                              </pre>
                               {value !== '' && (
                                 <span className="font-bold text-accent px-1 py-0.5 border border-accent rounded">
                                   {value}
@@ -347,10 +412,10 @@ function DecisionTreeTrainingSetEditor({
                       )}
                       <li className="border-t mt-2 pt-2">
                         <div className="font-mono text-xs flex items-center flex-wrap">
-                          <pre>Classification = </pre>
-                          {example.classification !== '' && (
+                          <pre>y ({yColumnLabel ?? 'unknown'}) = </pre>
+                          {example.yValue !== '' && (
                             <span className="font-bold text-accent px-1 py-0.5 border border-accent rounded">
-                              {example.classification}
+                              {example.yValue}
                             </span>
                           )}
                         </div>
@@ -360,9 +425,14 @@ function DecisionTreeTrainingSetEditor({
                 ))}
               </ul>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 sticky bottom-0">
               <Button label="Cancel" onClick={onCancel} />
-              <Button label="Save" variant="primary" onClick={onSaveClick} />
+              <Button
+                label="Save"
+                variant="primary"
+                onClick={onSaveClick}
+                disabled={xLabels.length === 0 || yColumnLabel === null}
+              />
             </div>
           </div>
         </Panel>
@@ -379,7 +449,7 @@ function DecisionTreeTrainingSetEditor({
   );
 }
 
-export default function DecisionTreeTrainingSetEditorDialog({
+export default function TabularDatasetEditorDialog({
   open,
   onOpenChange,
   value,
@@ -404,7 +474,7 @@ export default function DecisionTreeTrainingSetEditorDialog({
 
   const initialData = useMemo(() => {
     try {
-      return decisionTreeTrainingSetState.shape.parse(JSON.parse(value));
+      return tabularDatasetState.shape.parse(JSON.parse(value));
     } catch {
       return initialTrainingSet;
     }
@@ -412,9 +482,9 @@ export default function DecisionTreeTrainingSetEditorDialog({
 
   return (
     <Dialog
-      title="Decision tree problem editor"
+      title="Tabular dataset editor"
       content={
-        <DecisionTreeTrainingSetEditor
+        <TabularDatasetEditor
           initialData={initialData}
           onSave={onTrainingSetSave}
           onCancel={onCancel}
@@ -423,6 +493,7 @@ export default function DecisionTreeTrainingSetEditorDialog({
       size="full"
       open={open}
       onOpenChange={onOpenChange}
+      autoScroll={false}
     />
   );
 }

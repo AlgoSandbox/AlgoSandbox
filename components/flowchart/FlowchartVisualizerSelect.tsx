@@ -5,6 +5,7 @@ import {
 } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import {
   useAddSavedVisualizerMutation,
   useRemoveSavedVisualizerMutation,
@@ -27,8 +28,6 @@ export default function FlowchartVisualizerSelect({
   const { visualizerOptions } = useSandboxComponents();
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
-  const setConfig = useBoxContext('config.set');
-  const configTree = useBoxContext('config.tree');
 
   const { key: visualizerKey, parameters } = parseKeyWithParameters(
     aliases[alias],
@@ -42,34 +41,22 @@ export default function FlowchartVisualizerSelect({
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
     savedObjects: useSavedVisualizersQuery().data,
     key: visualizerKey,
-    onKeyChange: (key) => {
+    onChange: (key, parameters) => {
       if (key === null) {
         return;
       }
 
-      setAlias(alias, key);
-      setConfig({
-        adapters: configTree.adapters,
-        composition: {
-          ...configTree.composition,
-          connections: configTree.composition.connections.filter(
-            ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-          ),
-        },
-      });
-    },
-    parameters: parameters ?? null,
-    onParametersChange: (parameters) => {
       setAlias(
         alias,
         parameters
           ? {
-              key: visualizerKey,
+              key,
               parameters,
             }
-          : visualizerKey,
+          : key,
       );
     },
+    parameters: parameters ?? null,
   });
 
   const {
@@ -92,9 +79,11 @@ export default function FlowchartVisualizerSelect({
       instance: Instance<'visualizer'>,
       otherInstance: Instance<'visualizer'>,
     ) => {
-      return isEqual(
-        Object.keys(instance.accepts.shape.shape),
-        Object.keys(otherInstance.accepts.shape.shape),
+      return (
+        isEqual(
+          Object.keys(instance.accepts.shape.shape),
+          Object.keys(otherInstance.accepts.shape.shape),
+        ) || errorFlowchartIncompatibleComponent
       );
     },
     [],
@@ -117,17 +106,6 @@ export default function FlowchartVisualizerSelect({
       options={filteredOptions}
       evaluatedValue={visualizerEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={(params) => {
-        setAlias(
-          alias,
-          params
-            ? {
-                key: visualizerKey,
-                parameters: params,
-              }
-            : visualizerKey,
-        );
-      }}
       parameters={parameters ?? null}
     />
   );

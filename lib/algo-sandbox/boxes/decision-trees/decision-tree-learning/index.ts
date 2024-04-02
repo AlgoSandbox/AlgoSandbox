@@ -1,13 +1,7 @@
 import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
-  problem: {
-    key: 'problem.decisionTrees.decisionTreeTrainingSet',
-    parameters: {
-      spreadsheet:
-        '{"attributes":["Weather","Energy"],"examples":[{"attributes":{"Weather":"Hot","Energy":"Low"},"classification":"Stay"},{"attributes":{"Weather":"Cold","Energy":"High"},"classification":"Go out"},{"attributes":{"Weather":"Hot","Energy":"High"},"classification":"Stay"},{"attributes":{"Weather":"Cold","Energy":"Medium"},"classification":"Go out"},{"attributes":{"Weather":"Cold","Energy":"Low"},"classification":"Stay"}]}',
-    },
-  },
+  problem: 'problem.tabular.tabularDataset',
   algorithm: 'algorithm.decisionTrees.decisionTreeLearning',
   visualizers: {
     order: ['visualizer-2', 'visualizer-0'],
@@ -38,5 +32,4 @@ const box: SandboxBox = {
     },
   },
 };
-
 export default box;

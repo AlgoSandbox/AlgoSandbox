@@ -1,4 +1,5 @@
-import { Button, MaterialSymbol, Popover } from '@components/ui';
+import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
+import { Button, Input, MaterialSymbol, Popover } from '@components/ui';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import RadioButtons from '@components/ui/RadioButtons';
 import { ComponentPropsWithRef, useCallback, useState } from 'react';
@@ -75,70 +76,80 @@ export default function BoxExecutionControls() {
     isExecuting,
   } = useBoxControlsContext();
 
+  const { maxExecutionStepCount, setMaxExecutionStepCount } =
+    useUserPreferences();
+
   return (
-    <div className="flex items-center gap-2">
-      <span className="font-mono px-2 rounded-full bg-surface border">
-        #{currentStepIndex + 1}/{maxSteps ?? '?'}
+    <div className="flex flex-1 flex-col items-center">
+      <span className="lg:hidden font-mono px-2 text-sm text-label">
+        {currentStepIndex + 1}/{maxSteps ?? '?'}
       </span>
-      <div className="flex gap-2 items-center">
-        <AsyncButton
-          disabled={isPlaying || isExecuting || !hasPrevious}
-          label="Skip to start (Shift + left)"
-          hideLabel
-          onClick={skipToStart}
-          icon={<MaterialSymbol icon="first_page" />}
-        />
-        <AsyncButton
-          disabled={isPlaying || isExecuting || !hasPrevious}
-          onClick={previous}
-          hideLabel
-          label="Previous (Left)"
-          icon={<MaterialSymbol icon="step_over" className="-scale-x-100" />}
-        />
-        <Button
-          variant="primary"
-          hideLabel
-          onClick={() => {
-            if (isPlaying) {
-              stop();
-            } else {
-              if (!hasNext) {
-                restartAndPlay();
+      <div className="flex self-stretch justify-between items-center gap-2">
+        <span className="hidden lg:block font-mono px-2 rounded-full bg-surface border">
+          {currentStepIndex + 1}/{maxSteps ?? '?'}
+        </span>
+        <div className="lg:hidden w-10" />
+        <div className="flex gap-2 items-end">
+          <AsyncButton
+            disabled={isPlaying || isExecuting || !hasPrevious}
+            label="Skip to start (Shift + left)"
+            hideLabel
+            onClick={skipToStart}
+            icon={<MaterialSymbol icon="first_page" />}
+          />
+          <AsyncButton
+            disabled={isPlaying || isExecuting || !hasPrevious}
+            onClick={previous}
+            hideLabel
+            label="Previous (Left)"
+            icon={<MaterialSymbol icon="step_over" className="-scale-x-100" />}
+          />
+          <Button
+            variant="primary"
+            hideLabel
+            onClick={() => {
+              if (isPlaying) {
+                stop();
               } else {
-                play();
+                if (!hasNext) {
+                  restartAndPlay();
+                } else {
+                  play();
+                }
               }
+            }}
+            disabled={isExecuting}
+            label={`${
+              isPlaying ? 'Pause' : hasNext ? 'Play' : 'Restart'
+            } (Space)`}
+            icon={
+              isPlaying ? (
+                <MaterialSymbol icon="pause" />
+              ) : hasNext ? (
+                <MaterialSymbol icon="play_arrow" />
+              ) : (
+                <MaterialSymbol icon="restart_alt" />
+              )
             }
-          }}
-          label={`${
-            isPlaying ? 'Pause' : hasNext ? 'Play' : 'Restart'
-          } (Space)`}
-          icon={
-            isPlaying ? (
-              <MaterialSymbol icon="pause" />
-            ) : hasNext ? (
-              <MaterialSymbol icon="play_arrow" />
-            ) : (
-              <MaterialSymbol icon="restart_alt" />
-            )
-          }
-        />
-        <AsyncButton
-          disabled={isPlaying || isExecuting || !hasNext}
-          hideLabel
-          onClick={next}
-          label="Next (Right)"
-          icon={<MaterialSymbol icon="step_over" />}
-        />
-        <AsyncButton
-          label="Skip to end (Shift + right)"
-          disabled={isPlaying || isExecuting || !hasNext}
-          hideLabel
-          onClick={skipToEnd}
-          icon={<MaterialSymbol icon="last_page" />}
-        />
+          />
+          <AsyncButton
+            disabled={isPlaying || isExecuting || !hasNext}
+            hideLabel
+            onClick={next}
+            label="Next (Right)"
+            icon={<MaterialSymbol icon="step_over" />}
+          />
+          <AsyncButton
+            label="Skip to end (Shift + right)"
+            disabled={isPlaying || isExecuting || !hasNext}
+            hideLabel
+            onClick={skipToEnd}
+            icon={<MaterialSymbol icon="last_page" />}
+          />
+        </div>
         <Popover
           content={
-            <div className="flex flex-col bg-surface p-4">
+            <div className="flex flex-col bg-surface p-4 gap-2">
               <Heading variant="h4">Settings</Heading>
               <HeadingContent>
                 <RadioButtons
@@ -152,6 +163,14 @@ export default function BoxExecutionControls() {
                     label: `${speed}x`,
                     value: speed.toString(),
                   }))}
+                />
+                <Input
+                  label="Max execution steps"
+                  value={maxExecutionStepCount.toString()}
+                  onChange={(e) => {
+                    setMaxExecutionStepCount(parseInt(e.target.value, 10));
+                  }}
+                  type="number"
                 />
               </HeadingContent>
             </div>

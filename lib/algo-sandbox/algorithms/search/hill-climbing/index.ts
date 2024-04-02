@@ -2,7 +2,46 @@ import { createAlgorithm } from '@algo-sandbox/core';
 import {
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
+  SearchTreeNode,
 } from '@algo-sandbox/states';
+import { Draft, produce } from 'immer';
+
+function addNodeToSearchTree(
+  tree: SearchTreeNode,
+  options: {
+    fromId: string;
+    toId: string;
+    toStateKey: string;
+    action: string;
+  },
+) {
+  const { fromId, toId, toStateKey, action } = options;
+  const newNode: SearchTreeNode = {
+    id: toId,
+    stateKey: toStateKey,
+    action,
+    children: [],
+  };
+
+  const newTree = produce(tree, (draft) => {
+    const findAndPush = (node: Draft<SearchTreeNode>) => {
+      if (node.id === fromId) {
+        node.children.push(newNode);
+        return true;
+      }
+      for (const child of node.children) {
+        if (findAndPush(child)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    findAndPush(draft);
+  });
+
+  return newTree;
+}
 
 const pseudocode = `add initial state to frontier
 loop:
@@ -26,52 +65,73 @@ const hillClimbing = createAlgorithm({
       visited: new Set<string>(),
       frontier: [], // Using an array as a stack
       actions: problem.actions(initialState),
-      searchTree: [],
+      searchTree: null,
     };
   },
   *runAlgorithm({ line, state, problemState }) {
+    let nextAvailableId = 0;
+
+    const getNextId = () => {
+      return (nextAvailableId++).toString();
+    };
+
     // insert initial state to queue and visited
-    state.frontier.push({ state: state.currentState, cost: 0, isGoal: false });
-    state.visited.add(problemState.getStateKey(state.currentState));
+    const initialNodeId = getNextId();
+    const initialStateKey = problemState.getStateKey(state.currentState);
+    state.frontier.push({
+      id: initialNodeId,
+      state: state.currentState,
+      cost: 0,
+      isGoal: false,
+    });
+    state.visited.add(initialStateKey);
+    state.searchTree = {
+      id: initialNodeId,
+      stateKey: initialStateKey,
+      action: null,
+      children: [],
+    };
 
     yield line(1, 'Add initial state to frontier.');
 
     // while frontier is not empty
     while (state.frontier.length > 0) {
-      const { state: newState, cost } = state.frontier.shift()!;
+      const { id: currentId, state: newState, cost } = state.frontier.shift()!;
       state.currentState = newState;
-
-      const currentKey = problemState.getStateKey(state.currentState);
-
       state.actions = problemState.actions(state.currentState);
 
       const stepResults = state.actions.map((action) => {
         return {
+          id: getNextId(),
           action,
           result: problemState.step(state.currentState, action),
         };
       });
 
-      stepResults.forEach(({ action, result: { nextState } }) => {
+      for (const {
+        id: nextStateId,
+        action,
+        result: { nextState },
+      } of stepResults) {
         const nextStateKey = problemState.getStateKey(nextState);
         state.visited.add(nextStateKey);
-        state.searchTree = [
-          ...state.searchTree,
-          {
-            source: currentKey,
-            action,
-            result: nextStateKey,
-          },
-        ];
-      });
+        state.searchTree = addNodeToSearchTree(state.searchTree, {
+          fromId: currentId,
+          toId: nextStateId,
+          toStateKey: nextStateKey,
+          action,
+        });
+      }
 
       stepResults.sort((a, b) => b.result.reward - a.result.reward);
 
-      const neighbor = stepResults.at(0)?.result;
+      const bestResult = stepResults.at(0);
 
-      if (neighbor === undefined) {
+      if (bestResult === undefined) {
         return true;
       }
+
+      const { id: nextStateId, result: neighbor } = bestResult;
 
       yield line(4, `Neighbor has a value of ${-cost + neighbor.reward}`);
 
@@ -84,6 +144,7 @@ const hillClimbing = createAlgorithm({
       }
 
       state.frontier.push({
+        id: nextStateId,
         state: neighbor.nextState,
         cost: cost - neighbor.reward,
         isGoal: neighbor.terminated,

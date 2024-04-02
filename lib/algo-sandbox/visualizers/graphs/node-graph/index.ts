@@ -112,6 +112,7 @@ const getVisualizerState = (
     const minDepth = Math.min(...Object.values(nodeDepths));
 
     const normalizeDepth = (depth: number) => {
+      if (minDepth === maxDepth) return 0;
       return (depth - minDepth) / (maxDepth - minDepth) - 0.5;
     };
 
@@ -387,6 +388,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               });
 
             const svgNodes = g.selectAll('.node').data(nodes);
+
             svgNodes
               .attr('fill', 'var(--color-surface)')
               .attr('cx', (d: any) => d.x)

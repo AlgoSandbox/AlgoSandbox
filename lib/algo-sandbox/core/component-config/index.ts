@@ -19,6 +19,8 @@ export const componentTag = z.enum([
   'visualizer',
   'environment',
   'decision-tree',
+  'chart',
+  'sorting',
 ]);
 
 export const componentConfig = z.object({

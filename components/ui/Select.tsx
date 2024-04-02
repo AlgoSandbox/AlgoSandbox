@@ -142,7 +142,7 @@ function Select<T>(
         </RadixSelect.Icon>
       </RadixSelect.Trigger>
       <RadixSelect.Portal>
-        <RadixSelect.Content className="bg-surface-high shadow rounded">
+        <RadixSelect.Content className="bg-surface-high shadow rounded z-50">
           <RadixSelect.ScrollUpButton />
           <RadixSelect.Viewport className="p-2">
             {options.map((item, index) =>
@@ -180,7 +180,9 @@ function Select<T>(
     selectElement
   ) : (
     <div className={clsx('flex flex-col', containerClassName)}>
-      <FormLabel id={id}>{label}</FormLabel>
+      <FormLabel className="truncate text-ellipsis shrink" id={id}>
+        {label}
+      </FormLabel>
       {selectElement}
     </div>
   );

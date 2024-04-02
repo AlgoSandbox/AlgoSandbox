@@ -23,16 +23,13 @@ export default function Checkbox({
 }: CheckboxProps) {
   const id = useId();
   return (
-    <div className="flex items-center space-x-2">
+    <div className={clsx('flex items-center space-x-2', className)}>
       <CheckboxPrimitive.Root
         id={id}
         onFocusCapture={onFocus}
         checked={checked}
         onCheckedChange={onChange}
-        className={clsx(
-          'peer h-4 w-4 shrink-0 rounded-sm border border-primary hover:border-accent shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-on-primary  data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-on-primary',
-          className,
-        )}
+        className="peer h-4 w-4 shrink-0 rounded-sm border border-primary hover:border-accent shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-on-primary  data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-on-primary"
       >
         <CheckboxPrimitive.Indicator
           className={clsx('flex items-center justify-center text-current')}
@@ -49,7 +46,7 @@ export default function Checkbox({
       </CheckboxPrimitive.Root>
       <label
         htmlFor={id}
-        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        className="flex-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
         {label}
       </label>

@@ -3,7 +3,9 @@ import * as algorithms from '@algo-sandbox/algorithms';
 import * as core from '@algo-sandbox/core';
 import * as problems from '@algo-sandbox/problems';
 import * as states from '@algo-sandbox/states';
+import * as immer from 'immer';
 import * as lodash from 'lodash';
+import * as random from 'random';
 import * as zod from 'zod';
 
 export default function getLibraries() {
@@ -14,6 +16,8 @@ export default function getLibraries() {
     '@algo-sandbox/problems': problems,
     '@algo-sandbox/states': states,
     '@svgdotjs/svg.js': {},
+    random: random,
+    immer: immer,
     lodash: lodash,
     zod: zod,
   };

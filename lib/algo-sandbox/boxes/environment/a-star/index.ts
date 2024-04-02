@@ -101,6 +101,12 @@ const box: SandboxBox = {
         },
         {
           fromKey: 'adapter-1',
+          fromSlot: 'render',
+          toKey: 'adapter-0',
+          toSlot: 'render',
+        },
+        {
+          fromKey: 'adapter-1',
           fromSlot: '.',
           toKey: 'algorithm',
           toSlot: 'environment',

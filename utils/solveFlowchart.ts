@@ -1,6 +1,7 @@
 import {
   BoxConfigTree,
   SandboxAdapter,
+  SandboxAlgorithm,
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
@@ -58,12 +59,14 @@ export default function solveFlowchart({
   config,
   problemState,
   algorithmState,
+  algorithm,
   adapters,
   visualizers,
 }: {
   config: BoxConfigTree;
   problemState: Record<string, unknown> | undefined;
   algorithmState?: Record<string, unknown> | undefined;
+  algorithm?: SandboxAlgorithm<SandboxStateType, SandboxStateType> | undefined;
   adapters: Record<
     string,
     SandboxAdapter<SandboxStateType, SandboxStateType> | undefined
@@ -175,6 +178,30 @@ export default function solveFlowchart({
 
       if (connections.some(({ toSlot }) => toSlot === '.')) {
         isUsingAllInput[neighbor] = true;
+      }
+    }
+  }
+
+  if (algorithm) {
+    const node = 'algorithm';
+    const result = algorithm.accepts.shape.safeParse(inputs[node]);
+
+    if (!result.success) {
+      inputErrors[node] = {};
+
+      if (isUsingAllInput[node]) {
+        inputErrors[node]['.'] = result.error;
+      } else {
+        Object.entries(algorithm.accepts.shape.shape).forEach(
+          ([inputSlot, inputSlotShape]) => {
+            const parseResult = inputSlotShape.safeParse(
+              inputs[node]?.[inputSlot],
+            );
+            if (!parseResult.success) {
+              inputErrors[node][inputSlot] = parseResult.error;
+            }
+          },
+        );
       }
     }
   }

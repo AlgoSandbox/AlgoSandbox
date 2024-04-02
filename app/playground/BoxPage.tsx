@@ -178,6 +178,7 @@ function SceneProvider({
         config: configTree,
         problemState,
         algorithmState,
+        algorithm: algorithmInstanceEvaluation.unwrapOr(null) ?? undefined,
         adapters: mapValues(
           configAdapterInstances ?? {},
           (val) => val?.mapLeft(() => undefined).value?.value,

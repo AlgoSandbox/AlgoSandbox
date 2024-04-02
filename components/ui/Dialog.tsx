@@ -140,7 +140,7 @@ export default function Dialog({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="p-4">
+        <DrawerContent className={clsx('p-4', size === 'full' && 'h-full')}>
           <DrawerHeader>
             <DrawerTitle>{title}</DrawerTitle>
             {description && (

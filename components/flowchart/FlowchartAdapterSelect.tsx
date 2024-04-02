@@ -86,15 +86,22 @@ export default function FlowchartAdapterSelect({
       hideLabel={true}
       hideErrors={true}
       value={value}
-      onChange={(value) => {
+      onChange={(value, parameters) => {
         if (value === null) {
           return;
         }
 
+        const key = value.value.key;
+
         setConfig({
           adapters: {
             ...configTree.adapters,
-            [alias]: value.value.key,
+            [alias]: parameters
+              ? {
+                  key: key,
+                  parameters,
+                }
+              : key,
           },
           composition: {
             ...configTree.composition,

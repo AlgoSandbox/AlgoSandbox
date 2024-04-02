@@ -26,7 +26,7 @@ function CodeEditorDialogControl({
   return (
     <>
       <Button
-        label="Edit spreadsheet"
+        label="Edit code"
         type="button"
         variant="filled"
         icon={<MaterialSymbol icon="edit" />}

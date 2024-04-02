@@ -7,7 +7,7 @@ import { error, ErrorOr } from '@app/errors';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { CatalogOption } from '@constants/catalog';
 import evalSavedObjectImpl from '@utils/eval/evalSavedObjectImpl';
-import { EvalWithAlgoSandbox } from '@utils/eval/evalWithAlgoSandboxServerSide';
+import { EvalWithAlgoSandbox } from '@algo-sandbox/utils/evalWithAlgoSandboxServerSide';
 
 import { DbSandboxObjectSaved } from './db';
 

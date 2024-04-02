@@ -1,7 +1,7 @@
 import AlgoSandboxEditor from '@components/editor/AlgoSandboxEditor';
 import { Button } from '@components/ui';
 import Dialog from '@components/ui/Dialog';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import React from 'react';
 
 function CodeEditor({
@@ -23,19 +23,17 @@ function CodeEditor({
     onCodeSave(code);
   }, [code, onCodeSave]);
 
-  const files = useMemo(
-    () => ({
-      'index.ts': code,
-    }),
-    [code],
-  );
-
   return (
     <div className="w-full h-full flex flex-col flex-1">
       <div className="flex justify-between gap-2 mt-2">
         <div className="flex gap-2">
           <Button label="Cancel" onClick={onCancel} />
-          <Button label="Save" variant="primary" onClick={onSaveClick} />
+          <Button
+            label="Save"
+            variant="primary"
+            disabled={code === initialCode}
+            onClick={onSaveClick}
+          />
         </div>
       </div>
       <AlgoSandboxEditor
@@ -45,7 +43,7 @@ function CodeEditor({
             setCode(value);
           }
         }}
-        files={files}
+        files={{}}
         path="index.ts"
       />
     </div>

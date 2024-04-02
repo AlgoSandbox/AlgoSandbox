@@ -6,7 +6,7 @@ import solveFlowchart from '@utils/solveFlowchart';
 import { mapValues } from 'lodash';
 
 import evalBoxImpl from './evalBoxImpl';
-import evalWithAlgoSandboxServerSide from './evalWithAlgoSandboxServerSide';
+import evalWithAlgoSandboxServerSide from '../../lib/algo-sandbox/utils/evalWithAlgoSandboxServerSide';
 
 export default function createInitialScene({
   box,

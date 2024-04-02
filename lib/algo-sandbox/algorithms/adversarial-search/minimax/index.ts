@@ -47,18 +47,15 @@ const minimaxAlgorithm = createAlgorithm({
       visited: new Set<string>(),
       frontier: [],
       actions: environment.actions(initialState),
-      searchTree: [],
+      searchTree: null,
     };
   },
-  *runAlgorithm({
-    line,
-    state,
-    problemState: { environment, isMaximizingPlayer },
-  }) {
+  *runAlgorithm({ line, state, problemState: { environment } }) {
     // pretraverse the entire state
     const currentState = state.currentState;
 
     // states[stateKey] = state
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const states: Record<string, Record<string, any>> = {};
     // graph[stateKey][action] = nextStateKey
     const graph: Record<string, Record<string, string>> = {};

@@ -246,10 +246,6 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .filter((d) => d.isArrow ?? false)
             .attr('marker-end', 'url(#arrow)');
 
-          if (nodes.some((node) => node.createElement === undefined)) {
-            console.log('Node has no createElement', nodes);
-          }
-
           // Create nodes
           const node = g
             .selectAll('.node')

@@ -8,6 +8,7 @@ export type TooltipProps = {
   disabled?: boolean;
   open?: boolean;
   zIndex?: number;
+  constrainWidthToTrigger?: boolean;
 };
 
 export default function Tooltip({
@@ -17,6 +18,7 @@ export default function Tooltip({
   open,
   side = 'top',
   zIndex = 30,
+  constrainWidthToTrigger = false,
 }: TooltipProps) {
   return disabled ? (
     children
@@ -28,11 +30,17 @@ export default function Tooltip({
           side={side}
           hideWhenDetached
           className={clsx(
-            'bg-surface rounded px-4 py-2 text-on-surface border max-w-md',
+            'bg-surface rounded px-4 py-2 text-on-surface border',
+            !constrainWidthToTrigger && 'max-w-md',
             'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
           )}
           style={{
             zIndex,
+            ...(constrainWidthToTrigger
+              ? {
+                  maxWidth: 'var(--radix-tooltip-trigger-width)',
+                }
+              : {}),
           }}
         >
           {content}

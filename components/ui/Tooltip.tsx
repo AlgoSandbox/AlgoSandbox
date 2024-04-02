@@ -5,6 +5,7 @@ export type TooltipProps = {
   content: React.ReactNode;
   children: React.ReactNode;
   side?: 'top' | 'right' | 'bottom' | 'left';
+  align?: 'start' | 'center' | 'end';
   disabled?: boolean;
   open?: boolean;
   zIndex?: number;
@@ -17,6 +18,7 @@ export default function Tooltip({
   disabled,
   open,
   side = 'top',
+  align = 'center',
   zIndex = 30,
   constrainWidthToTrigger = false,
 }: TooltipProps) {
@@ -28,6 +30,7 @@ export default function Tooltip({
       <RadixTooltip.Portal>
         <RadixTooltip.Content
           side={side}
+          align={align}
           hideWhenDetached
           className={clsx(
             'bg-surface rounded px-4 py-2 text-on-surface border',

@@ -29,8 +29,7 @@ const heuristicOutput = createState(
   }),
 );
 
-const defaultHeuristic = `
-import { z } from 'zod';
+const defaultHeuristic = `import { z } from 'zod';
 import { searchGraph } from '@algo-sandbox/states';
 
 type SearchGraph = z.infer<typeof searchGraph.shape>;

@@ -7,6 +7,7 @@ export type ComponentConfig = {
 };
 
 export const componentTag = z.enum([
+  'adversarial-search',
   'graph',
   'grid',
   'uninformed-search',

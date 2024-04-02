@@ -2,6 +2,7 @@ export type SandboxParameterTypeMap = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callback: (...args: Array<any>) => any;
   color: string;
+  code: string;
   float: number;
   integer: number;
   string: string;
@@ -115,6 +116,19 @@ export function string(
   };
 }
 
+export function code(
+  name: string,
+  defaultValue: string,
+  validate?: (value: string) => string | boolean,
+): SandboxParameter<'code'> {
+  return {
+    name,
+    type: 'code',
+    defaultValue,
+    validate,
+  };
+}
+
 export function graph(
   name: string,
   defaultValue: string,
@@ -169,6 +183,7 @@ export const SandboxParam = {
   integer,
   string,
   spreadsheet,
+  code,
   graph,
   grid,
 };

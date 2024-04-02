@@ -97,6 +97,7 @@ function getMarkdownTitle(markdown: string) {
 const algorithmGroupToFolderGlob = {
   Search: 'lib/algo-sandbox/algorithms/search',
   'Decision trees': 'lib/algo-sandbox/algorithms/decision-trees',
+  // 'Adversarial search': 'lib/algo-sandbox/algorithms/adversarial-search',
   Sorting: 'lib/algo-sandbox/algorithms/sorting',
 };
 

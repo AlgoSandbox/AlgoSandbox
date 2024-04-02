@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Button, Input, MaterialSymbol } from '../ui';
+import CodeEditorDialog from './CodeEditorDialog';
 import GraphEditorDialog from './GraphEditor';
 import GridEditorDialog from './GridEditor';
 import TabularDatasetEditorDialog from './TabularDatasetEditor';
@@ -12,6 +13,34 @@ type ParameterControlProps<P extends SandboxParameter> = {
   parameter: P;
   onSave: () => void;
 };
+
+function CodeEditorDialogControl({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        label="Edit spreadsheet"
+        type="button"
+        variant="filled"
+        icon={<MaterialSymbol icon="edit" />}
+        onClick={() => setOpen(true)}
+      />
+      <CodeEditorDialog
+        open={open}
+        onOpenChange={setOpen}
+        value={value}
+        onChange={onChange}
+      />
+    </>
+  );
+}
 
 function GraphEditorDialogControl({
   value,
@@ -216,6 +245,26 @@ function ParameterControl<P extends SandboxParameter>({
             name={fieldName}
             render={({ field: { onChange, value } }) => (
               <SpreadsheetEditorDialogControl
+                value={value}
+                onChange={(value) => {
+                  onChange({
+                    target: {
+                      value,
+                    },
+                  });
+                  onSave();
+                }}
+              />
+            )}
+          />
+        );
+      case 'code':
+        return (
+          <Controller
+            control={control}
+            name={fieldName}
+            render={({ field: { onChange, value } }) => (
+              <CodeEditorDialogControl
                 value={value}
                 onChange={(value) => {
                   onChange({

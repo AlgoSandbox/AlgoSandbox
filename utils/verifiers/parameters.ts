@@ -9,6 +9,7 @@ import { z } from 'zod';
 export const sandboxParameterType = z.union([
   z.literal('callback'),
   z.literal('color'),
+  z.literal('code'),
   z.literal('float'),
   z.literal('integer'),
   z.literal('string'),

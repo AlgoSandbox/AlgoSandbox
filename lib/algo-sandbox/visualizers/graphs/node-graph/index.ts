@@ -56,6 +56,8 @@ export type NodeGraphVisualizerState = {
   zoomTransform: d3.ZoomTransform;
 };
 
+const customElementSize = 30;
+
 const getVisualizerState = (
   graph: NodeGraph,
   oldNodes: Array<GraphNode>,
@@ -244,11 +246,16 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             .filter((d) => d.isArrow ?? false)
             .attr('marker-end', 'url(#arrow)');
 
+          if (nodes.some((node) => node.createElement === undefined)) {
+            console.log('Node has no createElement', nodes);
+          }
+
           // Create nodes
           const node = g
             .selectAll('.node')
             .data(nodes)
             .enter()
+            .filter((d) => d.createElement === undefined)
             .append('circle')
             .attr('class', 'node')
             .attr('r', 15)
@@ -307,13 +314,39 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           g.selectAll('.label')
             .data(nodes)
             .enter()
+            .filter((d) => d.createElement === undefined)
             .append('text')
+            .text((d) => d.label ?? d.id)
             .attr('class', 'label')
             .attr('fill', 'rgb(var(--color-on-surface))')
             .attr('text-anchor', 'middle')
-            .text((d) => d.label ?? d.id)
             .attr('dy', 15 / 2)
             .attr('style', 'pointer-events: none');
+
+          // Add custom node elements
+          const elems = g
+            .selectAll('.element')
+            .data(nodes)
+            .enter()
+            .filter((d) => d.createElement !== undefined)
+            .append((d) => {
+              const svgElement = d.createElement!(document);
+
+              svgElement.setAttribute('width', '32');
+              svgElement.setAttribute('height', '32');
+
+              return svgElement;
+            })
+            .attr('class', 'element');
+          // .attr('style', 'pointer-events: none');
+
+          elems.call(
+            d3
+              .drag()
+              .on('start', dragstarted)
+              .on('drag', dragged)
+              .on('end', dragended) as any,
+          );
 
           // Add labels to links
           g.selectAll('.link-label')
@@ -381,6 +414,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             const svgNodes = g.selectAll('.node').data(nodes);
 
             svgNodes
+              .filter((node) => node.createElement === undefined)
               .attr('fill', 'var(--color-surface)')
               .attr('cx', (d: any) => d.x)
               .attr('cy', (d: any) => d.y);
@@ -389,7 +423,9 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
             const node: NodeGraphSVGNode = {
               fill: (getFill) => {
-                svgNodes.attr('fill', (node) => getFill(node) ?? null);
+                svgNodes
+                  .filter((node) => node.createElement === undefined)
+                  .attr('fill', (node) => getFill(node) ?? null);
                 return node;
               },
               textColor: (getTextColor) => {
@@ -399,7 +435,9 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
                 return node;
               },
               strokeColor: (getStrokeColor) => {
-                svgNodes.attr('stroke', (node) => getStrokeColor(node) ?? null);
+                svgNodes
+                  .filter((node) => node.createElement === undefined)
+                  .attr('stroke', (node) => getStrokeColor(node) ?? null);
                 return node;
               },
               raw: (render) => {
@@ -418,6 +456,13 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               .data(nodes)
               .attr('x', (d: any) => d.x)
               .attr('y', (d: any) => d.y);
+
+            // Update custom node elements
+            g.selectAll('.element')
+              .data(nodes)
+              .filter((d) => d.createElement !== undefined)
+              .attr('x', (d: any) => d.x - customElementSize / 2)
+              .attr('y', (d: any) => d.y - customElementSize / 2);
 
             // Update link labels
             g.selectAll('.link-label')

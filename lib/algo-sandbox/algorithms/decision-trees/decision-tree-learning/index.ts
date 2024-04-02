@@ -46,8 +46,20 @@ const decisionTreeLearningState = createState(
 );
 
 function createTreeWithRoot(label: string): Tree {
+  const createElement = eval(`() => {
+    const element = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'text',
+    );
+
+    element.textContent = ${JSON.stringify(label)};
+    element.setAttribute('fill', 'rgb(var(--color-on-surface))');
+
+    return element;
+  };`);
+
   return {
-    nodes: [{ id: label, label }],
+    nodes: [{ id: label, createElement }],
     edges: [],
     nodeDepths: { [label]: 0 },
   };

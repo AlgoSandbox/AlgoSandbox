@@ -63,6 +63,13 @@ export const sandboxEnvironmentSearchState = createState(
         data: z.any().optional(),
       }),
     ),
-    searchTree: searchTreeNode.nullable(),
+    searchTree: z
+      .object({
+        root: searchTreeNode,
+        states: z.record(
+          sandboxEnvironmentState.shape.shape.getInitialState.returnType(),
+        ),
+      })
+      .nullable(),
   }),
 );

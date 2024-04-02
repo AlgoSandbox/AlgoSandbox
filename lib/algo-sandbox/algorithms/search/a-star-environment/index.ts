@@ -106,6 +106,7 @@ const aStarSearch = createAlgorithm({
 
     // insert initial state to frontier and visited
     const initialNodeId = getNextId();
+    const initialStateKey = environment.getStateKey(state.currentState);
     state.frontier.push({
       id: initialNodeId,
       state: state.currentState,
@@ -115,12 +116,17 @@ const aStarSearch = createAlgorithm({
         g: 0,
       },
     });
-    state.visited.add(environment.getStateKey(state.currentState));
+    state.visited.add(initialStateKey);
     state.searchTree = {
-      id: initialNodeId,
-      stateKey: environment.getStateKey(state.currentState),
-      action: null,
-      children: [],
+      root: {
+        id: initialNodeId,
+        stateKey: initialStateKey,
+        action: null,
+        children: [],
+      },
+      states: {
+        [initialStateKey]: state.currentState,
+      },
     };
 
     yield line(3, 'Insert the initial state to frontier and visited set.');
@@ -164,12 +170,18 @@ const aStarSearch = createAlgorithm({
         );
         const nextStateId = getNextId();
         const nextStateKey = environment.getStateKey(nextState);
-        state.searchTree = addNodeToSearchTree(state.searchTree, {
-          fromId: currentId,
-          toId: nextStateId,
-          toStateKey: nextStateKey,
-          action,
-        });
+        state.searchTree = {
+          root: addNodeToSearchTree(state.searchTree.root, {
+            fromId: currentId,
+            toId: nextStateId,
+            toStateKey: nextStateKey,
+            action,
+          }),
+          states: {
+            ...state.searchTree.states,
+            [nextStateKey]: nextState,
+          },
+        };
 
         yield line(9, `Next state: ${nextStateKey}`);
 

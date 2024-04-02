@@ -86,10 +86,15 @@ const hillClimbing = createAlgorithm({
     });
     state.visited.add(initialStateKey);
     state.searchTree = {
-      id: initialNodeId,
-      stateKey: initialStateKey,
-      action: null,
-      children: [],
+      root: {
+        id: initialNodeId,
+        stateKey: initialStateKey,
+        action: null,
+        children: [],
+      },
+      states: {
+        [initialStateKey]: state.currentState,
+      },
     };
 
     yield line(1, 'Add initial state to frontier.');
@@ -115,12 +120,18 @@ const hillClimbing = createAlgorithm({
       } of stepResults) {
         const nextStateKey = problemState.getStateKey(nextState);
         state.visited.add(nextStateKey);
-        state.searchTree = addNodeToSearchTree(state.searchTree, {
-          fromId: currentId,
-          toId: nextStateId,
-          toStateKey: nextStateKey,
-          action,
-        });
+        state.searchTree = {
+          root: addNodeToSearchTree(state.searchTree.root, {
+            fromId: currentId,
+            toId: nextStateId,
+            toStateKey: nextStateKey,
+            action,
+          }),
+          states: {
+            ...state.searchTree.states,
+            [nextStateKey]: nextState,
+          },
+        };
       }
 
       stepResults.sort((a, b) => b.result.reward - a.result.reward);

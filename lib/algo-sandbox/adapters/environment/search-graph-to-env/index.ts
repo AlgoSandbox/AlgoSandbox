@@ -68,7 +68,42 @@ const searchGraphToEnv: SandboxAdapter<
           info: {},
         };
       },
-      render: (state) => state.currentNodeId,
+      render: (state) => {
+        const svg = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg',
+        );
+
+        svg.setAttribute('viewBox', '0 0 32 32');
+
+        const label = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'text',
+        );
+        label.innerHTML = (state as State).currentNodeId;
+        label.setAttribute('fill', 'rgb(var(--color-on-surface))');
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('x', '16');
+        label.setAttribute('y', '23');
+        label.setAttribute('style', 'pointer-events: none');
+
+        const circle = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'circle',
+        );
+        circle.setAttribute('r', '15');
+        circle.setAttribute('stroke', 'rgb(var(--color-border))');
+        circle.setAttribute('stroke-width', '2');
+        circle.setAttribute('style', 'cursor: grab');
+        circle.setAttribute('cx', '16');
+        circle.setAttribute('cy', '16');
+        circle.setAttribute('fill', 'rgb(var(--color-surface))');
+
+        svg.appendChild(circle);
+        svg.appendChild(label);
+
+        return svg;
+      },
     };
   },
 };

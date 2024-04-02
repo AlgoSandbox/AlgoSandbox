@@ -1,6 +1,7 @@
 import { createAdapter, createState } from '@algo-sandbox/core';
 import {
   graphSearchAlgorithmState,
+  NodeGraphVisualizerNode,
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
 } from '@algo-sandbox/states';
@@ -10,12 +11,11 @@ const inputState = createState(
   'Environment to search tree input state',
   sandboxEnvironmentSearchState.shape.extend({
     getStateKey: sandboxEnvironmentState.shape.shape.getStateKey,
+    render: sandboxEnvironmentState.shape.shape.render,
   }),
 );
 
-type GraphNode = z.infer<
-  (typeof graphSearchAlgorithmState)['shape']
->['graph']['nodes'][number];
+type GraphNode = NodeGraphVisualizerNode;
 type GraphEdge = z.infer<
   (typeof graphSearchAlgorithmState)['shape']
 >['graph']['edges'][number];
@@ -29,14 +29,15 @@ const envToGraph = createAdapter({
       edges: GraphEdge[];
       nodeDepths: Record<string, number>;
     } {
-      const root = value.searchTree;
       const nodes: Array<GraphNode> = [];
       const edges: Array<GraphEdge> = [];
       const nodeDepths: Record<string, number> = {};
 
-      if (root === null) {
+      if (value.searchTree === null) {
         return { nodes, edges, nodeDepths };
       }
+
+      const { root, states } = value.searchTree;
 
       const frontier = [{ node: root, depth: 0 }];
 
@@ -47,7 +48,14 @@ const envToGraph = createAdapter({
         const { node: currentNode, depth } = current;
         const { id, stateKey, children } = currentNode;
 
-        nodes.push({ id, label: stateKey });
+        nodes.push({
+          id,
+          createElement: () => {
+            const svgElement = value.render(states[stateKey]) as SVGSVGElement;
+
+            return svgElement;
+          },
+        });
         nodeDepths[id] = depth;
 
         for (const child of children) {

@@ -44,10 +44,22 @@ export const searchGraph = createState(
   }),
 );
 
+export const nodeGraphVisualizerEdge = graphEdge.extend({
+  isArrow: z.boolean().optional(),
+});
+
+export const nodeGraphVisualizerNode = graphNode.extend({
+  createElement: z.function().optional() as z.ZodOptional<
+    z.ZodType<(document: Document) => SVGSVGElement>
+  >,
+});
+
 export const graphSearchAlgorithmState = createState(
   'Graph search algorithm state',
   z.object({
-    graph: nodeGraph.shape,
+    graph: nodeGraph.shape.omit({ nodes: true }).extend({
+      nodes: z.array(nodeGraphVisualizerNode),
+    }),
     frontier: z.array(z.string()),
     visited: z.set(z.string()),
     initialNodeId: z.string(),
@@ -56,11 +68,8 @@ export const graphSearchAlgorithmState = createState(
   }),
 );
 
-export const nodeGraphVisualizerEdge = graphEdge.extend({
-  isArrow: z.boolean().optional(),
-});
-
-export const nodeGraphVisualizerNode = graphNode;
+export type NodeGraphVisualizerNode = z.infer<typeof nodeGraphVisualizerNode>;
+export type NodeGraphVisualizerEdge = z.infer<typeof nodeGraphVisualizerEdge>;
 
 export const nodeGraphVisualizerInput = createState(
   'Node graph visualizer input',

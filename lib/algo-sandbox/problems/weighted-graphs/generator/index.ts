@@ -5,7 +5,7 @@ import { z } from 'zod';
 type NodeGraph = z.infer<typeof nodeGraph.shape>;
 
 const defaultGraph: NodeGraph = {
-  nodes: 'ABCDEFGH'.split('').map((id) => ({ id })),
+  nodes: 'ABCDEFGH'.split('').map((id) => ({ id, label: id })),
   edges: [
     {
       source: 'A',

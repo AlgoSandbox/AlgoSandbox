@@ -98,10 +98,15 @@ const depthFirstSearch = createAlgorithm({
     });
     state.visited.add(initialStateKey);
     state.searchTree = {
-      id: initialNodeId,
-      stateKey: initialStateKey,
-      action: null,
-      children: [],
+      root: {
+        id: initialNodeId,
+        stateKey: initialStateKey,
+        action: null,
+        children: [],
+      },
+      states: {
+        [initialStateKey]: state.currentState,
+      },
     };
     yield line(3, 'Insert the initial state to frontier and visited set.');
 
@@ -138,12 +143,18 @@ const depthFirstSearch = createAlgorithm({
         );
         const nextStateId = getNextId();
         const nextStateKey = problemState.getStateKey(nextState);
-        state.searchTree = addNodeToSearchTree(state.searchTree, {
-          fromId: currentId,
-          toId: nextStateId,
-          toStateKey: nextStateKey,
-          action,
-        });
+        state.searchTree = {
+          root: addNodeToSearchTree(state.searchTree.root, {
+            fromId: currentId,
+            toId: nextStateId,
+            toStateKey: nextStateKey,
+            action,
+          }),
+          states: {
+            ...state.searchTree.states,
+            [nextStateKey]: nextState,
+          },
+        };
         yield line(7, `Next state = ${problemState.getStateKey(nextState)}`);
 
         // if nextState in visited: continue

@@ -85,7 +85,19 @@ const nQueensEnvironmentParameterized = createParameterizedEnvironment({
   },
   render: () => {
     // TODO: Render n queens board
-    return 'Render logic not implemented yet';
+    const board = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', '0');
+    rect.setAttribute('y', '0');
+    rect.setAttribute('width', '100');
+    rect.setAttribute('height', '100');
+    rect.setAttribute('fill', 'red');
+
+    board.appendChild(rect);
+    board.setAttribute('viewBox', '0 0 100 100');
+
+    return board;
   },
 });
 

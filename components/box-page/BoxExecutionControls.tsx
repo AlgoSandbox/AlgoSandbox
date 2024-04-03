@@ -80,8 +80,8 @@ export default function BoxExecutionControls() {
     useUserPreferences();
 
   return (
-    <div className="flex flex-1 flex-col items-center">
-      <span className="lg:hidden font-mono px-2 text-sm text-label">
+    <div className="flex flex-1 flex-col items-center relative">
+      <span className="lg:hidden font-mono absolute rounded-full -top-1 px-2 text-sm text-label bg-surface border -translate-y-full">
         {currentStepIndex + 1}/{maxSteps ?? '?'}
       </span>
       <div className="flex self-stretch justify-between items-center gap-2">

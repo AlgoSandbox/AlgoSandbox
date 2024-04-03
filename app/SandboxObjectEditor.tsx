@@ -161,41 +161,43 @@ export default function SandboxObjectEditorPage({
         </Heading>
       </div> */}
       {mode === 'edit' && !isViewOnly && (
-        <div className="px-4 py-2 flex gap-2 items-end">
+        <div className="px-4 py-2 flex gap-2 items-end flex-wrap">
           <Input
             containerClassName="flex-1"
             label="Name"
             {...register('name', { required: true })}
           />
-          <Button
-            label="Save"
-            hideLabel={true}
-            type="submit"
-            variant="primary"
-            icon={<MaterialSymbol icon="save" />}
-            disabled={isViewOnly || !isDirty}
-          />
-          <Button
-            label="Delete"
-            hideLabel={true}
-            icon={<MaterialSymbol icon="delete" />}
-            type="button"
-            variant="filled"
-            disabled={isViewOnly}
-            onClick={handleDelete}
-          />
-          {metadataToggleButton}
-          <Button
-            icon={<MaterialSymbol icon="link" />}
-            label={
-              isDirty ? 'Save first to copy import link' : 'Copy import link'
-            }
-            hideLabel={true}
-            type="button"
-            onClick={handleCopyImportLink}
-            variant="primary"
-            disabled={isDirty}
-          />
+          <div className="flex gap-2">
+            <Button
+              label="Save"
+              hideLabel={true}
+              type="submit"
+              variant="primary"
+              icon={<MaterialSymbol icon="save" />}
+              disabled={isViewOnly || !isDirty}
+            />
+            <Button
+              label="Delete"
+              hideLabel={true}
+              icon={<MaterialSymbol icon="delete" />}
+              type="button"
+              variant="filled"
+              disabled={isViewOnly}
+              onClick={handleDelete}
+            />
+            {metadataToggleButton}
+            <Button
+              icon={<MaterialSymbol icon="link" />}
+              label={
+                isDirty ? 'Save first to copy import link' : 'Copy import link'
+              }
+              hideLabel={true}
+              type="button"
+              onClick={handleCopyImportLink}
+              variant="primary"
+              disabled={isDirty}
+            />
+          </div>
         </div>
       )}
       {mode === 'import' && (

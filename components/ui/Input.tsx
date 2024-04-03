@@ -41,7 +41,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           autoComplete="off"
           className={clsx(
-            'bg-surface-high rounded px-4 py-2',
+            'bg-surface rounded px-4 py-2 border',
             className,
             hideLabel && containerClassName,
           )}

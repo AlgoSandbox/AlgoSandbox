@@ -10,6 +10,7 @@ export const componentTag = z.enum([
   'adversarial-search',
   'graph',
   'grid',
+  'experimental',
   'uninformed-search',
   'informed-search',
   'local-search',

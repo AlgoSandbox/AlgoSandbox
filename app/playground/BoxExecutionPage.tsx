@@ -375,9 +375,7 @@ export default function BoxExecutionPage() {
                   variant="filled"
                   label="Current visualizer"
                   options={tileMobileOptions}
-                  value={tileMobileOptions.find(
-                    ({ value: alias }) => alias === currentTileMobile,
-                  )}
+                  value={currentTileMobile ?? undefined}
                   onChange={({ value: alias }) => {
                     setCurrentTileMobile(alias);
                   }}

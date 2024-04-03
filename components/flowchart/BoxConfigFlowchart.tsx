@@ -7,7 +7,7 @@ import { useSandboxComponents } from '@components/playground/SandboxComponentsPr
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
-import { Button, MaterialSymbol } from '@components/ui';
+import { Button, MaterialSymbol, Select } from '@components/ui';
 import Dagre from '@dagrejs/dagre';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import { getBoxConfigNodeOrder } from '@utils/solveFlowchart';
@@ -184,6 +184,7 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
   }, [visualizerOptions, adapterOptions]);
 
   const [configUndoStack, setConfigUndoStack] = useState<BoxConfigTree[]>([]);
+  const canUndo = configUndoStack.length > 0;
 
   const isAliasAfterAlgorithm = useCallback(
     (alias: string) => {
@@ -728,33 +729,29 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
       >
         <Background className="bg-canvas" />
       </ReactFlow>
-      <div className="absolute top-4 start-4 flex gap-2">
-        <Button
-          label="Simple"
-          role="checkbox"
-          variant="filled"
-          selected={flowchartMode === 'simple'}
-          onClick={() => {
-            setFlowchartMode('simple');
+      <div className="absolute top-0 bg-surface w-full px-4 py-2 border-b flex gap-2">
+        <Select
+          label="Flowchart mode"
+          hideLabel
+          value={flowchartMode}
+          options={
+            [
+              { key: 'simple', value: 'simple', label: 'Simple' },
+              { key: 'full', value: 'full', label: 'Full' },
+            ] as const
+          }
+          onChange={(value) => {
+            setFlowchartMode(value.value);
           }}
         />
         <Button
-          label="Full"
-          role="checkbox"
+          label="Undo"
+          hideLabel
           variant="filled"
-          selected={flowchartMode === 'full'}
-          onClick={() => {
-            setFlowchartMode('full');
-          }}
+          onClick={undo}
+          icon={<MaterialSymbol icon="undo" />}
+          disabled={!canUndo}
         />
-      </div>
-      <div
-        className={clsx(
-          'absolute mx-auto flex-col items-end gap-2',
-          'bottom-4 xl:bottom-auto end-4 xl:end-auto xl:top-4',
-          'flex xl:flex-row xl:items-center',
-        )}
-      >
         {flowchartMode === 'full' && (
           <CatalogSelect
             label="Add component"
@@ -807,12 +804,14 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
         )}
         <Button
           label="Auto layout"
+          hideLabel
           variant="filled"
           onClick={autoLayoutNodes}
-          icon={<MaterialSymbol icon="mitre" />}
+          icon={<MaterialSymbol icon="view_timeline" />}
         />
         <Button
           label="Reset box config"
+          hideLabel
           variant="filled"
           onClick={reset}
           icon={<MaterialSymbol icon="settings_backup_restore" />}

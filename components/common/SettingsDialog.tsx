@@ -32,7 +32,7 @@ export default function SettingsDialog({
         <div className="p-4 flex flex-col gap-4 items-start">
           <Select
             options={themeOptions}
-            value={selectedThemeOption}
+            value={selectedThemeOption?.key}
             onChange={(option) => {
               setTheme(option.value);
             }}

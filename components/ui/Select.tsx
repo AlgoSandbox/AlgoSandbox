@@ -12,39 +12,44 @@ import { FormLabel, MaterialSymbol } from '.';
 
 type SelectVariant = 'primary' | 'filled' | 'flat';
 
-export type SelectOption<T> = {
-  key: string;
+export type SelectOption<T, K extends string = string> = Readonly<{
+  key: K;
   label: string;
   value: T;
-};
+}>;
 
-export type SelectGroup<T> = {
+export type SelectGroup<T, K extends string = string> = Readonly<{
   key: string;
   label: string;
-  options: Array<SelectOption<T>>;
-};
+  options: ReadonlyArray<SelectOption<T, K>>;
+}>;
 
-export type SelectOptions<T = unknown> = Array<
-  SelectOption<T> | SelectGroup<T>
->;
+export type SelectOptions<
+  T = unknown,
+  K extends string = string,
+> = ReadonlyArray<SelectOption<T, K> | SelectGroup<T, K>>;
 
-export type SelectProps<T, O extends SelectOption<T> = SelectOption<T>> = {
+export type SelectProps<
+  T,
+  K extends string,
+  Options extends SelectOptions<T, K> = SelectOptions<T, K>,
+> = {
   className?: string;
   containerClassName?: string;
   label: string;
   hideLabel?: boolean;
   placeholder?: string;
-  options: SelectOptions<T>;
-  value?: O;
+  options: Options;
+  value?: K;
   variant?: SelectVariant;
   disabled?: boolean;
-  onChange?: (value: O) => void;
+  onChange?: (value: SelectOption<T, K>) => void;
 };
 
-export function isSelectGroup<T>(
-  option: SelectOption<T> | SelectGroup<T>,
-): option is SelectGroup<T> {
-  return (option as SelectGroup<T>).options !== undefined;
+export function isSelectGroup<T, K extends string>(
+  option: SelectOption<T, K> | SelectGroup<T, K>,
+): option is SelectGroup<T, K> {
+  return (option as SelectGroup<T, K>).options !== undefined;
 }
 
 const SelectItem = React.forwardRef<
@@ -70,7 +75,7 @@ const SelectItem = React.forwardRef<
 
 SelectItem.displayName = 'SelectItem';
 
-function Select<T>(
+function Select<T, K extends string>(
   {
     className,
     containerClassName,
@@ -82,7 +87,7 @@ function Select<T>(
     disabled,
     variant = 'flat',
     onChange,
-  }: SelectProps<T>,
+  }: SelectProps<T, K>,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
   const id = useId();
@@ -95,7 +100,7 @@ function Select<T>(
   const selectElement = (
     <RadixSelect.Root
       disabled={disabled}
-      value={value?.key}
+      value={value}
       onValueChange={(key) => {
         const newValue = flattenedOptions.find((option) => option.key === key);
         if (newValue) {

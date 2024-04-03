@@ -1224,8 +1224,8 @@ export default function AlgorithmVisualizerFlowchart({
       <div
         className={clsx(
           'absolute mx-auto flex-col items-end gap-2',
-          'bottom-4 md:bottom-auto end-4 md:end-auto md:top-4',
-          'flex md:flex-row md:items-center',
+          'bottom-4 xl:bottom-auto end-4 xl:end-auto xl:top-4',
+          'flex xl:flex-row xl:items-center',
         )}
       >
         {(flowchartMode === 'intermediate' || flowchartMode === 'full') && (

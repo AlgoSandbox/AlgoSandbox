@@ -1160,7 +1160,7 @@ export default function AlgorithmVisualizerFlowchart({
   );
 
   useHotkeys(
-    'meta+z',
+    ['meta+z', 'ctrl+z'],
     (e) => {
       e.preventDefault();
       undo();

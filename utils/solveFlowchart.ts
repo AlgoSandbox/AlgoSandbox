@@ -55,6 +55,15 @@ function buildGraphFromBoxConfig(boxConfig: BoxConfigTree) {
   return graph;
 }
 
+export function getBoxConfigNodeOrder(boxConfig: BoxConfigTree) {
+  const graph = buildGraphFromBoxConfig(boxConfig);
+  return topologicalSort(
+    Object.fromEntries(
+      Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
+    ),
+  );
+}
+
 export default function solveFlowchart({
   config,
   problemState,
@@ -77,11 +86,7 @@ export default function solveFlowchart({
   >;
 }) {
   const graph = buildGraphFromBoxConfig(config);
-  const nodesToExplore = topologicalSort(
-    Object.fromEntries(
-      Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
-    ),
-  );
+  const nodesToExplore = getBoxConfigNodeOrder(config);
 
   const outputs: Record<string, Record<string, unknown> | undefined> = {
     problem: problemState,

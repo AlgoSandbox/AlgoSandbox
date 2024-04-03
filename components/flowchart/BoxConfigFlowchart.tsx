@@ -18,6 +18,7 @@ import Dialog from '@components/ui/Dialog';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
+import { getBoxConfigNodeOrder } from '@utils/solveFlowchart';
 import getZodTypeName from '@utils/zod/getZodTypeName';
 import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
@@ -658,11 +659,22 @@ export default function AlgorithmVisualizerFlowchart({
   const algorithmName = algorithm.unwrapOr(null)?.name ?? 'Untitled algorithm';
   const problemName = problem.unwrapOr(null)?.name ?? 'Untitled problem';
 
+  const nodeOrder = useMemo(() => {
+    return getBoxConfigNodeOrder(configTree);
+  }, [configTree]);
+
   const componentOptions = useMemo(() => {
     return groupOptionsByTag([...visualizerOptions, ...adapterOptions]);
   }, [visualizerOptions, adapterOptions]);
 
   const [configUndoStack, setConfigUndoStack] = useState<BoxConfigTree[]>([]);
+
+  const isAliasAfterAlgorithm = useCallback(
+    (alias: string) => {
+      return nodeOrder.indexOf('algorithm') < nodeOrder.indexOf(alias);
+    },
+    [nodeOrder],
+  );
 
   const setConfig = useCallback(
     (value: BoxConfigTree) => {
@@ -771,6 +783,7 @@ export default function AlgorithmVisualizerFlowchart({
             height: getNodeHeight({
               slotCount,
             }),
+            hidden: flowchartMode === 'simple' && isAliasAfterAlgorithm(alias),
             deletable: flowchartMode === 'full',
             data: {
               alias,
@@ -814,6 +827,7 @@ export default function AlgorithmVisualizerFlowchart({
       flowchartMode,
       inputErrors,
       inputs,
+      isAliasAfterAlgorithm,
       onNodeDelete,
       outputs,
       setComponentNames,
@@ -837,6 +851,7 @@ export default function AlgorithmVisualizerFlowchart({
             slotCount: inputSlots.length,
           }),
           deletable: flowchartMode === 'full',
+          hidden: flowchartMode === 'simple' && isAliasAfterAlgorithm(alias),
           data: {
             type: 'visualizer',
             alias,
@@ -870,6 +885,7 @@ export default function AlgorithmVisualizerFlowchart({
     flowchartMode,
     inputErrors,
     inputs,
+    isAliasAfterAlgorithm,
     onNodeDelete,
     setComponentNames,
     visualizerInstances,

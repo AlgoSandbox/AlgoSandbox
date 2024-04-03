@@ -81,7 +81,6 @@ export default function FlowchartComponentSelect<
 
   const setParameters = useCallback(
     (newParameters: Record<string, any>) => {
-      console.log('setting param', newParameters);
       setSelectedValue(selectedOption, newParameters);
     },
     [selectedOption, setSelectedValue],

@@ -22,6 +22,7 @@ export default function FlowchartAlgorithmSelect({
     options,
   } = useBoxContext('algorithm.select');
   const algorithmEvaluation = useBoxContext('algorithm.value');
+  const algorithmInstance = useBoxContext('algorithm.instance');
   const { default: defaultParameters, value: parameters = {} } = useBoxContext(
     'algorithm.parameters',
   );
@@ -30,15 +31,37 @@ export default function FlowchartAlgorithmSelect({
 
   const { usedInputSlots, usedOutputSlots } = useMemo(() => {
     const usedSlots = getUsedSlotsForAlias(configTree, alias);
-    const usedInputSlots = usedSlots
-      .filter((slot) => slot.type === 'input')
-      .map((slot) => slot.slot);
-    const usedOutputSlots = usedSlots
-      .filter((slot) => slot.type === 'output')
-      .map((slot) => slot.slot);
+
+    const usedInputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'input')
+      ) {
+        return Object.keys(
+          algorithmInstance.unwrapOr(null)?.accepts.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'input')
+        .map((slot) => slot.slot);
+    })();
+
+    const usedOutputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'output')
+      ) {
+        return Object.keys(
+          algorithmInstance.unwrapOr(null)?.outputs.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'output')
+        .map((slot) => slot.slot);
+    })();
 
     return { usedInputSlots, usedOutputSlots };
-  }, [configTree, alias]);
+  }, [configTree, algorithmInstance]);
 
   const filter = useCallback(
     (instance: Instance<'algorithm'>) => {

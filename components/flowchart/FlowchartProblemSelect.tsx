@@ -22,20 +22,31 @@ export default function FlowchartProblemSelect({
     options,
   } = useBoxContext('problem.select');
   const problemEvaluation = useBoxContext('problem.value');
+  const problemInstance = useBoxContext('problem.instance');
   const { default: defaultParameters, value: parameters = {} } =
     useBoxContext('problem.parameters');
 
   const configTree = useBoxContext('config.tree');
-  const alias = 'algorithm';
+  const alias = 'problem';
 
   const { usedOutputSlots } = useMemo(() => {
     const usedSlots = getUsedSlotsForAlias(configTree, alias);
-    const usedOutputSlots = usedSlots
-      .filter((slot) => slot.type === 'output')
-      .map((slot) => slot.slot);
+    const usedOutputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'output')
+      ) {
+        return Object.keys(
+          problemInstance.unwrapOr(null)?.type.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'output')
+        .map((slot) => slot.slot);
+    })();
 
     return { usedOutputSlots };
-  }, [configTree, alias]);
+  }, [configTree, problemInstance]);
 
   const filter = useCallback(
     (instance: Instance<'problem'>) => {

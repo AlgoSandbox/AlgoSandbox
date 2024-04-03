@@ -29,6 +29,7 @@ export default function FlowchartVisualizerSelect({
   const configTree = useBoxContext('config.tree');
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
+  const instances = useBoxContext('visualizers.instances');
 
   const { key: visualizerKey, parameters } = parseKeyWithParameters(
     aliases[alias],
@@ -60,6 +61,8 @@ export default function FlowchartVisualizerSelect({
     parameters: parameters ?? null,
   });
 
+  const visualizerInstance = instances[alias];
+
   const {
     value: selectedOption,
     setValue: setSelectedOption,
@@ -77,12 +80,24 @@ export default function FlowchartVisualizerSelect({
 
   const { usedInputSlots } = useMemo(() => {
     const usedSlots = getUsedSlotsForAlias(configTree, alias);
-    const usedInputSlots = usedSlots
-      .filter((slot) => slot.type === 'input')
-      .map((slot) => slot.slot);
+
+    const usedInputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'input')
+      ) {
+        return Object.keys(
+          visualizerInstance.mapLeft(() => null).value?.value.accepts.shape
+            .shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'input')
+        .map((slot) => slot.slot);
+    })();
 
     return { usedInputSlots };
-  }, [configTree, alias]);
+  }, [configTree, alias, visualizerInstance]);
 
   const filter = useCallback(
     (instance: Instance<'visualizer'>) => {

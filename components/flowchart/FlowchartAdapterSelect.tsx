@@ -52,21 +52,55 @@ export default function FlowchartAdapterSelect({
     evaluatedAdapters[alias]?.map(({ value }) => value) ??
     error('Adapter evaluation not found');
 
+  const adapterInstance = useMemo(() => {
+    return adapterEvaluation
+      .mapLeft(() => null)
+      .mapRight((adapter) => {
+        if ('parameters' in adapter) {
+          return adapter.create();
+        }
+
+        return adapter;
+      });
+  }, [adapterEvaluation]);
+
   const value = useMemo(() => {
     return adapterOptions.find((option) => option.key === adapterKey)!;
   }, [adapterOptions, adapterKey]);
 
   const { usedInputSlots, usedOutputSlots } = useMemo(() => {
     const usedSlots = getUsedSlotsForAlias(configTree, alias);
-    const usedInputSlots = usedSlots
-      .filter((slot) => slot.type === 'input')
-      .map((slot) => slot.slot);
-    const usedOutputSlots = usedSlots
-      .filter((slot) => slot.type === 'output')
-      .map((slot) => slot.slot);
+
+    const usedInputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'input')
+      ) {
+        return Object.keys(
+          adapterInstance.mapLeft(() => null).value?.accepts.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'input')
+        .map((slot) => slot.slot);
+    })();
+
+    const usedOutputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'output')
+      ) {
+        return Object.keys(
+          adapterInstance.mapLeft(() => null).value?.outputs.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'output')
+        .map((slot) => slot.slot);
+    })();
 
     return { usedInputSlots, usedOutputSlots };
-  }, [configTree, alias]);
+  }, [configTree, alias, adapterInstance]);
 
   const filter = useCallback(
     (instance: Instance<'adapter'>) => {

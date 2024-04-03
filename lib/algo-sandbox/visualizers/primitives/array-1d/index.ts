@@ -1,10 +1,4 @@
-import {
-  createParameterizedVisualizer,
-  SandboxParam,
-  SandboxParameters,
-  SandboxStateType,
-} from '@algo-sandbox/core';
-import { get } from 'lodash';
+import { createVisualizer, SandboxStateType } from '@algo-sandbox/core';
 import { createElement } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { z } from 'zod';
@@ -16,27 +10,16 @@ const arrayType = {
   }),
 } satisfies SandboxStateType;
 
-const array1d = createParameterizedVisualizer<
+const array1d = createVisualizer<
   typeof arrayType,
   {
     root: Root;
     element: HTMLElement;
-  },
-  SandboxParameters<{
-    accessor: string;
-  }>
+  }
 >({
   name: 'Array 1D',
   accepts: arrayType,
-  parameters: {
-    accessor: SandboxParam.string('Item path', ''),
-  },
-  onUpdate: ({
-    state: { array },
-    previousVisualizerState,
-    element,
-    parameters: { accessor },
-  }) => {
+  onUpdate: ({ state: { array }, previousVisualizerState, element }) => {
     // Store root in visualizer state to createRoot only once
     const root = (() => {
       if (
@@ -63,8 +46,7 @@ const array1d = createParameterizedVisualizer<
             padding: 8,
           },
         },
-        ...array.map((element, index) => {
-          const value = get(element, accessor);
+        ...array.map((value, index) => {
           const valueString =
             typeof value === 'object' ? JSON.stringify(value) : String(value);
 

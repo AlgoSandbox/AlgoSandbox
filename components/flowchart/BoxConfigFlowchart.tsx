@@ -183,7 +183,7 @@ function FlowNodeSlot({
               <MaterialSymbol icon="info" className="text-label !text-[16px]" />
             </button>
             <Dialog
-              title={`Slot info: ${label}`}
+              title={`Variable: ${label}`}
               size="full"
               content={
                 <div className="flex flex-col h-full gap-y-2">

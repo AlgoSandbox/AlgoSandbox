@@ -33,7 +33,7 @@ import { toast } from 'sonner';
 import { SomeZodObject, ZodError } from 'zod';
 
 import { useBoxContext, useBoxControlsContext } from '../box-page';
-import FlowNodeCard, { FlowNodeProps } from './FlowNodeCard';
+import FlowNodeCard, { FlowNodeData, FlowNodeProps } from './FlowNodeCard';
 
 type FlowNode = Node<FlowNodeProps['data']>;
 
@@ -284,58 +284,64 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
 
   const initialAdapterNodes = useMemo(
     () =>
-      Object.entries(configEvaluated.adapterInstances ?? {}).map(
-        ([alias, evaluation]) => {
-          const { value: adapter } = evaluation.mapLeft(() => null).value ?? {};
-          const evaluationError = evaluation.mapRight(() => null).value;
-          const inputSlots = Object.keys(adapter?.accepts.shape.shape ?? {});
-          const outputSlots = Object.keys(adapter?.outputs.shape.shape ?? {});
-          const slotCount = Math.max(inputSlots.length, outputSlots.length);
+      compact(
+        Object.entries(configEvaluated.adapterInstances ?? {}).map(
+          ([alias, evaluation]) => {
+            const { value: adapter } =
+              evaluation.mapLeft(() => null).value ?? {};
+            const evaluationError = evaluation.mapRight(() => null).value;
+            const inputSlots = Object.keys(adapter?.accepts.shape.shape ?? {});
+            const outputSlots = Object.keys(adapter?.outputs.shape.shape ?? {});
+            const slotCount = Math.max(inputSlots.length, outputSlots.length);
 
-          return {
-            id: alias,
-            type: 'customFlow',
-            width: 500,
-            height: getNodeHeight({
-              slotCount,
-            }),
-            hidden: flowchartMode === 'simple' && isAliasAfterAlgorithm(alias),
-            deletable: flowchartMode === 'full',
-            data: {
-              alias,
-              type: 'adapter',
-              label: alias,
+            if (flowchartMode === 'simple' && isAliasAfterAlgorithm(alias)) {
+              return null;
+            }
+
+            return {
+              id: alias,
+              type: 'customFlow',
+              width: 500,
+              height: getNodeHeight({
+                slotCount,
+              }),
               deletable: flowchartMode === 'full',
-              name: componentNames[alias] ?? '',
-              onNameChange: (name: string) => {
-                setComponentNames({
-                  ...componentNames,
-                  [alias]: name,
-                });
+              data: {
+                alias,
+                type: 'adapter',
+                label: alias,
+                deletable: flowchartMode === 'full',
+                name: componentNames[alias] ?? '',
+                onNameChange: (name: string) => {
+                  setComponentNames({
+                    ...componentNames,
+                    [alias]: name,
+                  });
+                },
+                onDelete: () => {
+                  onNodeDelete('adapter', alias);
+                },
+                evaluationError,
+                inputs: ['.', ...inputSlots].map((param) => {
+                  return makeSlot({
+                    values: inputs[alias],
+                    errors: inputErrors[alias],
+                    param,
+                    shape: adapter?.accepts.shape,
+                  });
+                }),
+                outputs: ['.', ...outputSlots].map((param) => {
+                  return makeSlot({
+                    values: outputs[alias],
+                    errors: undefined,
+                    param,
+                    shape: adapter?.outputs.shape,
+                  });
+                }),
               },
-              onDelete: () => {
-                onNodeDelete('adapter', alias);
-              },
-              evaluationError,
-              inputs: ['.', ...inputSlots].map((param) => {
-                return makeSlot({
-                  values: inputs[alias],
-                  errors: inputErrors[alias],
-                  param,
-                  shape: adapter?.accepts.shape,
-                });
-              }),
-              outputs: ['.', ...outputSlots].map((param) => {
-                return makeSlot({
-                  values: outputs[alias],
-                  errors: undefined,
-                  param,
-                  shape: adapter?.outputs.shape,
-                });
-              }),
-            },
-          } satisfies Omit<FlowNode, 'position'>;
-        },
+            } satisfies Omit<FlowNode, 'position'>;
+          },
+        ),
       ),
     [
       componentNames,
@@ -359,6 +365,10 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
         const visualizerInputs = instance?.accepts.shape.shape ?? {};
         const inputSlots = Object.keys(visualizerInputs);
 
+        if (flowchartMode === 'simple' && isAliasAfterAlgorithm(alias)) {
+          return null;
+        }
+
         return {
           id: alias,
           type: 'customFlow',
@@ -367,7 +377,6 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
             slotCount: inputSlots.length,
           }),
           deletable: flowchartMode === 'full',
-          hidden: flowchartMode === 'simple' && isAliasAfterAlgorithm(alias),
           data: {
             type: 'visualizer',
             alias,
@@ -418,6 +427,23 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
       algorithmOutputSlots.length,
     );
 
+    const hideOutputs = flowchartMode === 'simple';
+
+    const nodeOutputs: FlowNodeData['outputs'] = (() => {
+      if (hideOutputs) {
+        return [];
+      }
+
+      return ['.', ...algorithmOutputSlots].map((param) => {
+        return makeSlot({
+          values: outputs['algorithm'],
+          errors: undefined,
+          param,
+          shape: algorithm.unwrapOr(null)?.outputs.shape,
+        });
+      });
+    })();
+
     return [
       {
         id: 'algorithm',
@@ -449,14 +475,7 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
               shape: algorithm.unwrapOr(null)?.accepts.shape,
             });
           }),
-          outputs: ['.', ...algorithmOutputSlots].map((param) => {
-            return makeSlot({
-              values: outputs['algorithm'],
-              errors: undefined,
-              param,
-              shape: algorithm.unwrapOr(null)?.outputs.shape,
-            });
-          }),
+          outputs: nodeOutputs,
         },
       },
       {
@@ -500,6 +519,7 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
     algorithmName,
     algorithmOutputs,
     componentNames,
+    flowchartMode,
     initialAdapterNodes,
     initialVisualizerNodes,
     inputErrors,

@@ -180,7 +180,9 @@ function Select<T>(
     selectElement
   ) : (
     <div className={clsx('flex flex-col', containerClassName)}>
-      <FormLabel id={id}>{label}</FormLabel>
+      <FormLabel className="truncate text-ellipsis shrink" id={id}>
+        {label}
+      </FormLabel>
       {selectElement}
     </div>
   );

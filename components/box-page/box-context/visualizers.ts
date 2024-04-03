@@ -33,14 +33,12 @@ export type BoxContextVisualizers = {
     string,
     ErrorOr<SandboxEvaluated<SandboxVisualizer<SandboxStateType, unknown>>>
   >;
-  reset: () => void;
 };
 
 export default function useBoxContextVisualizers({
   defaultAliases,
   defaultOrder,
-  onOrderChange,
-  onAliasesChange,
+  onChange,
   options,
 }: {
   options: Array<CatalogOption<DbVisualizerSaved>>;
@@ -49,10 +47,10 @@ export default function useBoxContextVisualizers({
     string,
     SandboxKeyWithParameters<SandboxVisualizerKey>
   >;
-  onOrderChange: (order: Array<string>) => void;
-  onAliasesChange: (
-    aliases: Record<string, SandboxKeyWithParameters<SandboxVisualizerKey>>,
-  ) => void;
+  onChange: (newValue: {
+    order: Array<string>;
+    aliases: Record<string, SandboxKeyWithParameters<SandboxVisualizerKey>>;
+  }) => void;
 }) {
   const [aliases, setAliases] = useState(defaultAliases);
   const [order, setOrder] = useState(defaultOrder);
@@ -65,25 +63,19 @@ export default function useBoxContextVisualizers({
     setOrder(defaultOrder);
   }, [defaultOrder]);
 
-  const handleOrderChange = useCallback(
-    (newOrder: Array<string>) => {
+  const handleChange = useCallback(
+    ({
+      order: newOrder,
+      aliases: newAliases,
+    }: {
+      order: Array<string>;
+      aliases: Record<string, SandboxKeyWithParameters<SandboxVisualizerKey>>;
+    }) => {
       setOrder(newOrder);
-      onOrderChange(newOrder);
-    },
-    [onOrderChange],
-  );
-
-  const handleAliasesChange = useCallback(
-    (
-      newAliases: Record<
-        string,
-        SandboxKeyWithParameters<SandboxVisualizerKey>
-      >,
-    ) => {
       setAliases(newAliases);
-      onAliasesChange(newAliases);
+      onChange({ order: newOrder, aliases: newAliases });
     },
-    [onAliasesChange],
+    [onChange],
   );
 
   const selectedVisualizers: Record<
@@ -166,37 +158,27 @@ export default function useBoxContextVisualizers({
           alias: string,
           key: SandboxKeyWithParameters<SandboxVisualizerKey>,
         ) => {
-          handleAliasesChange({ ...aliases, [alias]: key });
+          handleChange({ order, aliases: { ...aliases, [alias]: key } });
         },
         appendAlias: (
           alias: string,
           key: SandboxKeyWithParameters<SandboxVisualizerKey>,
         ) => {
-          handleAliasesChange({ ...aliases, [alias]: key });
-          handleOrderChange([...order, alias]);
+          handleChange({
+            order: [...order, alias],
+            aliases: { ...aliases, [alias]: key },
+          });
         },
         removeAlias: (alias: string) => {
           const newAliases = { ...aliases };
           delete newAliases[alias];
-          handleAliasesChange(newAliases);
-          handleOrderChange(order.filter((o) => o !== alias));
+          const newOrder = order.filter((o) => o !== alias);
+
+          handleChange({ order: newOrder, aliases: newAliases });
         },
         instances,
         defaultParameters,
-        reset: () => {
-          setAliases(defaultAliases);
-          setOrder(defaultOrder);
-        },
       }) satisfies BoxContextVisualizers,
-    [
-      aliases,
-      order,
-      instances,
-      defaultParameters,
-      handleAliasesChange,
-      handleOrderChange,
-      defaultAliases,
-      defaultOrder,
-    ],
+    [aliases, order, instances, defaultParameters, handleChange],
   );
 }

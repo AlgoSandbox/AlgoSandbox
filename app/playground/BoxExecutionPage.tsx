@@ -36,8 +36,11 @@ export default function BoxExecutionPage() {
   const { currentStepIndex, isExecuting } = useBoxControlsContext();
 
   const algorithmInstance = useBoxContext('algorithm.instance');
-  const { hiddenVisualizerAliases, setHiddenVisualizerAliases } =
-    useBoxContext();
+  const {
+    hiddenVisualizerAliases,
+    setHiddenVisualizerAliases,
+    componentNames,
+  } = useBoxContext();
 
   const executionStep = scene?.executionTrace?.[currentStepIndex];
   const pseudocode = algorithmInstance.unwrapOr(null)?.pseudocode ?? '';
@@ -164,6 +167,12 @@ export default function BoxExecutionPage() {
 
   const renderTile = useCallback(
     (id: string) => {
+      if (isExecuting && scene === null) {
+        return (
+          <div className="w-full h-full bg-surface-high animate-pulse"></div>
+        );
+      }
+
       if (id === 'pseudocode') {
         return (
           <Pseudocode
@@ -201,18 +210,24 @@ export default function BoxExecutionPage() {
       );
     },
     [
+      isExecuting,
+      scene,
       visualizations,
       pseudocode,
       executionStep?.startLine,
       executionStep?.endLine,
       executionStep?.tooltip,
       currentStepIndex,
-      isExecuting,
     ],
   );
 
   const windowTitles = useMemo(() => {
     const getVisualizerName = (alias: string) => {
+      const componentName = componentNames[alias];
+      if (componentName) {
+        return componentName;
+      }
+
       const visualizer = visualizerInstances[alias];
 
       return (
@@ -228,7 +243,7 @@ export default function BoxExecutionPage() {
         visualizerOrder.map((alias) => [alias, getVisualizerName(alias)]),
       ),
     } as Record<string, string>;
-  }, [visualizerOrder, visualizerInstances]);
+  }, [visualizerOrder, componentNames, visualizerInstances]);
 
   const tileMobileOptions = useMemo(() => {
     return visualizerOrder.map(
@@ -249,7 +264,9 @@ export default function BoxExecutionPage() {
         <Mosaic<string>
           className={clsx(
             'bg-transparent',
-            '[&_.mosaic-window-body]:!bg-surface',
+            scene !== null
+              ? '[&_.mosaic-window-body]:!bg-surface'
+              : '[&_.mosaic-window-body]:!bg-canvas',
             '[&_.mosaic-window-toolbar]:!bg-surface-high',
             '[&_.mosaic-split]:!bg-transparent',
             '[&_.mosaic-tile]:!m-1',
@@ -348,9 +365,11 @@ export default function BoxExecutionPage() {
                   hideLabel
                   variant="filled"
                   onClick={onPrevTileClick}
+                  disabled={visualizerOrder.length <= 1}
                   icon={<MaterialSymbol icon="arrow_back" />}
                 />
                 <Select
+                  className="truncate text-ellipsis"
                   containerClassName="flex-1"
                   hideLabel
                   variant="filled"
@@ -368,6 +387,7 @@ export default function BoxExecutionPage() {
                   hideLabel
                   variant="filled"
                   onClick={onNextTileClick}
+                  disabled={visualizerOrder.length <= 1}
                   icon={<MaterialSymbol icon="arrow_forward" />}
                 />
               </div>

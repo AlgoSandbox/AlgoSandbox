@@ -170,6 +170,7 @@ export type SandboxBox = Readonly<{
   algorithm: SandboxKeyWithParameters<SandboxAlgorithmKey>;
   visualizers: Visualizers;
   config?: BoxConfig;
+  componentNames?: Record<string, string | undefined>;
 }>;
 
 type ComponentWithParameters<T> = {
@@ -182,4 +183,5 @@ export type SandboxBoxEvaluated = {
   algorithm?: ComponentWithParameters<SandboxAnyAlgorithm>;
   visualizers?: VisualizersEvaluated;
   config?: BoxConfigEvaluated;
+  componentNames?: Record<string, string | undefined>;
 };

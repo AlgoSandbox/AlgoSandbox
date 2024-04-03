@@ -1,6 +1,7 @@
 import { Instance } from '@components/box-page/box-context/sandbox-object';
-import { isEqual } from 'lodash';
-import { useCallback } from 'react';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
+import { useCallback, useMemo } from 'react';
 
 import { useBoxContext } from '../box-page/box-context';
 import FlowchartComponentSelect from './FlowchartComponentSelect';
@@ -21,31 +22,63 @@ export default function FlowchartAlgorithmSelect({
     options,
   } = useBoxContext('algorithm.select');
   const algorithmEvaluation = useBoxContext('algorithm.value');
-  const {
-    default: defaultParameters,
-    setValue: setParameters,
-    value: parameters = {},
-  } = useBoxContext('algorithm.parameters');
+  const algorithmInstance = useBoxContext('algorithm.instance');
+  const { default: defaultParameters, value: parameters = {} } = useBoxContext(
+    'algorithm.parameters',
+  );
+  const configTree = useBoxContext('config.tree');
+  const alias = 'algorithm';
+
+  const { usedInputSlots, usedOutputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+
+    const usedInputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'input')
+      ) {
+        return Object.keys(
+          algorithmInstance.unwrapOr(null)?.accepts.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'input')
+        .map((slot) => slot.slot);
+    })();
+
+    const usedOutputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'output')
+      ) {
+        return Object.keys(
+          algorithmInstance.unwrapOr(null)?.outputs.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'output')
+        .map((slot) => slot.slot);
+    })();
+
+    return { usedInputSlots, usedOutputSlots };
+  }, [configTree, algorithmInstance]);
 
   const filter = useCallback(
-    (instance: Instance<'algorithm'>, otherInstance: Instance<'algorithm'>) => {
+    (instance: Instance<'algorithm'>) => {
+      const inputKeys = Object.keys(instance.accepts.shape.shape);
+      const outputKeys = Object.keys(instance.outputs.shape.shape);
+
       return (
-        isEqual(
-          Object.keys(instance.accepts.shape.shape),
-          Object.keys(otherInstance.accepts.shape.shape),
-        ) &&
-        isEqual(
-          Object.keys(instance.outputs.shape.shape),
-          Object.keys(otherInstance.outputs.shape.shape),
-        )
+        (usedInputSlots.every((slot) => inputKeys.includes(slot)) &&
+          usedOutputSlots.every((slot) => outputKeys.includes(slot))) ||
+        errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedInputSlots, usedOutputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption,
     filter,
   });
 
@@ -60,7 +93,6 @@ export default function FlowchartAlgorithmSelect({
       options={filteredOptions}
       evaluatedValue={algorithmEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={setParameters}
       parameters={parameters}
     />
   );

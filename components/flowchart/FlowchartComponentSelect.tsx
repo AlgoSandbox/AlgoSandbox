@@ -7,7 +7,7 @@ import Heading, { HeadingContent } from '@components/ui/Heading';
 import { CatalogOption, CatalogOptions } from '@constants/catalog';
 import { DbSandboxObjectSaved, DbSandboxObjectType } from '@utils/db';
 import clsx from 'clsx';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ParameterControls } from '../box-page';
@@ -22,11 +22,10 @@ export default function FlowchartComponentSelect<
   hideLabel,
   hideErrors,
   value: selectedOption,
-  onChange: setSelectedOption,
+  onChange: setSelectedValue,
   options,
   evaluatedValue,
   defaultParameters,
-  setParameters,
   parameters = {},
 }: {
   className?: string;
@@ -34,11 +33,13 @@ export default function FlowchartComponentSelect<
   hideLabel?: boolean;
   hideErrors?: boolean;
   value: CatalogOption<DbSandboxObjectSaved<T>> | null;
-  onChange: (value: CatalogOption<DbSandboxObjectSaved<T>> | null) => void;
+  onChange: (
+    value: CatalogOption<DbSandboxObjectSaved<T>> | null,
+    parameters: Record<string, any> | null,
+  ) => void;
   options: CatalogOptions<DbSandboxObjectSaved<T>>;
   evaluatedValue: ErrorOr<Value<T> | null>;
   defaultParameters: Readonly<Record<string, any>> | null;
-  setParameters: (value: Record<string, any> | null) => void;
   parameters: Record<string, any> | null;
 }) {
   const { addOrFocusTab } = useTabManager();
@@ -78,6 +79,13 @@ export default function FlowchartComponentSelect<
     methods.reset(parameters ?? defaultParameters ?? {});
   }, [parameters, methods, defaultParameters]);
 
+  const setParameters = useCallback(
+    (newParameters: Record<string, any>) => {
+      setSelectedValue(selectedOption, newParameters);
+    },
+    [selectedOption, setSelectedValue],
+  );
+
   return (
     <div className={clsx('flex items-end gap-2', className)}>
       <CatalogSelect
@@ -87,8 +95,7 @@ export default function FlowchartComponentSelect<
         options={options}
         value={selectedOption ?? undefined}
         onChange={(newOption, newParameters) => {
-          setSelectedOption(newOption);
-          setParameters(newParameters);
+          setSelectedValue(newOption, newParameters);
         }}
         errorMessage={errorMessage}
         showParameters

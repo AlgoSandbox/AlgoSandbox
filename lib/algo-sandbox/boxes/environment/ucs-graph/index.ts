@@ -19,22 +19,11 @@ const box: SandboxBox = {
     composition: {
       type: 'tree',
       connections: [
-        {
-          fromKey: 'problem',
-          fromSlot: '.',
-          toKey: 'adapter-1',
-          toSlot: '.',
-        },
+        { fromKey: 'problem', fromSlot: '.', toKey: 'adapter-1', toSlot: '.' },
         {
           fromKey: 'adapter-1',
           fromSlot: '.',
           toKey: 'algorithm',
-          toSlot: '.',
-        },
-        {
-          fromKey: 'algorithm',
-          fromSlot: '.',
-          toKey: 'adapter-0',
           toSlot: '.',
         },
         {
@@ -79,8 +68,61 @@ const box: SandboxBox = {
           toKey: 'visualizer-2',
           toSlot: 'initialNodeId',
         },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'currentState',
+          toKey: 'adapter-0',
+          toSlot: 'currentState',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'initialState',
+          toKey: 'adapter-0',
+          toSlot: 'initialState',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'actions',
+          toKey: 'adapter-0',
+          toSlot: 'actions',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'visited',
+          toKey: 'adapter-0',
+          toSlot: 'visited',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'frontier',
+          toKey: 'adapter-0',
+          toSlot: 'frontier',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'searchTree',
+          toKey: 'adapter-0',
+          toSlot: 'searchTree',
+        },
+        {
+          fromKey: 'adapter-1',
+          fromSlot: 'getStateKey',
+          toKey: 'adapter-0',
+          toSlot: 'getStateKey',
+        },
+        {
+          fromKey: 'adapter-1',
+          fromSlot: 'render',
+          toKey: 'adapter-0',
+          toSlot: 'render',
+        },
       ],
     },
+  },
+  componentNames: {
+    'visualizer-1': '',
+    'visualizer-2': 'State space',
+    'visualizer-0': 'Search graph',
   },
 };
 

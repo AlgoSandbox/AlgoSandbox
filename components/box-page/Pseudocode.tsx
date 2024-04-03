@@ -86,6 +86,8 @@ export default function Pseudocode({
             <div className="flex gap-1">
               {hasHighlight && (
                 <Tooltip
+                  zIndex={20}
+                  constrainWidthToTrigger
                   side="bottom"
                   open={
                     tooltip !== undefined && showTooltip && isVisible && isMd
@@ -97,6 +99,7 @@ export default function Pseudocode({
                         icon={<MaterialSymbol icon="visibility_off" />}
                         label="Hide"
                         hideLabel
+                        size="sm"
                         variant="filled"
                         onClick={() => setShowTooltip(false)}
                       />

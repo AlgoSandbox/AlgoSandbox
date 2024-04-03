@@ -1,1 +1,1 @@
-# Breadth-first search (graph)
+# Breadth-first search

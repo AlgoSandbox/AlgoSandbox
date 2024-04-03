@@ -97,30 +97,36 @@ function getMarkdownTitle(markdown: string) {
 const algorithmGroupToFolderGlob = {
   Search: 'lib/algo-sandbox/algorithms/search',
   'Decision trees': 'lib/algo-sandbox/algorithms/decision-trees',
+  // 'Adversarial search': 'lib/algo-sandbox/algorithms/adversarial-search',
+  Sorting: 'lib/algo-sandbox/algorithms/sorting',
 };
 
 const problemGroupToFolderGlob = {
   Backtracking: 'lib/algo-sandbox/problems/backtracking',
   Graphs: 'lib/algo-sandbox/problems/graphs',
   Grid: 'lib/algo-sandbox/problems/grid',
-  'Decision trees': 'lib/algo-sandbox/problems/decision-trees',
+  Tabular: 'lib/algo-sandbox/problems/tabular',
   'Weighted graphs': 'lib/algo-sandbox/problems/weighted-graphs',
+  Arrays: 'lib/algo-sandbox/problems/arrays',
 };
 
 const visualizerGroupToFolderGlob = {
   Graphs: 'lib/algo-sandbox/visualizers/graphs',
   Primitives: 'lib/algo-sandbox/visualizers/primitives',
   Grid: 'lib/algo-sandbox/visualizers/grid',
+  Charts: 'lib/algo-sandbox/visualizers/charts',
 };
 
 const adapterGroupToFolderGlob = {
   Environment: 'lib/algo-sandbox/adapters/environment',
   Tools: 'lib/algo-sandbox/adapters/utils',
+  Sorting: 'lib/algo-sandbox/adapters/sorting',
 };
 
 const boxGroupToFolderGlob = {
   Environment: 'lib/algo-sandbox/boxes/environment',
   'Decision trees': 'lib/algo-sandbox/boxes/decision-trees',
+  Sorting: 'lib/algo-sandbox/boxes/sorting',
 };
 
 function readSandboxObjectGroup<T extends DbSandboxObjectType>(

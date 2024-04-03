@@ -20,11 +20,13 @@ import {
   getSavedComponentRelativeUrl,
 } from '@utils/url-object/urlObject';
 import clsx from 'clsx';
-import _ from 'lodash';
-import { useCallback, useMemo, useState } from 'react';
+import _, { throttle } from 'lodash';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import { toast } from 'sonner';
+
+import { error, ErrorOr, success } from './errors';
 
 type SandboxObjectEditorProps =
   | {
@@ -48,6 +50,7 @@ export default function SandboxObjectEditorPage({
 }: SandboxObjectEditorProps) {
   const selectedFilePath = 'index.ts' in object.files ? 'index.ts' : null;
 
+  const [showMetadataMobile, setShowMetadataMobile] = useState(true);
   const [isEditingMarkdown, setIsEditingMarkdown] = useState(false);
   const [markdownEditorMode, setMarkdownEditorMode] =
     useState<MarkdownEditorMode>('rich-text');
@@ -80,6 +83,37 @@ export default function SandboxObjectEditorPage({
 
   const markdownContents = watch('files.index$md');
   const configContents = watch('files.config$ts');
+  const indexContents = watch('files.index$ts');
+
+  const formFiles = useMemo(
+    () => ({
+      ...files,
+      'index.ts': indexContents,
+      'index.md': markdownContents,
+      'config.ts': configContents,
+    }),
+    [configContents, files, indexContents, markdownContents],
+  );
+
+  const [internalFiles, setInternalFiles] =
+    useState<Record<string, string>>(formFiles);
+
+  const updateInternalFiles = useMemo(() => {
+    return throttle((files: Record<string, string>) => {
+      setInternalFiles(files);
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    updateInternalFiles(formFiles);
+  }, [formFiles, updateInternalFiles]);
+
+  const objectInternal = useMemo(() => {
+    return {
+      ...object,
+      files: internalFiles,
+    };
+  }, [internalFiles, object]);
 
   const currentConfig = useMemo(() => {
     return parseSandboxObjectConfig(configContents);
@@ -100,6 +134,236 @@ export default function SandboxObjectEditorPage({
     toast.success('Component deleted');
   };
 
+  const metadataToggleButton = (
+    <Button
+      className="lg:hidden"
+      icon={
+        showMetadataMobile ? (
+          <MaterialSymbol icon="code" />
+        ) : (
+          <MaterialSymbol icon="info" />
+        )
+      }
+      label={showMetadataMobile ? 'View code' : 'View info'}
+      hideLabel
+      variant="filled"
+      onClick={() => {
+        setShowMetadataMobile((showMetadataMobile) => !showMetadataMobile);
+      }}
+    />
+  );
+
+  const header = (
+    <div className="flex flex-col">
+      {/* <div className="flex justify-between px-4 py-2 mt-2 items-center">
+        <Heading className="capitalize" variant="h3">
+          {object.type}
+        </Heading>
+      </div> */}
+      {mode === 'edit' && !isViewOnly && (
+        <div className="px-4 py-2 flex gap-2 items-end">
+          <Input
+            containerClassName="flex-1"
+            label="Name"
+            {...register('name', { required: true })}
+          />
+          <Button
+            label="Save"
+            hideLabel={true}
+            type="submit"
+            variant="primary"
+            icon={<MaterialSymbol icon="save" />}
+            disabled={isViewOnly || !isDirty}
+          />
+          <Button
+            label="Delete"
+            hideLabel={true}
+            icon={<MaterialSymbol icon="delete" />}
+            type="button"
+            variant="filled"
+            disabled={isViewOnly}
+            onClick={handleDelete}
+          />
+          {metadataToggleButton}
+          <Button
+            icon={<MaterialSymbol icon="link" />}
+            label={
+              isDirty ? 'Save first to copy import link' : 'Copy import link'
+            }
+            hideLabel={true}
+            type="button"
+            onClick={handleCopyImportLink}
+            variant="primary"
+            disabled={isDirty}
+          />
+        </div>
+      )}
+      {mode === 'import' && (
+        <div className="px-4 py-2 flex gap-2 items-end">
+          <Input
+            containerClassName="flex-1"
+            label="Name"
+            {...register('name', { required: true })}
+          />
+          {metadataToggleButton}
+          <Button label="Save" type="submit" variant="primary" />
+        </div>
+      )}
+      {mode === 'edit' && isViewOnly && (
+        <div className="flex items-center justify-between py-2 px-4">
+          <h1 className="font-medium text-lg">{object.name}</h1>
+          <div className="flex gap-2">
+            <Button
+              label="Clone to edit"
+              type="button"
+              variant="filled"
+              onClick={async () => {
+                const newObject = await saveObject({
+                  ...object,
+                  key: undefined,
+                  editable: true,
+                  name: `${object.name} (copy)`,
+                });
+                onCloned?.(newObject);
+              }}
+            />
+            {metadataToggleButton}
+            <Button
+              icon={<MaterialSymbol icon="link" />}
+              label="Copy link"
+              hideLabel={true}
+              type="button"
+              onClick={() => {
+                const relativeUrl = getSavedComponentRelativeUrl(object);
+                navigator.clipboard.writeText(
+                  `${window.location.origin}${relativeUrl}`,
+                );
+                toast.success('Link copied to clipboard');
+              }}
+              variant="primary"
+              disabled={isDirty}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const editor = selectedFilePath && (
+    <Controller
+      key={selectedFilePath}
+      control={control}
+      name={`files.${selectedFilePath.replaceAll('.', '$')}`}
+      rules={{ required: true }}
+      render={({ field: { onChange, value } }) => (
+        <AlgoSandboxEditor
+          files={files}
+          path={`file:///${selectedFilePath}`}
+          readOnly={isViewOnly}
+          value={value}
+          onChange={(value) => {
+            onChange({
+              target: { value: value ?? '' },
+            });
+          }}
+        />
+      )}
+    />
+  );
+
+  const metadata = (
+    <div className="flex flex-col">
+      <div className="border-t p-4 flex flex-col gap-2">
+        <Heading variant="h4">Tags</Heading>
+        {isViewOnly && (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Chip key={tag}>{tag}</Chip>
+            ))}
+          </div>
+        )}
+        {!isViewOnly && (
+          <TagInput
+            label="Tags"
+            hideLabel
+            value={tags}
+            onChange={(tags) => {
+              setValue(
+                'files.config$ts',
+                stringifyComponentConfigToTs({
+                  tags: tags as Array<ComponentTag>,
+                }),
+                {
+                  shouldDirty: true,
+                },
+              );
+            }}
+          />
+        )}
+      </div>
+      <SandboxObjectEditorAdditionalMetadata object={objectInternal} />
+      <div className="flex flex-col border-t pb-4">
+        <div className="px-4 py-2 flex items-center justify-between">
+          {!isViewOnly && (
+            <>
+              <Heading variant="h4">Writeup</Heading>
+              <div className="flex gap-2">
+                {!isEditingMarkdown && (
+                  <Button
+                    label="Edit"
+                    hideLabel
+                    icon={<MaterialSymbol icon="edit" />}
+                    variant="filled"
+                    onClick={() => {
+                      setIsEditingMarkdown(true);
+                    }}
+                  />
+                )}
+                {isEditingMarkdown && (
+                  <>
+                    <Button
+                      label="Done"
+                      hideLabel
+                      icon={<MaterialSymbol icon="done" />}
+                      variant="filled"
+                      onClick={() => {
+                        setIsEditingMarkdown(false);
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+        {!isEditingMarkdown && markdownContents && (
+          <div className="px-4">
+            <MarkdownPreview markdown={markdownContents} />
+          </div>
+        )}
+        {isEditingMarkdown && markdownContents && (
+          <Controller
+            control={control}
+            name={'files.index$md'}
+            rules={{ required: true }}
+            render={({ field: { onChange, value } }) => (
+              <MarkdownEditor
+                markdown={value}
+                mode={markdownEditorMode}
+                onModeChange={setMarkdownEditorMode}
+                onChange={(value) => {
+                  onChange({
+                    target: { value: value ?? '' },
+                  });
+                }}
+              />
+            )}
+          />
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <form
       className="flex flex-col w-full h-full"
@@ -113,216 +377,24 @@ export default function SandboxObjectEditorPage({
         reset(values);
       })}
     >
-      <PanelGroup className="flex-1" direction="horizontal">
+      <div className="flex flex-col lg:hidden h-full">
+        {header}
+        {!showMetadataMobile && <div className="flex-1">{editor}</div>}
+        <div className={clsx('flex-1', !showMetadataMobile && 'hidden')}>
+          {metadata}
+        </div>
+      </div>
+      <PanelGroup className="max-md:!hidden flex-1" direction="horizontal">
         <Panel key="explorer" defaultSize={30}>
           <div className="overflow-y-auto w-full h-full">
             <div className="flex flex-col w-full overflow-x-auto">
-              <div className="flex justify-between px-4 py-2 mt-2 items-center">
-                <Heading className="capitalize" variant="h3">
-                  {object.type}
-                </Heading>
-              </div>
-              {mode === 'edit' && !isViewOnly && (
-                <div className="px-4 py-2 flex gap-2 items-end">
-                  <Input
-                    containerClassName="flex-1"
-                    label="Name"
-                    {...register('name', { required: true })}
-                  />
-                  <Button
-                    label="Save"
-                    hideLabel={true}
-                    type="submit"
-                    variant="primary"
-                    icon={<MaterialSymbol icon="save" />}
-                    disabled={isViewOnly || !isDirty}
-                  />
-                  <Button
-                    label="Delete"
-                    hideLabel={true}
-                    icon={<MaterialSymbol icon="delete" />}
-                    type="button"
-                    variant="filled"
-                    disabled={isViewOnly}
-                    onClick={handleDelete}
-                  />
-                  <Button
-                    icon={<MaterialSymbol icon="link" />}
-                    label={
-                      isDirty
-                        ? 'Save first to copy import link'
-                        : 'Copy import link'
-                    }
-                    hideLabel={true}
-                    type="button"
-                    onClick={handleCopyImportLink}
-                    variant="primary"
-                    disabled={isDirty}
-                  />
-                </div>
-              )}
-              {mode === 'import' && (
-                <div className="px-4 py-2 flex gap-2 items-end">
-                  <Input
-                    containerClassName="flex-1"
-                    label="Name"
-                    {...register('name', { required: true })}
-                  />
-                  <Button label="Save" type="submit" variant="primary" />
-                </div>
-              )}
-              {mode === 'edit' && isViewOnly && (
-                <div className="flex items-center justify-between py-2 px-4">
-                  <h1 className="font-medium text-lg">{object.name}</h1>
-                  <div className="flex gap-2">
-                    <Button
-                      label="Clone to edit"
-                      type="button"
-                      variant="filled"
-                      onClick={async () => {
-                        const newObject = await saveObject({
-                          ...object,
-                          key: undefined,
-                          editable: true,
-                          name: `${object.name} (copy)`,
-                        });
-                        onCloned?.(newObject);
-                      }}
-                    />
-                    <Button
-                      icon={<MaterialSymbol icon="link" />}
-                      label="Copy link"
-                      hideLabel={true}
-                      type="button"
-                      onClick={() => {
-                        const relativeUrl =
-                          getSavedComponentRelativeUrl(object);
-                        navigator.clipboard.writeText(
-                          `${window.location.origin}${relativeUrl}`,
-                        );
-                        toast.success('Link copied to clipboard');
-                      }}
-                      variant="primary"
-                      disabled={isDirty}
-                    />
-                  </div>
-                </div>
-              )}
-              <div className="border-t p-4 flex flex-col gap-2">
-                <Heading variant="h4">Tags</Heading>
-                {isViewOnly && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Chip key={tag}>{tag}</Chip>
-                    ))}
-                  </div>
-                )}
-                {!isViewOnly && (
-                  <TagInput
-                    label="Tags"
-                    hideLabel
-                    value={tags}
-                    onChange={(tags) => {
-                      setValue(
-                        'files.config$ts',
-                        stringifyComponentConfigToTs({
-                          tags: tags as Array<ComponentTag>,
-                        }),
-                        {
-                          shouldDirty: true,
-                        },
-                      );
-                    }}
-                  />
-                )}
-              </div>
-              <SandboxObjectEditorAdditionalMetadata object={object} />
-              <div className="flex flex-col border-t pb-4">
-                <div className="px-4 py-2 flex items-center justify-between">
-                  {!isViewOnly && (
-                    <>
-                      <Heading variant="h4">Writeup</Heading>
-                      <div className="flex gap-2">
-                        {!isEditingMarkdown && (
-                          <Button
-                            label="Edit"
-                            hideLabel
-                            icon={<MaterialSymbol icon="edit" />}
-                            variant="filled"
-                            onClick={() => {
-                              setIsEditingMarkdown(true);
-                            }}
-                          />
-                        )}
-                        {isEditingMarkdown && (
-                          <>
-                            <Button
-                              label="Done"
-                              hideLabel
-                              icon={<MaterialSymbol icon="done" />}
-                              variant="filled"
-                              onClick={() => {
-                                setIsEditingMarkdown(false);
-                              }}
-                            />
-                          </>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-                {!isEditingMarkdown && markdownContents && (
-                  <div className="px-4">
-                    <MarkdownPreview markdown={markdownContents} />
-                  </div>
-                )}
-                {isEditingMarkdown && markdownContents && (
-                  <Controller
-                    control={control}
-                    name={'files.index$md'}
-                    rules={{ required: true }}
-                    render={({ field: { onChange, value } }) => (
-                      <MarkdownEditor
-                        markdown={value}
-                        mode={markdownEditorMode}
-                        onModeChange={setMarkdownEditorMode}
-                        onChange={(value) => {
-                          onChange({
-                            target: { value: value ?? '' },
-                          });
-                        }}
-                      />
-                    )}
-                  />
-                )}
-              </div>
+              {header}
+              {metadata}
             </div>
           </div>
         </Panel>
         <ResizeHandle />
-        <Panel key="editor">
-          {selectedFilePath && (
-            <Controller
-              key={selectedFilePath}
-              control={control}
-              name={`files.${selectedFilePath.replaceAll('.', '$')}`}
-              rules={{ required: true }}
-              render={({ field: { onChange, value } }) => (
-                <AlgoSandboxEditor
-                  files={files}
-                  path={`file:///${selectedFilePath}`}
-                  readOnly={isViewOnly}
-                  value={value}
-                  onChange={(value) => {
-                    onChange({
-                      target: { value: value ?? '' },
-                    });
-                  }}
-                />
-              )}
-            />
-          )}
-        </Panel>
+        <Panel key="editor">{editor}</Panel>
       </PanelGroup>
     </form>
   );
@@ -366,12 +438,16 @@ function SandboxObjectEditorAdditionalMetadata({
       object as DbSandboxObject<'algorithm'>,
     );
 
-    return algorithmEvaluation.map((algorithm) => {
+    return algorithmEvaluation.chain((algorithm) => {
+      if (algorithm === undefined) {
+        return error('Algorithm evaluation failed');
+      }
+
       const instance =
         'parameters' in algorithm ? algorithm.create() : algorithm;
 
-      return instance.pseudocode;
-    });
+      return success(instance.pseudocode);
+    }) as ErrorOr<string>;
   }, [object]);
 
   if (object.type !== 'algorithm') {

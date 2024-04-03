@@ -1,1 +1,1 @@
-# Depth-first search (graph)
+# Depth-first search

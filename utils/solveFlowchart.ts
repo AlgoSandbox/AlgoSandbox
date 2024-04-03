@@ -1,6 +1,7 @@
 import {
   BoxConfigTree,
   SandboxAdapter,
+  SandboxAlgorithm,
   SandboxStateType,
   SandboxVisualizer,
 } from '@algo-sandbox/core';
@@ -54,16 +55,27 @@ function buildGraphFromBoxConfig(boxConfig: BoxConfigTree) {
   return graph;
 }
 
+export function getBoxConfigNodeOrder(boxConfig: BoxConfigTree) {
+  const graph = buildGraphFromBoxConfig(boxConfig);
+  return topologicalSort(
+    Object.fromEntries(
+      Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
+    ),
+  );
+}
+
 export default function solveFlowchart({
   config,
   problemState,
   algorithmState,
+  algorithm,
   adapters,
   visualizers,
 }: {
   config: BoxConfigTree;
   problemState: Record<string, unknown> | undefined;
   algorithmState?: Record<string, unknown> | undefined;
+  algorithm?: SandboxAlgorithm<SandboxStateType, SandboxStateType> | undefined;
   adapters: Record<
     string,
     SandboxAdapter<SandboxStateType, SandboxStateType> | undefined
@@ -74,11 +86,7 @@ export default function solveFlowchart({
   >;
 }) {
   const graph = buildGraphFromBoxConfig(config);
-  const nodesToExplore = topologicalSort(
-    Object.fromEntries(
-      Object.keys(graph).map((key) => [key, Object.keys(graph[key])]),
-    ),
-  );
+  const nodesToExplore = getBoxConfigNodeOrder(config);
 
   const outputs: Record<string, Record<string, unknown> | undefined> = {
     problem: problemState,
@@ -175,6 +183,30 @@ export default function solveFlowchart({
 
       if (connections.some(({ toSlot }) => toSlot === '.')) {
         isUsingAllInput[neighbor] = true;
+      }
+    }
+  }
+
+  if (algorithm) {
+    const node = 'algorithm';
+    const result = algorithm.accepts.shape.safeParse(inputs[node]);
+
+    if (!result.success) {
+      inputErrors[node] = {};
+
+      if (isUsingAllInput[node]) {
+        inputErrors[node]['.'] = result.error;
+      } else {
+        Object.entries(algorithm.accepts.shape.shape).forEach(
+          ([inputSlot, inputSlotShape]) => {
+            const parseResult = inputSlotShape.safeParse(
+              inputs[node]?.[inputSlot],
+            );
+            if (!parseResult.success) {
+              inputErrors[node][inputSlot] = parseResult.error;
+            }
+          },
+        );
       }
     }
   }

@@ -1,10 +1,12 @@
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { useBreakpoint } from '@utils/useBreakpoint';
 import clsx from 'clsx';
 import * as React from 'react';
 
 import { MaterialSymbol } from '.';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from './Drawer';
 
 const DialogRoot = DialogPrimitive.Root;
 
@@ -40,7 +42,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={clsx(
-        'fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-canvas p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
+        'fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-canvas p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
         size === 'default' && 'max-w-lg',
         size === 'full' && 'max-w-[calc(100%_-_64px)]',
         size === 'full' && 'h-[calc(100vh_-_64px)]',
@@ -122,6 +124,7 @@ export default function Dialog({
   content,
   open,
   onOpenChange,
+  autoScroll = true,
 }: {
   title: string;
   description?: string;
@@ -129,15 +132,45 @@ export default function Dialog({
   content: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  autoScroll?: boolean;
 }) {
+  const { isMd } = useBreakpoint('md');
+  const isMobile = !isMd;
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className={clsx('p-4', size === 'full' && 'h-full')}>
+          <DrawerHeader>
+            <DrawerTitle>{title}</DrawerTitle>
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
+          </DrawerHeader>
+          {content}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
-      <DialogContent size={size} className="overflow-hidden">
+      <DialogContent
+        size={size}
+        className="overflow-hidden max-h-dvh flex flex-col"
+      >
         <DialogHeader className="overflow-hidden">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        {content}
+        <div
+          className={clsx(
+            'flex-1',
+            autoScroll ? 'overflow-y-auto' : 'overflow-y-hidden',
+          )}
+        >
+          {content}
+        </div>
       </DialogContent>
     </DialogRoot>
   );

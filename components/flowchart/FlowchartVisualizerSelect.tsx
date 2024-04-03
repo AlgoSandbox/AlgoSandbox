@@ -5,6 +5,8 @@ import {
 } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
 import {
   useAddSavedVisualizerMutation,
   useRemoveSavedVisualizerMutation,
@@ -12,7 +14,6 @@ import {
   useSetSavedVisualizerMutation,
 } from '@utils/db/visualizers';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
-import { isEqual } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
@@ -25,10 +26,10 @@ export default function FlowchartVisualizerSelect({
   className?: string;
 }) {
   const { visualizerOptions } = useSandboxComponents();
+  const configTree = useBoxContext('config.tree');
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
-  const setConfig = useBoxContext('config.set');
-  const configTree = useBoxContext('config.tree');
+  const instances = useBoxContext('visualizers.instances');
 
   const { key: visualizerKey, parameters } = parseKeyWithParameters(
     aliases[alias],
@@ -42,35 +43,25 @@ export default function FlowchartVisualizerSelect({
     removeSavedObjectMutation: useRemoveSavedVisualizerMutation(),
     savedObjects: useSavedVisualizersQuery().data,
     key: visualizerKey,
-    onKeyChange: (key) => {
+    onChange: (key, parameters) => {
       if (key === null) {
         return;
       }
 
-      setAlias(alias, key);
-      setConfig({
-        adapters: configTree.adapters,
-        composition: {
-          ...configTree.composition,
-          connections: configTree.composition.connections.filter(
-            ({ fromKey, toKey }) => fromKey !== alias && toKey !== alias,
-          ),
-        },
-      });
-    },
-    parameters: parameters ?? null,
-    onParametersChange: (parameters) => {
       setAlias(
         alias,
         parameters
           ? {
-              key: visualizerKey,
+              key,
               parameters,
             }
-          : visualizerKey,
+          : key,
       );
     },
+    parameters: parameters ?? null,
   });
+
+  const visualizerInstance = instances[alias];
 
   const {
     value: selectedOption,
@@ -87,22 +78,41 @@ export default function FlowchartVisualizerSelect({
     [alias, defaultAll],
   );
 
+  const { usedInputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+
+    const usedInputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'input')
+      ) {
+        return Object.keys(
+          visualizerInstance.mapLeft(() => null).value?.value.accepts.shape
+            .shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'input')
+        .map((slot) => slot.slot);
+    })();
+
+    return { usedInputSlots };
+  }, [configTree, alias, visualizerInstance]);
+
   const filter = useCallback(
-    (
-      instance: Instance<'visualizer'>,
-      otherInstance: Instance<'visualizer'>,
-    ) => {
-      return isEqual(
-        Object.keys(instance.accepts.shape.shape),
-        Object.keys(otherInstance.accepts.shape.shape),
+    (instance: Instance<'visualizer'>) => {
+      const inputKeys = Object.keys(instance.accepts.shape.shape);
+
+      return (
+        usedInputSlots.every((slot) => inputKeys.includes(slot)) ||
+        errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedInputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption,
     filter,
   });
 
@@ -117,17 +127,6 @@ export default function FlowchartVisualizerSelect({
       options={filteredOptions}
       evaluatedValue={visualizerEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={(params) => {
-        setAlias(
-          alias,
-          params
-            ? {
-                key: visualizerKey,
-                parameters: params,
-              }
-            : visualizerKey,
-        );
-      }}
       parameters={parameters ?? null}
     />
   );

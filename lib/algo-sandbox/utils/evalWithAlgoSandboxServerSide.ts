@@ -1,7 +1,7 @@
 import { ErrorOr } from '@app/errors';
 
-import evalWithLibraries from './evalWithLibraries';
-import getLibraries from './getLibraries';
+import evalWithLibraries from '../../../utils/eval/evalWithLibraries';
+import getLibraries from '../../../utils/eval/getLibraries';
 
 export type EvalWithAlgoSandbox = typeof evalWithAlgoSandboxServerSide;
 

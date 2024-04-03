@@ -41,7 +41,7 @@ const gridViewerComponent: SandboxVisualizer<
             'div',
             {
               className:
-                'font-mono w-full h-full text-xs px-2 pt-2 overflow-y-auto',
+                'font-mono w-full h-full text-xs px-2 pt-2 overflow-y-auto flex justify-center items-center',
             },
             createElement(GridViewer, {
               width: state.grid.width,

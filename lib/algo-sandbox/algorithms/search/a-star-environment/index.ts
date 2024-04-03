@@ -2,9 +2,48 @@ import { createAlgorithm, createState } from '@algo-sandbox/core';
 import {
   sandboxEnvironmentSearchState,
   sandboxEnvironmentState,
+  SearchTreeNode,
 } from '@algo-sandbox/states';
+import { Draft, produce } from 'immer';
 import { sortedIndexBy } from 'lodash';
 import { z } from 'zod';
+
+function addNodeToSearchTree(
+  tree: SearchTreeNode,
+  options: {
+    fromId: string;
+    toId: string;
+    toStateKey: string;
+    action: string;
+  },
+) {
+  const { fromId, toId, toStateKey, action } = options;
+  const newNode: SearchTreeNode = {
+    id: toId,
+    stateKey: toStateKey,
+    action,
+    children: [],
+  };
+
+  const newTree = produce(tree, (draft) => {
+    const findAndPush = (node: Draft<SearchTreeNode>) => {
+      if (node.id === fromId) {
+        node.children.push(newNode);
+        return true;
+      }
+      for (const child of node.children) {
+        if (findAndPush(child)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    findAndPush(draft);
+  });
+
+  return newTree;
+}
 
 const pseudocode = `create frontier (priority queue based on cost)
 create visited
@@ -47,10 +86,16 @@ const aStarSearch = createAlgorithm({
       visited: new Set<string>(),
       frontier: [],
       actions: environment.actions(initialState),
-      searchTree: [],
+      searchTree: null,
     };
   },
   *runAlgorithm({ line, state, problemState: { environment, heuristic } }) {
+    let nextAvailableId = 0;
+
+    const getNextId = () => {
+      return (nextAvailableId++).toString();
+    };
+
     // create frontier (priority queue based on cost)
     // create visited
     yield line(
@@ -60,7 +105,10 @@ const aStarSearch = createAlgorithm({
     );
 
     // insert initial state to frontier and visited
+    const initialNodeId = getNextId();
+    const initialStateKey = environment.getStateKey(state.currentState);
     state.frontier.push({
+      id: initialNodeId,
       state: state.currentState,
       cost: heuristic(state.currentState),
       isGoal: false,
@@ -68,7 +116,19 @@ const aStarSearch = createAlgorithm({
         g: 0,
       },
     });
-    state.visited.add(environment.getStateKey(state.currentState));
+    state.visited.add(initialStateKey);
+    state.searchTree = {
+      root: {
+        id: initialNodeId,
+        stateKey: initialStateKey,
+        action: null,
+        children: [],
+      },
+      states: {
+        [initialStateKey]: state.currentState,
+      },
+    };
+
     yield line(3, 'Insert the initial state to frontier and visited set.');
 
     // while frontier is not empty
@@ -81,6 +141,7 @@ const aStarSearch = createAlgorithm({
 
       // state = frontier.pop() with lowest cost
       const {
+        id: currentId,
         state: visitedState,
         cost,
         isGoal,
@@ -107,15 +168,21 @@ const aStarSearch = createAlgorithm({
           state.currentState,
           action,
         );
+        const nextStateId = getNextId();
         const nextStateKey = environment.getStateKey(nextState);
-        state.searchTree = [
-          ...state.searchTree,
-          {
-            source: currentKey,
+        state.searchTree = {
+          root: addNodeToSearchTree(state.searchTree.root, {
+            fromId: currentId,
+            toId: nextStateId,
+            toStateKey: nextStateKey,
             action,
-            result: nextStateKey,
+          }),
+          states: {
+            ...state.searchTree.states,
+            [nextStateKey]: nextState,
           },
-        ];
+        };
+
         yield line(9, `Next state: ${nextStateKey}`);
 
         const g = data.g as number;
@@ -170,6 +237,7 @@ const aStarSearch = createAlgorithm({
 
         // Insert into priority queue, where 0 is the highest priority
         const valueToInsert = {
+          id: nextStateId,
           state: nextState,
           cost: newCost,
           isGoal: terminated,

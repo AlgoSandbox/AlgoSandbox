@@ -69,7 +69,7 @@ export function createParameterizedEnvironment<
   render: (
     state: SandboxState<T>,
     parameters: ParsedParameters<P>,
-  ) => React.ReactNode;
+  ) => SVGSVGElement;
 }): SandboxParameterizedEnvironment<T, Actions[number], P> {
   return {
     name,

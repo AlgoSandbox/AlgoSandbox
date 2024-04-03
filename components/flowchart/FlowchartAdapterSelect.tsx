@@ -3,9 +3,10 @@ import { useBoxContext } from '@components/box-page';
 import { Instance } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
+import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
-import { isEqual } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
@@ -25,11 +26,9 @@ export default function FlowchartAdapterSelect({
   }, [adapterOptions]);
   const setConfig = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
-  const {
-    default: defaultAll,
-    setValue: setParameters,
-    value: parametersAll,
-  } = useBoxContext('config.evaluated.parameters');
+  const { default: defaultAll, value: parametersAll } = useBoxContext(
+    'config.evaluated.parameters',
+  );
   const evaluatedAdapters = useBoxContext('config.evaluated.adapters');
 
   const defaultParameters = useMemo(
@@ -53,29 +52,72 @@ export default function FlowchartAdapterSelect({
     evaluatedAdapters[alias]?.map(({ value }) => value) ??
     error('Adapter evaluation not found');
 
+  const adapterInstance = useMemo(() => {
+    return adapterEvaluation
+      .mapLeft(() => null)
+      .mapRight((adapter) => {
+        if ('parameters' in adapter) {
+          return adapter.create();
+        }
+
+        return adapter;
+      });
+  }, [adapterEvaluation]);
+
   const value = useMemo(() => {
     return adapterOptions.find((option) => option.key === adapterKey)!;
   }, [adapterOptions, adapterKey]);
 
+  const { usedInputSlots, usedOutputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+
+    const usedInputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'input')
+      ) {
+        return Object.keys(
+          adapterInstance.mapLeft(() => null).value?.accepts.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'input')
+        .map((slot) => slot.slot);
+    })();
+
+    const usedOutputSlots = (() => {
+      if (
+        usedSlots.some(({ slot, type }) => slot === '.' && type === 'output')
+      ) {
+        return Object.keys(
+          adapterInstance.mapLeft(() => null).value?.outputs.shape.shape ?? {},
+        );
+      }
+
+      return usedSlots
+        .filter((slot) => slot.type === 'output')
+        .map((slot) => slot.slot);
+    })();
+
+    return { usedInputSlots, usedOutputSlots };
+  }, [configTree, alias, adapterInstance]);
+
   const filter = useCallback(
-    (instance: Instance<'adapter'>, otherInstance: Instance<'adapter'>) => {
+    (instance: Instance<'adapter'>) => {
+      const inputKeys = Object.keys(instance.accepts.shape.shape);
+      const outputKeys = Object.keys(instance.outputs.shape.shape);
+
       return (
-        isEqual(
-          Object.keys(instance.accepts.shape.shape),
-          Object.keys(otherInstance.accepts.shape.shape),
-        ) &&
-        isEqual(
-          Object.keys(instance.outputs.shape.shape),
-          Object.keys(otherInstance.outputs.shape.shape),
-        )
+        (usedInputSlots.every((slot) => inputKeys.includes(slot)) &&
+          usedOutputSlots.every((slot) => outputKeys.includes(slot))) ||
+        errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedInputSlots, usedOutputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption: value,
     filter,
   });
 
@@ -86,15 +128,22 @@ export default function FlowchartAdapterSelect({
       hideLabel={true}
       hideErrors={true}
       value={value}
-      onChange={(value) => {
+      onChange={(value, parameters) => {
         if (value === null) {
           return;
         }
 
+        const key = value.value.key;
+
         setConfig({
           adapters: {
             ...configTree.adapters,
-            [alias]: value.value.key,
+            [alias]: parameters
+              ? {
+                  key: key,
+                  parameters,
+                }
+              : key,
           },
           composition: {
             ...configTree.composition,
@@ -107,9 +156,6 @@ export default function FlowchartAdapterSelect({
       options={filteredOptions}
       evaluatedValue={adapterEvaluation}
       defaultParameters={defaultParameters}
-      setParameters={(params) => {
-        setParameters(alias, params);
-      }}
       parameters={parameters}
     />
   );

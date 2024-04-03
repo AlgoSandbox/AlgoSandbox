@@ -19,7 +19,7 @@ export type SandboxEnvironmentState<State, Action> = {
     info: Record<string, unknown>;
   };
   actions: (state: State) => Array<Action>;
-  render: (state: State) => React.ReactNode;
+  render: (state: State) => SVGSVGElement;
 };
 
 export type SandboxEnvironment<
@@ -64,7 +64,7 @@ export function createEnvironment<
     info: Record<string, unknown>;
   };
   actions: (state: SandboxState<T>) => Array<Actions[number]>;
-  render: (state: SandboxState<T>) => React.ReactNode;
+  render: (state: SandboxState<T>) => SVGSVGElement;
 }): SandboxEnvironment<T, Actions[number]> {
   return {
     name,

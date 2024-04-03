@@ -8,7 +8,7 @@ export type BadgeProps = {
 };
 
 function Badge(
-  { content, children, visible, ...props }: BadgeProps,
+  { content, children, visible = true, ...props }: BadgeProps,
   ref: ForwardedRef<HTMLElement>,
 ) {
   return (

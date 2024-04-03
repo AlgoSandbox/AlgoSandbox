@@ -4,7 +4,7 @@ import { mapValues } from 'lodash';
 
 import getSandboxObjectWithKeyImpl from '../getSandboxObjectWithKeyImpl';
 import parseKeyWithParameters from '../parseKeyWithParameters';
-import { EvalWithAlgoSandbox } from './evalWithAlgoSandboxServerSide';
+import { EvalWithAlgoSandbox } from '../../lib/algo-sandbox/utils/evalWithAlgoSandboxServerSide';
 
 export default function evalBoxImpl({
   box,

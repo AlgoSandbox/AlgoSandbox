@@ -1,5 +1,6 @@
 import * as reactComponents from '@algo-sandbox/react-components';
 import * as visualizers from '@algo-sandbox/visualizers';
+import * as chartJsAuto from 'chart.js/auto';
 import * as d3 from 'd3';
 import * as react from 'react';
 import * as reactDomClient from 'react-dom/client';
@@ -13,5 +14,6 @@ export default function getClientSideOnlyLibraries() {
     'react-dom/client': reactDomClient,
     'react-inspector': reactInspector,
     d3,
+    'chart.js/auto': chartJsAuto,
   };
 }

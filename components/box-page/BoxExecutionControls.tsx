@@ -149,7 +149,7 @@ export default function BoxExecutionControls() {
         </div>
         <Popover
           content={
-            <div className="flex flex-col bg-surface p-4 gap-2">
+            <div className="flex flex-col p-4 gap-2">
               <Heading variant="h4">Settings</Heading>
               <HeadingContent>
                 <RadioButtons

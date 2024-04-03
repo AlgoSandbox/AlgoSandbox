@@ -1,4 +1,5 @@
 import { PlaybackSpeed } from '@components/box-page/BoxControlsContextProvider';
+import { FlowchartMode } from '@components/flowchart/FlowchartModeProvider';
 import {
   createContext,
   useCallback,
@@ -13,8 +14,6 @@ const flowchartModeKey = 'sandbox:preferences:flowchartMode';
 const playbackSpeedKey = 'sandbox:preferences:playbackSpeed';
 
 const defaultMaxExecutionStepCount = 1000;
-
-type FlowchartMode = 'simple' | 'full';
 
 type UserPreferences = {
   maxExecutionStepCount: number;

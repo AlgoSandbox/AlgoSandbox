@@ -50,7 +50,7 @@ function Button(
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
-    <Tooltip content={label} disabled={!hideLabel}>
+    <Tooltip content={label} disabled={!hideLabel} zIndex={100}>
       <button
         ref={ref}
         aria-label={hideLabel ? label : undefined}

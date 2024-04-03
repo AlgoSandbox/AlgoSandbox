@@ -110,7 +110,7 @@ export default function FlowchartComponentSelect<
                   setParameters(values);
                 })}
               >
-                <div className="p-4 bg-surface">
+                <div className="p-4">
                   <div className="font-medium flex flex-col gap-2">
                     <Heading variant="h4">Parameters</Heading>
                     <HeadingContent>

@@ -21,9 +21,13 @@ import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 export default function FlowchartVisualizerSelect({
   alias,
   className,
+  hideLabel,
+  hideErrors,
 }: {
   alias: string;
   className?: string;
+  hideLabel?: boolean;
+  hideErrors?: boolean;
 }) {
   const { visualizerOptions } = useSandboxComponents();
   const configTree = useBoxContext('config.tree');
@@ -119,9 +123,9 @@ export default function FlowchartVisualizerSelect({
   return (
     <FlowchartComponentSelect<'visualizer'>
       className={className}
-      label="Problem"
-      hideLabel={true}
-      hideErrors={true}
+      label="Visualizer"
+      hideLabel={hideLabel}
+      hideErrors={hideErrors}
       value={selectedOption}
       onChange={setSelectedOption}
       options={filteredOptions}

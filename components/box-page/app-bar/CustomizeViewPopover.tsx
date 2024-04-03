@@ -34,7 +34,7 @@ export default function CustomizeViewPopover() {
   return (
     <Popover
       content={
-        <div className="bg-surface-high p-4">
+        <div className="p-4">
           <span className="text-md font-semibold mb-1 block">Show only:</span>
           <ul className="flex flex-col gap-2">
             {allVisualizerOrder.map((alias) => (

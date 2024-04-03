@@ -252,13 +252,14 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
               <FlowchartAlgorithmSelect hideErrors hideLabel />
             )}
             {type === 'visualizer' && (
-              <FlowchartVisualizerSelect alias={alias} />
+              <FlowchartVisualizerSelect alias={alias} hideErrors hideLabel />
             )}
             {type === 'adapter' && (
               <FlowchartAdapterSelect
                 className="flex-1"
                 alias={alias}
-                label={alias}
+                hideErrors
+                hideLabel
               />
             )}
           </div>

@@ -265,7 +265,7 @@ export default function CatalogSelect<T extends SandboxObjectType>({
       open={open}
       onOpenChange={setOpen}
       content={
-        <div className="flex bg-surface h-[75dvh] lg:h-[400px]">
+        <div className="flex h-[75dvh] lg:h-[400px]">
           <div
             className={clsx(
               'w-full md:w-auto flex flex-col border-r overflow-y-hidden',

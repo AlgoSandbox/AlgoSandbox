@@ -13,12 +13,14 @@ import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
 export default function FlowchartAdapterSelect({
   className,
-  label,
   alias,
+  hideLabel,
+  hideErrors,
 }: {
-  label: string;
   alias: string;
   className?: string;
+  hideLabel?: boolean;
+  hideErrors?: boolean;
 }) {
   const { adapterOptions } = useSandboxComponents();
   const options = useMemo(() => {
@@ -124,9 +126,9 @@ export default function FlowchartAdapterSelect({
   return (
     <FlowchartComponentSelect<'adapter'>
       className={className}
-      label={label}
-      hideLabel={true}
-      hideErrors={true}
+      label="Adapter"
+      hideLabel={hideLabel}
+      hideErrors={hideErrors}
       value={value}
       onChange={(value, parameters) => {
         if (value === null) {

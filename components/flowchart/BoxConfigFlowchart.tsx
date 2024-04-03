@@ -35,6 +35,9 @@ import { toast } from 'sonner';
 import { SomeZodObject, ZodError } from 'zod';
 
 import { useBoxContext, useBoxControlsContext } from '../box-page';
+import FlowchartModeProvider, {
+  useFlowchartMode,
+} from './FlowchartModeProvider';
 import FlowNodeCard, { FlowNodeData, FlowNodeProps } from './FlowNodeCard';
 
 type FlowNode = Node<FlowNodeProps['data']>;
@@ -161,7 +164,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
   const problem = useBoxContext('problem.instance');
   const { reset: resetRaw, isBoxDirty } = useBoxContext();
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
-  const { setFlowchartMode, flowchartMode } = useUserPreferences();
+  const { setFlowchartMode, flowchartMode } = useFlowchartMode();
   const { isExecuting } = useBoxControlsContext();
 
   const configEvaluated = useBoxContext('config.evaluated');
@@ -866,9 +869,16 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 }
 
 export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
+  const { flowchartMode, setFlowchartMode } = useUserPreferences();
+
   return (
     <ReactFlowProvider>
-      <BoxConfigFlowchartImpl tabId={tabId} />;
+      <FlowchartModeProvider
+        flowchartMode={flowchartMode}
+        onFlowchartModeChange={setFlowchartMode}
+      >
+        <BoxConfigFlowchartImpl tabId={tabId} />;
+      </FlowchartModeProvider>
     </ReactFlowProvider>
   );
 }

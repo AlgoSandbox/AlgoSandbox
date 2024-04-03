@@ -13,10 +13,21 @@ import CustomizeViewPopover from '@components/box-page/app-bar/CustomizeViewPopo
 import CatalogSelect from '@components/box-page/CatalogSelect';
 import SettingsDialog from '@components/common/SettingsDialog';
 import DrawerItem from '@components/DrawerItem';
+import FlowchartAdapterSelect from '@components/flowchart/FlowchartAdapterSelect';
+import FlowchartAlgorithmSelect from '@components/flowchart/FlowchartAlgorithmSelect';
+import FlowchartModeProvider from '@components/flowchart/FlowchartModeProvider';
+import FlowchartProblemSelect from '@components/flowchart/FlowchartProblemSelect';
+import FlowchartVisualizerSelect from '@components/flowchart/FlowchartVisualizerSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import TabProvider from '@components/tab-manager/TabProvider';
-import { Button, Input, MaterialSymbol, TagInput } from '@components/ui';
+import {
+  Button,
+  Input,
+  MaterialSymbol,
+  Popover,
+  TagInput,
+} from '@components/ui';
 import Dialog from '@components/ui/Dialog';
 import { TabsItem, VerticalTabs } from '@components/ui/VerticalTabs';
 import useWorkerExecutedScene from '@utils/eval/useWorkerExecutedScene';
@@ -245,6 +256,11 @@ function BoxPageImpl() {
     return boxOptions.find((option) => option.value.key === boxKey);
   }, [boxOptions, boxKey]);
 
+  const hasBox = selectedOption !== undefined;
+  const [showSettings, setShowSettings] = useState(false);
+  const visualizerAliases = useBoxContext('visualizers.aliases');
+  const adapterAliases = useBoxContext('config.tree.adapters');
+
   const selectedOptionTags = useMemo(() => {
     if (selectedOption === undefined) {
       return [];
@@ -333,9 +349,6 @@ function BoxPageImpl() {
     router.push('/playground');
   };
 
-  const hasBox = selectedOption !== undefined;
-  const [showSettings, setShowSettings] = useState(false);
-
   return (
     <>
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
@@ -409,6 +422,37 @@ function BoxPageImpl() {
                   router.push(`/playground?box=${option.value.key}`);
                 }}
               />
+              {isExecutionPageVisible && (
+                <Popover
+                  content={
+                    <FlowchartModeProvider
+                      flowchartMode="simple"
+                      onFlowchartModeChange={() => {}}
+                    >
+                      <div className="p-4 flex flex-col gap-2">
+                        <FlowchartProblemSelect />
+                        <FlowchartAlgorithmSelect />
+                        {Object.keys(adapterAliases ?? {}).map((alias) => (
+                          <FlowchartAdapterSelect key={alias} alias={alias} />
+                        ))}
+                        {Object.keys(visualizerAliases).map((alias) => (
+                          <FlowchartVisualizerSelect
+                            key={alias}
+                            alias={alias}
+                          />
+                        ))}
+                      </div>
+                    </FlowchartModeProvider>
+                  }
+                >
+                  <Button
+                    label="Customize"
+                    hideLabel
+                    variant="filled"
+                    icon={<MaterialSymbol icon="tune" />}
+                  />
+                </Popover>
+              )}
               {hasBox && (
                 <div className="hidden md:flex gap-2 min-w-0">
                   {!isBoxCustom && (

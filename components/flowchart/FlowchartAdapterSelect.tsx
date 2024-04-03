@@ -4,9 +4,9 @@ import { Instance } from '@components/box-page/box-context/sandbox-object';
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
-import { isEqual } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
@@ -56,26 +56,34 @@ export default function FlowchartAdapterSelect({
     return adapterOptions.find((option) => option.key === adapterKey)!;
   }, [adapterOptions, adapterKey]);
 
+  const { usedInputSlots, usedOutputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+    const usedInputSlots = usedSlots
+      .filter((slot) => slot.type === 'input')
+      .map((slot) => slot.slot);
+    const usedOutputSlots = usedSlots
+      .filter((slot) => slot.type === 'output')
+      .map((slot) => slot.slot);
+
+    return { usedInputSlots, usedOutputSlots };
+  }, [configTree, alias]);
+
   const filter = useCallback(
-    (instance: Instance<'adapter'>, otherInstance: Instance<'adapter'>) => {
+    (instance: Instance<'adapter'>) => {
+      const inputKeys = Object.keys(instance.accepts.shape.shape);
+      const outputKeys = Object.keys(instance.outputs.shape.shape);
+
       return (
-        (isEqual(
-          Object.keys(instance.accepts.shape.shape),
-          Object.keys(otherInstance.accepts.shape.shape),
-        ) &&
-          isEqual(
-            Object.keys(instance.outputs.shape.shape),
-            Object.keys(otherInstance.outputs.shape.shape),
-          )) ||
+        (usedInputSlots.every((slot) => inputKeys.includes(slot)) &&
+          usedOutputSlots.every((slot) => outputKeys.includes(slot))) ||
         errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedInputSlots, usedOutputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption: value,
     filter,
   });
 

@@ -6,6 +6,7 @@ import {
 import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
 import {
   useAddSavedVisualizerMutation,
   useRemoveSavedVisualizerMutation,
@@ -13,7 +14,6 @@ import {
   useSetSavedVisualizerMutation,
 } from '@utils/db/visualizers';
 import parseKeyWithParameters from '@utils/parseKeyWithParameters';
-import { isEqual } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
@@ -26,6 +26,7 @@ export default function FlowchartVisualizerSelect({
   className?: string;
 }) {
   const { visualizerOptions } = useSandboxComponents();
+  const configTree = useBoxContext('config.tree');
   const aliases = useBoxContext('visualizers.aliases');
   const setAlias = useBoxContext('visualizers.setAlias');
 
@@ -74,24 +75,29 @@ export default function FlowchartVisualizerSelect({
     [alias, defaultAll],
   );
 
+  const { usedInputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+    const usedInputSlots = usedSlots
+      .filter((slot) => slot.type === 'input')
+      .map((slot) => slot.slot);
+
+    return { usedInputSlots };
+  }, [configTree, alias]);
+
   const filter = useCallback(
-    (
-      instance: Instance<'visualizer'>,
-      otherInstance: Instance<'visualizer'>,
-    ) => {
+    (instance: Instance<'visualizer'>) => {
+      const inputKeys = Object.keys(instance.accepts.shape.shape);
+
       return (
-        isEqual(
-          Object.keys(instance.accepts.shape.shape),
-          Object.keys(otherInstance.accepts.shape.shape),
-        ) || errorFlowchartIncompatibleComponent
+        usedInputSlots.every((slot) => inputKeys.includes(slot)) ||
+        errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedInputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption,
     filter,
   });
 

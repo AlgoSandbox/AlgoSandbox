@@ -1,8 +1,8 @@
 import { useBoxContext } from '@components/box-page';
 import { Instance } from '@components/box-page/box-context/sandbox-object';
 import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
-import { isEqual } from 'lodash';
-import { useCallback } from 'react';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
+import { useCallback, useMemo } from 'react';
 
 import FlowchartComponentSelect from './FlowchartComponentSelect';
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
@@ -25,21 +25,32 @@ export default function FlowchartProblemSelect({
   const { default: defaultParameters, value: parameters = {} } =
     useBoxContext('problem.parameters');
 
+  const configTree = useBoxContext('config.tree');
+  const alias = 'algorithm';
+
+  const { usedOutputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+    const usedOutputSlots = usedSlots
+      .filter((slot) => slot.type === 'output')
+      .map((slot) => slot.slot);
+
+    return { usedOutputSlots };
+  }, [configTree, alias]);
+
   const filter = useCallback(
-    (instance: Instance<'problem'>, otherInstance: Instance<'problem'>) => {
+    (instance: Instance<'problem'>) => {
+      const outputKeys = Object.keys(instance.type.shape.shape);
+
       return (
-        isEqual(
-          Object.keys(instance.type.shape.shape),
-          Object.keys(otherInstance.type.shape.shape),
-        ) || errorFlowchartIncompatibleComponent
+        usedOutputSlots.every((slot) => outputKeys.includes(slot)) ||
+        errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedOutputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption,
     filter,
   });
 

@@ -1,7 +1,7 @@
 import { Instance } from '@components/box-page/box-context/sandbox-object';
 import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
-import { isEqual } from 'lodash';
-import { useCallback } from 'react';
+import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
+import { useCallback, useMemo } from 'react';
 
 import { useBoxContext } from '../box-page/box-context';
 import FlowchartComponentSelect from './FlowchartComponentSelect';
@@ -25,27 +25,37 @@ export default function FlowchartAlgorithmSelect({
   const { default: defaultParameters, value: parameters = {} } = useBoxContext(
     'algorithm.parameters',
   );
+  const configTree = useBoxContext('config.tree');
+  const alias = 'algorithm';
+
+  const { usedInputSlots, usedOutputSlots } = useMemo(() => {
+    const usedSlots = getUsedSlotsForAlias(configTree, alias);
+    const usedInputSlots = usedSlots
+      .filter((slot) => slot.type === 'input')
+      .map((slot) => slot.slot);
+    const usedOutputSlots = usedSlots
+      .filter((slot) => slot.type === 'output')
+      .map((slot) => slot.slot);
+
+    return { usedInputSlots, usedOutputSlots };
+  }, [configTree, alias]);
 
   const filter = useCallback(
-    (instance: Instance<'algorithm'>, otherInstance: Instance<'algorithm'>) => {
+    (instance: Instance<'algorithm'>) => {
+      const inputKeys = Object.keys(instance.accepts.shape.shape);
+      const outputKeys = Object.keys(instance.outputs.shape.shape);
+
       return (
-        (isEqual(
-          Object.keys(instance.accepts.shape.shape),
-          Object.keys(otherInstance.accepts.shape.shape),
-        ) &&
-          isEqual(
-            Object.keys(instance.outputs.shape.shape),
-            Object.keys(otherInstance.outputs.shape.shape),
-          )) ||
+        (usedInputSlots.every((slot) => inputKeys.includes(slot)) &&
+          usedOutputSlots.every((slot) => outputKeys.includes(slot))) ||
         errorFlowchartIncompatibleComponent
       );
     },
-    [],
+    [usedInputSlots, usedOutputSlots],
   );
 
   const filteredOptions = useFilteredObjectOptions({
     options,
-    selectedOption,
     filter,
   });
 

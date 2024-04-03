@@ -215,7 +215,7 @@ export default function DashboardPage() {
       <div className="flex flex-col max-w-7xl flex-1 px-4 gap-8 py-6">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 py-2 sticky top-0 bg-canvas z-10">
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <Heading variant="h2">Explore boxes</Heading>
               <Drawer
                 open={showBoxFilterDialog}

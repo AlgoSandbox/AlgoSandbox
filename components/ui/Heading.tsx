@@ -39,9 +39,9 @@ export function HeadingContextProvider({
 
 const headingClasses: Record<HeadingVariant, string> = {
   h1: 'scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl',
-  h2: 'scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0',
-  h3: 'scroll-m-20 text-2xl font-semibold tracking-tight',
-  h4: 'scroll-m-20 text-xl font-semibold tracking-tight',
+  h2: 'scroll-m-20 text-2xl md:text-3xl font-semibold tracking-tight first:mt-0',
+  h3: 'scroll-m-20 text-xl md:text-2xl font-semibold tracking-tight',
+  h4: 'scroll-m-20 text-lg md:text-xl font-semibold tracking-tight',
 };
 
 export function HeadingContent({ children }: { children: React.ReactNode }) {

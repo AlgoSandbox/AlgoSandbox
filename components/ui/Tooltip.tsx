@@ -41,7 +41,7 @@ export default function Tooltip({
             zIndex,
             ...(constrainWidthToTrigger
               ? {
-                  maxWidth: 'var(--radix-tooltip-trigger-width)',
+                  maxWidth: 'min(var(--radix-tooltip-trigger-width), 28rem)',
                 }
               : {}),
           }}

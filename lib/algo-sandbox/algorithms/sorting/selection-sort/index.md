@@ -1,1 +1,1 @@
-# Bubble sort
+# Selection sort

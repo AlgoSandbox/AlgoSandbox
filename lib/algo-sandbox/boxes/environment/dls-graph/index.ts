@@ -2,7 +2,7 @@ import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
   problem: 'problem.weightedGraphs.generator',
-  algorithm: 'algorithm.search.ucsEnvironment',
+  algorithm: 'algorithm.search.dlsEnvironment',
   visualizers: {
     aliases: {
       'visualizer-0': 'visualizer.graphs.searchGraph',

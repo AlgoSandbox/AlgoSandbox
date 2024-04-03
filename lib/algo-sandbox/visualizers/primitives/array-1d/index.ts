@@ -81,7 +81,7 @@ const array1d = createVisualizer<
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginBlockStart: index > 0 ? -1 : 0,
+                  marginInlineStart: index > 0 ? -1 : 0,
                 },
               },
               valueString,

@@ -236,6 +236,7 @@ export default function BoxContextProvider({
       onChange: ({ aliases, order }) => {
         onBoxUpdate((box) => {
           const newBox = produce(box, (draft) => {
+            const oldVisualizerAliases = Object.keys(draft.visualizers.aliases);
             draft.visualizers.aliases = aliases;
             draft.visualizers.order = order;
 
@@ -246,13 +247,18 @@ export default function BoxContextProvider({
             }
 
             const visualizerAliases = Object.keys(aliases);
-            const boxConfigTree = convertBoxConfigToTree(
-              boxConfig,
-              visualizerAliases,
-            );
+            const boxConfigTree = {
+              ...convertBoxConfigToTree(boxConfig, visualizerAliases),
+            };
             boxConfigTree.composition.connections =
               boxConfigTree.composition.connections.filter(
-                ({ fromKey, toKey }) => !aliases[fromKey] && !aliases[toKey],
+                ({ fromKey, toKey }) => {
+                  if (!oldVisualizerAliases.includes(fromKey)) {
+                    return true;
+                  }
+
+                  return aliases[fromKey] && aliases[toKey];
+                },
               );
 
             draft.config = boxConfigTree;

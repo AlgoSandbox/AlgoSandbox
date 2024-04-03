@@ -1,30 +1,26 @@
 import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
-  problem: 'problem.graphs.tenNodes',
+  problem: 'problem.weightedGraphs.generator',
   algorithm: 'algorithm.search.dfsEnvironment',
   visualizers: {
     aliases: {
       'visualizer-0': 'visualizer.graphs.searchGraph',
-      'visualizer-1': 'visualizer.primitives.objectInspector',
+      'visualizer-1': 'visualizer.primitives.array1d',
       'visualizer-2': 'visualizer.graphs.searchGraph',
+      'visualizer-3': 'visualizer.primitives.array1d',
     },
-    order: ['visualizer-0', 'visualizer-2', 'visualizer-1'],
+    order: ['visualizer-0', 'visualizer-2', 'visualizer-1', 'visualizer-3'],
   },
   config: {
     adapters: {
       'adapter-0': 'adapter.environment.envToGraph',
       'adapter-1': 'adapter.environment.searchGraphToEnv',
+      'adapter-2': 'adapter.utils.setToArray',
     },
     composition: {
       type: 'tree',
       connections: [
-        {
-          fromKey: 'problem',
-          fromSlot: '.',
-          toKey: 'adapter-1',
-          toSlot: '.',
-        },
         {
           fromKey: 'adapter-1',
           fromSlot: '.',
@@ -79,6 +75,7 @@ const box: SandboxBox = {
           toKey: 'adapter-0',
           toSlot: 'render',
         },
+        { fromKey: 'problem', fromSlot: '.', toKey: 'adapter-1', toSlot: '.' },
         {
           fromKey: 'adapter-0',
           fromSlot: '.',
@@ -87,9 +84,9 @@ const box: SandboxBox = {
         },
         {
           fromKey: 'adapter-0',
-          fromSlot: '.',
+          fromSlot: 'frontier',
           toKey: 'visualizer-1',
-          toSlot: 'object',
+          toSlot: 'array',
         },
         {
           fromKey: 'problem',
@@ -111,18 +108,36 @@ const box: SandboxBox = {
         },
         {
           fromKey: 'adapter-0',
+          fromSlot: 'initialNodeId',
+          toKey: 'visualizer-2',
+          toSlot: 'initialNodeId',
+        },
+        {
+          fromKey: 'adapter-0',
           fromSlot: 'currentNodeId',
           toKey: 'visualizer-2',
           toSlot: 'currentNodeId',
         },
         {
           fromKey: 'adapter-0',
-          fromSlot: 'initialNodeId',
-          toKey: 'visualizer-2',
-          toSlot: 'initialNodeId',
+          fromSlot: 'visited',
+          toKey: 'adapter-2',
+          toSlot: 'set',
+        },
+        {
+          fromKey: 'adapter-2',
+          fromSlot: 'array',
+          toKey: 'visualizer-3',
+          toSlot: 'array',
         },
       ],
     },
+  },
+  componentNames: {
+    'visualizer-0': 'Search tree',
+    'visualizer-1': 'Frontier',
+    'visualizer-2': 'Search graph',
+    'visualizer-3': 'Visited',
   },
 };
 

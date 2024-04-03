@@ -26,7 +26,14 @@ import getSandboxObjectWriteup from '@utils/getSandboxObjectWriteup';
 import { useBreakpoint } from '@utils/useBreakpoint';
 import usePreviewVisualization from '@utils/usePreviewVisualization';
 import clsx from 'clsx';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Fragment,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -45,7 +52,9 @@ export type CatalogSelectProps<
   value?: O;
   onChange?: (value: O | null, parameters: SandboxParameters | null) => void;
   label: string;
+  icon?: ReactElement;
   hideLabel?: boolean;
+  hidePlaceholder?: boolean;
   variant?: ButtonProps['variant'];
   errorMessage?: string | null;
   showPreview?: boolean;
@@ -90,9 +99,11 @@ function getTags<T extends SandboxObjectType>(object: DbSandboxObjectSaved<T>) {
 
 export default function CatalogSelect<T extends SandboxObjectType>({
   options,
+  icon,
   containerClassName,
   className,
   label,
+  hidePlaceholder,
   placeholder,
   hideLabel,
   variant = 'filled',
@@ -397,7 +408,13 @@ export default function CatalogSelect<T extends SandboxObjectType>({
         </div>
       }
     >
-      <div className={clsx('flex flex-col min-w-[200px]', containerClassName)}>
+      <div
+        className={clsx(
+          'flex flex-col',
+          !hidePlaceholder && 'min-w-[200px]',
+          containerClassName,
+        )}
+      >
         <div className="flex items-center gap-1">
           <FormLabel className={hideLabel ? 'hidden' : ''}>{label}</FormLabel>
           {errorMessage && (
@@ -417,10 +434,15 @@ export default function CatalogSelect<T extends SandboxObjectType>({
           className={clsx(
             errorMessage ? 'border-2 border-danger' : '',
             className,
+            icon && hidePlaceholder && 'divide-x [&_:last-child]:-me-2',
           )}
+          icon={icon}
           label={value?.label ?? placeholder ?? ''}
+          hideLabel={hidePlaceholder}
           variant={variant}
-          endIcon={<MaterialSymbol icon="arrow_drop_down" />}
+          endIcon={
+            <MaterialSymbol icon="arrow_drop_down" className="text-label" />
+          }
         />
       </div>
     </Popover>

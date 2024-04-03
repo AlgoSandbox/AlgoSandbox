@@ -28,6 +28,8 @@ import ReactFlow, {
   Node,
   NodeChange,
   NodeTypes,
+  ReactFlowProvider,
+  useOnSelectionChange,
 } from 'reactflow';
 import { toast } from 'sonner';
 import { SomeZodObject, ZodError } from 'zod';
@@ -146,7 +148,7 @@ function makeSlot({
   };
 }
 
-export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
+function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
   const {
     inputs,
     outputs,
@@ -596,6 +598,16 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
   );
   const [edges, setEdges] = useState(initialEdges);
 
+  const [selectedNodes, setSelectedNodes] = useState<Array<FlowNode>>([]);
+  const [selectedEdges, setSelectedEdges] = useState<Array<Edge>>([]);
+
+  useOnSelectionChange({
+    onChange: ({ nodes, edges }) => {
+      setSelectedNodes(nodes);
+      setSelectedEdges(edges);
+    },
+  });
+
   useEffect(() => {
     const { nodes, edges } = getLayoutedElements(initialNodes, initialEdges);
 
@@ -729,95 +741,134 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
       >
         <Background className="bg-canvas" />
       </ReactFlow>
-      <div className="absolute top-0 bg-surface w-full px-4 py-2 border-b flex gap-2">
-        <Select
-          label="Flowchart mode"
-          hideLabel
-          value={flowchartMode}
-          options={
-            [
-              { key: 'simple', value: 'simple', label: 'Simple' },
-              { key: 'full', value: 'full', label: 'Full' },
-            ] as const
-          }
-          onChange={(value) => {
-            setFlowchartMode(value.value);
-          }}
-        />
-        <Button
-          label="Undo"
-          hideLabel
-          variant="filled"
-          onClick={undo}
-          icon={<MaterialSymbol icon="undo" />}
-          disabled={!canUndo}
-        />
-        {flowchartMode === 'full' && (
-          <CatalogSelect
-            label="Add component"
+      <div className="absolute top-0 bg-surface w-full px-4 py-2 border-b flex gap-2 justify-between">
+        <div className="flex gap-2">
+          <Select
+            label="Flowchart mode"
             hideLabel
-            options={componentOptions}
-            placeholder="Add component"
-            value={undefined}
+            value={flowchartMode}
+            options={
+              [
+                { key: 'simple', value: 'simple', label: 'Simple' },
+                { key: 'full', value: 'full', label: 'Full' },
+              ] as const
+            }
             onChange={(value) => {
-              if (value === null) {
-                return;
-              }
-
-              if (
-                visualizerOptions.some(
-                  (option) => option.value.key === value.value.key,
-                )
-              ) {
-                const getKey = (index: number): string => {
-                  const key = `visualizer-${index}`;
-                  if (visualizers.order.includes(key)) {
-                    return getKey(index + 1);
-                  }
-                  return key;
-                };
-                const newKey = getKey(0);
-                visualizers.appendAlias(newKey, value.value.key);
-              } else if (
-                adapterOptions.some(
-                  (option) => option.value.key === value.value.key,
-                )
-              ) {
-                const getKey = (index: number): string => {
-                  const key = `adapter-${index}`;
-                  if (Object.keys(configTree.adapters ?? {}).includes(key)) {
-                    return getKey(index + 1);
-                  }
-                  return key;
-                };
-                const newKey = getKey(0);
-                setConfig({
-                  ...configTree,
-                  adapters: {
-                    ...configTree.adapters,
-                    [newKey]: value.value.key,
-                  },
-                });
-              }
+              setFlowchartMode(value.value);
             }}
           />
-        )}
-        <Button
-          label="Auto layout"
-          hideLabel
-          variant="filled"
-          onClick={autoLayoutNodes}
-          icon={<MaterialSymbol icon="view_timeline" />}
-        />
-        <Button
-          label="Reset box config"
-          hideLabel
-          variant="filled"
-          onClick={reset}
-          icon={<MaterialSymbol icon="settings_backup_restore" />}
-          disabled={!isBoxDirty}
-        />
+          {flowchartMode === 'full' && (
+            <>
+              <CatalogSelect
+                label="Add component"
+                hideLabel
+                placeholder="Add component"
+                hidePlaceholder
+                icon={<MaterialSymbol icon="add" />}
+                options={componentOptions}
+                value={undefined}
+                onChange={(value) => {
+                  if (value === null) {
+                    return;
+                  }
+
+                  if (
+                    visualizerOptions.some(
+                      (option) => option.value.key === value.value.key,
+                    )
+                  ) {
+                    const getKey = (index: number): string => {
+                      const key = `visualizer-${index}`;
+                      if (visualizers.order.includes(key)) {
+                        return getKey(index + 1);
+                      }
+                      return key;
+                    };
+                    const newKey = getKey(0);
+                    visualizers.appendAlias(newKey, value.value.key);
+                  } else if (
+                    adapterOptions.some(
+                      (option) => option.value.key === value.value.key,
+                    )
+                  ) {
+                    const getKey = (index: number): string => {
+                      const key = `adapter-${index}`;
+                      if (
+                        Object.keys(configTree.adapters ?? {}).includes(key)
+                      ) {
+                        return getKey(index + 1);
+                      }
+                      return key;
+                    };
+                    const newKey = getKey(0);
+                    setConfig({
+                      ...configTree,
+                      adapters: {
+                        ...configTree.adapters,
+                        [newKey]: value.value.key,
+                      },
+                    });
+                  }
+                }}
+              />
+              <Button
+                label="Delete"
+                hideLabel
+                variant="filled"
+                disabled={
+                  selectedEdges.length === 0 &&
+                  selectedNodes.filter((node) => node.deletable).length === 0
+                }
+                icon={<MaterialSymbol icon="delete" />}
+                onClick={() => {
+                  if (selectedNodes.length > 0) {
+                    onEdgesDelete(selectedEdges);
+                    setSelectedEdges([]);
+                  }
+                  if (selectedNodes.length > 0) {
+                    onNodesDelete(selectedNodes);
+                    setSelectedNodes([]);
+                  }
+                }}
+              />
+              <div className="border-l w-px"></div>
+            </>
+          )}
+          <Button
+            label="Undo"
+            hideLabel
+            variant="filled"
+            onClick={undo}
+            icon={<MaterialSymbol icon="undo" />}
+            disabled={!canUndo}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            label="Auto layout"
+            hideLabel
+            variant="filled"
+            onClick={autoLayoutNodes}
+            icon={<MaterialSymbol icon="view_timeline" />}
+          />
+          <Button
+            label="Reset box config"
+            hideLabel
+            variant="filled"
+            onClick={reset}
+            icon={<MaterialSymbol icon="settings_backup_restore" />}
+            disabled={!isBoxDirty}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
+  return (
+    <ReactFlowProvider>
+      <BoxConfigFlowchartImpl tabId={tabId} />;
+    </ReactFlowProvider>
   );
 }

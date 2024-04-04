@@ -9,7 +9,7 @@ const box: SandboxBox = {
   visualizers: {
     aliases: {
       'visualizer-0': 'visualizer.graphs.searchGraph',
-      'visualizer-1': 'visualizer.primitives.array1d',
+      'visualizer-1': 'visualizer.charts.barChart',
       'visualizer-2': 'visualizer.charts.barChart',
       'visualizer-3': 'visualizer.primitives.array1d',
     },
@@ -21,6 +21,7 @@ const box: SandboxBox = {
       'adapter-1': 'adapter.environment.arrayToEnv',
       'adapter-2': 'adapter.utils.setToArray',
       'adapter-3': { key: 'adapter.utils.get', parameters: { path: 'array' } },
+      'adapter-4': { key: 'adapter.utils.get', parameters: { path: '*.cost' } },
     },
     composition: {
       type: 'tree',
@@ -66,12 +67,6 @@ const box: SandboxBox = {
           fromSlot: '.',
           toKey: 'visualizer-0',
           toSlot: '.',
-        },
-        {
-          fromKey: 'adapter-0',
-          fromSlot: 'frontier',
-          toKey: 'visualizer-1',
-          toSlot: 'array',
         },
         {
           fromKey: 'problem',
@@ -146,12 +141,30 @@ const box: SandboxBox = {
           toKey: 'adapter-3',
           toSlot: 'object',
         },
+        {
+          fromKey: 'adapter-0',
+          fromSlot: 'frontier',
+          toKey: 'visualizer-1',
+          toSlot: 'labels',
+        },
+        {
+          fromKey: 'adapter-4',
+          fromSlot: 'valueAtPath',
+          toKey: 'visualizer-1',
+          toSlot: 'array',
+        },
+        {
+          fromKey: 'algorithm',
+          fromSlot: 'frontier',
+          toKey: 'adapter-4',
+          toSlot: 'object',
+        },
       ],
     },
   },
   componentNames: {
     'visualizer-0': 'Search tree',
-    'visualizer-1': 'Frontier',
+    'visualizer-1': 'Frontier with heuristic',
     'visualizer-2': 'Current array',
     'visualizer-3': 'Visited',
   },

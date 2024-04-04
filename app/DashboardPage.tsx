@@ -177,6 +177,10 @@ export default function DashboardPage() {
           return -similarity(tag, tagCount.at(0)?.[0] ?? '');
         })
         .flatMap(([, options]) => options)
+        // Put experimental boxes at the end
+        .sortBy((option) => {
+          return option.tags.includes('experimental') ? 1 : 0;
+        })
         .value()
     );
   }, [boxOptionsWithTags, tagCount]);

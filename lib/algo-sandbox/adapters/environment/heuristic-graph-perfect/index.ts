@@ -23,7 +23,7 @@ const heuristicOutput = createState(
   }),
 );
 
-const searchGraphToEnv: SandboxAdapter<
+const heuristicGraphPerfect: SandboxAdapter<
   typeof heuristicInput,
   typeof heuristicOutput
 > = {
@@ -83,4 +83,4 @@ const searchGraphToEnv: SandboxAdapter<
   },
 };
 
-export default searchGraphToEnv;
+export default heuristicGraphPerfect;

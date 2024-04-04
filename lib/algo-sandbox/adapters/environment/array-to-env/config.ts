@@ -1,7 +1,7 @@
 import { ComponentConfig } from '@algo-sandbox/core';
 
 const config: ComponentConfig = {
-  tags: ['array', 'utils'],
+  tags: ['array', 'environment', 'experimental', 'adapter'],
 };
 
 export default config;

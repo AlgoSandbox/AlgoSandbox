@@ -26,6 +26,12 @@ const markdownComponents: Components = {
       </code>
     );
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  blockquote: ({ node, children, ...props }) => (
+    <blockquote className="border-l-4 pl-2 text-label" {...props}>
+      {children}
+    </blockquote>
+  ),
 };
 
 export default function MarkdownPreview({ markdown }: { markdown: string }) {

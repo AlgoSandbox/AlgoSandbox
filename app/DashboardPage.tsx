@@ -16,6 +16,7 @@ import clsx from 'clsx';
 import _ from 'lodash';
 import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
+import similarity from 'similarity';
 
 type SavedObjectsSectionProps = {
   title: string;
@@ -148,6 +149,38 @@ export default function DashboardPage() {
     [boxOptionsWithTags],
   );
 
+  const tagCount = useMemo(
+    () =>
+      _(boxOptionsWithTags.flatMap((option) => option.tags))
+        .filter((tag) => tag !== 'box')
+        .countBy()
+        .entries()
+        .sortBy(([, count]) => -count)
+        .value(),
+    [boxOptionsWithTags],
+  );
+
+  const sortedBoxOptions = useMemo(() => {
+    return (
+      _(boxOptionsWithTags)
+        // Group by most common tag
+        .groupBy((option) => {
+          return (
+            tagCount.find(([tag]) =>
+              option.tags.includes(tag as ComponentTag),
+            )?.[0] ?? ('' as ComponentTag)
+          );
+        })
+        .entries()
+        // Sort groups by similarity to the most common tag, with most common tag placed at top
+        .sortBy(([tag]) => {
+          return -similarity(tag, tagCount.at(0)?.[0] ?? '');
+        })
+        .flatMap(([, options]) => options)
+        .value()
+    );
+  }, [boxOptionsWithTags, tagCount]);
+
   const [selectedTags, setSelectedTags] = useState<Array<ComponentTag>>([]);
 
   const filteredBoxOptions = useMemo(() => {
@@ -156,10 +189,10 @@ export default function DashboardPage() {
     // query token can be either in tag or in label
     const boxOptionsMatchingQuery = (() => {
       if (query === '') {
-        return boxOptionsWithTags;
+        return sortedBoxOptions;
       }
 
-      return boxOptionsWithTags.filter((option) => {
+      return sortedBoxOptions.filter((option) => {
         const queryTokens = query.split(' ');
         return queryTokens.every((token) => {
           const label = option.label.toLowerCase();
@@ -176,7 +209,7 @@ export default function DashboardPage() {
     return boxOptionsMatchingQuery.filter((option) =>
       selectedTags.every((tag) => option.tags.includes(tag)),
     );
-  }, [boxOptionsWithTags, boxQuery, selectedTags]);
+  }, [boxQuery, selectedTags, sortedBoxOptions]);
 
   const [showBoxFilterDialog, setShowBoxFilterDialog] = useState(false);
 

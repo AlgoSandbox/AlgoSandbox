@@ -185,9 +185,13 @@ export default function CatalogSelect<T extends SandboxObjectType>({
     [selectedOption?.value],
   );
 
-  const visualization = usePreviewVisualization(selectedObject, {
+  const visualizationEvaluation = usePreviewVisualization(selectedObject, {
     enabled: open && showPreview,
   });
+
+  const visualization = useMemo(() => {
+    return visualizationEvaluation?.mapLeft(() => null).value ?? null;
+  }, [visualizationEvaluation]);
 
   // For mobile
   const [showItemDetails, setShowItemDetails] = useState(false);

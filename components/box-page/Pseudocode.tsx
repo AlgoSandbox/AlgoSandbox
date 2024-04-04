@@ -1,32 +1,9 @@
 import { Button, MaterialSymbol, ResizeHandle, Tooltip } from '@components/ui';
 import { useBreakpoint } from '@utils/useBreakpoint';
+import useOnScreen from '@utils/useOnScreen';
 import clsx from 'clsx';
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup } from 'react-resizable-panels';
-
-function useOnScreen(ref: RefObject<HTMLElement>) {
-  const [isIntersecting, setIntersecting] = useState(false);
-  const observer = useRef<IntersectionObserver>();
-
-  useEffect(() => {
-    observer.current = new IntersectionObserver(([entry]) =>
-      setIntersecting(entry.isIntersecting),
-    );
-
-    return () => {
-      if (observer.current) {
-        observer.current.disconnect();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (ref.current) observer.current?.observe(ref.current);
-    return () => observer.current?.disconnect();
-  }, [observer, ref]);
-
-  return isIntersecting;
-}
 
 export type PseudocodeProps = {
   pseudocode: string;

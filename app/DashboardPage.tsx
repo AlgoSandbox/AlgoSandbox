@@ -11,6 +11,7 @@ import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
 import { useBreakpoint } from '@utils/useBreakpoint';
+import useOnScreen from '@utils/useOnScreen';
 import usePreviewVisualization from '@utils/usePreviewVisualization';
 import clsx from 'clsx';
 import _ from 'lodash';
@@ -104,9 +105,19 @@ function BoxOption({
 
   const inMiddleOfScreen = useInMiddleOfScreen(ref, { enabled: isMobile });
 
-  const visualization = usePreviewVisualization(box, {
+  const isVisible = useOnScreen(ref);
+
+  const visualizationEvaluation = usePreviewVisualization(box, {
+    enabled: isVisible,
     playAnimation: hovered || focused || (isMobile && inMiddleOfScreen),
   });
+
+  const { visualization, isLoading } = useMemo(() => {
+    return {
+      visualization: visualizationEvaluation?.mapLeft(() => null).value ?? null,
+      isLoading: visualizationEvaluation === null,
+    };
+  }, [visualizationEvaluation]);
 
   return (
     <a
@@ -125,6 +136,7 @@ function BoxOption({
       }}
       className={clsx(
         'group bg-surface-high border hover:text-accent focus:text-accent hover:border-accent focus:border-accent hover:bg-surface-higher overflow-clip flex flex-col transition rounded font-semibold text-on-surface',
+        isLoading && 'animate-pulse',
         isMobile && inMiddleOfScreen && 'border-primary',
       )}
       href={`/playground?box=${box.key}`}

@@ -1,5 +1,6 @@
 import { SandboxObjectType } from '@algo-sandbox/components';
-import { SandboxBox } from '@algo-sandbox/core';
+import { SandboxBox, SandboxVisualization } from '@algo-sandbox/core';
+import { error, ErrorOr, success } from '@app/errors';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { mapValues } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -30,12 +31,13 @@ export default function usePreviewVisualization<T extends SandboxObjectType>(
   const { enabled = true, playAnimation = true } = options ?? {};
   const sandboxComponents = useSandboxComponents();
   const [stepIndex, setStepIndex] = useState(0);
+  const [selectedBox, setSelectedBox] = useState<SandboxBox | null>(null);
 
   useEffect(() => {
     setIsClientSide(true);
   }, []);
 
-  const selectedBox = useMemo(() => {
+  const selectedBoxRaw = useMemo(() => {
     if (object === null) {
       return null;
     }
@@ -85,6 +87,17 @@ export default function usePreviewVisualization<T extends SandboxObjectType>(
 
     return defaultBox;
   }, [enabled, isClientSide, object]);
+
+  useEffect(() => {
+    if (object === null && selectedBox !== null) {
+      setSelectedBox(null);
+      return;
+    }
+
+    if (enabled) {
+      setSelectedBox(selectedBoxRaw);
+    }
+  }, [enabled, object, selectedBox, selectedBoxRaw]);
 
   const scene = useMemo(() => {
     if (object === null || !isClientSide) {
@@ -253,54 +266,55 @@ export default function usePreviewVisualization<T extends SandboxObjectType>(
     }
   }, [playAnimation, stepCount]);
 
-  const visualization = useMemo(() => {
-    if (!visualizerInstance || executionTrace === null || !isClientSide) {
-      return null;
-    }
-
-    try {
-      const step = executionTrace.at(stepIndex);
-      if (step === undefined) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const visualization: ErrorOr<SandboxVisualization<any>> | null =
+    useMemo(() => {
+      if (!visualizerInstance || executionTrace === null || !isClientSide) {
         return null;
       }
-
-      if (problemInstance === null || algorithmInstance === undefined) {
-        return null;
-      }
-
-      const config = selectedBox?.config;
-
-      if (!config) {
-        return null;
-      }
-
-      const visualizerAliases = Object.keys(
-        selectedBox?.visualizers.aliases ?? {},
-      );
-      const configTree = convertBoxConfigToTree(config, visualizerAliases);
-
-      const problemState = problemInstance.getInitialState();
-      const algorithmState = step.state;
-
-      const visualizerInstances = {
-        [visualizerAlias]: visualizerInstance,
-      };
-      const adapters = evaledBox.config?.adapters ?? {};
-      const adapterInstances = mapValues(adapters, (adapterComponent) => {
-        if (adapterComponent === undefined) {
-          return undefined;
-        }
-
-        const { component: adapter, parameters } = adapterComponent;
-
-        if ('parameters' in adapter) {
-          return adapter.create(parameters ?? undefined);
-        }
-
-        return adapter;
-      });
 
       try {
+        const step = executionTrace.at(stepIndex);
+        if (step === undefined) {
+          return null;
+        }
+
+        if (problemInstance === null || algorithmInstance === undefined) {
+          return null;
+        }
+
+        const config = selectedBox?.config;
+
+        if (!config) {
+          return null;
+        }
+
+        const visualizerAliases = Object.keys(
+          selectedBox?.visualizers.aliases ?? {},
+        );
+        const configTree = convertBoxConfigToTree(config, visualizerAliases);
+
+        const problemState = problemInstance.getInitialState();
+        const algorithmState = step.state;
+
+        const visualizerInstances = {
+          [visualizerAlias]: visualizerInstance,
+        };
+        const adapters = evaledBox.config?.adapters ?? {};
+        const adapterInstances = mapValues(adapters, (adapterComponent) => {
+          if (adapterComponent === undefined) {
+            return undefined;
+          }
+
+          const { component: adapter, parameters } = adapterComponent;
+
+          if ('parameters' in adapter) {
+            return adapter.create(parameters ?? undefined);
+          }
+
+          return adapter;
+        });
+
         const { inputs } = solveFlowchart({
           config: configTree,
           problemState,
@@ -311,26 +325,23 @@ export default function usePreviewVisualization<T extends SandboxObjectType>(
 
         const visualizerInput = inputs[visualizerAlias];
 
-        return visualizerInstance.visualize(visualizerInput);
+        return success(visualizerInstance.visualize(visualizerInput));
       } catch (e) {
-        return null;
+        console.error(e);
+        return error('Error while running visualization', String(e));
       }
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  }, [
-    algorithmInstance,
-    evaledBox?.config?.adapters,
-    executionTrace,
-    isClientSide,
-    problemInstance,
-    selectedBox?.config,
-    selectedBox?.visualizers.aliases,
-    stepIndex,
-    visualizerAlias,
-    visualizerInstance,
-  ]);
+    }, [
+      algorithmInstance,
+      evaledBox?.config?.adapters,
+      executionTrace,
+      isClientSide,
+      problemInstance,
+      selectedBox?.config,
+      selectedBox?.visualizers.aliases,
+      stepIndex,
+      visualizerAlias,
+      visualizerInstance,
+    ]);
 
   return visualization;
 }

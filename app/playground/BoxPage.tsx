@@ -588,9 +588,7 @@ function BoxPageImpl() {
           </form>
         }
         open={saveBoxDialogOpen}
-        onOpenChange={(open) => {
-          setSaveBoxDialogOpen(open);
-        }}
+        onOpenChange={setSaveBoxDialogOpen}
       />
     </>
   );

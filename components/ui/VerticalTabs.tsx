@@ -127,16 +127,17 @@ export function Tab({
             )}
             {showLabel && label}
           </div>
-          {isSelected && closeable && isMobile && (
-            <Button
-              label="Close tab"
-              hideLabel
-              onClick={onClose}
-              icon={<MaterialSymbol icon="close" />}
-            />
-          )}
         </button>
       </Tooltip>
+      {isSelected && closeable && isMobile && (
+        <Button
+          label="Close tab"
+          hideLabel
+          className="me-2"
+          onClick={onClose}
+          icon={<MaterialSymbol icon="close" />}
+        />
+      )}
     </div>
   );
 }

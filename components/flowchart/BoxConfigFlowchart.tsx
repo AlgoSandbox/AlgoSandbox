@@ -164,7 +164,6 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
   const { isExecuting } = useBoxControlsContext();
 
   const configEvaluated = useBoxContext('config.evaluated');
-
   const setConfigRaw = useBoxContext('config.set');
   const configTree = useBoxContext('config.tree');
   const componentNames = useBoxContext('componentNames');
@@ -314,7 +313,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
             const outputSlots = Object.keys(adapter?.outputs.shape.shape ?? {});
             const slotCount = Math.max(inputSlots.length, outputSlots.length);
 
-            if (flowchartMode === 'simple' && isAliasAfterAlgorithm(alias)) {
+            if (flowchartMode === 'basic' && isAliasAfterAlgorithm(alias)) {
               return null;
             }
 
@@ -325,12 +324,12 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
               height: getNodeHeight({
                 slotCount,
               }),
-              deletable: flowchartMode === 'full',
+              deletable: flowchartMode !== 'basic',
               data: {
                 alias,
                 type: 'adapter',
                 label: alias,
-                deletable: flowchartMode === 'full',
+                deletable: flowchartMode !== 'basic',
                 name: componentNames[alias] ?? '',
                 onNameChange: (name: string) => {
                   setComponentNames({
@@ -387,7 +386,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
         const visualizerInputs = instance?.accepts.shape.shape ?? {};
         const inputSlots = Object.keys(visualizerInputs);
 
-        if (flowchartMode === 'simple' && isAliasAfterAlgorithm(alias)) {
+        if (flowchartMode === 'basic' && isAliasAfterAlgorithm(alias)) {
           return null;
         }
 
@@ -398,7 +397,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
           height: getNodeHeight({
             slotCount: inputSlots.length,
           }),
-          deletable: flowchartMode === 'full',
+          deletable: flowchartMode !== 'basic',
           data: {
             type: 'visualizer',
             alias,
@@ -413,7 +412,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
             onDelete: () => {
               onNodeDelete('visualizer', alias);
             },
-            deletable: flowchartMode === 'full',
+            deletable: flowchartMode !== 'basic',
             evaluationError,
             inputs: ['.', ...inputSlots].map((param) => {
               return makeSlot({
@@ -451,7 +450,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
       algorithmOutputSlots.length,
     );
 
-    const hideOutputs = flowchartMode === 'simple';
+    const hideOutputs = flowchartMode === 'basic';
 
     const nodeOutputs: FlowNodeData['outputs'] = (() => {
       if (hideOutputs) {
@@ -559,9 +558,9 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
   ]);
 
   const initialEdges = useMemo(() => {
-    // Return a fake edge if in simple mode
+    // Return a fake edge if not in full mode
     const connections = (() => {
-      if (flowchartMode === 'simple') {
+      if (flowchartMode !== 'full') {
         const connections = configEvaluated.composition.connections.map(
           ({ fromKey, toKey }) => ({
             fromKey,
@@ -611,7 +610,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
           String.raw`[&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-accent [&.selected.react-flow\_\_edge>.react-flow\_\_edge-path]:!stroke-[4px]`,
         ]),
         animated: isActive,
-        deletable: flowchartMode === 'full',
+        deletable: flowchartMode !== 'basic',
       };
     }) as Array<Edge>;
   }, [configEvaluated.composition.connections, flowchartMode, outputs]);
@@ -681,24 +680,56 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
   const onEdgesDelete = useCallback(
     (edgesToDelete: Array<Edge>) => {
+      console.log('deleting', edgesToDelete);
+      const currentConfig = configTree;
+      if (flowchartMode === 'intermediate') {
+        const hasCompoundEdge = edgesToDelete.some((edge) =>
+          configTree.composition.connections.some(
+            ({ fromKey, toKey, fromSlot, toSlot }) =>
+              edge.source === fromKey &&
+              edge.target === toKey &&
+              (fromSlot !== '.' || toSlot !== '.'),
+          ),
+        );
+
+        if (hasCompoundEdge) {
+          toast.warning(
+            'Warning: Deleted compound connection. You may enter Full mode to restore it.',
+            {
+              duration: 5000,
+              action: {
+                label: 'Undo',
+                onClick: () => {
+                  setConfig(currentConfig);
+                  setConfigUndoStack((prev) => prev.slice(0, -1));
+                },
+              },
+            },
+          );
+        }
+      }
+
       setConfig({
         ...configTree,
         composition: {
           ...configTree.composition,
           connections: configTree.composition.connections.filter(
             ({ fromKey, fromSlot, toKey, toSlot }) =>
-              !edgesToDelete.some(
-                (edge) =>
-                  edge.source === fromKey &&
+              !edgesToDelete.some((edge) => {
+                const matchNode =
+                  edge.source === fromKey && edge.target === toKey;
+                const matchSlot =
                   edge.sourceHandle === fromSlot &&
-                  edge.target === toKey &&
-                  edge.targetHandle === toSlot,
-              ),
+                  edge.targetHandle === toSlot;
+                return (
+                  matchNode && (matchSlot || flowchartMode === 'intermediate')
+                );
+              }),
           ),
         },
       });
     },
-    [configTree, setConfig],
+    [configTree, flowchartMode, setConfig],
   );
 
   const onConnect = useCallback(
@@ -718,6 +749,83 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
         return;
       }
 
+      if (flowchartMode === 'intermediate') {
+        // Check if such a connection is valid
+
+        const getAliasInputShape = (alias: string) => {
+          if (alias === 'algorithm') {
+            return algorithm.unwrapOr(null)?.accepts.shape ?? null;
+          }
+
+          if (alias === 'problem') {
+            return null;
+          }
+
+          const adapter = configEvaluated.adapterInstances?.[alias].mapLeft(
+            () => null,
+          ).value;
+
+          if (adapter) {
+            return adapter.value.accepts.shape;
+          }
+
+          const visualizer = visualizerInstances[alias].mapLeft(
+            () => null,
+          ).value;
+          if (visualizer) {
+            return visualizer.value.accepts.shape;
+          }
+
+          return null;
+        };
+
+        const getAliasOutputShape = (alias: string) => {
+          if (alias === 'algorithm') {
+            return algorithm.unwrapOr(null)?.outputs.shape ?? null;
+          }
+
+          if (alias === 'problem') {
+            return problem.unwrapOr(null)?.type.shape ?? null;
+          }
+
+          const adapter = configEvaluated.adapterInstances?.[alias].mapLeft(
+            () => null,
+          ).value;
+
+          if (adapter) {
+            return adapter.value.outputs.shape;
+          }
+
+          const visualizer = visualizerInstances[alias].mapLeft(
+            () => null,
+          ).value;
+          if (visualizer) {
+            return null;
+          }
+
+          return null;
+        };
+
+        const fromShape = getAliasOutputShape(fromKey);
+        const toShape = getAliasInputShape(toKey);
+
+        if (fromShape !== null || toShape !== null) {
+          const fromShapeKeys = Object.keys(fromShape?.shape ?? {});
+          const toShapeKeys = Object.keys(toShape?.shape ?? {});
+
+          const isCompatible = toShapeKeys.every((key) =>
+            fromShapeKeys.includes(key),
+          );
+
+          if (!isCompatible) {
+            toast.error(
+              'Components cannot be connected directly. Switch to Full mode to connect manually',
+            );
+            return;
+          }
+        }
+      }
+
       setConfig({
         ...configTree,
         composition: {
@@ -729,7 +837,15 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
         },
       });
     },
-    [configTree, setConfig],
+    [
+      algorithm,
+      configEvaluated.adapterInstances,
+      configTree,
+      flowchartMode,
+      problem,
+      setConfig,
+      visualizerInstances,
+    ],
   );
 
   useHotkeys(
@@ -773,7 +889,12 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
             value={flowchartMode}
             options={
               [
-                { key: 'simple', value: 'simple', label: 'Simple' },
+                { key: 'basic', value: 'basic', label: 'Basic' },
+                {
+                  key: 'intermediate',
+                  value: 'intermediate',
+                  label: 'Intermediate',
+                },
                 { key: 'full', value: 'full', label: 'Full' },
               ] as const
             }
@@ -781,7 +902,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
               setFlowchartMode(value.value);
             }}
           />
-          {flowchartMode === 'full' && (
+          {flowchartMode !== 'basic' && (
             <>
               <CatalogSelect
                 label="Add component"

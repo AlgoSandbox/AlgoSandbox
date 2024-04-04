@@ -87,7 +87,10 @@ export default function FlowNodeSlot({
         position={side === 'start' ? Position.Left : Position.Right}
         id={id}
         isConnectable={
-          (!isConnected || side === 'end') && flowchartMode === 'full'
+          (!isConnected ||
+            side === 'end' ||
+            flowchartMode === 'intermediate') &&
+          flowchartMode !== 'basic'
         }
       />
       <div

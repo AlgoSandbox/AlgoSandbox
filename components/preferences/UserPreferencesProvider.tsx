@@ -31,7 +31,7 @@ type UserPreferencesProviderProps = {
 const UserPreferencesContext = createContext<UserPreferences>({
   maxExecutionStepCount: defaultMaxExecutionStepCount,
   setMaxExecutionStepCount: () => {},
-  flowchartMode: 'simple',
+  flowchartMode: 'basic',
   setFlowchartMode: () => {},
   playbackSpeed: 1,
   setPlaybackSpeed: () => {},
@@ -47,7 +47,7 @@ export default function UserPreferencesProvider({
   const [maxExecutionStepCount, setMaxExecutionStepCount] = useState(
     defaultMaxExecutionStepCount,
   );
-  const [flowchartMode, setFlowchartMode] = useState<FlowchartMode>('simple');
+  const [flowchartMode, setFlowchartMode] = useState<FlowchartMode>('basic');
   const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
 
   useEffect(() => {

@@ -1,12 +1,12 @@
 import { createContext, useContext, useMemo } from 'react';
 
-export type FlowchartMode = 'simple' | 'full';
+export type FlowchartMode = 'basic' | 'intermediate' | 'full';
 
 const FlowchartModeContext = createContext<{
   flowchartMode: FlowchartMode;
   setFlowchartMode: (mode: FlowchartMode) => void;
 }>({
-  flowchartMode: 'simple',
+  flowchartMode: 'basic',
   setFlowchartMode: () => {},
 });
 

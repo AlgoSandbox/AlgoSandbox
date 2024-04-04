@@ -14,7 +14,7 @@ import { getBoxConfigNodeOrder } from '@utils/solveFlowchart';
 import getZodTypeName from '@utils/zod/getZodTypeName';
 import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
-import { compact, uniqWith } from 'lodash';
+import { compact, isEqual, uniqWith } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import ReactFlow, {
@@ -152,11 +152,7 @@ function makeSlot({
 }
 
 function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
-  const {
-    inputs,
-    outputs,
-    inputErrors: inputErrorsRaw,
-  } = useFlowchartCalculations();
+  const flowchartCalculations = useFlowchartCalculations();
   const { label: tabName } = useTab();
   const { renameTab } = useTabManager();
   const boxName = useBoxContext('boxName.value');
@@ -179,6 +175,25 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
   const algorithmName = algorithm.unwrapOr(null)?.name ?? 'Untitled algorithm';
   const problemName = problem.unwrapOr(null)?.name ?? 'Untitled problem';
+
+  const [cachedFlowchartCalculations, setCachedFlowchartCalculations] =
+    useState(flowchartCalculations);
+
+  const {
+    inputs,
+    outputs,
+    inputErrors: inputErrorsRaw,
+  } = cachedFlowchartCalculations;
+
+  useEffect(() => {
+    if (
+      !isExecuting &&
+      !isEqual(flowchartCalculations, cachedFlowchartCalculations)
+    ) {
+      console.log('setting');
+      setCachedFlowchartCalculations(flowchartCalculations);
+    }
+  }, [cachedFlowchartCalculations, flowchartCalculations, isExecuting]);
 
   const nodeOrder = useMemo(() => {
     return getBoxConfigNodeOrder(configTree);
@@ -243,12 +258,12 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
   const inputErrors = useMemo(() => {
     // Don't show error when still executing
-    if (isExecuting) {
-      return {};
-    }
+    // if (isExecuting) {
+    // return {};
+    // }
 
     return inputErrorsRaw;
-  }, [inputErrorsRaw, isExecuting]);
+  }, [inputErrorsRaw]);
 
   const algorithmInputs = useMemo(
     () => algorithm.unwrapOr(null)?.accepts.shape.shape ?? {},
@@ -344,6 +359,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                     shape: adapter?.outputs.shape,
                   });
                 }),
+                isExecuting,
               },
             } satisfies Omit<FlowNode, 'position'>;
           },
@@ -356,6 +372,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
       inputErrors,
       inputs,
       isAliasAfterAlgorithm,
+      isExecuting,
       onNodeDelete,
       outputs,
       setComponentNames,
@@ -407,6 +424,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                 shape: instance?.accepts.shape,
               });
             }),
+            isExecuting,
           },
         } satisfies Omit<FlowNode, 'position'>;
       }),
@@ -417,6 +435,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
     inputErrors,
     inputs,
     isAliasAfterAlgorithm,
+    isExecuting,
     onNodeDelete,
     setComponentNames,
     visualizerInstances,
@@ -482,6 +501,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
             });
           }),
           outputs: nodeOutputs,
+          isExecuting,
         },
       },
       {
@@ -514,6 +534,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
               shape: problem.unwrapOr(null)?.type.shape,
             });
           }),
+          isExecuting,
         },
       },
       ...initialAdapterNodes,
@@ -530,6 +551,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
     initialVisualizerNodes,
     inputErrors,
     inputs,
+    isExecuting,
     outputs,
     problem,
     problemName,

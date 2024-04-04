@@ -47,6 +47,7 @@ export type FlowNodeData = {
   name: string;
   onNameChange: (name: string) => void;
   evaluationError: Array<ErrorEntry> | null;
+  isExecuting: boolean;
 };
 
 export type FlowNodeProps = NodeProps<FlowNodeData>;
@@ -64,6 +65,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
         onDelete,
         deletable,
         evaluationError,
+        isExecuting,
       },
       selected,
     },
@@ -132,6 +134,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           isUsingInputMainSlot={isUsingInputMainSlot}
           isConnected={isConnected}
           side="start"
+          isExecuting={isExecuting}
         />
       );
     }
@@ -167,6 +170,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
           isUsingInputMainSlot={false}
           isConnected={isConnected}
           side="end"
+          isExecuting={isExecuting}
         />
       );
     }

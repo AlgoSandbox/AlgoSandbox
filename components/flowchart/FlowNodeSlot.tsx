@@ -5,7 +5,7 @@ import CodeBlock from '@components/ui/CodeBlock';
 import Dialog from '@components/ui/Dialog';
 import Heading, { HeadingContent } from '@components/ui/Heading';
 import clsx from 'clsx';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import { ZodError } from 'zod';
 
@@ -13,7 +13,7 @@ type FlowNodeSlotSide = 'start' | 'end';
 
 export default function FlowNodeSlot({
   id,
-  error,
+  error: errorRaw,
   label,
   subLabel,
   value,
@@ -22,6 +22,7 @@ export default function FlowNodeSlot({
   isUsingInputMainSlot,
   isConnected,
   side,
+  isExecuting,
 }: {
   id: string;
   label: string;
@@ -34,13 +35,24 @@ export default function FlowNodeSlot({
   isUsingInputMainSlot: boolean;
   isConnected: boolean;
   side: FlowNodeSlotSide;
+  isExecuting: boolean;
 }) {
   const { flowchartMode } = useUserPreferences();
   const isMainSlot = id === '.';
-  const hasError = error !== null;
-  const shouldHighlight = hasValue && (isMainSlot || !isUsingInputMainSlot);
+  const shouldHighlightRaw = hasValue && (isMainSlot || !isUsingInputMainSlot);
   const isShadowedByMainSlot =
     !isMainSlot && isConnected && isUsingInputMainSlot;
+
+  const [error, setError] = useState(errorRaw);
+  const [shouldHighlight, setShouldHighlight] = useState(shouldHighlightRaw);
+  const hasError = error !== null;
+
+  useEffect(() => {
+    if (!isExecuting) {
+      setError(errorRaw);
+      setShouldHighlight(shouldHighlightRaw);
+    }
+  }, [errorRaw, isExecuting, shouldHighlightRaw]);
 
   const [showSlotDialog, setShowSlotDialog] = useState(false);
 

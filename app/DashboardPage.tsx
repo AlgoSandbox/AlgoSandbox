@@ -10,13 +10,12 @@ import { useSavedAdaptersQuery } from '@utils/db/adapters';
 import { useSavedProblemsQuery } from '@utils/db/problems';
 import { useSavedVisualizersQuery } from '@utils/db/visualizers';
 import getSandboxObjectConfig from '@utils/getSandboxObjectConfig';
-import { useBreakpoint } from '@utils/useBreakpoint';
 import useOnScreen from '@utils/useOnScreen';
 import usePreviewVisualization from '@utils/usePreviewVisualization';
 import clsx from 'clsx';
 import _ from 'lodash';
 import { useRouter } from 'next/navigation';
-import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 type SavedObjectsSectionProps = {
   title: string;
@@ -51,41 +50,6 @@ function SavedObjectsSection({ objects, title }: SavedObjectsSectionProps) {
     </div>
   );
 }
-function useInMiddleOfScreen(
-  ref: RefObject<HTMLElement>,
-  options?: { enabled?: boolean },
-) {
-  const { enabled = true } = options ?? {};
-  const [isIntersecting, setIntersecting] = useState(false);
-  const observer = useRef<IntersectionObserver>();
-
-  useEffect(() => {
-    observer.current = new IntersectionObserver(
-      ([entry]) => setIntersecting(entry.isIntersecting),
-      {
-        root: null,
-        rootMargin: '-100px 0px -45% 0px',
-        threshold: 0.5,
-      },
-    );
-
-    return () => {
-      if (observer.current) {
-        observer.current.disconnect();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!ref.current || !enabled) {
-      return;
-    }
-    observer.current?.observe(ref.current);
-    return () => observer.current?.disconnect();
-  }, [enabled, observer, ref]);
-
-  return isIntersecting;
-}
 
 function BoxOption({
   box,
@@ -100,16 +64,11 @@ function BoxOption({
   const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLAnchorElement>(null);
 
-  const { isMd } = useBreakpoint('md');
-  const isMobile = !isMd;
-
-  const inMiddleOfScreen = useInMiddleOfScreen(ref, { enabled: isMobile });
-
   const isVisible = useOnScreen(ref);
 
   const visualizationEvaluation = usePreviewVisualization(box, {
     enabled: isVisible,
-    playAnimation: hovered || focused || (isMobile && inMiddleOfScreen),
+    playAnimation: hovered || focused,
   });
 
   const { visualization, isLoading } = useMemo(() => {
@@ -137,7 +96,6 @@ function BoxOption({
       className={clsx(
         'group bg-surface-high border hover:text-accent focus:text-accent hover:border-accent focus:border-accent hover:bg-surface-higher overflow-clip flex flex-col transition rounded font-semibold text-on-surface',
         isLoading && 'animate-pulse',
-        isMobile && inMiddleOfScreen && 'border-primary',
       )}
       href={`/playground?box=${box.key}`}
     >

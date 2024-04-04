@@ -262,6 +262,13 @@ export default function BoxContextProvider({
               );
 
             draft.config = boxConfigTree;
+
+            draft.componentNames = _.pickBy(draft.componentNames, (_, key) => {
+              return (
+                key in draft.visualizers.aliases ||
+                key in (boxConfigTree.adapters ?? {})
+              );
+            });
           });
 
           return { ...newBox };
@@ -303,10 +310,22 @@ export default function BoxContextProvider({
       ),
       visualizerInputKeys,
       onChange: (newValue) => {
-        onBoxUpdate((box) => ({
-          ...box,
-          config: newValue,
-        }));
+        onBoxUpdate((box) => {
+          const newBox = produce(box, (draft) => {
+            draft.config = newValue;
+
+            draft.componentNames = _.pickBy(draft.componentNames, (_, key) => {
+              return (
+                key in draft.visualizers.aliases ||
+                key in (draft.config?.adapters ?? {})
+              );
+            });
+          });
+
+          return {
+            ...newBox,
+          };
+        });
       },
     };
 

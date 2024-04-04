@@ -65,7 +65,10 @@ export default function FlowchartVisualizerSelect({
     parameters: parameters ?? null,
   });
 
-  const visualizerInstance = instances[alias];
+  const visualizerInstance = useMemo(
+    () => instances[alias],
+    [alias, instances],
+  );
 
   const {
     value: selectedOption,

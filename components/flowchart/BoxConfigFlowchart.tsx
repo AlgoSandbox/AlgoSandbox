@@ -190,7 +190,6 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
       !isExecuting &&
       !isEqual(flowchartCalculations, cachedFlowchartCalculations)
     ) {
-      console.log('setting');
       setCachedFlowchartCalculations(flowchartCalculations);
     }
   }, [cachedFlowchartCalculations, flowchartCalculations, isExecuting]);

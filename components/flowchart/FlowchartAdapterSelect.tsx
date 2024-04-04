@@ -50,9 +50,12 @@ export default function FlowchartAdapterSelect({
     return key;
   }, [configTree.adapters, alias]);
 
-  const adapterEvaluation =
-    evaluatedAdapters[alias]?.map(({ value }) => value) ??
-    error('Adapter evaluation not found');
+  const adapterEvaluation = useMemo(() => {
+    return (
+      evaluatedAdapters[alias]?.map(({ value }) => value) ??
+      error('Adapter evaluation not found')
+    );
+  }, [evaluatedAdapters, alias]);
 
   const adapterInstance = useMemo(() => {
     return adapterEvaluation

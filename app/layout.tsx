@@ -1,5 +1,6 @@
 import './globals.css';
 
+import { GoogleAnalytics } from '@next/third-parties/google';
 import clsx from 'clsx';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -250,6 +251,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <GoogleAnalytics gaId="G-2Z2RW7QVTJ" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap"
           rel="stylesheet"

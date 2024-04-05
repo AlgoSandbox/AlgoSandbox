@@ -6,6 +6,7 @@ import { Button, Input, MaterialSymbol } from '../ui';
 import CodeEditorDialog from './CodeEditorDialog';
 import GraphEditorDialog from './GraphEditor';
 import GridEditorDialog from './GridEditor';
+import NumberArrayEditorDialog from './NumberArrayEditor';
 import TabularDatasetEditorDialog from './TabularDatasetEditor';
 
 type ParameterControlProps<P extends SandboxParameter> = {
@@ -89,6 +90,34 @@ function GridEditorDialogControl({
         onClick={() => setOpen(true)}
       />
       <GridEditorDialog
+        open={open}
+        onOpenChange={setOpen}
+        value={value}
+        onChange={onChange}
+      />
+    </>
+  );
+}
+
+function NumberArrayGeneratorDialogControl({
+  value,
+  onChange,
+}: {
+  value: Array<number>;
+  onChange: (value: Array<number>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        label="Edit array"
+        type="button"
+        variant="filled"
+        icon={<MaterialSymbol icon="edit" />}
+        onClick={() => setOpen(true)}
+      />
+      <NumberArrayEditorDialog
         open={open}
         onOpenChange={setOpen}
         value={value}
@@ -265,6 +294,26 @@ function ParameterControl<P extends SandboxParameter>({
             name={fieldName}
             render={({ field: { onChange, value } }) => (
               <CodeEditorDialogControl
+                value={value}
+                onChange={(value) => {
+                  onChange({
+                    target: {
+                      value,
+                    },
+                  });
+                  onSave();
+                }}
+              />
+            )}
+          />
+        );
+      case 'arrayNumber':
+        return (
+          <Controller
+            control={control}
+            name={fieldName}
+            render={({ field: { onChange, value } }) => (
+              <NumberArrayGeneratorDialogControl
                 value={value}
                 onChange={(value) => {
                   onChange({

@@ -51,9 +51,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       [className, containerClassName, hideLabel, id, label, props, ref],
     );
 
-    return hideLabel && !error ? (
-      inputElement
-    ) : (
+    return (
       <div className={clsx('flex flex-col', containerClassName)}>
         {!hideLabel && <FormLabel id={id}>{label}</FormLabel>}
         {inputElement}

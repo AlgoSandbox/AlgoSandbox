@@ -2,8 +2,8 @@ import { SandboxBox } from '@algo-sandbox/core';
 
 const box: SandboxBox = {
   problem: {
-    key: 'problem.arrays.randomArray',
-    parameters: { minValue: 0, maxValue: 100, length: 10, seed: '' },
+    key: 'problem.arrays.numberArray',
+    parameters: { array: [12, 49, 31, 3, 16, 41, 4, 28, 20, 52] },
   },
   algorithm: 'algorithm.sorting.bubbleSort',
   visualizers: {

@@ -1,3 +1,3 @@
-import randomArray from './random-array';
+import numberArray from './number-array';
 
-export { randomArray };
+export { numberArray };

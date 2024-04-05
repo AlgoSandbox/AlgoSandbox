@@ -9,6 +9,7 @@ export type SandboxParameterTypeMap = {
   graph: string;
   grid: string;
   spreadsheet: string;
+  arrayNumber: Array<number>;
 };
 
 export type SandboxParameterType = keyof SandboxParameterTypeMap;
@@ -49,6 +50,21 @@ export type ParsedParameter<P> = P extends SandboxParameter<
 export type ParsedParameters<P extends SandboxParameters> = Readonly<{
   [K in keyof P]: ParsedParameter<P[K]>;
 }>;
+
+export function arrayNumber(
+  name: string,
+  defaultValue: Array<number>,
+  validate?: (
+    value: SandboxParameterTypeMap['arrayNumber'],
+  ) => boolean | string,
+): SandboxParameter<'arrayNumber'> {
+  return {
+    name,
+    type: 'arrayNumber',
+    defaultValue,
+    validate,
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function callback<T extends (...args: Array<any>) => any>(
@@ -177,6 +193,7 @@ export function getDefaultParameters<P extends SandboxParameters>(
 }
 
 export const SandboxParam = {
+  arrayNumber,
   callback,
   color,
   float,

@@ -7,6 +7,7 @@ import {
 import { z } from 'zod';
 
 export const sandboxParameterType = z.union([
+  z.literal('arrayNumber'),
   z.literal('callback'),
   z.literal('color'),
   z.literal('code'),
@@ -36,6 +37,7 @@ assertType<SandboxParameterType, z.infer<typeof sandboxParameterType>>();
 export const sandboxParameterValue = z.union([
   z.number(),
   z.string(),
+  z.array(z.any()),
   z.function(),
 ]) satisfies z.ZodType<SandboxParameterTypeMap[SandboxParameterType]>;
 

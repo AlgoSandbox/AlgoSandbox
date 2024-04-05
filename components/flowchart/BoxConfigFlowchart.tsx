@@ -885,7 +885,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
           show={showFlowchartTour}
           onFinish={() => {
             toast.info(
-              'You may view this tutorial again by clicking the Help button at the top right corner of the toolbar.',
+              'You may view this tutorial again by clicking the Help button at the top-right corner of the toolbar.',
             );
             setShowFlowchartTour(false);
           }}
@@ -900,7 +900,9 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                   <br />
                   <p>
                     A <i>box</i> in AlgoSandbox is a composition of{' '}
-                    <i>components</i>.
+                    <i>components</i>. Here, the config is visualized as a node
+                    graph, where each node represents a component and each
+                    connection represents data flow.
                   </p>
                 </div>
               ),
@@ -947,12 +949,10 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
               title: 'Viewing modes',
               content: (
                 <div>
-                  <p>
-                    You can switch between different flowchart viewing modes.
-                  </p>
+                  <p>You can switch between different viewing modes.</p>
                   <br />
                   <p>
-                    There are currently 3 viewing modes:
+                    There are currently 3 config viewing modes:
                     <ul className="list-disc list-inside">
                       <li>Basic</li>
                       <li>Intermediate</li>

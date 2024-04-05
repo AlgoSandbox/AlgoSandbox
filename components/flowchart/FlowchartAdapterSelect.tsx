@@ -132,6 +132,7 @@ export default function FlowchartAdapterSelect({
       label="Adapter"
       hideLabel={hideLabel}
       hideErrors={hideErrors}
+      showPreview={false}
       value={value}
       onChange={(value, parameters) => {
         if (value === null) {

@@ -27,6 +27,7 @@ export default function FlowchartComponentSelect<
   evaluatedValue,
   defaultParameters,
   parameters = {},
+  showPreview,
 }: {
   className?: string;
   label: string;
@@ -41,6 +42,7 @@ export default function FlowchartComponentSelect<
   evaluatedValue: ErrorOr<Value<T> | null>;
   defaultParameters: Readonly<Record<string, any>> | null;
   parameters: Record<string, any> | null;
+  showPreview?: boolean;
 }) {
   const { addOrFocusTab } = useTabManager();
   const { flowchartMode } = useUserPreferences();
@@ -99,6 +101,7 @@ export default function FlowchartComponentSelect<
         }}
         errorMessage={errorMessage}
         showParameters
+        showPreview={showPreview}
       />
       {component !== null && 'parameters' in component && (
         <Popover

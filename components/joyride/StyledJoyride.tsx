@@ -15,6 +15,7 @@ function JoyrideTooltip({
   continuous,
   index,
   step,
+  skipProps: { title: skipTitle, ...skipProps },
   backProps: { title: backTitle, ...backProps },
   closeProps: { title: closeTitle, ...closeProps },
   primaryProps: { title: primaryTitle, ...primaryProps },
@@ -36,7 +37,8 @@ function JoyrideTooltip({
             <Button {...backProps} label={backTitle} variant="filled" />
           )}
         </div>
-        <div>
+        <div className="flex gap-2">
+          {continuous && <Button {...skipProps} label={skipTitle} />}
           {continuous && (
             <Button {...primaryProps} label={primaryTitle} variant="primary" />
           )}
@@ -57,14 +59,16 @@ export default function StyledJoyride({
   return (
     <Joyride
       {...props}
+      locale={{
+        last: 'Finish',
+      }}
+      showProgress
+      showSkipButton
       tooltipComponent={JoyrideTooltip}
       run={show}
       callback={(props) => {
-        const { status, type } = props;
-        if (
-          (status === 'finished' && type === 'tour:end') ||
-          status === 'skipped'
-        ) {
+        const { type } = props;
+        if (type === 'tour:end') {
           onFinish?.();
         }
       }}

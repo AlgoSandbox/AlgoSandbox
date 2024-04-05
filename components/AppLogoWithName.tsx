@@ -5,7 +5,7 @@ export default function AppLogoWithName() {
     <div className="flex items-center gap-2">
       <AppLogo className="w-6" />
       <span className="font-semibold tracking-tight text-accent shrink-0">
-        algo sandbox
+        AlgoSandbox
       </span>
     </div>
   );

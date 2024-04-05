@@ -21,7 +21,7 @@ import { GlobOptionsWithFileTypesUnset, globSync } from 'glob';
 import path from 'path';
 
 export const metadata: Metadata = {
-  title: 'Algo Sandbox',
+  title: 'AlgoSandbox',
   description:
     'Visualize algorithms in a highly customizable all-in-one sandbox.',
 };

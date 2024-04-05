@@ -1,4 +1,4 @@
-# Algo Sandbox
+# AlgoSandbox
 
 ## Getting Started
 

@@ -118,7 +118,7 @@ export default function BoxExecutionControls() {
                 }
               }
             }}
-            disabled={isExecuting}
+            disabled={isExecuting && !isPlaying}
             label={`${
               isPlaying ? 'Pause' : hasNext ? 'Play' : 'Restart'
             } (Space)`}

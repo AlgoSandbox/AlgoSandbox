@@ -570,9 +570,9 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
   ]);
 
   const initialEdges = useMemo(() => {
-    // Return a fake edge if not in full mode
+    // Return a fake edge if not in advanced mode
     const connections = (() => {
-      if (flowchartMode !== 'full') {
+      if (flowchartMode !== 'advanced') {
         const connections = configEvaluated.composition.connections.map(
           ({ fromKey, toKey }) => ({
             fromKey,
@@ -706,7 +706,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
         if (hasCompoundEdge) {
           toast.warning(
-            'Warning: Deleted compound connection. You may enter Full mode to restore it.',
+            'Warning: Deleted compound connection. You may enter Advanced mode to restore it.',
             {
               duration: 5000,
               action: {
@@ -831,7 +831,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
           if (!isCompatible) {
             toast.error(
-              'Components cannot be connected directly. Switch to Full mode to connect manually',
+              'Components cannot be connected directly. Switch to Advanced mode to connect manually',
             );
             return;
           }
@@ -956,13 +956,13 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                     <ul className="list-disc list-inside">
                       <li>Basic</li>
                       <li>Intermediate</li>
-                      <li>Full</li>
+                      <li>Advanced</li>
                     </ul>
                   </p>
                   <br />
                   <p>
-                    As we go from Basic towards Full mode, more details of the
-                    box configuration gets revealed. This means greater
+                    As we go from Basic towards Advanced mode, more details of
+                    the box configuration gets revealed. This means greater
                     flexibility but also complexity.
                   </p>
                   <br />
@@ -1057,7 +1057,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                   <p>
                     <b>
                       Note: You may not add/remove components in Basic mode.
-                      Change to Intermediate or Full mode to do so.
+                      Change to Intermediate or Advanced mode to do so.
                     </b>
                   </p>
                 </div>
@@ -1069,13 +1069,13 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
               content: (
                 <div>
                   <p>
-                    You can customize much more in <b>Full</b> mode.
+                    You can customize much more in <b>Advanced</b> mode.
                   </p>
                   <br />
                   <b>Freely connect components</b>
                   <p>
                     You may freely connect a component on a per-variable basis
-                    in Full mode.
+                    in Advanced mode.
                   </p>
                   <br />
                   <b>Edit code</b>
@@ -1083,7 +1083,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                     Every component in AlgoSandbox is implemented using
                     Typescript and evaluated on the fly. You can write your own
                     components/modify an existing on using the built-in code
-                    editor in <b>Full</b> mode.
+                    editor in <b>Advanced</b> mode.
                   </p>
                 </div>
               ),
@@ -1128,7 +1128,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                   value: 'intermediate',
                   label: 'Intermediate',
                 },
-                { key: 'full', value: 'full', label: 'Full' },
+                { key: 'advanced', value: 'advanced', label: 'Advanced' },
               ] as const
             }
             onChange={(value) => {

@@ -143,7 +143,7 @@ export default function FlowchartComponentSelect<
           </Badge>
         </Popover>
       )}
-      {flowchartMode === 'full' && selectedOption && (
+      {flowchartMode === 'advanced' && selectedOption && (
         <Button
           label="Edit in new tab"
           hideLabel

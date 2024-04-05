@@ -46,7 +46,7 @@ export function useFilteredObjectOptions<T extends SandboxObjectType>({
   }, [options]);
 
   const filteredOptions = useMemo(() => {
-    if (flowchartMode === 'full') {
+    if (flowchartMode === 'advanced') {
       return options;
     }
 

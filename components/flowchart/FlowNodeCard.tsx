@@ -274,7 +274,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
             {mainInputSlot ? createLeftSlot(mainInputSlot) : <div />}
             {mainOutputSlot ? createRightSlot(mainOutputSlot) : <div />}
           </div>
-          {flowchartMode === 'full' && (
+          {flowchartMode === 'advanced' && (
             <div className="flex justify-between py-2">
               <div className="flex flex-col gap-2">
                 {inputs

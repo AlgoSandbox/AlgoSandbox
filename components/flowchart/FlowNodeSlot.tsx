@@ -183,7 +183,7 @@ export default function FlowNodeSlot({
           <MaterialSymbol icon="info" className="text-label" />
         </Tooltip>
       )}
-      {isMainSlot && flowchartMode === 'full' && (
+      {isMainSlot && flowchartMode === 'advanced' && (
         <Tooltip
           content={
             <ul>

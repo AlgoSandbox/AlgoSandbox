@@ -3,6 +3,7 @@ import 'reactflow/dist/style.css';
 import { BoxConfigTree } from '@algo-sandbox/core';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import CatalogSelect from '@components/box-page/CatalogSelect';
+import StyledJoyride from '@components/joyride/StyledJoyride';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
@@ -154,7 +155,7 @@ function makeSlot({
 function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
   const flowchartCalculations = useFlowchartCalculations();
   const { label: tabName } = useTab();
-  const { renameTab } = useTabManager();
+  const { renameTab, selectedTabId } = useTabManager();
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
   const problem = useBoxContext('problem.instance');
@@ -680,7 +681,6 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
   const onEdgesDelete = useCallback(
     (edgesToDelete: Array<Edge>) => {
-      console.log('deleting', edgesToDelete);
       const currentConfig = configTree;
       if (flowchartMode === 'intermediate') {
         const hasCompoundEdge = edgesToDelete.some((edge) =>
@@ -859,6 +859,38 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
   return (
     <div className="relative w-full h-full flex flex-col items-center">
+      {selectedTabId === tabId && (
+        <StyledJoyride
+          run={true}
+          continuous
+          steps={[
+            {
+              target: 'body',
+              content:
+                'This page is where the box setup is configured. The config is visualized as a flowchart with nodes and connections. Each node represents a component that can be swapped out for another.',
+              disableBeacon: true,
+            },
+            {
+              target: '.flowchart-mode',
+              content: (
+                <div>
+                  <p>
+                    To simplify the usage, you can switch between different
+                    flowchart modes. Each mode will reveal more of the
+                    underlying complexity of the box setup.
+                  </p>
+                  <hr />
+                  <p>
+                    By default, <b>Basic mode</b> is selected. You may explore
+                    switching to the other modes once you get familiar with how
+                    AlgoSandbox works.
+                  </p>
+                </div>
+              ),
+            },
+          ]}
+        />
+      )}
       <ReactFlow
         className={clsx(
           String.raw`[&_.react-flow\_\_handle]:border-2`,
@@ -884,6 +916,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
       <div className="absolute top-0 bg-surface w-full px-4 py-2 border-b flex gap-2 justify-between">
         <div className="flex gap-2">
           <Select
+            className="flowchart-mode"
             label="Flowchart mode"
             hideLabel
             value={flowchartMode}

@@ -47,6 +47,7 @@
     "react-hook-form": "^7.47.0",
     "react-hotkeys-hook": "^4.4.1",
     "react-inspector": "^6.0.2",
+    "react-joyride": "^2.8.0",
     "react-markdown": "^9.0.0",
     "react-mosaic-component": "^6.1.0",
     "react-resizable-panels": "^0.0.55",

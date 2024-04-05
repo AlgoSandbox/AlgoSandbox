@@ -1,13 +1,15 @@
 import 'reactflow/dist/style.css';
 
-import { BoxConfigTree } from '@algo-sandbox/core';
+import { BoxConfigTree, SandboxParam } from '@algo-sandbox/core';
 import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import CatalogSelect from '@components/box-page/CatalogSelect';
+import StyledJoyride from '@components/joyride/StyledJoyride';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { useTabManager } from '@components/tab-manager/TabManager';
 import { useTab } from '@components/tab-manager/TabProvider';
 import { Button, MaterialSymbol, Select } from '@components/ui';
+import Heading from '@components/ui/Heading';
 import Dagre from '@dagrejs/dagre';
 import groupOptionsByTag from '@utils/groupOptionsByTag';
 import { getBoxConfigNodeOrder } from '@utils/solveFlowchart';
@@ -16,6 +18,7 @@ import stringifyZodType from '@utils/zod/stringifyZodType';
 import clsx from 'clsx';
 import { compact, isEqual, uniqWith } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useHotkeys } from 'react-hotkeys-hook';
 import ReactFlow, {
   applyEdgeChanges,
@@ -30,11 +33,16 @@ import ReactFlow, {
   NodeTypes,
   ReactFlowProvider,
   useOnSelectionChange,
+  useReactFlow,
 } from 'reactflow';
 import { toast } from 'sonner';
 import { SomeZodObject, ZodError } from 'zod';
 
-import { useBoxContext, useBoxControlsContext } from '../box-page';
+import {
+  ParameterControls,
+  useBoxContext,
+  useBoxControlsContext,
+} from '../box-page';
 import FlowchartModeProvider, {
   useFlowchartMode,
 } from './FlowchartModeProvider';
@@ -152,15 +160,17 @@ function makeSlot({
 }
 
 function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
+  const { fitView } = useReactFlow();
   const flowchartCalculations = useFlowchartCalculations();
   const { label: tabName } = useTab();
-  const { renameTab } = useTabManager();
+  const { renameTab, selectedTabId } = useTabManager();
   const boxName = useBoxContext('boxName.value');
   const algorithm = useBoxContext('algorithm.instance');
   const problem = useBoxContext('problem.instance');
   const { reset: resetRaw, isBoxDirty } = useBoxContext();
   const { visualizerOptions, adapterOptions } = useSandboxComponents();
   const { setFlowchartMode, flowchartMode } = useFlowchartMode();
+  const { showFlowchartTour, setShowFlowchartTour } = useUserPreferences();
   const { isExecuting } = useBoxControlsContext();
 
   const configEvaluated = useBoxContext('config.evaluated');
@@ -476,6 +486,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
           slotCount: algorithmSlotCount,
         }),
         deletable: false,
+        className: 'algorithm-node',
         data: {
           type: 'algorithm',
           alias: 'algorithm',
@@ -504,6 +515,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
       },
       {
         id: 'problem',
+        className: 'problem-node',
         type: 'customFlow',
         width: 500,
         height: getNodeHeight({
@@ -660,7 +672,8 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [edges, nodes]);
+    fitView();
+  }, [edges, fitView, nodes]);
 
   const onNodesChange = useCallback((changes: Array<NodeChange>) => {
     return setNodes((nds) => applyNodeChanges(changes, nds));
@@ -680,7 +693,6 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
 
   const onEdgesDelete = useCallback(
     (edgesToDelete: Array<Edge>) => {
-      console.log('deleting', edgesToDelete);
       const currentConfig = configTree;
       if (flowchartMode === 'intermediate') {
         const hasCompoundEdge = edgesToDelete.some((edge) =>
@@ -857,8 +869,228 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
     [undo],
   );
 
+  const tutorialFormMethods = useForm();
+
+  useEffect(() => {
+    if (showFlowchartTour) {
+      fitView();
+      return;
+    }
+  }, [fitView, showFlowchartTour]);
+
   return (
     <div className="relative w-full h-full flex flex-col items-center">
+      {selectedTabId === tabId && (
+        <StyledJoyride
+          show={showFlowchartTour}
+          onFinish={() => {
+            toast.info(
+              'You may view this tutorial again by clicking the Help button at the top right corner of the toolbar.',
+            );
+            setShowFlowchartTour(false);
+          }}
+          continuous
+          steps={[
+            {
+              target: '.react-flow',
+              title: 'Config page',
+              content: (
+                <div>
+                  <p>This page is where the box setup is configured.</p>
+                  <br />
+                  <p>
+                    A <i>box</i> in AlgoSandbox is a composition of{' '}
+                    <i>components</i>.
+                  </p>
+                </div>
+              ),
+              disableBeacon: true,
+            },
+            {
+              target: '.problem-node',
+              title: 'Component: Problem',
+              content: (
+                <div>
+                  <p>For example, the following node is the problem.</p>
+                  <br />
+                  <p>
+                    It represents the initial state of the algorithm and its
+                    output will be passed into the algorithm.
+                  </p>
+                </div>
+              ),
+              disableBeacon: true,
+            },
+            {
+              target: '.algorithm-node',
+              title: 'Component: Algorithm',
+              content: (
+                <div>
+                  <p>This is the algorithm.</p>
+                  <br />
+                  <p>
+                    It receives its initial state as its inputs. It runs the
+                    algorithm step by step and outputs the results for each
+                    computation step as its output.
+                  </p>
+                  <br />
+                  <p>
+                    The output of the algorithm is then fed into the visualizer
+                    components.
+                  </p>
+                </div>
+              ),
+              disableBeacon: true,
+            },
+            {
+              target: '.flowchart-mode',
+              title: 'Viewing modes',
+              content: (
+                <div>
+                  <p>
+                    You can switch between different flowchart viewing modes.
+                  </p>
+                  <br />
+                  <p>
+                    There are currently 3 viewing modes:
+                    <ul className="list-disc list-inside">
+                      <li>Basic</li>
+                      <li>Intermediate</li>
+                      <li>Full</li>
+                    </ul>
+                  </p>
+                  <br />
+                  <p>
+                    As we go from Basic towards Full mode, more details of the
+                    box configuration gets revealed. This means greater
+                    flexibility but also complexity.
+                  </p>
+                  <br />
+                  <p>
+                    By default, <b>Basic</b> mode is selected. You may explore
+                    switching to the other modes once you get familiar with how
+                    AlgoSandbox works.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              target: '.react-flow',
+              title: 'Customizing components: Parameters',
+              content: (
+                <div>
+                  <p>
+                    Some components can be configured using <i>parameters</i>.
+                  </p>
+                  <br />
+                  <hr />
+                  <br />
+                  <p>
+                    Configurable components will have the following icon next to
+                    them:
+                  </p>
+                  <div className="flex justify-center">
+                    <Button
+                      label="Customize"
+                      hideLabel
+                      variant="filled"
+                      type="button"
+                      icon={<MaterialSymbol icon="tune" />}
+                    />
+                  </div>
+                  <br />
+                  <p>
+                    Clicking on it will reveal a pop-up that looks like this:
+                  </p>
+                  <br />
+                  <div className="flex justify-center">
+                    <div className="bg-surface-high border p-4 rounded flex flex-col gap-2">
+                      <Heading variant="h4">Parameters</Heading>
+                      <FormProvider {...tutorialFormMethods}>
+                        <ParameterControls
+                          onSave={() => {}}
+                          parameters={{
+                            example: SandboxParam.string(
+                              'Example parameter',
+                              '',
+                            ),
+                          }}
+                        />
+                      </FormProvider>
+                    </div>
+                  </div>
+                  <br />
+                  <p>
+                    You can change the parameters to customize the behavior of
+                    the component.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              target: '.problem-node',
+              title: 'Swapping components',
+              content: (
+                <div>
+                  <p>
+                    You may swap a component by using the dropdown located in
+                    its node.
+                  </p>
+                </div>
+              ),
+            },
+            {
+              target: '.flowchart-toolbar',
+              title: 'Adding/removing components',
+              content: (
+                <div>
+                  <p>
+                    You may add a component by using the dropdown located in the
+                    toolbar.
+                  </p>
+                  <br />
+                  <p>
+                    You may remove a component by selecting a node and pressing
+                    Backspace, or by clicking the Delete button in the toolbar.
+                  </p>
+                  <br />
+                  <p>
+                    <b>
+                      Note: You may not add/remove components in Basic mode.
+                      Change to Intermediate or Full mode to do so.
+                    </b>
+                  </p>
+                </div>
+              ),
+            },
+            {
+              target: '.flowchart-toolbar',
+              title: 'Advanced usage',
+              content: (
+                <div>
+                  <p>
+                    You can customize much more in <b>Full</b> mode.
+                  </p>
+                  <br />
+                  <b>Freely connect components</b>
+                  <p>
+                    You may freely connect a component on a per-variable basis
+                    in Full mode.
+                  </p>
+                  <br />
+                  <b>Edit code</b>
+                  <p>
+                    Every component in AlgoSandbox is implemented using
+                    Typescript and evaluated on the fly. You can write your own
+                    components/modify an existing on using the built-in code
+                    editor in <b>Full</b> mode.
+                  </p>
+                </div>
+              ),
+            },
+          ]}
+        />
+      )}
       <ReactFlow
         className={clsx(
           String.raw`[&_.react-flow\_\_handle]:border-2`,
@@ -881,9 +1113,10 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
       >
         <Background className="bg-canvas" />
       </ReactFlow>
-      <div className="absolute top-0 bg-surface w-full px-4 py-2 border-b flex gap-2 justify-between">
+      <div className="flowchart-toolbar absolute top-0 bg-surface w-full px-4 py-2 border-b flex gap-2 justify-between">
         <div className="flex gap-2">
           <Select
+            className="flowchart-mode"
             label="Flowchart mode"
             hideLabel
             value={flowchartMode}
@@ -976,7 +1209,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
                   }
                 }}
               />
-              <div className="border-l w-px"></div>
+              <div className="border-l w-px" />
             </>
           )}
           <Button
@@ -1004,6 +1237,15 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
             icon={<MaterialSymbol icon="settings_backup_restore" />}
             disabled={!isBoxDirty}
           />
+          <Button
+            label="How to use"
+            hideLabel
+            variant="filled"
+            onClick={() => {
+              setShowFlowchartTour(true);
+            }}
+            icon={<MaterialSymbol icon="help" />}
+          />
         </div>
       </div>
     </div>
@@ -1019,7 +1261,7 @@ export default function BoxConfigFlowchart({ tabId }: { tabId: string }) {
         flowchartMode={flowchartMode}
         onFlowchartModeChange={setFlowchartMode}
       >
-        <BoxConfigFlowchartImpl tabId={tabId} />;
+        <BoxConfigFlowchartImpl tabId={tabId} />
       </FlowchartModeProvider>
     </ReactFlowProvider>
   );

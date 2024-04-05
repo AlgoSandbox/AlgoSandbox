@@ -1,6 +1,6 @@
 # Code block
 
-Evaluate any piece of code and output its default export.
+Evaluate Typescript code and output its default export.
 
 Example:
 
@@ -8,4 +8,6 @@ Example:
 export default function zeroHeuristic() {
   return 0;
 }
+
+// The "output" variable will have the value of zeroHeuristic
 ```

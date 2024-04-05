@@ -1,3 +1,3 @@
 # Bar chart
 
-Visualize a 1D array as a row of boxes.
+Visualize an array of numeric values as a bar chart. Optionally accepts an array of colors to color each bar.

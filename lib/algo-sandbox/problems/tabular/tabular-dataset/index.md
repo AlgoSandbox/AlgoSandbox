@@ -1,3 +1,5 @@
 # Tabular dataset
 
-Import a CSV file with a header row and rows that represent training examples. The last column should be the target variable. The first row should be the column names.
+Create a tabular dataset with input `x` values  and output `y` values.
+
+The dataset can be entered manually or imported from a CSV file. The header row defines the labels for each x/y value.

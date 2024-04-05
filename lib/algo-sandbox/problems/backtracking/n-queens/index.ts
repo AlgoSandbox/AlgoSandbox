@@ -3,6 +3,7 @@ import {
   createState,
   SandboxParam,
 } from '@algo-sandbox/core';
+import random from 'random';
 import { z } from 'zod';
 
 const nQueensState = createState(
@@ -18,15 +19,24 @@ const nQueensEnvironmentParameterized = createParameterizedEnvironment({
   actionsType: z.string(),
   parameters: {
     boardSize: SandboxParam.integer('Board size (n)', 8),
+    seed: SandboxParam.string('Seed', ''),
   },
   getStateKey: (state) => JSON.stringify(state.board),
-  getInitialState: ({ boardSize }) => {
+  getInitialState: ({ boardSize, seed }) => {
     const board = Array.from({ length: boardSize }, () =>
       Array.from({ length: boardSize }, () => 0),
     );
 
+    if (seed !== '') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      random.use(seed as any);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      random.use(Math.random as any);
+    }
+
     for (let col = 0; col < boardSize; col++) {
-      board[0][col] = 1;
+      board[random.integer(0, boardSize - 1)][col] = 1;
     }
 
     return {

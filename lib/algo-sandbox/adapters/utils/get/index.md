@@ -1,12 +1,20 @@
 # Get at path
 
-Gets the value at `path` of `object`.
+Gets the value at `path` of the input `object`.
 
-This supports `*` syntax for arrays/objects.
+`path` is a dot-separated key to the desired variable. For example, to get `object.a.b`, the `path` would be `'a.b'`.
 
-Example:
+`path` also supports a special `*` wildcard value which represents any key. This is useful for mapping array/object values.
+
+For example, we have the given input object:
 
 ```ts
-// e.g. customGet({ a: { b: [1, 2, 3] } }, 'a.b') => [1, 2, 3]
-// e.g. customGet([{b: 2}, {b: 3}], '*.b') => [2, 3]
+const object = [
+  items: [
+    { name: 'object1' },
+    { name: 'object2' }
+  ]
+]
 ```
+
+To get `['object1', 'object2']`, we can use the `path` = `items.*.name`.

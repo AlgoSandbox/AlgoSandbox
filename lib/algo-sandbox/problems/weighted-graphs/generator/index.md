@@ -1,3 +1,3 @@
-# Weighted graph generator
+# Node graph
 
-Create a weighted graph using a user-friendly graph editor.
+Create a weighted directed/undirected graph using a graph editor GUI.

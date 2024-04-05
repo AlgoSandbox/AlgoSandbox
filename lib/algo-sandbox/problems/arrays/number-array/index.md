@@ -1,3 +1,3 @@
 # Number array
 
-Create a custom array or generate an array with random values.
+Create a number array via manual input or randomized generation.

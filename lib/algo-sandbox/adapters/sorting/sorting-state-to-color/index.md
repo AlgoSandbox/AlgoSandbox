@@ -1,3 +1,5 @@
 # Sorting state to color
 
-Utility adapter which produces colors for bar chart colors from an input array of sorting states.
+Maps the input array of sorting states into an array of bar chart colors.
+
+Used with sorting algorithms and the bar chart visualizer to visualize the current state of the array.

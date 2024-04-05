@@ -12,6 +12,7 @@ import {
 const maxExecutionStepCountKey = 'sandbox:preferences:maxExecutionStepCount';
 const flowchartModeKey = 'sandbox:preferences:flowchartMode';
 const playbackSpeedKey = 'sandbox:preferences:playbackSpeed';
+const showFlowchartTourKey = 'sandbox:preferences:showFlowchartTour';
 
 const defaultMaxExecutionStepCount = 1000;
 
@@ -22,6 +23,8 @@ type UserPreferences = {
   setFlowchartMode: (mode: FlowchartMode) => void;
   playbackSpeed: PlaybackSpeed;
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
+  showFlowchartTour: boolean;
+  setShowFlowchartTour: (show: boolean) => void;
 };
 
 type UserPreferencesProviderProps = {
@@ -35,6 +38,8 @@ const UserPreferencesContext = createContext<UserPreferences>({
   setFlowchartMode: () => {},
   playbackSpeed: 1,
   setPlaybackSpeed: () => {},
+  showFlowchartTour: true,
+  setShowFlowchartTour: () => {},
 });
 
 export function useUserPreferences() {
@@ -49,6 +54,7 @@ export default function UserPreferencesProvider({
   );
   const [flowchartMode, setFlowchartMode] = useState<FlowchartMode>('basic');
   const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
+  const [showFlowchartTour, setShowFlowchartTour] = useState(true);
 
   useEffect(() => {
     const cachedMaxExecutionStepCount = localStorage.getItem(
@@ -78,6 +84,14 @@ export default function UserPreferencesProvider({
     setPlaybackSpeed(parseFloat(cachedPlaybackSpeed) as PlaybackSpeed);
   }, []);
 
+  useEffect(() => {
+    const cachedShowFlowchartTour = localStorage.getItem(showFlowchartTourKey);
+    if (cachedShowFlowchartTour === null) {
+      return;
+    }
+    setShowFlowchartTour(cachedShowFlowchartTour === 'true');
+  }, []);
+
   const handleMaxExecutionStepCountChange = useCallback((steps: number) => {
     localStorage.setItem(maxExecutionStepCountKey, steps.toString());
     setMaxExecutionStepCount(steps);
@@ -93,6 +107,11 @@ export default function UserPreferencesProvider({
     setPlaybackSpeed(speed);
   }, []);
 
+  const handleShowFlowchartTourChange = useCallback((show: boolean) => {
+    localStorage.setItem(showFlowchartTourKey, show.toString());
+    setShowFlowchartTour(show);
+  }, []);
+
   const value = useMemo(() => {
     return {
       maxExecutionStepCount,
@@ -101,14 +120,18 @@ export default function UserPreferencesProvider({
       setFlowchartMode: handleFlowchartModeChange,
       playbackSpeed,
       setPlaybackSpeed: handlePlaybackSpeedChange,
+      showFlowchartTour,
+      setShowFlowchartTour: handleShowFlowchartTourChange,
     };
   }, [
     flowchartMode,
     handleFlowchartModeChange,
     handleMaxExecutionStepCountChange,
     handlePlaybackSpeedChange,
+    handleShowFlowchartTourChange,
     maxExecutionStepCount,
     playbackSpeed,
+    showFlowchartTour,
   ]);
 
   return (

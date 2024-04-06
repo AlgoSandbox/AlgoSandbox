@@ -17,7 +17,13 @@ const box: SandboxBox = {
       'adapter-0': 'adapter.environment.envToGraph',
       'adapter-1': 'adapter.environment.searchGraphToEnv',
       'adapter-2': 'adapter.utils.setToArray',
-      'adapter-3': 'adapter.environment.heuristicGraphCustom',
+      'adapter-3': {
+        key: 'adapter.environment.heuristicGraphCustom',
+        parameters: {
+          // eslint-disable-next-line quotes
+          code: "import { z } from 'zod';\nimport { searchGraph } from '@algo-sandbox/states';\n\ntype SearchGraph = z.infer<typeof searchGraph.shape>;\n\nexport default function heuristic(searchGraph: SearchGraph, state: Record<string, any>) {\n  // perfect heuristic\n  const currentNodeId = state.currentNodeId;\n\n  if (searchGraph.endId === currentNodeId) {\n    return 0;\n  }\n\n  const stack = [currentNodeId];\n  const visited = new Set<string>();\n  const costs = new Map<string, number>();\n  costs.set(currentNodeId, 0);\n\n  while (stack.length > 0) {\n    stack.sort().reverse();\n    const nodeId = stack.pop() as string;\n    if (nodeId === searchGraph.endId) {\n      return costs.get(nodeId) as number;\n    }\n\n    if (visited.has(nodeId)) {\n      continue;\n    }\n\n    visited.add(nodeId);\n\n    const edges = searchGraph.edges.filter(\n      (edge) =>\n        edge.source === nodeId ||\n        (!searchGraph.directed && edge.target === nodeId),\n    );\n\n    for (const edge of edges) {\n      const nextNodeId =\n        edge.source === nodeId ? edge.target : edge.source;\n      const cost = (edge.weight ?? 1) + (costs.get(nodeId) as number);\n      if (\n        !costs.has(nextNodeId) ||\n        cost < (costs.get(nextNodeId) as number)\n      ) {\n        costs.set(nextNodeId, cost);\n        stack.push(nextNodeId);\n      }\n    }\n  }\n\n  return costs.get(searchGraph.endId) ?? Infinity;\n},\n",
+        },
+      },
       'adapter-4': { key: 'adapter.utils.get', parameters: { path: '*.cost' } },
     },
     composition: {
@@ -127,18 +133,6 @@ const box: SandboxBox = {
           toSlot: 'environment',
         },
         {
-          fromKey: 'problem',
-          fromSlot: '.',
-          toKey: 'adapter-3',
-          toSlot: 'graph',
-        },
-        {
-          fromKey: 'adapter-3',
-          fromSlot: 'heuristic',
-          toKey: 'algorithm',
-          toSlot: 'heuristic',
-        },
-        {
           fromKey: 'algorithm',
           fromSlot: 'frontier',
           toKey: 'adapter-4',
@@ -155,6 +149,18 @@ const box: SandboxBox = {
           fromSlot: 'frontier',
           toKey: 'visualizer-1',
           toSlot: 'labels',
+        },
+        {
+          fromKey: 'problem',
+          fromSlot: '.',
+          toKey: 'adapter-3',
+          toSlot: 'graph',
+        },
+        {
+          fromKey: 'adapter-3',
+          fromSlot: 'heuristic',
+          toKey: 'algorithm',
+          toSlot: 'heuristic',
         },
       ],
     },

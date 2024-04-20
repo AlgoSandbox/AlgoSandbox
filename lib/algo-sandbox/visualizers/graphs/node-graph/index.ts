@@ -393,6 +393,19 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
             g.selectAll('.link')
               .data(links)
               .attr('d', (d: any) => {
+                const hasReverseLink = links.some(
+                  (link) =>
+                    link.source === d.target && link.target === d.source,
+                );
+
+                if (!hasReverseLink) {
+                  // Create straight edge
+                  const path = d3.path();
+                  path.moveTo(d.source.x, d.source.y);
+                  path.lineTo(d.target.x, d.target.y);
+                  return path.toString();
+                }
+
                 const isArrow = d.isArrow ?? false;
                 const [midPointX, midPointY] = getMidPoint(d);
 

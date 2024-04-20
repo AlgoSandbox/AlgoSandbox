@@ -13,7 +13,7 @@ import {
 } from '@algo-sandbox/states';
 import * as d3 from 'd3';
 import { D3DragEvent } from 'd3';
-import { cloneDeep, isEqual } from 'lodash';
+import { cloneDeep, isEqualWith } from 'lodash';
 import { z } from 'zod';
 
 type NodeGraph = SandboxState<typeof nodeGraphVisualizerInput>;
@@ -173,10 +173,22 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           const visualizerState = (() => {
             if (
               previousVisualizerState &&
-              isEqual(previousVisualizerState.graph, graph)
+              isEqualWith(
+                previousVisualizerState.graph,
+                graph,
+                (oldValue, newValue) => {
+                  if (
+                    typeof oldValue === 'function' &&
+                    typeof newValue === 'function'
+                  ) {
+                    return String(oldValue) === String(newValue);
+                  }
+                },
+              )
             ) {
               return previousVisualizerState;
             }
+
             return getVisualizerState(
               graph,
               previousVisualizerState?.nodes ?? [],
@@ -249,9 +261,8 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           // Create nodes
           const node = g
             .selectAll('.node')
-            .data(nodes)
+            .data(nodes.filter((d) => d.createElement === undefined))
             .enter()
-            .filter((d) => d.createElement === undefined)
             .append('circle')
             .attr('class', 'node')
             .attr('r', 15)
@@ -308,9 +319,8 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
           // Add labels to nodes
           g.selectAll('.label')
-            .data(nodes)
+            .data(nodes.filter((d) => d.createElement === undefined))
             .enter()
-            .filter((d) => d.createElement === undefined)
             .append('text')
             .text((d) => d.label ?? d.id)
             .attr('class', 'label')
@@ -322,9 +332,8 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
           // Add custom node elements
           const elems = g
             .selectAll('.element')
-            .data(nodes)
+            .data(nodes.filter((d) => d.createElement !== undefined))
             .enter()
-            .filter((d) => d.createElement !== undefined)
             .append((d) => {
               const svgElement = d.createElement!(document);
 
@@ -420,10 +429,11 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
                 return path.toString();
               });
 
-            const svgNodes = g.selectAll('.node').data(nodes);
+            const svgNodes = g
+              .selectAll('.node')
+              .data(nodes.filter((node) => node.createElement === undefined));
 
             svgNodes
-              .filter((node) => node.createElement === undefined)
               .attr('fill', 'var(--color-surface)')
               .attr('cx', (d: any) => d.x)
               .attr('cy', (d: any) => d.y);
@@ -432,9 +442,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
             const node: NodeGraphSVGNode = {
               fill: (getFill) => {
-                svgNodes
-                  .filter((node) => node.createElement === undefined)
-                  .attr('fill', (node) => getFill(node) ?? null);
+                svgNodes.attr('fill', (node) => getFill(node) ?? null);
                 return node;
               },
               textColor: (getTextColor) => {
@@ -444,9 +452,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
                 return node;
               },
               strokeColor: (getStrokeColor) => {
-                svgNodes
-                  .filter((node) => node.createElement === undefined)
-                  .attr('stroke', (node) => getStrokeColor(node) ?? null);
+                svgNodes.attr('stroke', (node) => getStrokeColor(node) ?? null);
                 return node;
               },
               raw: (render) => {
@@ -468,8 +474,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
 
             // Update custom node elements
             g.selectAll('.element')
-              .data(nodes)
-              .filter((d) => d.createElement !== undefined)
+              .data(nodes.filter((d) => d.createElement !== undefined))
               .attr('x', (d: any) => d.x - customElementSize / 2)
               .attr('y', (d: any) => d.y - customElementSize / 2);
 

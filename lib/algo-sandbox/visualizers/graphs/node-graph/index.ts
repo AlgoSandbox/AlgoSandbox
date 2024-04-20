@@ -380,6 +380,7 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               return [tx, ty];
             }
 
+            // Returns the mid point of the straight link
             function getMidPoint(d: any) {
               const sourceX = d.source.x;
               const sourceY = d.source.y;
@@ -390,8 +391,8 @@ const nodeGraphVisualizer: SandboxParameterizedVisualizer<
               const dy = targetY - sourceY;
 
               const tangentAngle = Math.atan2(-dx, dy);
-              const offsetX = Math.cos(tangentAngle) * 20;
-              const offsetY = Math.sin(tangentAngle) * 20;
+              const offsetX = Math.cos(tangentAngle) * 10;
+              const offsetY = Math.sin(tangentAngle) * 10;
 
               const midPointX = (d.source.x + d.target.x) / 2 + offsetX;
               const midPointY = (d.source.y + d.target.y) / 2 + offsetY;

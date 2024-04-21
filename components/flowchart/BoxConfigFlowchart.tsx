@@ -1110,6 +1110,7 @@ function BoxConfigFlowchartImpl({ tabId }: { tabId: string }) {
         defaultEdgeOptions={defaultEdgeOptions}
         proOptions={proOptions}
         fitView={true}
+        minZoom={0.001}
       >
         <Background className="bg-canvas" />
       </ReactFlow>

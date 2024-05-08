@@ -2,9 +2,9 @@ import { SandboxBox, SandboxBoxEvaluated } from '@algo-sandbox/core';
 import { SandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { mapValues } from 'lodash';
 
+import { EvalWithAlgoSandbox } from '../../lib/algo-sandbox/utils/evalWithAlgoSandboxServerSide';
 import getSandboxObjectWithKeyImpl from '../getSandboxObjectWithKeyImpl';
 import parseKeyWithParameters from '../parseKeyWithParameters';
-import { EvalWithAlgoSandbox } from '../../lib/algo-sandbox/utils/evalWithAlgoSandboxServerSide';
 
 export default function evalBoxImpl({
   box,

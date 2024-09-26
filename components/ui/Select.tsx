@@ -37,9 +37,11 @@ export type SelectProps<
   className?: string;
   containerClassName?: string;
   label: string;
+  hideArrow?: boolean;
   hideLabel?: boolean;
   placeholder?: string;
   options: Options;
+  defaultValue?: K;
   value?: K;
   variant?: SelectVariant;
   disabled?: boolean;
@@ -81,8 +83,10 @@ function Select<T, K extends string>(
     containerClassName,
     label,
     hideLabel = false,
+    hideArrow = false,
     placeholder,
     options,
+    defaultValue,
     value,
     disabled,
     variant = 'flat',
@@ -100,6 +104,7 @@ function Select<T, K extends string>(
   const selectElement = (
     <RadixSelect.Root
       disabled={disabled}
+      defaultValue={defaultValue}
       value={value}
       onValueChange={(key) => {
         const newValue = flattenedOptions.find((option) => option.key === key);
@@ -142,9 +147,11 @@ function Select<T, K extends string>(
         )}
       >
         <RadixSelect.Value placeholder={placeholder} />
-        <RadixSelect.Icon asChild>
-          <MaterialSymbol className="text-label" icon="arrow_drop_down" />
-        </RadixSelect.Icon>
+        {!hideArrow && (
+          <RadixSelect.Icon asChild>
+            <MaterialSymbol className="text-label" icon="arrow_drop_down" />
+          </RadixSelect.Icon>
+        )}
       </RadixSelect.Trigger>
       <RadixSelect.Portal>
         <RadixSelect.Content className="bg-surface-high shadow rounded z-50">

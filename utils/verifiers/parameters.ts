@@ -17,6 +17,7 @@ export const sandboxParameterType = z.union([
   z.literal('graph'),
   z.literal('grid'),
   z.literal('spreadsheet'),
+  z.literal('newGrid'),
 ]) satisfies z.ZodType<SandboxParameterType>;
 
 export type AssertEqual<T, Expected> = [T] extends [Expected]

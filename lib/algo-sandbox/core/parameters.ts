@@ -10,6 +10,10 @@ export type SandboxParameterTypeMap = {
   grid: string;
   spreadsheet: string;
   arrayNumber: Array<number>;
+  newGrid: [
+    Array<Array<Array<Record<string, unknown>>>>,
+    Array<[string, string]>,
+  ];
 };
 
 export type SandboxParameterType = keyof SandboxParameterTypeMap;
@@ -184,6 +188,22 @@ export function spreadsheet(
   };
 }
 
+export function newGrid(
+  name: string,
+  defaultValue: [
+    Array<Array<Array<Record<string, unknown>>>>,
+    Array<[string, string]>,
+  ],
+  validate?: (value: SandboxParameterTypeMap['newGrid']) => string | boolean,
+): SandboxParameter<'newGrid'> {
+  return {
+    name,
+    type: 'newGrid',
+    defaultValue,
+    validate,
+  };
+}
+
 export function getDefaultParameters<P extends SandboxParameters>(
   parameters: P,
 ): ParsedParameters<P> {
@@ -203,4 +223,5 @@ export const SandboxParam = {
   code,
   graph,
   grid,
+  newGrid,
 };

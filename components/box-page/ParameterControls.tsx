@@ -75,8 +75,16 @@ function GridEditorDialogControl({
   value,
   onChange,
 }: {
-  value: string;
-  onChange: (value: string) => void;
+  value: [
+    Array<Array<Array<Record<string, unknown>>>>,
+    Array<[string, string]>,
+  ];
+  onChange: (
+    value: [
+      Array<Array<Array<Record<string, unknown>>>>,
+      Array<[string, string]>,
+    ],
+  ) => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -118,6 +126,42 @@ function NumberArrayGeneratorDialogControl({
         onClick={() => setOpen(true)}
       />
       <NumberArrayEditorDialog
+        open={open}
+        onOpenChange={setOpen}
+        value={value}
+        onChange={onChange}
+      />
+    </>
+  );
+}
+
+function NewGridDialogControl({
+  value,
+  onChange,
+}: {
+  value: [
+    Array<Array<Array<Record<string, unknown>>>>,
+    Array<[string, string]>,
+  ];
+  onChange: (
+    value: [
+      Array<Array<Array<Record<string, unknown>>>>,
+      Array<[string, string]>,
+    ],
+  ) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        label="Edit grid"
+        type="button"
+        variant="filled"
+        icon={<MaterialSymbol icon="edit" />}
+        onClick={() => setOpen(true)}
+      />
+      <GridEditorDialog
         open={open}
         onOpenChange={setOpen}
         value={value}
@@ -325,6 +369,28 @@ function ParameterControl<P extends SandboxParameter>({
                 }}
               />
             )}
+          />
+        );
+      case 'newGrid': // need to rename this to grid
+        return (
+          <Controller
+            control={control}
+            name={fieldName}
+            render={({ field: { onChange, value } }) => {
+              return (
+                <NewGridDialogControl
+                  value={value}
+                  onChange={(value) => {
+                    onChange({
+                      target: {
+                        value,
+                      },
+                    });
+                    onSave();
+                  }}
+                />
+              );
+            }}
           />
         );
       default:

@@ -11,22 +11,16 @@ import { SandboxScene } from '@utils/scene';
 
 import createInitialScene from './createInitialScene';
 
-export type EvalWorkerArgs =
-  | {
-      action: 'initialize';
-      data: {
-        box: SandboxBox | null;
-        sandboxComponents: SandboxComponents;
-      };
-    }
-  | {
-      action: 'execute';
-      data: {
-        untilCount?: number;
-        maxExecutionStepCount: number;
-        updateCount: number;
-      };
-    };
+export type EvalWorkerArgs = {
+  action: 'execute';
+  data: {
+    box: SandboxBox | null;
+    sandboxComponents: SandboxComponents;
+    untilCount?: number;
+    maxExecutionStepCount: number;
+    updateCount: number;
+  };
+};
 
 export type EvalWorkerResponse = {
   scene: string | null;
@@ -58,18 +52,9 @@ function postScene({
     const { action, data } = event.data;
 
     // simulate expensive operation
-
-    if (action === 'initialize') {
-      scene = createInitialScene(data);
-
-      postScene({ scene, finished: true });
-
-      return;
-    }
-
     if (action === 'execute') {
-      const { untilCount, maxExecutionStepCount, updateCount } = data;
-
+      const { untilCount, maxExecutionStepCount, updateCount, ...rest } = data;
+      scene = createInitialScene(rest);
       if (scene === null) {
         return;
       }

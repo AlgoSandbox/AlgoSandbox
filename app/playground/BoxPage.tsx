@@ -50,6 +50,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { ZodError } from 'zod';
 
+import BoxPageSkeleton from './BoxPageSkeleton';
+
 function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
@@ -74,60 +76,33 @@ function BoxPageExecutionWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [box, workerBox]);
 
-  const { scene, execute, isExecuting } = useWorkerExecutedScene({
+  const { scene, isExecuting } = useWorkerExecutedScene({
     box: workerBox,
   });
 
-  const isFullyExecuted = useMemo(
-    () => scene?.isFullyExecuted ?? false,
-    [scene],
-  );
-
   const handleCurrentStepIndexChange = useCallback(
     async (newStepIndex: number) => {
-      if (newStepIndex < scene!.executionTrace.length) {
-        setCurrentStepIndex(newStepIndex);
-        return;
-      }
-
-      if (isFullyExecuted) {
-        const clampedStepIndex = Math.min(
-          newStepIndex,
-          scene!.executionTrace.length - 1,
-        );
-        setCurrentStepIndex(clampedStepIndex);
-        return;
-      }
-
-      const newScene = await execute(newStepIndex + 1);
-      if (newScene === null) {
-        return;
-      }
+      if (!scene) return;
 
       const clampedStepIndex = Math.min(
         newStepIndex,
-        newScene.executionTrace.length - 1,
+        scene!.executionTrace.length - 1,
       );
       setCurrentStepIndex(clampedStepIndex);
+      return;
     },
-    [execute, isFullyExecuted, scene],
+    [scene],
   );
-
+  if (!scene) {
+    return <BoxPageSkeleton />;
+  }
   return (
     <BoxControlsContextProvider
       scene={scene}
       isExecuting={isExecuting}
-      maxSteps={isFullyExecuted ? scene!.executionTrace.length : null}
+      maxSteps={scene!.executionTrace.length}
       onSkipToEnd={async () => {
-        if (isFullyExecuted) {
-          setCurrentStepIndex(scene!.executionTrace.length - 1);
-          return;
-        }
-        const newScene = await execute();
-        if (newScene === null) {
-          return;
-        }
-        setCurrentStepIndex(newScene.executionTrace.length - 1);
+        setCurrentStepIndex(scene!.executionTrace.length - 1);
       }}
       currentStepIndex={currentStepIndex}
       onCurrentStepIndexChange={handleCurrentStepIndexChange}

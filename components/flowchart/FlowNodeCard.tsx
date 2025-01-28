@@ -124,6 +124,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
 
       return (
         <FlowNodeSlot
+          key={`${id}-left`}
           id={id}
           label={label}
           subLabel={subLabel}
@@ -160,6 +161,7 @@ const FlowNodeCard = forwardRef<HTMLDivElement, FlowNodeProps>(
 
       return (
         <FlowNodeSlot
+          key={`${id}-right`}
           id={id}
           label={label}
           subLabel={subLabel}

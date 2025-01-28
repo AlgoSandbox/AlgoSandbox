@@ -14,7 +14,7 @@ export function useFlowchartMode() {
   return useContext(FlowchartModeContext);
 }
 
-export default function FlowchartModeProvider({
+export function FlowchartModeProvider({
   flowchartMode,
   onFlowchartModeChange: setFlowchartMode,
   children,

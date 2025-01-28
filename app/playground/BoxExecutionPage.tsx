@@ -10,6 +10,10 @@ import {
   useBoxContext,
   useBoxControlsContext,
 } from '@components/box-page';
+import {
+  useFlowchartCalculations,
+  useScene,
+} from '@components/box-page/SceneProvider';
 import ErrorDisplay from '@components/common/ErrorDisplay';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import {
@@ -26,8 +30,6 @@ import { useDragDropManager } from 'react-dnd';
 import { Mosaic, MosaicNode, MosaicWindow } from 'react-mosaic-component';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import { toast } from 'sonner';
-
-import { useFlowchartCalculations, useScene } from './BoxPage';
 
 export default function BoxExecutionPage() {
   const { maxExecutionStepCount } = useUserPreferences();

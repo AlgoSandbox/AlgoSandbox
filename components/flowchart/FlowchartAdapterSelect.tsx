@@ -1,7 +1,7 @@
 import { error } from '@app/errors';
 import { useBoxContext } from '@components/box-page';
 import { Instance } from '@components/box-page/box-context/sandbox-object';
-import FlowchartComponentSelect from '@components/flowchart/FlowchartComponentSelect';
+import { FlowchartComponentSelect } from '@components/flowchart/FlowchartComponentSelect';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
@@ -11,7 +11,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
-export default function FlowchartAdapterSelect({
+export function FlowchartAdapterSelect({
   className,
   alias,
   hideLabel,

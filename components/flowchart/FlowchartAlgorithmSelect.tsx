@@ -4,10 +4,10 @@ import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
 import { useCallback, useMemo } from 'react';
 
 import { useBoxContext } from '../box-page/box-context';
-import FlowchartComponentSelect from './FlowchartComponentSelect';
+import { FlowchartComponentSelect } from './FlowchartComponentSelect';
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
-export default function FlowchartAlgorithmSelect({
+export function FlowchartAlgorithmSelect({
   className,
   hideLabel,
   hideErrors,

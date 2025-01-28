@@ -1,8 +1,8 @@
 import 'reactflow/dist/style.css';
 
 import { BoxConfigTree, SandboxParam } from '@algo-sandbox/core';
-import { useFlowchartCalculations } from '@app/playground/BoxPage';
 import CatalogSelect from '@components/box-page/CatalogSelect';
+import { useFlowchartCalculations } from '@components/box-page/SceneProvider';
 import StyledJoyride from '@components/joyride/StyledJoyride';
 import { useSandboxComponents } from '@components/playground/SandboxComponentsProvider';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
@@ -43,9 +43,8 @@ import {
   useBoxContext,
   useBoxControlsContext,
 } from '../box-page';
-import FlowchartModeProvider, {
-  useFlowchartMode,
-} from './FlowchartModeProvider';
+import { FlowchartModeProvider } from './FlowchartModeProvider';
+import { useFlowchartMode } from './FlowchartModeProvider';
 import FlowNodeCard, { FlowNodeData, FlowNodeProps } from './FlowNodeCard';
 
 type FlowNode = Node<FlowNodeProps['data']>;

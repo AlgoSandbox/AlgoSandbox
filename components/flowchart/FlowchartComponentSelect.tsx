@@ -14,21 +14,7 @@ import { ParameterControls } from '../box-page';
 import { Value } from '../box-page/box-context/sandbox-object';
 import CatalogSelect from '../box-page/CatalogSelect';
 
-export default function FlowchartComponentSelect<
-  T extends DbSandboxObjectType,
->({
-  className,
-  label,
-  hideLabel,
-  hideErrors,
-  value: selectedOption,
-  onChange: setSelectedValue,
-  options,
-  evaluatedValue,
-  defaultParameters,
-  parameters = {},
-  showPreview,
-}: {
+interface FlowchartComponentSelectProps<T extends DbSandboxObjectType> {
   className?: string;
   label: string;
   hideLabel?: boolean;
@@ -43,7 +29,21 @@ export default function FlowchartComponentSelect<
   defaultParameters: Readonly<Record<string, any>> | null;
   parameters: Record<string, any> | null;
   showPreview?: boolean;
-}) {
+}
+
+export function FlowchartComponentSelect<T extends DbSandboxObjectType>({
+  className,
+  label,
+  hideLabel,
+  hideErrors,
+  value: selectedOption,
+  onChange: setSelectedValue,
+  options,
+  evaluatedValue,
+  defaultParameters,
+  parameters = {},
+  showPreview,
+}: FlowchartComponentSelectProps<T>) {
   const { addOrFocusTab } = useTabManager();
   const { flowchartMode } = useUserPreferences();
 

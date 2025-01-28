@@ -1,7 +1,11 @@
 import { ErrorEntry } from '@app/errors';
 import ErrorDisplay from '@components/common/ErrorDisplay';
-import FlowchartAlgorithmSelect from '@components/flowchart/FlowchartAlgorithmSelect';
-import FlowchartProblemSelect from '@components/flowchart/FlowchartProblemSelect';
+import {
+  FlowchartAdapterSelect,
+  FlowchartAlgorithmSelect,
+  FlowchartProblemSelect,
+  FlowchartVisualizerSelect,
+} from '@components/flowchart';
 import { useUserPreferences } from '@components/preferences/UserPreferencesProvider';
 import { Button, Input, MaterialSymbol } from '@components/ui';
 import Dialog from '@components/ui/Dialog';
@@ -17,8 +21,6 @@ import {
 } from 'reactflow';
 import { ZodError } from 'zod';
 
-import FlowchartAdapterSelect from './FlowchartAdapterSelect';
-import FlowchartVisualizerSelect from './FlowchartVisualizerSelect';
 import FlowNodeSlot from './FlowNodeSlot';
 
 export type FlowNodeData = {

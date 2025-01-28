@@ -4,10 +4,10 @@ import { errorFlowchartIncompatibleComponent } from '@constants/flowchart';
 import getUsedSlotsForAlias from '@utils/box-config/getUsedSlotsForAlias';
 import { useCallback, useMemo } from 'react';
 
-import FlowchartComponentSelect from './FlowchartComponentSelect';
+import { FlowchartComponentSelect } from './FlowchartComponentSelect';
 import { useFilteredObjectOptions } from './useFilteredObjectOptions';
 
-export default function FlowchartProblemSelect({
+export function FlowchartProblemSelect({
   hideLabel,
   hideErrors,
   className,

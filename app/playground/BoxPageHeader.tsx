@@ -18,6 +18,8 @@ import { DbBoxSaved, DbSandboxObjectSaved } from '@utils/db';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+import { BoxPageHeaderParameters } from './BoxPageHeaderParameters';
+
 interface BoxPageHeaderProps {
   handleSaveClick: () => void;
   handleDeleteClick: () => void;
@@ -121,6 +123,7 @@ export function BoxPageHeader({
       </div>
       {isExecutionPageVisible && (
         <div className="ms-4 hidden lg:flex items-center gap-4">
+          <BoxPageHeaderParameters />
           <CustomizeViewPopover />
         </div>
       )}
